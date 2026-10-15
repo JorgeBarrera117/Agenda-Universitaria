@@ -8,12 +8,15 @@ import {
   Award,
   Clock,
   FileText,
+  User,
 } from 'lucide-react';
 import { useSubjects } from '../hooks/useSubjects';
+import { useProfessors } from '../../professors/hooks/useProfessors';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useNotes } from '../../notes/hooks/useNotes';
 import { SubjectForm } from './SubjectForm';
 import { SubjectIcon } from './SubjectIcon';
+import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import type { Subject, CreateSubjectDTO } from '../types';
@@ -24,6 +27,7 @@ interface SubjectsViewProps {
 
 export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes }) => {
   const { subjects, isLoading, addSubject, updateSubject, removeSubject } = useSubjects();
+  const { professors } = useProfessors();
   const { slots } = useSchedule();
   const { notes } = useNotes();
 
@@ -165,6 +169,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
           {subjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;
+            const prof = professors.find((p) => p.id === subject.professorId || p.subjectIds.includes(subject.id));
 
             return (
               <div
@@ -203,6 +208,32 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
 
                   {/* Ficha de Credenciales Académicas */}
                   <div className="space-y-2 text-xs">
+                    {/* Catedrático / Profesor Asignado */}
+                    {prof ? (
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/90 border border-slate-200/80 text-slate-800 shadow-2xs">
+                        <ProfessorAvatar
+                          name={prof.name}
+                          icon={prof.icon}
+                          color={prof.color}
+                          size="sm"
+                          className="shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold truncate text-slate-900 text-xs">
+                            {prof.name}
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate">
+                            {prof.office || prof.email || 'Docente titular'}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
+                        <User className="w-4 h-4 text-slate-300 shrink-0" />
+                        <span>Sin docente asignado</span>
+                      </div>
+                    )}
+
                     {subject.classroomDefault ? (
                       <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/70 text-slate-700">
                         <MapPin className="w-4 h-4 text-cove-sky shrink-0" />

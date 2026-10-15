@@ -75,35 +75,59 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Sincronizar estado cuando se cargan las materias de Dexie
+  // Sincronizar estado inicial cuando se cargan las materias de Dexie
   useEffect(() => {
-    if (!subjectId && subjects.length > 0) {
-      const targetId = initialData?.subjectId || subjects[0].id;
+    if (!initialData && subjects.length > 0 && !subjectId) {
+      const targetId = subjects[0].id;
       setSubjectId(targetId);
-      const sub = subjects.find((s) => s.id === targetId);
-      if (sub?.classroomDefault) {
-        setClassroom((prev) => prev || sub.classroomDefault || '');
-      }
-      const profForSub = professors.find((p) => p.subjectIds.includes(targetId));
+      const sub = subjects[0];
+      const profForSub = sub.professorId
+        ? professors.find((p) => p.id === sub.professorId)
+        : professors.find((p) => p.subjectIds.includes(targetId));
+
       if (profForSub) {
-        setProfessorId((prev) => prev || profForSub.id);
+        setProfessorId(profForSub.id);
+      }
+      if (sub.classroomDefault) {
+        const lower = sub.classroomDefault.toLowerCase();
+        if (lower.includes('virtual') || lower.includes('zoom') || lower.includes('teams') || lower.includes('meet')) {
+          setModality('virtual');
+          setVirtualPlatform(sub.classroomDefault);
+        } else {
+          setModality('presencial');
+          setClassroom(sub.classroomDefault);
+        }
       }
     }
   }, [subjects, subjectId, initialData, professors]);
 
-  // Cuando cambia la materia seleccionada, sugerir su aula y profesor
+  // Cuando cambia la materia seleccionada, auto-asignar inteligentemente su profesor y aula
   const handleSubjectChange = (newSubjectId: string) => {
     setSubjectId(newSubjectId);
     const sub = subjects.find((s) => s.id === newSubjectId);
-    if (sub?.classroomDefault && !classroom) {
-      setClassroom(sub.classroomDefault);
-      if (sub.classroomDefault.toLowerCase().includes('virtual')) {
-        setModality('virtual');
-      }
-    }
-    const profForSub = professors.find((p) => p.subjectIds.includes(newSubjectId));
-    if (profForSub && !professorId) {
+    if (!sub) return;
+
+    // 1. Auto-asignar profesor vinculado a la materia
+    const profForSub = sub.professorId
+      ? professors.find((p) => p.id === sub.professorId)
+      : professors.find((p) => p.subjectIds.includes(newSubjectId));
+
+    if (profForSub) {
       setProfessorId(profForSub.id);
+    } else {
+      setProfessorId('');
+    }
+
+    // 2. Auto-asignar aula habitual y modalidad
+    if (sub.classroomDefault) {
+      const lower = sub.classroomDefault.toLowerCase();
+      if (lower.includes('virtual') || lower.includes('zoom') || lower.includes('teams') || lower.includes('meet')) {
+        setModality('virtual');
+        setVirtualPlatform(sub.classroomDefault);
+      } else {
+        setModality('presencial');
+        setClassroom(sub.classroomDefault);
+      }
     }
   };
 
@@ -300,11 +324,16 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                 required
               >
                 <option value="" disabled>-- Selecciona una materia --</option>
-                {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} {s.code ? `(${s.code})` : ''}
-                  </option>
-                ))}
+                {subjects.map((s) => {
+                  const prof = s.professorId
+                    ? professors.find((p) => p.id === s.professorId)
+                    : professors.find((p) => p.subjectIds.includes(s.id));
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {s.name} {s.code ? `(${s.code})` : ''} {prof ? `• Prof. ${prof.name}` : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}

@@ -6,6 +6,7 @@ export interface Subject {
   icon?: string;
   credits?: number;
   classroomDefault?: string;
+  professorId?: string;
   createdAt: string;
 }
 

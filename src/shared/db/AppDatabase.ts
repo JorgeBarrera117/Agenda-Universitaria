@@ -22,6 +22,9 @@ export class AppDatabase extends Dexie {
     this.version(2).stores({
       noteImages: 'id, noteId, createdAt',
     });
+    this.version(3).stores({
+      subjects: 'id, name, code, professorId',
+    });
   }
 }
 
@@ -42,6 +45,7 @@ export async function seedInitialDataIfEmpty() {
     color: '#3b82f6', // blue
     credits: 5,
     classroomDefault: 'Aula 204, Edificio A',
+    professorId: 'prof-garcia',
     createdAt: now,
   };
 
@@ -52,6 +56,7 @@ export async function seedInitialDataIfEmpty() {
     color: '#10b981', // emerald
     credits: 6,
     classroomDefault: 'Laboratorio de Cómputo 3',
+    professorId: 'prof-torres',
     createdAt: now,
   };
 
