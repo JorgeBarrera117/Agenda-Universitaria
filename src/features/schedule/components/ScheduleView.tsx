@@ -19,6 +19,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { Modal } from '../../../shared/components/Modal';
+import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import {
   DAY_NAMES,
@@ -278,7 +279,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
           <button
             onClick={() => handleOpenCreate(selectedDay)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/25 cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/25 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nueva Clase
@@ -697,6 +698,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
           </div>
         </div>
       </Modal>
+
+      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      <DraggableFAB
+        onClick={() => handleOpenCreate(selectedDay)}
+        label="Programar Nueva Cátedra"
+      />
     </div>
   );
 };

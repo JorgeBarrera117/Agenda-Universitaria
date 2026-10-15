@@ -14,6 +14,7 @@ import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useNotes } from '../../notes/hooks/useNotes';
 import { SubjectForm } from './SubjectForm';
 import { Modal } from '../../../shared/components/Modal';
+import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import type { Subject, CreateSubjectDTO } from '../types';
 
 interface SubjectsViewProps {
@@ -120,7 +121,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
         </div>
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
+          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Inscribir Asignatura
@@ -300,6 +301,12 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
           </div>
         </div>
       </Modal>
+
+      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      <DraggableFAB
+        onClick={handleOpenCreate}
+        label="Inscribir Asignatura"
+      />
     </div>
   );
 };

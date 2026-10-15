@@ -14,6 +14,7 @@ import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { ProfessorForm } from './ProfessorForm';
 import { Modal } from '../../../shared/components/Modal';
+import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import type { Professor, CreateProfessorDTO } from '../types';
 
 export const ProfessorsView: React.FC = () => {
@@ -72,7 +73,7 @@ export const ProfessorsView: React.FC = () => {
         </div>
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
+          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Registrar Catedrático
@@ -297,6 +298,12 @@ export const ProfessorsView: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      <DraggableFAB
+        onClick={handleOpenCreate}
+        label="Registrar Catedrático"
+      />
     </div>
   );
 };
