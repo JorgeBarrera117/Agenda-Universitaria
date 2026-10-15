@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
+import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
@@ -472,9 +473,14 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
               }}
             >
               <span
-                className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
-                style={{ backgroundColor: isSelected ? '#ffffff' : sub.color }}
-              />
+                className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0 shadow-2xs"
+                style={{
+                  backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : `${sub.color}25`,
+                  color: isSelected ? '#ffffff' : sub.color,
+                }}
+              >
+                <SubjectIcon icon={sub.icon} className="w-3.5 h-3.5" />
+              </span>
               {sub.name}
             </button>
           );
@@ -536,7 +542,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs truncate max-w-[180px]"
                         style={{ backgroundColor: subject?.color || '#006BBB' }}
                       >
-                        <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                        <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 shrink-0" />
                         <span className="truncate">{subject?.name || 'Materia'}</span>
                       </span>
 

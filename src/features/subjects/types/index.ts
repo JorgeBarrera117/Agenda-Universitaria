@@ -3,6 +3,7 @@ export interface Subject {
   name: string;
   code?: string;
   color: string;
+  icon?: string;
   credits?: number;
   classroomDefault?: string;
   createdAt: string;

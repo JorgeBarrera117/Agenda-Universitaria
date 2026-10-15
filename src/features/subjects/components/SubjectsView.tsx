@@ -13,6 +13,7 @@ import { useSubjects } from '../hooks/useSubjects';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useNotes } from '../../notes/hooks/useNotes';
 import { SubjectForm } from './SubjectForm';
+import { SubjectIcon } from './SubjectIcon';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import type { Subject, CreateSubjectDTO } from '../types';
@@ -176,21 +177,28 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
               >
                 {/* Contenido Principal (Izquierda) */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
-                  <div className="space-y-2">
-                    {/* Código e Indicador de Color */}
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full ring-2 ring-white shadow-2xs shrink-0"
-                        style={{ backgroundColor: subject.color }}
-                      />
-                      <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
-                        {subject.code || 'ASIGNATURA'}
-                      </span>
+                  <div className="flex items-start gap-3">
+                    {/* Badge / Avatar con el Ícono y Color de la Asignatura */}
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ring-2 ring-white/30 shrink-0"
+                      style={{ backgroundColor: subject.color }}
+                      title={subject.name}
+                    >
+                      <SubjectIcon icon={subject.icon} className="w-6 h-6 text-white" />
                     </div>
 
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug line-clamp-2">
-                      {subject.name}
-                    </h3>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      {/* Código de Asignatura */}
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
+                          {subject.code || 'ASIGNATURA'}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug line-clamp-2">
+                        {subject.name}
+                      </h3>
+                    </div>
                   </div>
 
                   {/* Ficha de Credenciales Académicas */}

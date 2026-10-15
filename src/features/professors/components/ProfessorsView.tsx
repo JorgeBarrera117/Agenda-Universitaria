@@ -7,11 +7,11 @@ import {
   Phone,
   MapPin,
   Users,
-  BookOpen,
   CalendarCheck,
 } from 'lucide-react';
 import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
+import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
@@ -202,7 +202,7 @@ export const ProfessorsView: React.FC = () => {
                             className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl text-xs font-bold text-white shadow-2xs"
                             style={{ backgroundColor: sub.color }}
                           >
-                            <BookOpen className="w-3 h-3" />
+                            <SubjectIcon icon={sub.icon} className="w-3 h-3 shrink-0" />
                             {sub.name}
                           </span>
                         );
