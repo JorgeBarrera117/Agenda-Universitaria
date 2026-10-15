@@ -287,7 +287,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
       </div>
 
       {/* 3. SELECTOR DE DÍAS (Píldoras estilo Campus sincronizadas con la configuración) */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-none">
         {displayedDays.map((day) => {
           const isSelected = selectedDay === day;
           const isToday = currentDayOfWeek === day;
@@ -300,27 +300,25 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 setSelectedDay(day as DayOfWeek);
                 if (window.innerWidth < 640) setViewMode('daily');
               }}
-              className={`flex-1 min-w-[76px] py-3 px-2 rounded-2xl text-center border transition-all cursor-pointer ${
+              className={`flex-1 min-w-[42px] sm:min-w-[70px] py-2 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl text-center border transition-all cursor-pointer ${
                 isSelected
                   ? 'bg-cove-navy text-white border-cove-navy shadow-md ring-2 ring-cove-sky/40'
                   : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
-              <div className="text-[10px] font-bold tracking-wider uppercase opacity-75">
-                {SHORT_DAY_NAMES[day as DayOfWeek]}
-              </div>
-              <div className="text-sm font-black flex items-center justify-center gap-1 mt-0.5">
-                {DAY_NAMES[day as DayOfWeek].slice(0, 3)}
+              <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1">
+                <span>{SHORT_DAY_NAMES[day as DayOfWeek]}</span>
                 {isToday && (
-                  <span className="w-2 h-2 rounded-full bg-cove-gold ring-2 ring-white/50" />
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cove-gold ring-1 ring-white/60 shrink-0" />
                 )}
               </div>
               <div
-                className={`text-[10px] mt-1 font-semibold ${
+                className={`text-[9px] sm:text-[10px] mt-0.5 sm:mt-1 font-semibold truncate ${
                   isSelected ? 'text-cove-sand' : 'text-slate-400'
                 }`}
               >
-                {count} {count === 1 ? 'bloque' : 'bloques'}
+                <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
+                <span className="hidden sm:inline">{count} {count === 1 ? 'bloque' : 'bloques'}</span>
               </div>
             </button>
           );
@@ -494,9 +492,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
       )}
 
       {/* 5. VISTA DIARIA (Móvil / Pases de Aula Detallados) */}
-      {(viewMode === 'daily' || window.innerWidth < 640) && (
-        <div className="space-y-3.5">
-          <div className="flex items-center justify-between bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+      <div className={viewMode === 'weekly' ? 'block sm:hidden space-y-3.5' : 'space-y-3.5'}>
+        <div className="flex items-center justify-between bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-2xs">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Horario para el día
@@ -658,7 +655,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             </div>
           )}
         </div>
-      )}
 
       {/* Modal Crear / Editar */}
       <Modal

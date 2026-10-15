@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Download,
   Upload,
@@ -33,6 +33,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [draftSettings, setDraftSettings] = useState<AppSettings>(settings);
+
+  // Sincronizar el borrador de configuración cada vez que se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      setDraftSettings(settings);
+      refreshStorageEstimate();
+    }
+  }, [isOpen, settings]);
+
+  const handleCancel = () => {
+    setDraftSettings(settings); // Descartar cambios no confirmados
+    onClose();
+  };
+
+  const handleSaveAndApply = () => {
+    updateSettings(draftSettings);
+    onShowToast('Ajustes guardados y aplicados correctamente.');
+    onClose();
+  };
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -68,7 +88,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Configuración de la Agenda" maxWidth="md">
+    <Modal isOpen={isOpen} onClose={handleCancel} title="Configuración de la Agenda" maxWidth="md">
       <div className="space-y-6 text-slate-800">
         {/* 1. SECCIÓN: GESTIÓN DE DATOS Y RESPALDOS (OFFLINE-FIRST) */}
         <div className="space-y-3">
@@ -153,8 +173,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </label>
               <input
                 type="text"
-                value={settings.semesterName}
-                onChange={(e) => updateSettings({ semesterName: e.target.value })}
+                value={draftSettings.semesterName}
+                onChange={(e) =>
+                  setDraftSettings((prev) => ({ ...prev, semesterName: e.target.value }))
+                }
                 placeholder="Ej. Semestre 2026-I, Otoño 2026"
                 className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-cove-sky"
               />
@@ -168,9 +190,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => updateSettings({ defaultScheduleView: 'weekly' })}
+                  onClick={() =>
+                    setDraftSettings((prev) => ({ ...prev, defaultScheduleView: 'weekly' }))
+                  }
                   className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                    settings.defaultScheduleView === 'weekly'
+                    draftSettings.defaultScheduleView === 'weekly'
                       ? 'bg-cove-navy text-white border-cove-navy shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                   }`}
@@ -180,9 +204,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => updateSettings({ defaultScheduleView: 'daily' })}
+                  onClick={() =>
+                    setDraftSettings((prev) => ({ ...prev, defaultScheduleView: 'daily' }))
+                  }
                   className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                    settings.defaultScheduleView === 'daily'
+                    draftSettings.defaultScheduleView === 'daily'
                       ? 'bg-cove-navy text-white border-cove-navy shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                   }`}
@@ -208,12 +234,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     key={item.id}
                     type="button"
                     onClick={() =>
-                      updateSettings({
+                      setDraftSettings((prev) => ({
+                        ...prev,
                         visibleDays: item.id as AppSettings['visibleDays'],
-                      })
+                      }))
                     }
                     className={`py-2 px-2 rounded-xl text-[11px] font-bold text-center transition-all cursor-pointer border ${
-                      settings.visibleDays === item.id
+                      draftSettings.visibleDays === item.id
                         ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                     }`}
@@ -240,9 +267,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => updateSettings({ imageQuality: 'balanced' })}
+                onClick={() =>
+                  setDraftSettings((prev) => ({ ...prev, imageQuality: 'balanced' }))
+                }
                 className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                  settings.imageQuality === 'balanced'
+                  draftSettings.imageQuality === 'balanced'
                     ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                 }`}
@@ -252,9 +281,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => updateSettings({ imageQuality: 'high' })}
+                onClick={() =>
+                  setDraftSettings((prev) => ({ ...prev, imageQuality: 'high' }))
+                }
                 className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                  settings.imageQuality === 'high'
+                  draftSettings.imageQuality === 'high'
                     ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                 }`}
@@ -282,12 +313,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200/80">
           <button
-            onClick={onClose}
-            className="px-5 py-2.5 bg-cove-navy hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+            type="button"
+            onClick={handleCancel}
+            className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
           >
-            Listo, cerrar ajustes
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAndApply}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-cove-navy hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md shadow-cove-navy/20 active:scale-95"
+          >
+            <Check className="w-4 h-4 text-emerald-400" />
+            <span>Listo, guardar y aplicar cambios</span>
           </button>
         </div>
       </div>
