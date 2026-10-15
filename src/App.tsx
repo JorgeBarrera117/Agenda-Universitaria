@@ -5,12 +5,14 @@ import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { SubjectsView } from './features/subjects/components/SubjectsView';
 import { ProfessorsView } from './features/professors/components/ProfessorsView';
 import { NotesView } from './features/notes/components/NotesView';
+import { SettingsModal } from './features/settings/components/SettingsModal';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useSubjects } from './features/subjects/hooks/useSubjects';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
 
   const { subjects } = useSubjects();
@@ -53,8 +55,15 @@ export function App() {
           if (tab !== 'notes') setSelectedSubjectForNotes(undefined);
           setActiveTab(tab);
         }}
-        onShowToast={showToast}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         subjectCount={subjects.length}
+      />
+
+      {/* Modal de Configuración (Opción A) */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onShowToast={showToast}
       />
 
       {/* Notificación Toast Flotante */}

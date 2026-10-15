@@ -19,6 +19,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { Modal } from '../../../shared/components/Modal';
+import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import {
   DAY_NAMES,
   SHORT_DAY_NAMES,
@@ -35,6 +36,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
   const { slots, isLoading, addSlot, updateSlot, removeSlot } = useSchedule();
   const { getSubjectById } = useSubjects();
   const { getProfessorById } = useProfessors();
+  const { settings } = useAppSettings();
 
   // Día actual del sistema (1 = Lunes, ..., 7 = Domingo)
   const currentDayOfWeek = (() => {
@@ -43,7 +45,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
   })();
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(currentDayOfWeek);
-  const [viewMode, setViewMode] = useState<'weekly' | 'daily'>('weekly');
+  const [viewMode, setViewMode] = useState<'weekly' | 'daily'>(
+    settings.defaultScheduleView
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<ScheduleSlot | undefined>(undefined);
   const [slotToDelete, setSlotToDelete] = useState<ScheduleSlot | null>(null);
@@ -102,9 +106,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
     );
   }
 
-  // Días a mostrar
-  const hasSaturday = slots.some((s) => s.dayOfWeek === 6);
-  const hasSunday = slots.some((s) => s.dayOfWeek === 7);
+  // Días a mostrar según configuración y asignaturas existentes
+  const hasSaturday =
+    slots.some((s) => s.dayOfWeek === 6) ||
+    settings.visibleDays === 'mon-sat' ||
+    settings.visibleDays === 'all';
+  const hasSunday =
+    slots.some((s) => s.dayOfWeek === 7) || settings.visibleDays === 'all';
   const displayedDays: DayOfWeek[] = [1, 2, 3, 4, 5];
   if (hasSaturday || selectedDay === 6) displayedDays.push(6);
   if (hasSunday || selectedDay === 7) displayedDays.push(7);
@@ -228,10 +236,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
       {/* 2. ENCABEZADO Y SELECTOR DE VISTAS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Horario Académico
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Horario Académico
+            </h2>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 text-cove-blue border border-cove-sky/30 shadow-2xs">
+              {settings.semesterName}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
             Planificación de bloques lectivos, aulas y cátedras universitarias.
           </p>
         </div>

@@ -1,36 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
   BookOpen,
   Users,
   FileText,
-  Download,
-  Upload,
   Wifi,
   WifiOff,
   GraduationCap,
   Sparkles,
+  Settings,
 } from 'lucide-react';
-import { exportDatabaseBackup, importDatabaseBackup } from '../utils/backup';
 
 export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes';
 
 interface NavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
-  onShowToast: (msg: string) => void;
+  onOpenSettings: () => void;
   subjectCount?: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onTabChange,
-  onShowToast,
+  onOpenSettings,
   subjectCount = 0,
 }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -43,30 +39,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  const handleExport = async () => {
-    try {
-      await exportDatabaseBackup();
-      onShowToast('Copia de seguridad del semestre exportada con éxito');
-    } catch {
-      onShowToast('Error al exportar la copia de seguridad');
-    }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      await importDatabaseBackup(file);
-      onShowToast('Datos del semestre restaurados correctamente');
-    } catch (err: unknown) {
-      if (err instanceof Error) onShowToast(err.message);
-      else onShowToast('Error al restaurar los datos');
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
 
   // Fecha actual formateada en español
   const formattedDate = new Date().toLocaleDateString('es-ES', {
@@ -156,32 +128,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Acciones de Respaldo */}
+          {/* Botón de Configuración en el Header Superior Derecho (Opción A) */}
           <div className="flex items-center gap-2">
             <button
-              onClick={handleExport}
-              title="Descargar copia de seguridad del semestre (JSON)"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl border border-slate-700 transition-colors cursor-pointer"
+              onClick={onOpenSettings}
+              title="Configuración de la Agenda y Respaldos"
+              aria-label="Abrir configuración"
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-200 hover:text-white bg-slate-800/90 hover:bg-slate-700/90 rounded-2xl border border-slate-700/80 hover:border-cove-sky/50 transition-all active:scale-95 cursor-pointer shadow-sm group"
             >
-              <Download className="w-3.5 h-3.5 text-cove-sky" />
-              <span className="hidden sm:inline">Exportar</span>
+              <Settings className="w-4 h-4 text-cove-sky group-hover:rotate-45 transition-transform duration-300" />
+              <span className="hidden sm:inline">Ajustes</span>
             </button>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              title="Restaurar copia de seguridad (JSON)"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl border border-slate-700 transition-colors cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5 text-cove-gold" />
-              <span className="hidden sm:inline">Restaurar</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleFileChange}
-              className="hidden"
-            />
           </div>
         </div>
       </div>
