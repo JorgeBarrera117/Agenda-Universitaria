@@ -243,12 +243,12 @@ export const ProfessorsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Columna Vertical de Acciones (Derecha: Editar y Eliminar) */}
-              <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
+              {/* Columna Vertical de Acciones (Derecha: Editar y Eliminar) - Alineada y Proporcional */}
+              <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-2.5 sm:gap-3">
                 {/* Botón 1: Editar profesor (Azul para editar) */}
                 <button
                   onClick={() => handleOpenEdit(prof)}
-                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-blue-950/30 cursor-pointer"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-blue-950/20 cursor-pointer"
                   title="Editar datos del catedrático"
                   aria-label="Editar profesor"
                 >
@@ -258,7 +258,7 @@ export const ProfessorsView: React.FC = () => {
                 {/* Botón 2: Eliminar profesor (Rojo para eliminar) */}
                 <button
                   onClick={() => setProfToDelete(prof)}
-                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-red-950/30 cursor-pointer"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-red-950/20 cursor-pointer"
                   title="Eliminar catedrático"
                   aria-label="Eliminar profesor"
                 >

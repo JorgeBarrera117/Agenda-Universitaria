@@ -78,23 +78,23 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         onClick={onCancel}
         aria-label="Volver a mis apuntes"
         title="Volver"
-        className="fixed top-3 left-3 sm:top-5 sm:left-6 z-40 w-11 h-11 flex items-center justify-center text-slate-700 hover:text-slate-900 bg-white/95 hover:bg-white border border-slate-200/90 rounded-2xl shadow-md backdrop-blur-md transition-all active:scale-95 cursor-pointer ring-1 ring-slate-900/5 hover:shadow-lg"
+        className="fixed top-3 left-3 sm:top-5 sm:left-6 z-40 w-11 h-11 flex items-center justify-center text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white bg-white/95 hover:bg-white dark:bg-slate-900/95 dark:hover:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-md backdrop-blur-md transition-all active:scale-95 cursor-pointer ring-1 ring-slate-900/5 dark:ring-white/10 hover:shadow-lg"
       >
-        <ArrowLeft className="w-5 h-5 text-cove-blue" />
+        <ArrowLeft className="w-5 h-5 text-cove-blue dark:text-cove-sky" />
       </button>
 
       {error && (
-        <div className="p-3.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2 pl-14 sm:pl-4">
+        <div className="p-3.5 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-2xl flex items-center gap-2 pl-14 sm:pl-4">
           <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* 2. Lienzo Continuo de Escritura a Pantalla Completa */}
-      <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-200/80 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4">
         {/* Metadatos: Materia y Etiquetas (con margen izquierdo en móvil para no colisionar con el botón flotante) */}
-        <div className="flex flex-wrap items-center gap-2.5 pb-2 border-b border-slate-100 pl-12 sm:pl-0">
-          <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 focus-within:ring-2 focus-within:ring-cove-sky rounded-xl px-3 py-1.5 transition-colors">
+        <div className="flex flex-wrap items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 pl-12 sm:pl-0">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-750 border border-slate-200/80 dark:border-slate-700/80 focus-within:ring-2 focus-within:ring-cove-sky rounded-xl px-3 py-1.5 transition-colors">
             <span
               className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
               style={{ backgroundColor: selectedSubject?.color || '#94a3b8' }}
@@ -105,26 +105,26 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                 setSubjectId(e.target.value);
                 setError(null);
               }}
-              className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer pr-1"
               required
             >
-              <option value="" disabled>-- Selecciona Materia --</option>
+              <option value="" disabled className="dark:bg-slate-800 dark:text-white">-- Selecciona Materia --</option>
               {subjects.map((s) => (
-                <option key={s.id} value={s.id}>
+                <option key={s.id} value={s.id} className="dark:bg-slate-800 dark:text-white">
                   {s.name} {s.code ? `(${s.code})` : ''}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex-1 min-w-[200px] flex items-center gap-2 bg-slate-50 border border-slate-200/80 focus-within:ring-2 focus-within:ring-cove-sky rounded-xl px-3 py-1.5">
-            <Hash className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <div className="flex-1 min-w-[200px] flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 focus-within:ring-2 focus-within:ring-cove-sky rounded-xl px-3 py-1.5">
+            <Hash className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
             <input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               placeholder="Etiquetas (#resumen, #examen)..."
-              className="bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none w-full font-medium"
+              className="bg-transparent text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none w-full font-medium"
             />
           </div>
         </div>
@@ -136,7 +136,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título del apunte..."
-            className="w-full text-2xl sm:text-3xl font-black text-slate-900 placeholder:text-slate-300 border-none focus:outline-none focus:ring-0 p-0 tracking-tight leading-tight"
+            className="w-full text-2xl sm:text-3xl font-black text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 border-none focus:outline-none focus:ring-0 p-0 tracking-tight leading-tight bg-transparent"
             required
           />
         </div>

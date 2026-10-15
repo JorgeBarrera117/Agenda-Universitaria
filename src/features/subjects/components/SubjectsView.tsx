@@ -273,22 +273,22 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                 </div>
 
 
-                {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
+                {/* Columna Vertical de Acciones (Derecha) - Alineada y Proporcional */}
+                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-2.5 sm:gap-3">
                   {/* Botón 1: Ver apuntes de la materia (Superior - Índigo para apuntes) */}
                   <button
                     onClick={() => onNavigateToNotes && onNavigateToNotes(subject.id)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-indigo-950/30 cursor-pointer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-indigo-950/20 cursor-pointer"
                     title="Ver o tomar apuntes de esta asignatura"
                     aria-label="Ver apuntes"
                   >
-                    <BookOpen className="w-5 h-5 text-white" />
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </button>
 
                   {/* Botón 2: Editar asignatura (Centro - Azul para editar) */}
                   <button
                     onClick={() => handleOpenEdit(subject)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-blue-950/30 cursor-pointer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-blue-950/20 cursor-pointer"
                     title="Editar asignatura"
                     aria-label="Editar asignatura"
                   >
@@ -298,7 +298,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   {/* Botón 3: Eliminar asignatura (Inferior - Rojo para eliminar) */}
                   <button
                     onClick={() => setSubjectToDelete(subject)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-red-950/30 cursor-pointer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-red-950/20 cursor-pointer"
                     title="Eliminar asignatura"
                     aria-label="Eliminar asignatura"
                   >

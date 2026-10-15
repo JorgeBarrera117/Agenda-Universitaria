@@ -274,27 +274,27 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Horario Académico
             </h2>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 text-cove-blue border border-cove-sky/30 shadow-2xs">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 dark:bg-cove-sky/15 text-cove-blue dark:text-cove-sky border border-cove-sky/30 dark:border-cove-sky/40 shadow-2xs">
               {settings.semesterName}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Planificación de bloques lectivos, aulas y cátedras universitarias.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           {/* Alternar vista diaria / semanal */}
-          <div className="hidden sm:flex items-center bg-slate-200/80 p-1 rounded-2xl border border-slate-300/60 shadow-xs">
+          <div className="hidden sm:flex items-center bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-300/60 dark:border-slate-700/60 shadow-xs">
             <button
               onClick={() => setViewMode('weekly')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 viewMode === 'weekly'
-                  ? 'bg-white text-cove-navy shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-cove-navy dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -323,43 +323,57 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         </div>
       </div>
 
-      {/* 3. SELECTOR DE DÍAS (Píldoras estilo Campus sincronizadas con la configuración) */}
-      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-none">
-        {displayedDays.map((day) => {
-          const isSelected = selectedDay === day;
-          const isToday = currentDayOfWeek === day;
-          const count = slots.filter((s) => s.dayOfWeek === day).length;
+      {/* 3. SELECTOR DE DÍAS (Segmented Campus Control alineado y con micro-badge absoluto de Hoy) */}
+      <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 sm:p-2 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+        <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto scrollbar-none">
+          {displayedDays.map((day) => {
+            const isSelected = selectedDay === day;
+            const isToday = currentDayOfWeek === day;
+            const count = slots.filter((s) => s.dayOfWeek === day).length;
 
-          return (
-            <button
-              key={day}
-              onClick={() => {
-                setSelectedDay(day as DayOfWeek);
-                if (window.innerWidth < 640) setViewMode('daily');
-              }}
-              className={`flex-1 min-w-[42px] sm:min-w-[70px] py-2 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl text-center border transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-cove-navy text-white border-cove-navy shadow-md ring-2 ring-cove-sky/40'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
-              }`}
-            >
-              <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1">
-                <span>{SHORT_DAY_NAMES[day as DayOfWeek]}</span>
-                {isToday && (
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cove-gold ring-1 ring-white/60 shrink-0" />
-                )}
-              </div>
-              <div
-                className={`text-[9px] sm:text-[10px] mt-0.5 sm:mt-1 font-semibold truncate ${
-                  isSelected ? 'text-cove-sand' : 'text-slate-400 dark:text-slate-500'
+            return (
+              <button
+                key={day}
+                onClick={() => {
+                  setSelectedDay(day as DayOfWeek);
+                  if (window.innerWidth < 640) setViewMode('daily');
+                }}
+                className={`relative flex-1 min-w-[50px] sm:min-w-[74px] py-2.5 sm:py-3.5 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer ${
+                  isSelected
+                    ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md shadow-cove-navy/25 dark:shadow-blue-600/30 ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
+                    : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-2xs'
                 }`}
               >
-                <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
-                <span className="hidden sm:inline">{count} {count === 1 ? 'bloque' : 'bloques'}</span>
-              </div>
-            </button>
-          );
-        })}
+                {/* Indicador de "Hoy": Micro-badge absoluto en esquina para no alterar el centrado geométrico del texto */}
+                {isToday && (
+                  <span
+                    className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full ${
+                      isSelected
+                        ? 'bg-cove-gold ring-2 ring-cove-navy dark:ring-blue-600 animate-pulse'
+                        : 'bg-amber-500 ring-2 ring-white dark:ring-slate-800'
+                    }`}
+                    title="Hoy"
+                  />
+                )}
+
+                {/* Día de la semana perfectamente centrado */}
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider block leading-tight text-center">
+                  {SHORT_DAY_NAMES[day as DayOfWeek]}
+                </span>
+
+                {/* Conteo de bloques con contraste de alta legibilidad */}
+                <div
+                  className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-semibold truncate ${
+                    isSelected ? 'text-cove-sky dark:text-sky-200' : 'text-slate-400 dark:text-slate-400'
+                  }`}
+                >
+                  <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
+                  <span className="hidden sm:inline">{count} {count === 1 ? 'bloque' : 'bloques'}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 4. VISTA SEMANAL (Cuadrícula Desktop estilo Tarjeta de Cátedra Ampliada) */}
@@ -502,16 +516,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               </div>
 
                               {/* Nombre de la Materia (ancho completo sin colisiones) */}
-                              <h4 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug break-words">
+                              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug break-words">
                                 {subject?.name || 'Materia'}
                               </h4>
                             </div>
 
                             {/* 2. Cuerpo de Información Completo */}
-                            <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-200/60">
+                            <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
                               {/* Rango Horario Completo */}
-                              <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy bg-cove-blue/10 border border-cove-sky/25 px-2.5 py-1 rounded-xl">
-                                <Clock className="w-3.5 h-3.5 text-cove-blue shrink-0" />
+                              <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2.5 py-1 rounded-xl">
+                                <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
                                 <span className="font-mono text-xs">{slot.startTime} - {slot.endTime}</span>
                               </div>
 
@@ -571,35 +585,35 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
       {/* 5. VISTA DIARIA (Móvil / Pases de Aula Detallados) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden space-y-3.5' : 'space-y-3.5'}>
-        <div className="flex items-center justify-between bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-2xs">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Horario para el día
-              </span>
-              <h3 className="text-base font-black text-slate-900">
-                {DAY_NAMES[selectedDay]}
-              </h3>
-            </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 text-cove-blue">
-              {daySlots.length} {daySlots.length === 1 ? 'materia' : 'materias'}
+        <div className="flex items-center justify-between bg-white dark:bg-slate-900 px-5 py-3.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Horario para el día
             </span>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
+              {DAY_NAMES[selectedDay]}
+            </h3>
           </div>
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 dark:bg-cove-sky/15 text-cove-blue dark:text-cove-sky border border-cove-sky/30 dark:border-cove-sky/40">
+            {daySlots.length} {daySlots.length === 1 ? 'materia' : 'materias'}
+          </span>
+        </div>
 
-          {daySlots.length === 0 ? (
-            <div className="text-center py-14 bg-white rounded-3xl border border-dashed border-slate-300 p-8">
-              <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700">
-                Sin clases agendadas para el {DAY_NAMES[selectedDay]}
-              </p>
-              <button
-                onClick={() => handleOpenCreate(selectedDay)}
-                className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-cove-blue/10 text-cove-blue text-xs font-bold rounded-xl hover:bg-cove-blue/20 transition-colors cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Programar clase para este día
-              </button>
-            </div>
-          ) : (
+        {daySlots.length === 0 ? (
+          <div className="text-center py-14 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
+            <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              Sin clases agendadas para el {DAY_NAMES[selectedDay]}
+            </p>
+            <button
+              onClick={() => handleOpenCreate(selectedDay)}
+              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky text-xs font-bold rounded-xl hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Programar clase para este día
+            </button>
+          </div>
+        ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {daySlots.map((slot) => {
                 const subject = getSubjectById(slot.subjectId);
@@ -729,26 +743,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     </div>
 
 
-                    {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                    <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
+                    {/* Columna Vertical de Acciones (Derecha) - Alineada y Proporcional */}
+                    <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-2.5 sm:gap-3">
                       {/* Botón 1: Tomar apunte (Superior - Índigo para apuntes) */}
                       {onNavigateToNotes ? (
                         <button
                           onClick={() => onNavigateToNotes(slot.subjectId)}
-                          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-indigo-950/30 cursor-pointer"
+                          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-indigo-950/20 cursor-pointer"
                           title="Tomar apunte de esta materia"
                           aria-label="Tomar apunte"
                         >
-                          <FileEdit className="w-5 h-5 text-white" />
+                          <FileEdit className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </button>
                       ) : (
-                        <div className="w-11 h-11" />
+                        <div className="w-10 h-10 sm:w-11 sm:h-11" />
                       )}
 
                       {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                       <button
                         onClick={() => handleOpenEdit(slot)}
-                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-blue-950/30 cursor-pointer"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-blue-950/20 cursor-pointer"
                         title="Editar clase"
                         aria-label="Editar clase"
                       >
@@ -758,7 +772,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                       <button
                         onClick={() => setSlotToDelete(slot)}
-                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-red-950/30 cursor-pointer"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-red-950/20 cursor-pointer"
                         title="Eliminar clase"
                         aria-label="Eliminar clase"
                       >

@@ -243,19 +243,18 @@ export const NotesView: React.FC<NotesViewProps> = ({
             <div className="flex flex-wrap items-center gap-2.5">
               <span
                 className="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-2xs"
-
                 style={{ backgroundColor: readingSubject?.color || '#006BBB' }}
               >
                 {readingSubject?.name || 'Materia'} {readingSubject?.code ? `(${readingSubject.code})` : ''}
               </span>
 
-              <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
+                <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                 {dateFormatted}
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
               {readingNote.title}
             </h1>
 
@@ -264,9 +263,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 {readingNote.tags.map((t) => (
                   <span
                     key={t}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200/60 dark:border-slate-700/60"
                   >
-                    <Tag className="w-3 h-3 text-slate-400" />
+                    <Tag className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                     {t}
                   </span>
                 ))}
@@ -274,7 +273,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
             )}
           </div>
 
-          <div className="h-px bg-slate-100" />
+          <div className="h-px bg-slate-100 dark:bg-slate-800" />
 
           {/* Cuerpo Enriquecido del Apunte con zoom interactivo al tocar imágenes */}
           <div
@@ -288,7 +287,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 });
               }
             }}
-            className="text-slate-800 text-base sm:text-lg leading-relaxed prose prose-slate max-w-none [&_img]:cursor-zoom-in [&_img]:rounded-2xl [&_img]:shadow-md [&_img:hover]:ring-2 [&_img:hover]:ring-cove-sky/50 [&_img]:transition-all"
+            className="text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed prose prose-slate dark:prose-invert max-w-none [&_img]:cursor-zoom-in [&_img]:rounded-2xl [&_img]:shadow-md [&_img:hover]:ring-2 [&_img:hover]:ring-cove-sky/50 [&_img]:transition-all"
             dangerouslySetInnerHTML={{
               __html:
                 readingNote.content.trim() ||
@@ -297,14 +296,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
           />
 
           {/* Galería de Fotos del Pizarrón y Anexos */}
-          <div className="pt-8 border-t border-slate-200 space-y-4">
+          <div className="pt-8 border-t border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-cove-blue" />
+                <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-cove-blue dark:text-cove-sky" />
                   Fotos del Pizarrón y Anexos ({readingNoteImages.length})
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                   Capturas tomadas durante la cátedra guardadas en calidad comprimida.
                 </p>
               </div>
@@ -331,7 +330,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   type="button"
                   disabled={isUploadingInReader}
                   onClick={() => readerCameraInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cove-blue/10 hover:bg-cove-blue/20 text-cove-blue text-xs font-bold rounded-xl transition-colors cursor-pointer border border-cove-sky/30"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky text-xs font-bold rounded-xl transition-colors cursor-pointer border border-cove-sky/30 dark:border-cove-sky/40"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   Tomar Foto
@@ -341,25 +340,25 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   type="button"
                   disabled={isUploadingInReader}
                   onClick={() => readerGalleryInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-700/80"
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
                   Galería
                 </button>
 
                 {isUploadingInReader && (
-                  <Loader2 className="w-4 h-4 text-cove-blue animate-spin" />
+                  <Loader2 className="w-4 h-4 text-cove-blue dark:text-cove-sky animate-spin" />
                 )}
               </div>
             </div>
 
             {readingNoteImages.length === 0 ? (
-              <div className="text-center py-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                <Camera className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-xs sm:text-sm text-slate-500 font-medium">
+              <div className="text-center py-8 bg-slate-50 dark:bg-slate-850/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                <Camera className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
                   No hay fotos anexadas a este apunte.
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                   Usa los botones superiores para tomar una foto con la cámara o subir desde la galería.
                 </p>
               </div>
@@ -630,25 +629,25 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 </div>
 
 
-                {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
+                {/* Columna Vertical de Acciones (Derecha) - Alineada y Proporcional */}
+                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-2.5 sm:gap-3">
                   {/* Botón 1: Leer / Abrir apunte (Superior - Esmeralda para modo lectura) */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenRead(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 hover:from-emerald-500 hover:via-teal-600 hover:to-slate-900 ring-1 ring-teal-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-emerald-950/30 cursor-pointer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 hover:from-emerald-500 hover:via-teal-600 hover:to-slate-900 ring-1 ring-teal-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-emerald-950/20 cursor-pointer"
                     title="Leer apunte a pantalla completa"
                     aria-label="Leer apunte"
                   >
-                    <BookOpen className="w-5 h-5 text-white" />
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </button>
 
                   {/* Botón 2: Editar apunte (Centro - Azul para editar) */}
                   <button
                     onClick={(e) => handleOpenEdit(note, e)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-blue-950/30 cursor-pointer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-blue-950/20 cursor-pointer"
                     title="Editar apunte"
                     aria-label="Editar apunte"
                   >
@@ -661,7 +660,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       e.stopPropagation();
                       setNoteToDelete(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-red-950/30 cursor-pointer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-red-950/20 cursor-pointer"
                     title="Eliminar apunte"
                     aria-label="Eliminar apunte"
                   >

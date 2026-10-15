@@ -79,7 +79,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-[420px] sm:min-h-[580px] py-3 px-1 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-slate max-w-none pb-28',
+          'min-h-[420px] sm:min-h-[580px] py-3 px-1 focus:outline-none text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed prose prose-slate dark:prose-invert max-w-none pb-28',
       },
       handleDOMEvents: {
         click: (_view, event) => {
@@ -142,16 +142,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       <EditorContent editor={editor} />
 
       {/* Menú inferior exclusivo de edición (Docked Bottom Action Bar) */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl px-2 sm:px-4 py-2 flex items-center justify-between gap-1.5 sm:gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-2xl px-2 sm:px-4 py-2 flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Herramientas de formato con scroll horizontal suave */}
         <div className="flex-1 min-w-0 flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
           {/* Deshacer / Rehacer */}
-          <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200 shrink-0">
+          <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().undo().run()}
               disabled={!editor.can().undo()}
-              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 disabled:opacity-30 rounded-lg cursor-pointer transition-colors"
+              className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 disabled:opacity-30 rounded-lg cursor-pointer transition-colors"
               title="Deshacer (Ctrl+Z)"
             >
               <Undo2 className="w-4 h-4" />
@@ -160,7 +160,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               onClick={() => editor.chain().focus().redo().run()}
               disabled={!editor.can().redo()}
-              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 disabled:opacity-30 rounded-lg cursor-pointer transition-colors"
+              className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 disabled:opacity-30 rounded-lg cursor-pointer transition-colors"
               title="Rehacer (Ctrl+Y)"
             >
               <Redo2 className="w-4 h-4" />
@@ -168,14 +168,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </div>
 
           {/* Formato de texto básico: Negrita, Cursiva, Subrayado, Tachado */}
-          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 shrink-0">
+          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBold().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('bold')
-                  ? 'bg-cove-blue text-white shadow-2xs font-bold'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs font-bold'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Negrita (Ctrl+B)"
             >
@@ -186,8 +186,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               onClick={() => editor.chain().focus().toggleItalic().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('italic')
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Cursiva (Ctrl+I)"
             >
@@ -198,8 +198,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               onClick={() => editor.chain().focus().toggleUnderline().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('underline')
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Subrayado (Ctrl+U)"
             >
@@ -210,8 +210,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               onClick={() => editor.chain().focus().toggleStrike().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('strike')
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Tachado"
             >
@@ -220,14 +220,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </div>
 
           {/* Encabezados y Estructura */}
-          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 shrink-0">
+          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('heading', { level: 1 })
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Título Grande (H1)"
             >
@@ -238,8 +238,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('heading', { level: 2 })
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Subtítulo (H2)"
             >
@@ -248,14 +248,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </div>
 
           {/* Listas y Citas */}
-          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 shrink-0">
+          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('bulletList')
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Lista con viñetas"
             >
@@ -266,8 +266,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('orderedList')
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Lista numerada"
             >
@@ -278,8 +278,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
               className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                 editor.isActive('blockquote')
-                  ? 'bg-cove-blue text-white shadow-2xs'
-                  : 'text-slate-700 hover:bg-slate-200/60'
+                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
               }`}
               title="Cita o nota destacada"
             >
@@ -288,7 +288,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <button
               type="button"
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              className="p-1.5 text-slate-700 hover:bg-slate-200/60 rounded-lg cursor-pointer transition-colors"
+              className="p-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
               title="Línea divisoria horizontal"
             >
               <Minus className="w-4 h-4" />
@@ -301,7 +301,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               disabled={isProcessingImage}
               onClick={() => cameraInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-cove-blue/10 hover:bg-cove-blue/20 text-cove-blue text-xs font-bold rounded-lg border border-cove-sky/30 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky text-xs font-bold rounded-lg border border-cove-sky/30 dark:border-cove-sky/40 transition-colors cursor-pointer"
               title="Tomar foto con la cámara e insertarla en el texto"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -311,7 +311,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               disabled={isProcessingImage}
               onClick={() => galleryInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-700/80"
               title="Subir imagen de la galería e insertarla en el texto"
             >
               <ImageIcon className="w-3.5 h-3.5" />
@@ -319,7 +319,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             </button>
 
             {isProcessingImage && (
-              <span className="flex items-center gap-1 text-[11px] text-cove-blue font-medium ml-1">
+              <span className="flex items-center gap-1 text-[11px] text-cove-blue dark:text-cove-sky font-medium ml-1">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 Insertando...
               </span>

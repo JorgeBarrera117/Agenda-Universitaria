@@ -167,7 +167,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
       )}
 
       {/* Tarjeta de Live Preview de la Cátedra */}
-      <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2.5">
+      <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl space-y-2.5">
         <div className="flex items-center gap-3">
           {/* Badge con Ícono y Color de la Materia */}
           <div
@@ -182,26 +182,26 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
                 {selectedSubject?.code || 'ASIGNATURA'}
               </span>
-              <span className="text-[11px] font-bold text-slate-500">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 {DAY_NAMES[dayOfWeek]} • {startTime && endTime ? `${startTime} - ${endTime}` : 'Horario por definir'}
               </span>
             </div>
-            <h4 className="text-sm font-black text-slate-900 truncate">
+            <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
               {selectedSubject?.name || 'Selecciona una materia'}
             </h4>
           </div>
         </div>
 
         {/* Indicador de Modalidad en el Preview */}
-        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-semibold gap-2">
+        <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold gap-2">
           {modality === 'virtual' ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-indigo-100 text-indigo-900 border border-indigo-200">
-              <Laptop className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-indigo-100 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800">
+              <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               <span>Clase Virtual ({virtualPlatform || 'En Línea'})</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-slate-200/70 text-slate-800 border border-slate-300/70">
-              <Building2 className="w-3.5 h-3.5 text-cove-blue" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-slate-200/70 dark:bg-slate-750 text-slate-800 dark:text-slate-200 border border-slate-300/70 dark:border-slate-700">
+              <Building2 className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky" />
               <span className="truncate">
                 Presencial: {classroom ? classroom : 'Aula sin asignar'}
                 {building ? ` • ${building}` : ''}
@@ -210,8 +210,8 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           )}
 
           {selectedProfessor && (
-            <span className="text-[11px] text-slate-600 truncate font-medium">
-              Prof: <strong className="text-slate-800">{selectedProfessor.name}</strong>
+            <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate font-medium">
+              Prof: <strong className="text-slate-800 dark:text-slate-200">{selectedProfessor.name}</strong>
             </span>
           )}
         </div>
@@ -219,7 +219,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
       {/* Selector de Modalidad (Presencial vs Virtual) */}
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
           Modalidad de Asistencia *
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -229,13 +229,13 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             onClick={() => setModality('presencial')}
             className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
               modality === 'presencial'
-                ? 'bg-cove-navy text-white border-cove-navy shadow-md ring-2 ring-cove-sky/40'
-                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750'
             }`}
           >
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                modality === 'presencial' ? 'bg-white/15 text-white' : 'bg-slate-100 text-cove-blue'
+                modality === 'presencial' ? 'bg-white/15 text-white' : 'bg-slate-100 dark:bg-slate-700 text-cove-blue dark:text-cove-sky'
               }`}
             >
               <Building2 className="w-5 h-5" />
@@ -244,7 +244,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               <span className="block text-xs font-black leading-tight">Presencial</span>
               <span
                 className={`text-[10px] block leading-tight ${
-                  modality === 'presencial' ? 'text-slate-300' : 'text-slate-400'
+                  modality === 'presencial' ? 'text-slate-200' : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
                 Campus y aulas físicas
@@ -259,12 +259,12 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
               modality === 'virtual'
                 ? 'bg-gradient-to-br from-indigo-900 to-indigo-950 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400/40'
-                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750'
             }`}
           >
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                modality === 'virtual' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
+                modality === 'virtual' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400'
               }`}
             >
               <Laptop className="w-5 h-5" />
@@ -273,7 +273,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               <span className="block text-xs font-black leading-tight">Virtual</span>
               <span
                 className={`text-[10px] block leading-tight ${
-                  modality === 'virtual' ? 'text-indigo-200' : 'text-slate-400'
+                  modality === 'virtual' ? 'text-indigo-200' : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
                 Videollamada / En línea
@@ -286,11 +286,11 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
       {/* Selección de Materia y Profesor */}
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Materia *
           </label>
           {subjects.length === 0 ? (
-            <p className="text-xs text-red-600">
+            <p className="text-xs text-red-600 dark:text-red-400">
               No tienes materias registradas. Ve a la sección Materias para crear una primero.
             </p>
           ) : (
@@ -298,16 +298,16 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               <select
                 value={subjectId}
                 onChange={(e) => handleSubjectChange(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white font-medium text-sm"
+                className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium text-sm"
                 required
               >
-                <option value="" disabled>-- Selecciona una materia --</option>
+                <option value="" disabled className="dark:bg-slate-800 dark:text-white">-- Selecciona una materia --</option>
                 {subjects.map((s) => {
                   const prof = s.professorId
                     ? professors.find((p) => p.id === s.professorId)
                     : professors.find((p) => p.subjectIds.includes(s.id));
                   return (
-                    <option key={s.id} value={s.id}>
+                    <option key={s.id} value={s.id} className="dark:bg-slate-800 dark:text-white">
                       {s.name} {s.code ? `(${s.code})` : ''} {prof ? `• Prof. ${prof.name}` : ''}
                     </option>
                   );
@@ -319,16 +319,16 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Día de la semana *
             </label>
             <select
               value={dayOfWeek}
               onChange={(e) => setDayOfWeek(Number(e.target.value) as DayOfWeek)}
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white font-medium text-sm"
+              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium text-sm"
             >
               {Object.entries(DAY_NAMES).map(([val, name]) => (
-                <option key={val} value={val}>
+                <option key={val} value={val} className="dark:bg-slate-800 dark:text-white">
                   {name}
                 </option>
               ))}
@@ -336,17 +336,17 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Profesor Asignado
             </label>
             <select
               value={professorId}
               onChange={(e) => setProfessorId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white font-medium text-sm"
+              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium text-sm"
             >
-              <option value="">(Sin profesor asignado)</option>
+              <option value="" className="dark:bg-slate-800 dark:text-white">(Sin profesor asignado)</option>
               {professors.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option key={p.id} value={p.id} className="dark:bg-slate-800 dark:text-white">
                   {p.name}
                 </option>
               ))}
@@ -358,7 +358,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
       {/* Rango Horario */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Hora Inicio *
           </label>
           <div className="relative">
@@ -366,14 +366,14 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 font-mono font-bold text-sm"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-mono font-bold text-sm"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Hora Término *
           </label>
           <div className="relative">
@@ -381,7 +381,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 font-mono font-bold text-sm"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-mono font-bold text-sm"
               required
             />
           </div>
@@ -390,15 +390,15 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
       {/* Campos Dinámicos según Modalidad */}
       {modality === 'presencial' ? (
-        <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-            <Building2 className="w-4 h-4 text-cove-blue" />
+        <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+            <Building2 className="w-4 h-4 text-cove-blue dark:text-cove-sky" />
             <span>Ubicación Física en el Campus</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
                 Aula / Laboratorio / Taller
               </label>
               <div className="relative">
@@ -407,13 +407,13 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                   value={classroom}
                   onChange={(e) => setClassroom(e.target.value)}
                   placeholder="Ej: Aula 204, Lab 3"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
                 Edificio / Pabellón / Campus
               </label>
               <div className="relative">
@@ -422,22 +422,22 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                   value={building}
                   onChange={(e) => setBuilding(e.target.value)}
                   placeholder="Ej: Edificio A, Campus Central"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm"
                 />
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="p-3.5 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl space-y-3 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">
-            <Laptop className="w-4 h-4 text-indigo-600" />
+        <div className="p-3.5 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/80 rounded-2xl space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 text-xs font-bold text-indigo-900 dark:text-indigo-200">
+            <Laptop className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Configuración de Clase Virtual</span>
           </div>
 
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-indigo-900 mb-1">
+              <label className="block text-xs font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
                 Plataforma / Medio Virtual
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2">
@@ -449,7 +449,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                     className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                       virtualPlatform === plat
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                        : 'bg-white text-indigo-800 border-indigo-200 hover:bg-indigo-100'
+                        : 'bg-white dark:bg-slate-800 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-slate-750'
                     }`}
                   >
                     {plat}
@@ -461,12 +461,12 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                 value={virtualPlatform}
                 onChange={(e) => setVirtualPlatform(e.target.value)}
                 placeholder="Ej: Zoom, Teams, Moodle"
-                className="w-full px-3 py-2 border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-900 bg-white text-sm"
+                className="w-full px-3 py-2 border border-indigo-200 dark:border-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-indigo-900 mb-1">
+              <label className="block text-xs font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
                 Enlace de la Clase o ID de Reunión (Opcional)
               </label>
               <div className="relative">
@@ -475,7 +475,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                   value={virtualLink}
                   onChange={(e) => setVirtualLink(e.target.value)}
                   placeholder="Ej: https://zoom.us/j/... o ID: 123 456 7890"
-                  className="w-full px-3 py-2 border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-900 bg-white text-sm font-mono text-xs"
+                  className="w-full px-3 py-2 border border-indigo-200 dark:border-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm font-mono text-xs"
                 />
               </div>
             </div>
@@ -484,11 +484,11 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
       )}
 
       {/* Botones de Acción */}
-      <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+      <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+          className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
         >
           Cancelar
         </button>
