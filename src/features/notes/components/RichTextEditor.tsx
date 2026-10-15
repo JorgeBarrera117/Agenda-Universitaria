@@ -74,7 +74,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-[260px] max-h-[460px] overflow-y-auto p-4 focus:outline-none text-slate-800 text-sm leading-relaxed prose prose-indigo max-w-none',
+          'min-h-[380px] sm:min-h-[520px] p-5 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-indigo max-w-none',
       },
     },
   });

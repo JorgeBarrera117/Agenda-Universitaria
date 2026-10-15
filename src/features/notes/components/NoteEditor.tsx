@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Hash } from 'lucide-react';
+import { Hash, ArrowLeft, Save } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { RichTextEditor } from './RichTextEditor';
 import type { Note, CreateNoteDTO } from '../types';
@@ -35,6 +35,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
     }
   }, [subjects, subjectId, initialData, defaultSubjectId]);
 
+  const selectedSubject = subjects.find((s) => s.id === subjectId);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -69,96 +71,122 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-200">
+      {/* Barra Superior de Navegación del Editor */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-2xl shadow-2xs transition-all cursor-pointer w-fit"
+        >
+          <ArrowLeft className="w-4 h-4 text-indigo-600" />
+          <span>Volver al Cuaderno</span>
+        </button>
+
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+          >
+            Descartar
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || subjects.length === 0}
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 rounded-2xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>{isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Apunte' : 'Guardar Apunte'}</span>
+          </button>
+        </div>
+      </div>
+
       {error && (
-        <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-3.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl">
           {error}
         </div>
       )}
 
-      {/* Título y Materia */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Título del Apunte *
-          </label>
+      {/* Lienzo del Documento Universitario */}
+      <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200/90 space-y-6">
+        {/* Metadatos: Materia y Etiquetas */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2">
+            <span
+              className="w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs"
+              style={{ backgroundColor: selectedSubject?.color || '#94a3b8' }}
+            />
+            <select
+              value={subjectId}
+              onChange={(e) => {
+                setSubjectId(e.target.value);
+                setError(null);
+              }}
+              className="bg-transparent text-xs sm:text-sm font-bold text-slate-800 focus:outline-none cursor-pointer"
+              required
+            >
+              <option value="" disabled>-- Selecciona Materia --</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} {s.code ? `(${s.code})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex-1 min-w-[240px] flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2">
+            <Hash className="w-4 h-4 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="Etiquetas: fórmulas, repaso, parcial, unidad 1..."
+              className="bg-transparent text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none w-full font-medium"
+            />
+          </div>
+        </div>
+
+        {/* Título en tipografía grande */}
+        <div>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ej: Teorema de Nyquist, Repaso Examen Parcial"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 font-semibold"
+            placeholder="Título del Apunte (ej: Teorema de Nyquist)..."
+            className="w-full text-2xl sm:text-4xl font-black text-slate-900 placeholder:text-slate-300 border-none focus:outline-none focus:ring-0 p-0 tracking-tight"
             required
           />
         </div>
 
+        <div className="h-px bg-slate-100" />
+
+        {/* Editor WYSIWYG de Cátedra a página completa */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Materia *
-          </label>
-          <select
-            value={subjectId}
-            onChange={(e) => {
-              setSubjectId(e.target.value);
-              setError(null);
-            }}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white"
-            required
-          >
-            <option value="" disabled>-- Selecciona una materia --</option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Etiquetas */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Etiquetas (separadas por comas)
-        </label>
-        <div className="relative">
-          <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            placeholder="formulas, examen, resumen, tarea"
-            className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 text-sm"
+          <RichTextEditor
+            content={content}
+            onChange={setContent}
+            placeholder="Comienza a redactar tu apunte aquí. Puedes usar negrita, listas, citas o insertar fotos de la pizarra..."
           />
         </div>
       </div>
 
-      {/* Editor Enriquecido WYSIWYG Estilo Word Móvil */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          Contenido del Apunte
-        </label>
-        <RichTextEditor
-          content={content}
-          onChange={setContent}
-          placeholder="Escribe tu apunte con formato o inserta fotos de la pizarra..."
-        />
-      </div>
-
-      {/* Botones de acción */}
-      <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+      {/* Botones inferiores de respaldo */}
+      <div className="flex items-center justify-end gap-3 pt-2">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+          className="px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isSubmitting || subjects.length === 0}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-2xl shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
         >
-          {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Apunte' : 'Guardar Apunte'}
+          <Save className="w-4 h-4" />
+          <span>{isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Apunte' : 'Guardar Apunte'}</span>
         </button>
       </div>
     </form>

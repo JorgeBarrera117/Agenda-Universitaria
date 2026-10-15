@@ -14,6 +14,7 @@ import {
   Maximize2,
   X,
   Loader2,
+  ArrowLeft,
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -43,7 +44,8 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
   // Conteo de fotos por nota para mostrar en las tarjetas
   const allImages = useLiveQuery(() => db.noteImages.toArray(), []);
 
-  const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
+  // Vistas a pantalla completa: 'list' (general), 'editor' (crear/editar), 'reader' (lectura generosa)
+  const [viewMode, setViewMode] = useState<'list' | 'editor' | 'reader'>('list');
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
   const [readingNote, setReadingNote] = useState<Note | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
@@ -67,15 +69,46 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
     }
   }, [initialSubjectFilterId]);
 
+  // Soporte para botón "Atrás" de Android / Navegador
+  useEffect(() => {
+    const handlePopState = () => {
+      if (viewMode !== 'list') {
+        setViewMode('list');
+        setEditingNote(undefined);
+        setReadingNote(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [viewMode]);
+
   const handleOpenCreate = () => {
     setEditingNote(undefined);
-    setIsEditorModalOpen(true);
+    setViewMode('editor');
+    window.history.pushState({ noteMode: 'editor' }, '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenEdit = (note: Note, e?: React.MouseEvent) => {
     e?.stopPropagation();
     setEditingNote(note);
-    setIsEditorModalOpen(true);
+    setViewMode('editor');
+    window.history.pushState({ noteMode: 'editor' }, '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenRead = (note: Note) => {
+    setReadingNote(note);
+    setViewMode('reader');
+    window.history.pushState({ noteMode: 'reader' }, '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToList = () => {
+    setViewMode('list');
+    setEditingNote(undefined);
+    setReadingNote(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async (dto: CreateNoteDTO) => {
@@ -87,11 +120,13 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
           ...dto,
           updatedAt: new Date().toISOString(),
         });
+        setViewMode('reader');
+        return;
       }
     } else {
       await addNote(dto);
     }
-    setIsEditorModalOpen(false);
+    setViewMode('list');
   };
 
   const handleReaderFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +151,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
       await removeNote(noteToDelete.id);
       if (readingNote?.id === noteToDelete.id) {
         setReadingNote(null);
+        setViewMode('list');
       }
       setNoteToDelete(null);
     }
@@ -125,6 +161,229 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
     return (
       <div className="flex items-center justify-center p-12">
         <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Vista de Edición a Pantalla Completa (Sin modales reducidos)
+  if (viewMode === 'editor') {
+    return (
+      <div className="max-w-4xl mx-auto pb-10">
+        <NoteEditor
+          initialData={editingNote}
+          defaultSubjectId={selectedSubjectId !== 'all' ? selectedSubjectId : undefined}
+          onSubmit={handleSubmit}
+          onCancel={handleBackToList}
+        />
+      </div>
+    );
+  }
+
+  // Vista de Lectura a Pantalla Completa (Lectura inmersiva universitaria)
+  if (viewMode === 'reader' && readingNote) {
+    const readingSubject = getSubjectById(readingNote.subjectId);
+    const dateFormatted = new Date(readingNote.createdAt).toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in duration-200">
+        {/* Barra superior de navegación del lector */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <button
+            onClick={handleBackToList}
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-2xl shadow-2xs transition-all cursor-pointer w-fit"
+          >
+            <ArrowLeft className="w-4 h-4 text-indigo-600" />
+            <span>Volver a mis Apuntes</span>
+          </button>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => handleOpenEdit(readingNote)}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors cursor-pointer border border-indigo-200/60"
+            >
+              <Edit2 className="w-4 h-4" />
+              <span>Editar Apunte</span>
+            </button>
+            <button
+              onClick={() => setNoteToDelete(readingNote)}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-2xl transition-colors cursor-pointer border border-red-200/60"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Hoja de Apunte Universitario a Pantalla Completa */}
+        <div className="bg-white rounded-3xl p-6 sm:p-12 shadow-sm border border-slate-200/90 space-y-6">
+          {/* Encabezado Académico */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span
+                className="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-2xs"
+                style={{ backgroundColor: readingSubject?.color || '#4f46e5' }}
+              >
+                {readingSubject?.name || 'Materia'} {readingSubject?.code ? `(${readingSubject.code})` : ''}
+              </span>
+
+              <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                {dateFormatted}
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              {readingNote.title}
+            </h1>
+
+            {readingNote.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {readingNote.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg"
+                  >
+                    <Tag className="w-3 h-3 text-slate-400" />
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="h-px bg-slate-100" />
+
+          {/* Cuerpo Enriquecido del Apunte */}
+          <div
+            className="text-slate-800 text-base sm:text-lg leading-relaxed prose prose-indigo max-w-none"
+            dangerouslySetInnerHTML={{
+              __html:
+                readingNote.content.trim() ||
+                '<p class="text-slate-400 italic">Este apunte no contiene texto redactado.</p>',
+            }}
+          />
+
+          {/* Galería de Fotos del Pizarrón y Anexos */}
+          <div className="pt-8 border-t border-slate-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-indigo-600" />
+                  Fotos del Pizarrón y Anexos ({readingNoteImages.length})
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Capturas tomadas durante la cátedra guardadas en calidad comprimida.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  ref={readerCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleReaderFiles}
+                  className="hidden"
+                />
+                <input
+                  ref={readerGalleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleReaderFiles}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  disabled={isUploadingInReader}
+                  onClick={() => readerCameraInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-colors cursor-pointer border border-indigo-200/60"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  Tomar Foto
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isUploadingInReader}
+                  onClick={() => readerGalleryInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  Galería
+                </button>
+
+                {isUploadingInReader && (
+                  <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
+                )}
+              </div>
+            </div>
+
+            {readingNoteImages.length === 0 ? (
+              <div className="text-center py-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                <Camera className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                  No hay fotos anexadas a este apunte.
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Usa los botones superiores para tomar una foto con la cámara o subir desde la galería.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
+                {readingNoteImages.map((img) => (
+                  <ThumbnailCard
+                    key={img.id}
+                    image={img}
+                    onZoom={() => setZoomedImage(img)}
+                    onDelete={() => removeImageFromReadingNote(img.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Modal Confirmar Eliminación */}
+        <Modal
+          isOpen={noteToDelete !== null}
+          onClose={() => setNoteToDelete(null)}
+          title="¿Eliminar Apunte?"
+          maxWidth="sm"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              ¿Deseas eliminar <strong>{noteToDelete?.title}</strong>? Esta acción borrará también todas las fotos adjuntas permanentemente.
+            </p>
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                onClick={() => setNoteToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm cursor-pointer"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Visor Lightbox */}
+        {zoomedImage && (
+          <LightboxModal image={zoomedImage} onClose={() => setZoomedImage(null)} />
+        )}
       </div>
     );
   }
@@ -239,7 +498,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
             return (
               <div
                 key={note.id}
-                onClick={() => setReadingNote(note)}
+                onClick={() => handleOpenRead(note)}
                 className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group hover:border-indigo-300 relative overflow-hidden"
               >
                 {/* Franja superior de materia */}
@@ -335,153 +594,6 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
           })}
         </div>
       )}
-
-      {/* Modal Editor WYSIWYG */}
-      <Modal
-        isOpen={isEditorModalOpen}
-        onClose={() => setIsEditorModalOpen(false)}
-        title={editingNote ? 'Editar Apunte' : 'Nuevo Apunte de Cátedra'}
-        maxWidth="2xl"
-      >
-        <NoteEditor
-          initialData={editingNote}
-          defaultSubjectId={selectedSubjectId !== 'all' ? selectedSubjectId : undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsEditorModalOpen(false)}
-        />
-      </Modal>
-
-      {/* Modal Lector de Apunte Completo */}
-      <Modal
-        isOpen={readingNote !== null}
-        onClose={() => setReadingNote(null)}
-        title={readingNote?.title || 'Apunte'}
-        maxWidth="2xl"
-      >
-        {readingNote && (
-          <div className="space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b border-slate-100">
-              <span
-                className="px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs"
-                style={{
-                  backgroundColor: getSubjectById(readingNote.subjectId)?.color || '#4f46e5',
-                }}
-              >
-                {getSubjectById(readingNote.subjectId)?.name || 'Materia'}
-              </span>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    handleOpenEdit(readingNote);
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer transition-colors"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  Editar Apunte
-                </button>
-              </div>
-            </div>
-
-            {readingNote.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {readingNote.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-slate-100 text-slate-700 rounded-lg"
-                  >
-                    <Tag className="w-3 h-3 text-slate-400" />
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Contenido enriquecido del Apunte */}
-            <div
-              className="p-5 bg-white border border-slate-200 rounded-2xl text-slate-800 text-sm leading-relaxed prose prose-indigo max-w-none max-h-[460px] overflow-y-auto shadow-2xs"
-              dangerouslySetInnerHTML={{
-                __html:
-                  readingNote.content.trim() ||
-                  '<p class="text-slate-400 italic">Sin texto en este apunte.</p>',
-              }}
-            />
-
-            {/* Galería de Fotos Adjuntas */}
-            <div className="pt-3 border-t border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Camera className="w-4 h-4 text-indigo-600" />
-                  Fotos del Pizarrón y Anexos ({readingNoteImages.length})
-                </h4>
-
-                <div className="flex items-center gap-1.5">
-                  <input
-                    ref={readerCameraInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleReaderFiles}
-                    className="hidden"
-                  />
-                  <input
-                    ref={readerGalleryInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleReaderFiles}
-                    className="hidden"
-                  />
-
-                  <button
-                    type="button"
-                    disabled={isUploadingInReader}
-                    onClick={() => readerCameraInputRef.current?.click()}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-colors cursor-pointer border border-indigo-200/60"
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                    Cámara
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={isUploadingInReader}
-                    onClick={() => readerGalleryInputRef.current?.click()}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    Galería
-                  </button>
-
-                  {isUploadingInReader && (
-                    <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
-                  )}
-                </div>
-              </div>
-
-              {readingNoteImages.length === 0 ? (
-                <div className="text-center py-6 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                  <Camera className="w-8 h-8 text-slate-300 mx-auto mb-1" />
-                  <p className="text-xs text-slate-500 font-medium">
-                    No hay fotos de pizarra anexadas a este apunte.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {readingNoteImages.map((img) => (
-                    <ThumbnailCard
-                      key={img.id}
-                      image={img}
-                      onZoom={() => setZoomedImage(img)}
-                      onDelete={() => removeImageFromReadingNote(img.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* Visor de Pantalla Completa (Lightbox) */}
       {zoomedImage && (
