@@ -521,14 +521,12 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="group relative bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row items-stretch justify-between gap-3 sm:gap-4 hover:border-cove-sky/60 hover:-translate-y-0.5 overflow-hidden"
+                style={{
+                  background: `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), #ffffff`,
+                  borderColor: `${subject?.color || '#006BBB'}45`,
+                }}
+                className="group relative rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row items-stretch justify-between gap-3 sm:gap-4 hover:-translate-y-0.5 overflow-hidden"
               >
-                {/* Acento superior de Materia */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1.5"
-                  style={{ backgroundColor: subject?.color || '#006BBB' }}
-                />
-
                 {/* Contenido Principal (Izquierda) */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
@@ -593,28 +591,28 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                 </div>
 
                 {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
+                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
                   {/* Botón 1: Leer / Abrir apunte (Superior - Esmeralda para modo lectura) */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenRead(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200/65 to-teal-200/65 hover:from-emerald-300/70 hover:to-teal-200/70 border border-emerald-300/60 text-emerald-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200/90 to-teal-200/90 hover:from-emerald-300 hover:to-teal-200 border border-emerald-300/80 text-emerald-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title="Leer apunte a pantalla completa"
                     aria-label="Leer apunte"
                   >
-                    <BookOpen className="w-5 h-5 text-emerald-700" />
+                    <BookOpen className="w-5 h-5 text-emerald-800" />
                   </button>
 
                   {/* Botón 2: Editar apunte (Centro - Azul para editar) */}
                   <button
                     onClick={(e) => handleOpenEdit(note, e)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/65 to-sky-200/65 hover:from-blue-300/70 hover:to-sky-200/70 border border-blue-300/60 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title="Editar apunte"
                     aria-label="Editar apunte"
                   >
-                    <Edit2 className="w-4 h-4 text-blue-600" />
+                    <Edit2 className="w-4 h-4 text-blue-700" />
                   </button>
 
                   {/* Botón 3: Eliminar apunte (Inferior - Rojo para eliminar) */}
@@ -623,11 +621,11 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       e.stopPropagation();
                       setNoteToDelete(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/65 to-rose-200/65 hover:from-red-300/70 hover:to-rose-200/70 border border-red-300/60 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title="Eliminar apunte"
                     aria-label="Eliminar apunte"
                   >
-                    <Trash2 className="w-4 h-4 text-red-600" />
+                    <Trash2 className="w-4 h-4 text-red-700" />
                   </button>
                 </div>
               </div>

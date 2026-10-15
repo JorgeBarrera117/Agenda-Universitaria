@@ -101,16 +101,21 @@ export const ProfessorsView: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {professors.map((prof) => (
-            <div
-              key={prof.id}
-              className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group hover:border-cove-sky/50"
-            >
-              {/* Franja superior decorativa */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cove-navy via-cove-blue to-cove-sky" />
+          {professors.map((prof) => {
+            const primarySubject = prof.subjectIds.length > 0 ? getSubjectById(prof.subjectIds[0]) : null;
+            const cardColor = primarySubject?.color || '#006BBB';
 
-              {/* Contenido Principal (Izquierda) */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
+            return (
+              <div
+                key={prof.id}
+                style={{
+                  background: `linear-gradient(145deg, ${cardColor}1f 0%, ${cardColor}0c 100%), #ffffff`,
+                  borderColor: `${cardColor}40`,
+                }}
+                className="rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group"
+              >
+                {/* Contenido Principal (Izquierda) */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
                 <div>
                   {/* Cabecera de la Ficha Docente */}
                   <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
@@ -207,28 +212,28 @@ export const ProfessorsView: React.FC = () => {
               </div>
 
               {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-              <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
+              <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
                 {/* Botón 1: Contactar al profesor (Superior - Ámbar para correo, Esmeralda para teléfono) */}
                 {prof.email ? (
                   <a
                     href={`mailto:${prof.email}`}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-200/65 to-orange-200/65 hover:from-amber-300/70 hover:to-orange-200/70 border border-amber-300/60 text-amber-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-200/90 to-orange-200/90 hover:from-amber-300 hover:to-orange-200 border border-amber-300/80 text-amber-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title={`Enviar correo a ${prof.name}`}
                     aria-label="Contactar al docente"
                   >
-                    <Mail className="w-5 h-5 text-amber-700" />
+                    <Mail className="w-5 h-5 text-amber-800" />
                   </a>
                 ) : prof.phone ? (
                   <a
                     href={`tel:${prof.phone}`}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200/65 to-teal-200/65 hover:from-emerald-300/70 hover:to-teal-200/70 border border-emerald-300/60 text-emerald-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200/90 to-teal-200/90 hover:from-emerald-300 hover:to-teal-200 border border-emerald-300/80 text-emerald-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title={`Llamar a ${prof.name}`}
                     aria-label="Llamar al docente"
                   >
-                    <Phone className="w-5 h-5 text-emerald-700" />
+                    <Phone className="w-5 h-5 text-emerald-800" />
                   </a>
                 ) : (
-                  <div className="w-11 h-11 rounded-2xl bg-slate-100/65 border border-slate-200/50 flex items-center justify-center opacity-40">
+                  <div className="w-11 h-11 rounded-2xl bg-white/60 border border-slate-200/60 flex items-center justify-center opacity-40">
                     <Mail className="w-5 h-5 text-slate-400" />
                   </div>
                 )}
@@ -236,26 +241,27 @@ export const ProfessorsView: React.FC = () => {
                 {/* Botón 2: Editar profesor (Centro - Azul para editar) */}
                 <button
                   onClick={() => handleOpenEdit(prof)}
-                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/65 to-sky-200/65 hover:from-blue-300/70 hover:to-sky-200/70 border border-blue-300/60 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                   title="Editar profesor"
                   aria-label="Editar profesor"
                 >
-                  <Edit2 className="w-4 h-4 text-blue-600" />
+                  <Edit2 className="w-4 h-4 text-blue-700" />
                 </button>
 
                 {/* Botón 3: Eliminar profesor (Inferior - Rojo para eliminar) */}
                 <button
                   onClick={() => setProfToDelete(prof)}
-                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/65 to-rose-200/65 hover:from-red-300/70 hover:to-rose-200/70 border border-red-300/60 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                   title="Eliminar profesor"
                   aria-label="Eliminar profesor"
                 >
-                  <Trash2 className="w-4 h-4 text-red-600" />
+                  <Trash2 className="w-4 h-4 text-red-700" />
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
       )}
 
       {/* Modal Crear / Editar */}

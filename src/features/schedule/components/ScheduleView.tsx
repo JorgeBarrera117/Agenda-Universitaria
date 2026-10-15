@@ -391,18 +391,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       return (
                         <div
                           key={slot.id}
-                          className={`bg-white rounded-2xl p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-row items-stretch justify-between gap-2 ${
+                          style={{
+                            background: isNow ? undefined : `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), #ffffff`,
+                            borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}45`,
+                          }}
+                          className={`rounded-2xl p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-row items-stretch justify-between gap-2 ${
                             isNow
                               ? 'border-emerald-500 ring-2 ring-emerald-400/40 bg-emerald-50/10'
-                              : 'border-slate-200/90 hover:border-cove-sky/60'
+                              : 'hover:border-cove-sky/60'
                           }`}
                         >
-                          {/* Acento superior de Materia */}
-                          <div
-                            className="absolute top-0 left-0 right-0 h-1"
-                            style={{ backgroundColor: subject?.color || '#006BBB' }}
-                          />
-
                           {/* Contenido Principal (Izquierda) */}
                           <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2">
                             <div>
@@ -446,16 +444,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                           </div>
 
                           {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                          <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 border-l border-slate-100 py-0.5 gap-[15px]">
+                          <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 py-0.5 gap-[15px]">
                             {/* Botón 1: Tomar apunte (Superior - Índigo para apuntes) */}
                             {onNavigateToNotes ? (
                               <button
                                 onClick={() => onNavigateToNotes(slot.subjectId)}
-                                className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-200/65 to-violet-200/65 hover:from-indigo-300/70 hover:to-violet-200/70 border border-indigo-300/60 text-indigo-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                                className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-200/90 to-violet-200/90 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300/80 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                                 title="Tomar apunte de esta materia"
                                 aria-label="Tomar apunte"
                               >
-                                <FileEdit className="w-4 h-4 text-indigo-700" />
+                                <FileEdit className="w-4 h-4 text-indigo-800" />
                               </button>
                             ) : (
                               <div className="w-8 h-8" />
@@ -464,21 +462,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                             <button
                               onClick={() => handleOpenEdit(slot)}
-                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-200/65 to-sky-200/65 hover:from-blue-300/70 hover:to-sky-200/70 border border-blue-300/60 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                               title="Editar clase"
                               aria-label="Editar clase"
                             >
-                              <Edit2 className="w-3.5 h-3.5 text-blue-600" />
+                              <Edit2 className="w-3.5 h-3.5 text-blue-700" />
                             </button>
 
                             {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                             <button
                               onClick={() => setSlotToDelete(slot)}
-                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-200/65 to-rose-200/65 hover:from-red-300/70 hover:to-rose-200/70 border border-red-300/60 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                               title="Eliminar clase"
                               aria-label="Eliminar clase"
                             >
-                              <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                              <Trash2 className="w-3.5 h-3.5 text-red-700" />
                             </button>
                           </div>
                         </div>
@@ -535,18 +533,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 return (
                   <div
                     key={slot.id}
-                    className={`bg-white rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group hover:border-cove-sky/60 hover:-translate-y-0.5 ${
+                    style={{
+                      background: isNow ? undefined : `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), #ffffff`,
+                      borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}45`,
+                    }}
+                    className={`rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group hover:-translate-y-0.5 ${
                       isNow
                         ? 'border-emerald-500 ring-2 ring-emerald-400/40 bg-emerald-50/10'
-                        : 'border-slate-200/90'
+                        : ''
                     }`}
                   >
-                    {/* Acento superior de Asignatura */}
-                    <div
-                      className="absolute top-0 left-0 right-0 h-1.5"
-                      style={{ backgroundColor: subject?.color || '#006BBB' }}
-                    />
-
                     {/* Contenido Principal (Izquierda) */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
                       <div className="space-y-2.5">
@@ -615,16 +611,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     </div>
 
                     {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                    <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
+                    <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
                       {/* Botón 1: Tomar apunte (Superior - Índigo para apuntes) */}
                       {onNavigateToNotes ? (
                         <button
                           onClick={() => onNavigateToNotes(slot.subjectId)}
-                          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200/65 to-violet-200/65 hover:from-indigo-300/70 hover:to-violet-200/70 border border-indigo-300/60 text-indigo-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200/90 to-violet-200/90 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300/80 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                           title="Tomar apunte de esta materia"
                           aria-label="Tomar apunte"
                         >
-                          <FileEdit className="w-5 h-5 text-indigo-700" />
+                          <FileEdit className="w-5 h-5 text-indigo-800" />
                         </button>
                       ) : (
                         <div className="w-11 h-11" />
@@ -633,21 +629,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                       <button
                         onClick={() => handleOpenEdit(slot)}
-                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/65 to-sky-200/65 hover:from-blue-300/70 hover:to-sky-200/70 border border-blue-300/60 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                         title="Editar clase"
                         aria-label="Editar clase"
                       >
-                        <Edit2 className="w-4 h-4 text-blue-600" />
+                        <Edit2 className="w-4 h-4 text-blue-700" />
                       </button>
 
                       {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                       <button
                         onClick={() => setSlotToDelete(slot)}
-                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/65 to-rose-200/65 hover:from-red-300/70 hover:to-rose-200/70 border border-red-300/60 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                         title="Eliminar clase"
                         aria-label="Eliminar clase"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        <Trash2 className="w-4 h-4 text-red-700" />
                       </button>
                     </div>
                   </div>
