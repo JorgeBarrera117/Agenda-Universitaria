@@ -449,7 +449,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             {onNavigateToNotes ? (
                               <button
                                 onClick={() => onNavigateToNotes(slot.subjectId)}
-                                className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-200/90 to-violet-200/90 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300/80 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                                className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-200 to-violet-200 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                                 title="Tomar apunte de esta materia"
                                 aria-label="Tomar apunte"
                               >
@@ -462,7 +462,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                             <button
                               onClick={() => handleOpenEdit(slot)}
-                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-200 to-sky-200 hover:from-blue-300 hover:to-sky-200 border border-blue-300 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                               title="Editar clase"
                               aria-label="Editar clase"
                             >
@@ -472,7 +472,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                             <button
                               onClick={() => setSlotToDelete(slot)}
-                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-200 to-rose-200 hover:from-red-300 hover:to-rose-200 border border-red-300 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                               title="Eliminar clase"
                               aria-label="Eliminar clase"
                             >
@@ -616,7 +616,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       {onNavigateToNotes ? (
                         <button
                           onClick={() => onNavigateToNotes(slot.subjectId)}
-                          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200/90 to-violet-200/90 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300/80 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                          className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200 to-violet-200 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                           title="Tomar apunte de esta materia"
                           aria-label="Tomar apunte"
                         >
@@ -629,7 +629,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                       <button
                         onClick={() => handleOpenEdit(slot)}
-                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200 to-sky-200 hover:from-blue-300 hover:to-sky-200 border border-blue-300 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                         title="Editar clase"
                         aria-label="Editar clase"
                       >
@@ -639,7 +639,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                       <button
                         onClick={() => setSlotToDelete(slot)}
-                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                        className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200 to-rose-200 hover:from-red-300 hover:to-rose-200 border border-red-300 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                         title="Eliminar clase"
                         aria-label="Eliminar clase"
                       >

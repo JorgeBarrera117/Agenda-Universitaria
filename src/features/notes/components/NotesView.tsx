@@ -598,7 +598,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       e.stopPropagation();
                       handleOpenRead(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200/90 to-teal-200/90 hover:from-emerald-300 hover:to-teal-200 border border-emerald-300/80 text-emerald-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-200 border border-emerald-300 text-emerald-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Leer apunte a pantalla completa"
                     aria-label="Leer apunte"
                   >
@@ -608,7 +608,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                   {/* Botón 2: Editar apunte (Centro - Azul para editar) */}
                   <button
                     onClick={(e) => handleOpenEdit(note, e)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200 to-sky-200 hover:from-blue-300 hover:to-sky-200 border border-blue-300 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Editar apunte"
                     aria-label="Editar apunte"
                   >
@@ -621,7 +621,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       e.stopPropagation();
                       setNoteToDelete(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200 to-rose-200 hover:from-red-300 hover:to-rose-200 border border-red-300 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Eliminar apunte"
                     aria-label="Eliminar apunte"
                   >

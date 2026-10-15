@@ -238,7 +238,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   {/* Botón 1: Ver apuntes de la materia (Superior - Índigo para apuntes) */}
                   <button
                     onClick={() => onNavigateToNotes && onNavigateToNotes(subject.id)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200/90 to-violet-200/90 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300/80 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200 to-violet-200 hover:from-indigo-300 hover:to-violet-200 border border-indigo-300 text-indigo-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Ver o tomar apuntes de esta asignatura"
                     aria-label="Ver apuntes"
                   >
@@ -248,7 +248,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   {/* Botón 2: Editar asignatura (Centro - Azul para editar) */}
                   <button
                     onClick={() => handleOpenEdit(subject)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/90 to-sky-200/90 hover:from-blue-300 hover:to-sky-200 border border-blue-300/80 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200 to-sky-200 hover:from-blue-300 hover:to-sky-200 border border-blue-300 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Editar asignatura"
                     aria-label="Editar asignatura"
                   >
@@ -258,7 +258,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   {/* Botón 3: Eliminar asignatura (Inferior - Rojo para eliminar) */}
                   <button
                     onClick={() => setSubjectToDelete(subject)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/90 to-rose-200/90 hover:from-red-300 hover:to-rose-200 border border-red-300/80 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200 to-rose-200 hover:from-red-300 hover:to-rose-200 border border-red-300 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Eliminar asignatura"
                     aria-label="Eliminar asignatura"
                   >
