@@ -208,27 +208,27 @@ export const NotesView: React.FC<NotesViewProps> = ({
     return (
       <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in duration-200">
         {/* Barra superior de navegación del lector */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
           <button
             onClick={handleBackToList}
             aria-label="Volver a mis apuntes"
             title="Volver"
-            className="p-2.5 text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl shadow-2xs transition-all cursor-pointer shrink-0"
+            className="p-2.5 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs transition-all cursor-pointer shrink-0"
           >
-            <ArrowLeft className="w-5 h-5 text-cove-blue" />
+            <ArrowLeft className="w-5 h-5 text-cove-blue dark:text-cove-sky" />
           </button>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleOpenEdit(readingNote)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-cove-blue bg-cove-blue/10 hover:bg-cove-blue/20 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-cove-sky/30"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-cove-blue dark:text-cove-sky bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-cove-sky/30 dark:border-cove-sky/40"
             >
               <Edit2 className="w-4 h-4" />
               <span>Editar Apunte</span>
             </button>
             <button
               onClick={() => setNoteToDelete(readingNote)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-red-200/60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-red-200/60 dark:border-red-800/60"
             >
               <Trash2 className="w-4 h-4" />
               <span>Eliminar</span>
@@ -237,12 +237,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
 
         {/* Hoja de Apunte Universitario a Pantalla Completa */}
-        <div className="bg-white rounded-3xl p-6 sm:p-12 shadow-sm border border-slate-200/90 space-y-6">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-12 shadow-sm border border-slate-200/90 dark:border-slate-800 space-y-6 text-slate-900 dark:text-slate-100">
           {/* Encabezado Académico */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <span
                 className="px-3.5 py-1.5 rounded-xl text-xs font-black text-white shadow-2xs"
+
                 style={{ backgroundColor: readingSubject?.color || '#006BBB' }}
               >
                 {readingSubject?.name || 'Materia'} {readingSubject?.code ? `(${readingSubject.code})` : ''}
@@ -449,10 +450,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
       {/* Encabezado Estilo Cuaderno de Cátedra */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Cuaderno de Apuntes
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
             Tus notas de clase, resúmenes y fotos de pizarrón clasificadas por materia.
           </p>
         </div>
@@ -473,7 +474,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar fórmulas, conceptos, pizarras o #etiquetas..."
-          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200/90 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 placeholder-slate-400 shadow-2xs"
+          className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-2xs"
         />
       </div>
 
@@ -484,7 +485,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           className={`px-4 py-2 rounded-2xl text-xs font-black transition-all shrink-0 cursor-pointer ${
             selectedSubjectId === 'all'
               ? 'bg-cove-navy text-white shadow-sm ring-2 ring-cove-sky/40'
-              : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
           }`}
         >
           Todas las materias ({notes.length})
@@ -498,7 +499,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black transition-all shrink-0 cursor-pointer ${
                 isSelected
                   ? 'text-white shadow-md'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
               style={{
                 backgroundColor: isSelected ? sub.color : undefined,
@@ -521,14 +522,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
       {/* Lista / Grid de Apuntes */}
       {notes.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8 shadow-xs">
-          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 text-cove-blue flex items-center justify-center mx-auto mb-3">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
+          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
             <FileText className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 mb-1">
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
             {searchQuery ? 'No se encontraron apuntes' : 'No hay notas en esta asignatura'}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 mb-4 max-w-sm mx-auto">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
             {searchQuery
               ? 'Intenta con otro término de búsqueda o selecciona otra asignatura.'
               : 'Escribe tu primer apunte con formato enriquecido o toma fotos de las diapositivas.'}
@@ -560,7 +561,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
                 style={{
-                  background: `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), #ffffff`,
+                  background: `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), var(--card-bg, #ffffff)`,
                   borderColor: `${subject?.color || '#006BBB'}45`,
                 }}
                 className="group relative rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row items-stretch justify-between gap-3 sm:gap-4 hover:-translate-y-0.5 overflow-hidden"
@@ -578,38 +579,38 @@ export const NotesView: React.FC<NotesViewProps> = ({
                         <span className="truncate">{subject?.name || 'Materia'}</span>
                       </span>
 
-                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-slate-400" />
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                         {dateFormatted}
                       </span>
                     </div>
 
                     {/* Título de la Ficha */}
-                    <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug tracking-tight">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors line-clamp-2 leading-snug tracking-tight">
                       {note.title}
                     </h3>
                   </div>
 
                   {/* Extracto de Cuaderno Sanitizeado */}
-                  <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-100 text-xs text-slate-600 line-clamp-3 leading-relaxed font-sans">
+                  <div className="bg-slate-50/80 dark:bg-slate-800/60 rounded-2xl p-3 border border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed font-sans">
                     {cleanSnippet}
                   </div>
 
                   {/* Pie de la Ficha: Etiquetas y Pizarras */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
                     {note.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {note.tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200/60"
+                            className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60"
                           >
-                            <Tag className="w-2.5 h-2.5 text-slate-400" />
+                            <Tag className="w-2.5 h-2.5 text-slate-400 dark:text-slate-500" />
                             {tag}
                           </span>
                         ))}
                         {note.tags.length > 2 && (
-                          <span className="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded-md">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
                             +{note.tags.length - 2}
                           </span>
                         )}
@@ -620,13 +621,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
                     {/* Insignia de Fotos de Pizarrón */}
                     {imageCount > 0 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 bg-cove-sand/50 border border-cove-gold/60 px-2 py-0.5 rounded-xl shadow-2xs">
-                        <Camera className="w-3 h-3 text-amber-700" />
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 dark:text-amber-100 bg-cove-sand/50 dark:bg-amber-950/40 border border-cove-gold/60 dark:border-amber-800/60 px-2 py-0.5 rounded-xl shadow-2xs">
+                        <Camera className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                         <span>{imageCount} {imageCount === 1 ? 'pizarra' : 'pizarras'}</span>
                       </span>
                     )}
                   </div>
                 </div>
+
 
                 {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
                 <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">

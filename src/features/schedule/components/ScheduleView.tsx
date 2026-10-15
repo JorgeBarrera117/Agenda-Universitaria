@@ -304,8 +304,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               onClick={() => setViewMode('daily')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 viewMode === 'daily'
-                  ? 'bg-white text-cove-navy shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-700 text-cove-navy dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -340,7 +340,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               className={`flex-1 min-w-[42px] sm:min-w-[70px] py-2 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl text-center border transition-all cursor-pointer ${
                 isSelected
                   ? 'bg-cove-navy text-white border-cove-navy shadow-md ring-2 ring-cove-sky/40'
-                  : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1">
@@ -351,7 +351,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               </div>
               <div
                 className={`text-[9px] sm:text-[10px] mt-0.5 sm:mt-1 font-semibold truncate ${
-                  isSelected ? 'text-cove-sand' : 'text-slate-400'
+                  isSelected ? 'text-cove-sand' : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
                 <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
@@ -372,7 +372,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 : displayedDays.length === 6
                 ? 'grid-cols-6'
                 : 'grid-cols-5'
-            } gap-3.5 bg-slate-200/60 p-3.5 sm:p-4 rounded-3xl border border-slate-200 min-w-[1080px] xl:min-w-0`}
+            } gap-3.5 bg-slate-200/60 dark:bg-slate-900/60 p-3.5 sm:p-4 rounded-3xl border border-slate-200 dark:border-slate-800 min-w-[1080px] xl:min-w-0`}
           >
             {displayedDays.map((day) => {
               const daySlotsList = slots
@@ -385,16 +385,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   key={day}
                   className={`flex flex-col gap-3 rounded-2xl p-3 sm:p-3.5 transition-colors ${
                     isToday
-                      ? 'bg-white border-2 border-cove-sky/80 shadow-sm'
-                      : 'bg-slate-100/80 border border-slate-200/80'
+                      ? 'bg-white dark:bg-slate-900 border-2 border-cove-sky/80 shadow-sm'
+                      : 'bg-slate-100/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80'
                   }`}
                 >
                   {/* Encabezado del Día */}
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/90">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/90 dark:border-slate-800">
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`text-xs font-black uppercase tracking-wider ${
-                          isToday ? 'text-cove-blue' : 'text-slate-800'
+                          isToday ? 'text-cove-blue dark:text-cove-sky' : 'text-slate-800 dark:text-slate-200'
                         }`}
                       >
                         {DAY_NAMES[day]}
@@ -405,7 +405,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     </div>
                     <button
                       onClick={() => handleOpenCreate(day)}
-                      className="p-1 text-slate-400 hover:text-cove-blue rounded-lg hover:bg-cove-blue/10 transition-colors cursor-pointer"
+                      className="p-1 text-slate-400 hover:text-cove-blue dark:hover:text-cove-sky rounded-lg hover:bg-cove-blue/10 transition-colors cursor-pointer"
                       title={`Agregar clase el ${DAY_NAMES[day]}`}
                     >
                       <Plus className="w-4 h-4" />
@@ -415,7 +415,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   {/* Lista de Bloques del Día */}
                   <div className="space-y-3 min-h-[340px]">
                     {daySlotsList.length === 0 ? (
-                      <div className="h-full flex items-center justify-center py-12 text-center text-xs text-slate-400 font-medium italic">
+                      <div className="h-full flex items-center justify-center py-12 text-center text-xs text-slate-400 dark:text-slate-500 font-medium italic">
                         Día libre de clases
                       </div>
                     ) : (
@@ -433,7 +433,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             style={{
                               background: isNow
                                 ? undefined
-                                : `linear-gradient(155deg, ${subject?.color || '#006BBB'}22 0%, ${subject?.color || '#006BBB'}0a 100%), #ffffff`,
+                                : `linear-gradient(155deg, ${subject?.color || '#006BBB'}22 0%, ${subject?.color || '#006BBB'}0a 100%), var(--card-bg, #ffffff)`,
                               borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}55`,
                             }}
                             className={`rounded-2xl p-3 sm:p-3.5 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between gap-2.5 ${
@@ -442,6 +442,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                 : 'hover:border-cove-sky/80'
                             }`}
                           >
+
                             {/* Banda superior con el color de la materia */}
                             <div
                               className="absolute top-0 left-0 right-0 h-1.5 opacity-90"
@@ -612,7 +613,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   <div
                     key={slot.id}
                     style={{
-                      background: isNow ? undefined : `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), #ffffff`,
+                      background: isNow ? undefined : `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), var(--card-bg, #ffffff)`,
                       borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}45`,
                     }}
                     className={`rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group hover:-translate-y-0.5 ${
@@ -636,42 +637,42 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
                           {/* Modalidad Badge: Computadora para Virtual, Edificio para Presencial */}
                           {isSlotVirtual(slot) ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black bg-indigo-100 text-indigo-900 border border-indigo-300 shadow-2xs">
-                              <Laptop className="w-3 h-3 text-indigo-700" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black bg-indigo-100 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700 shadow-2xs">
+                              <Laptop className="w-3 h-3 text-indigo-700 dark:text-indigo-400" />
                               <span>VIRTUAL</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300/80 shadow-2xs">
-                              <Building2 className="w-3 h-3 text-cove-blue" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300/80 dark:border-slate-700 shadow-2xs">
+                              <Building2 className="w-3 h-3 text-cove-blue dark:text-cove-sky" />
                               <span>PRESENCIAL</span>
                             </span>
                           )}
 
                           {isNow && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 animate-pulse">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                               EN CURSO AHORA
                             </span>
                           )}
                         </div>
 
                         {/* Nombre Principal de la Materia */}
-                        <h4 className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-cove-blue transition-colors tracking-tight leading-snug">
+                        <h4 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors tracking-tight leading-snug">
                           {subject?.name || 'Materia'}
                         </h4>
                       </div>
 
                       {/* Filas de Información del Campus / Modalidad apiladas */}
                       <div className="space-y-2 text-xs">
-                        <div className="flex items-center gap-2.5 font-mono font-black text-cove-navy bg-cove-blue/10 border border-cove-sky/25 px-3.5 py-2 rounded-2xl">
-                          <Clock className="w-4 h-4 text-cove-blue shrink-0" />
+                        <div className="flex items-center gap-2.5 font-mono font-black text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-3.5 py-2 rounded-2xl">
+                          <Clock className="w-4 h-4 text-cove-blue dark:text-cove-sky shrink-0" />
                           <span>{slot.startTime} - {slot.endTime}</span>
                         </div>
 
                         {isSlotVirtual(slot) ? (
                           <>
-                            <div className="flex items-center gap-2.5 text-indigo-950 bg-indigo-50 border border-indigo-200/80 px-3.5 py-2 rounded-2xl truncate font-bold">
-                              <Laptop className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <div className="flex items-center gap-2.5 text-indigo-950 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/80 px-3.5 py-2 rounded-2xl truncate font-bold">
+                              <Laptop className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                               <span className="truncate">
                                 {slot.classroom && slot.classroom.toLowerCase() !== 'virtual'
                                   ? `Plataforma: ${slot.classroom}`
@@ -680,8 +681,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             </div>
 
                             {slot.building && (
-                              <div className="flex items-center gap-2 text-indigo-700 bg-indigo-50/60 border border-indigo-200/60 px-3.5 py-2 rounded-2xl truncate font-medium">
-                                <Globe className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                              <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/60 px-3.5 py-2 rounded-2xl truncate font-medium">
+                                <Globe className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
                                 <span className="truncate">{slot.building}</span>
                               </div>
                             )}
@@ -689,15 +690,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                         ) : (
                           <>
                             {slot.classroom && (
-                              <div className="flex items-center gap-2.5 text-slate-800 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-2xl truncate font-bold">
-                                <MapPin className="w-4 h-4 text-cove-blue shrink-0" />
+                              <div className="flex items-center gap-2.5 text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-3.5 py-2 rounded-2xl truncate font-bold">
+                                <MapPin className="w-4 h-4 text-cove-blue dark:text-cove-sky shrink-0" />
                                 <span className="truncate">{slot.classroom}</span>
                               </div>
                             )}
 
                             {slot.building && (
-                              <div className="flex items-center gap-2.5 text-slate-700 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-2xl truncate font-medium">
-                                <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                              <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-3.5 py-2 rounded-2xl truncate font-medium">
+                                <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
                                 <span className="truncate">{slot.building}</span>
                               </div>
                             )}
@@ -707,7 +708,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
                       {/* Credencial del Docente */}
                       {professor && (
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3 text-xs">
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 text-xs">
                           <div className="flex items-center gap-2.5">
                             <ProfessorAvatar
                               name={professor.name}
@@ -720,12 +721,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">
                                 Docente a cargo
                               </span>
-                              <span className="font-bold text-slate-800">{professor.name}</span>
+                              <span className="font-bold text-slate-800 dark:text-slate-200">{professor.name}</span>
                             </div>
                           </div>
                         </div>
                       )}
                     </div>
+
 
                     {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
                     <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">

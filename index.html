@@ -9,9 +9,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="AgendaUni" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Agenda Universitaria | Horarios, Profesores y Apuntes</title>
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('agenda_universitaria_settings');
+          var theme = stored ? JSON.parse(stored).theme : 'light';
+          var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
+
   <body class="bg-slate-50 text-slate-900 min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

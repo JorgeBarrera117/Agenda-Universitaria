@@ -78,15 +78,15 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
       {/* Resumen Métrico del Semestre (Distribuido Horizontalmente) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {/* Métrica 1: Asignaturas */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+        <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 leading-tight">
+            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
               {subjects.length}
             </div>
-            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
               <span className="sm:hidden">Materias</span>
               <span className="hidden sm:inline">Asignaturas Inscritas</span>
             </div>
@@ -94,15 +94,15 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
         </div>
 
         {/* Métrica 2: Créditos */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+        <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Award className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 leading-tight">
+            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
               {totalCredits}
             </div>
-            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
               <span className="sm:hidden">Créditos</span>
               <span className="hidden sm:inline">Créditos Académicos</span>
             </div>
@@ -110,15 +110,15 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
         </div>
 
         {/* Métrica 3: Bloques */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+        <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 leading-tight">
+            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
               {totalSlotsCount}
             </div>
-            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
               <span className="sm:hidden">Bloques</span>
               <span className="hidden sm:inline">Bloques Semanales</span>
             </div>
@@ -129,10 +129,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Plan de Asignaturas
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
             Catálogo curricular que estructura tus horarios, apuntes y docentes.
           </p>
         </div>
@@ -146,14 +146,14 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
       </div>
 
       {subjects.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8 shadow-xs">
-          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 text-cove-blue flex items-center justify-center mx-auto mb-3">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
+          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
             <BookOpen className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 mb-1">
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
             No tienes asignaturas registradas
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 mb-4 max-w-sm mx-auto">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
             Registra tus materias del ciclo universitario para poder armar tu horario y clasificar tus apuntes.
           </p>
           <button
@@ -175,7 +175,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
               <div
                 key={subject.id}
                 style={{
-                  background: `linear-gradient(145deg, ${subject.color}1f 0%, ${subject.color}0c 100%), #ffffff`,
+                  background: `linear-gradient(145deg, ${subject.color}1f 0%, ${subject.color}0c 100%), var(--card-bg, #ffffff)`,
                   borderColor: `${subject.color}45`,
                 }}
                 className="rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group"
@@ -200,7 +200,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                         </span>
                       </div>
 
-                      <h3 className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug line-clamp-2">
                         {subject.name}
                       </h3>
                     </div>
@@ -210,7 +210,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   <div className="space-y-2 text-xs">
                     {/* Catedrático / Profesor Asignado */}
                     {prof ? (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/90 border border-slate-200/80 text-slate-800 shadow-2xs">
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-2xs">
                         <ProfessorAvatar
                           name={prof.name}
                           icon={prof.icon}
@@ -219,58 +219,59 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                           className="shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold truncate text-slate-900 text-xs">
+                          <div className="font-bold truncate text-slate-900 dark:text-white text-xs">
                             {prof.name}
                           </div>
-                          <div className="text-[10px] text-slate-500 truncate">
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                             {prof.office || prof.email || 'Docente titular'}
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
-                        <User className="w-4 h-4 text-slate-300 shrink-0" />
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic">
+                        <User className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
                         <span>Sin docente asignado</span>
                       </div>
                     )}
 
                     {subject.classroomDefault ? (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/70 text-slate-700">
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 text-slate-700 dark:text-slate-300">
                         <MapPin className="w-4 h-4 text-cove-sky shrink-0" />
                         <span className="truncate font-semibold">{subject.classroomDefault}</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
-                        <MapPin className="w-4 h-4 text-slate-300 shrink-0" />
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic">
+                        <MapPin className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
                         <span>Aula por asignar</span>
                       </div>
                     )}
 
                     {subject.credits !== undefined ? (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-cove-sand/40 border border-cove-gold/60 text-slate-900 font-bold">
-                        <Award className="w-4 h-4 text-amber-600 shrink-0" />
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-cove-sand/40 dark:bg-amber-950/40 border border-cove-gold/60 dark:border-amber-800/60 text-slate-900 dark:text-amber-200 font-bold">
+                        <Award className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span>{subject.credits} Créditos Académicos</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
-                        <Award className="w-4 h-4 text-slate-300 shrink-0" />
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic">
+                        <Award className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
                         <span>Créditos sin especificar</span>
                       </div>
                     )}
                   </div>
 
                   {/* Métricas al pie */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold gap-2">
-                    <span className="flex items-center gap-1.5 text-slate-600 font-bold">
-                      <Clock className="w-3.5 h-3.5 text-cove-blue" />
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold gap-2">
+                    <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold">
+                      <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky" />
                       {classCount} {classCount === 1 ? 'bloque' : 'bloques'}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-black bg-cove-blue/10 text-cove-blue border border-cove-sky/30">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-black bg-cove-blue/10 dark:bg-cove-blue/25 text-cove-blue dark:text-cove-sky border border-cove-sky/30 dark:border-cove-sky/40">
                       <FileText className="w-3 h-3" />
                       {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
                     </span>
                   </div>
                 </div>
+
 
                 {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
                 <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">

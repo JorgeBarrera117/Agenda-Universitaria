@@ -1,4 +1,7 @@
+export type ThemeMode = 'light' | 'dark' | 'system';
+
 export interface AppSettings {
+  theme: ThemeMode;
   semesterName: string;
   defaultScheduleView: 'weekly' | 'daily';
   imageQuality: 'balanced' | 'high';
@@ -11,6 +14,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  theme: 'light',
   semesterName: 'Semestre 2026-I',
   defaultScheduleView: 'weekly',
   imageQuality: 'balanced',
@@ -20,4 +24,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notify15MinBefore: true,
   notificationSound: true,
 };
+
 

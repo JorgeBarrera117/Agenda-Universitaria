@@ -1,8 +1,9 @@
 {
   "name": "agenda-universitaria",
   "private": true,
-  "version": "1.5.1",
+  "version": "1.5.2",
   "type": "module",
+
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -66,10 +66,10 @@ export const ProfessorsView: React.FC = () => {
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Cuerpo Docente y Asesorías
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
             Directorio oficial de profesores, cubículos de consulta y medios de contacto.
           </p>
         </div>
@@ -83,14 +83,14 @@ export const ProfessorsView: React.FC = () => {
       </div>
 
       {professors.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8 shadow-xs">
-          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 text-cove-blue flex items-center justify-center mx-auto mb-3">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
+          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
             <Users className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 mb-1">
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
             No hay profesores registrados
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 mb-4 max-w-sm mx-auto">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
             Guarda la información de tus catedráticos para consultar rápidamente horarios de asesoría y correos.
           </p>
           <button
@@ -111,7 +111,7 @@ export const ProfessorsView: React.FC = () => {
               <div
                 key={prof.id}
                 style={{
-                  background: `linear-gradient(145deg, ${cardColor}1f 0%, ${cardColor}0c 100%), #ffffff`,
+                  background: `linear-gradient(145deg, ${cardColor}1f 0%, ${cardColor}0c 100%), var(--card-bg, #ffffff)`,
                   borderColor: `${cardColor}40`,
                 }}
                 className="rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group"
@@ -120,7 +120,7 @@ export const ProfessorsView: React.FC = () => {
                 <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
                 <div>
                   {/* Cabecera de la Ficha Docente */}
-                  <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100 dark:border-slate-800">
                     <ProfessorAvatar
                       name={prof.name}
                       icon={prof.icon}
@@ -129,10 +129,10 @@ export const ProfessorsView: React.FC = () => {
                       className="border border-white/20"
                     />
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-base font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug">
+                      <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors line-clamp-2 leading-snug">
                         {prof.name}
                       </h3>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-md text-[10px] font-bold bg-cove-sky/15 text-cove-deep border border-cove-sky/20">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-md text-[10px] font-bold bg-cove-sky/15 text-cove-deep dark:text-cove-sky border border-cove-sky/20">
                         Catedrático Titular
                       </span>
                     </div>
@@ -143,7 +143,7 @@ export const ProfessorsView: React.FC = () => {
                     {prof.email && (
                       <a
                         href={`mailto:${prof.email}`}
-                        className="group/contact flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/80 hover:bg-sky-50/90 border border-slate-200/80 hover:border-cove-sky/60 text-slate-700 hover:text-cove-blue transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                        className="group/contact flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/80 dark:bg-slate-800/80 hover:bg-sky-50/90 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-cove-sky/60 text-slate-700 dark:text-slate-300 hover:text-cove-blue dark:hover:text-cove-sky transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
                         title={`Enviar correo electrónico a ${prof.email}`}
                         aria-label={`Enviar correo a ${prof.name}`}
                       >
@@ -155,7 +155,7 @@ export const ProfessorsView: React.FC = () => {
                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
                             Correo Electrónico
                           </span>
-                          <span className="block truncate font-bold text-slate-800 group-hover/contact:text-cove-blue text-xs">
+                          <span className="block truncate font-bold text-slate-800 dark:text-slate-200 group-hover/contact:text-cove-blue dark:group-hover/contact:text-cove-sky text-xs">
                             {prof.email}
                           </span>
                         </div>
@@ -166,7 +166,7 @@ export const ProfessorsView: React.FC = () => {
                     {prof.phone && (
                       <a
                         href={`tel:${prof.phone}`}
-                        className="group/contact flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/80 hover:bg-emerald-50/90 border border-slate-200/80 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                        className="group/contact flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/80 dark:bg-slate-800/80 hover:bg-emerald-50/90 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-emerald-300 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
                         title={`Llamar al ${prof.phone}`}
                         aria-label={`Llamar a ${prof.name}`}
                       >
@@ -178,7 +178,7 @@ export const ProfessorsView: React.FC = () => {
                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
                             Teléfono / Contacto
                           </span>
-                          <span className="block truncate font-bold text-slate-800 group-hover/contact:text-emerald-700 text-xs font-mono">
+                          <span className="block truncate font-bold text-slate-800 dark:text-slate-200 group-hover/contact:text-emerald-700 dark:group-hover/contact:text-emerald-400 text-xs font-mono">
                             {prof.phone}
                           </span>
                         </div>
@@ -187,15 +187,15 @@ export const ProfessorsView: React.FC = () => {
                     )}
 
                     {prof.office && (
-                      <div className="flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/60 border border-slate-200/60 text-slate-700 shadow-2xs">
-                        <div className="w-8 h-8 rounded-xl bg-amber-100/90 text-amber-800 flex items-center justify-center shrink-0">
+                      <div className="flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 shadow-2xs">
+                        <div className="w-8 h-8 rounded-xl bg-amber-100/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400 flex items-center justify-center shrink-0">
                           <MapPin className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
                             Cubículo / Ubicación
                           </span>
-                          <span className="block truncate font-medium text-slate-800 text-xs">
+                          <span className="block truncate font-medium text-slate-800 dark:text-slate-200 text-xs">
                             {prof.office}
                           </span>
                         </div>
@@ -203,21 +203,22 @@ export const ProfessorsView: React.FC = () => {
                     )}
 
                     {prof.notes && (
-                      <div className="mt-3 p-3 bg-cove-sand/35 border border-cove-gold/60 rounded-2xl text-[11px] text-slate-900 leading-relaxed shadow-2xs">
-                        <div className="flex items-center gap-1.5 font-bold text-amber-900 mb-0.5">
-                          <CalendarCheck className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <div className="mt-3 p-3 bg-cove-sand/35 dark:bg-amber-950/30 border border-cove-gold/60 dark:border-amber-800/60 rounded-2xl text-[11px] text-slate-900 dark:text-amber-100 leading-relaxed shadow-2xs">
+                        <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-300 mb-0.5">
+                          <CalendarCheck className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
                           <span>Horario de Asesoría:</span>
                         </div>
-                        <p className="font-medium text-slate-800 italic">"{prof.notes}"</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200 italic">"{prof.notes}"</p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Materias a Cargo */}
-                <div className="pt-2.5 border-t border-slate-100">
+                <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
                     Cátedras Asignadas:
+
                   </span>
                   {prof.subjectIds.length === 0 ? (
                     <span className="text-xs text-slate-400 italic">Sin materias vinculadas</span>

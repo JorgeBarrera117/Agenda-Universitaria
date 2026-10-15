@@ -11,6 +11,7 @@ import { useSubjects } from './features/subjects/hooks/useSubjects';
 import { useSchedule } from './features/schedule/hooks/useSchedule';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { NotificationService } from './shared/services/notificationService';
+import { applyTheme, setupSystemThemeListener } from './shared/utils/theme';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
@@ -22,6 +23,16 @@ export function App() {
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
   const { settings } = useAppSettings();
+
+  // Sincronizar tema de apariencia (claro, oscuro o sistema)
+  useEffect(() => {
+    applyTheme(settings.theme);
+    const cleanup = setupSystemThemeListener(settings.theme, () => {
+      applyTheme('system');
+    });
+    return cleanup;
+  }, [settings.theme]);
+
 
   useEffect(() => {
     // Si la base de datos local está vacía, sembrar ejemplos universitarios
@@ -81,10 +92,11 @@ export function App() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-100/70 text-slate-900 flex flex-col selection:bg-cove-blue selection:text-white transition-all ${
+      className={`min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-cove-blue selection:text-white transition-colors duration-200 ${
         isNoteEditorActive || isSettingsOpen ? 'pb-4' : 'pb-22 md:pb-10'
       }`}
     >
+
       {/* Barra de navegación superior de Campus (Oculta al crear apuntes o en Ajustes) */}
       {!isNoteEditorActive && !isSettingsOpen && (
         <Navbar

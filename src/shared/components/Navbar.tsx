@@ -135,18 +135,34 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Botón de Configuración en el Header Superior Derecho (Opción A) */}
+          {/* Botón de Configuración y Ajustes Mejorado */}
           <div className="flex items-center gap-2">
             <button
               onClick={onOpenSettings}
-              title="Configuración de la Agenda y Respaldos"
-              aria-label="Abrir configuración"
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-200 hover:text-white bg-slate-800/90 hover:bg-slate-700/90 rounded-2xl border border-slate-700/80 hover:border-cove-sky/50 transition-all active:scale-95 cursor-pointer shadow-sm group"
+              title="Ajustes y Personalización de la Agenda"
+              aria-label="Abrir Ajustes"
+              className="relative group overflow-hidden flex items-center gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-gradient-to-r from-slate-800/90 via-cove-navy/90 to-slate-800/90 hover:from-cove-blue/30 hover:via-indigo-950/50 hover:to-cove-sky/30 border border-slate-700/80 hover:border-cove-sky/60 shadow-md shadow-black/20 hover:shadow-cove-blue/20 transition-all duration-300 active:scale-95 cursor-pointer ring-1 ring-white/10"
             >
-              <Settings className="w-4 h-4 text-cove-sky group-hover:rotate-45 transition-transform duration-300" />
-              <span className="hidden sm:inline">Ajustes</span>
+              {/* Resplandor dinámico en hover */}
+              <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-cove-sky/20 via-transparent to-cove-blue/20 rounded-2xl blur-xs" />
+
+              {/* Contenedor del ícono con animación giratoria y badge */}
+              <div className="relative w-7 h-7 rounded-xl bg-cove-blue/20 border border-cove-sky/30 flex items-center justify-center text-cove-sky group-hover:bg-cove-blue group-hover:text-white group-hover:border-cove-sky group-hover:rotate-90 transition-all duration-300 shadow-xs shrink-0">
+                <Settings className="w-4 h-4" />
+              </div>
+
+              {/* Texto de Ajustes con tipografía Campus */}
+              <div className="hidden sm:flex flex-col items-start text-left leading-none">
+                <span className="text-xs font-black tracking-wide text-slate-200 group-hover:text-white transition-colors">
+                  Ajustes
+                </span>
+                <span className="text-[9px] font-semibold text-slate-400 group-hover:text-cove-sand transition-colors mt-0.5">
+                  Campus & Tema
+                </span>
+              </div>
             </button>
           </div>
+
         </div>
       </div>
     </header>
