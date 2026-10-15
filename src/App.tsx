@@ -45,7 +45,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col pb-22 md:pb-10 selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col pb-22 md:pb-10 selection:bg-cove-blue selection:text-white">
       {/* Barra de navegación superior de Campus */}
       <Navbar
         activeTab={activeTab}
@@ -59,8 +59,8 @@ export function App() {
 
       {/* Notificación Toast Flotante */}
       {toastMessage && (
-        <div className="fixed bottom-22 md:bottom-8 right-6 z-50 bg-slate-950 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-slate-800 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+        <div className="fixed bottom-22 md:bottom-8 right-6 z-50 bg-cove-navy text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-cove-sky/30 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-cove-gold" />
           {toastMessage}
         </div>
       )}

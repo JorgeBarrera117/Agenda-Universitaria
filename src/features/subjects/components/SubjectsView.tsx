@@ -58,7 +58,7 @@ export const SubjectsView: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-cove-blue border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -68,7 +68,7 @@ export const SubjectsView: React.FC = () => {
       {/* Resumen del Plan Académico / Semestre (UX) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-cove-blue/10 text-cove-blue flex items-center justify-center font-bold">
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
@@ -80,8 +80,8 @@ export const SubjectsView: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Award className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-cove-sand/50 text-slate-800 flex items-center justify-center font-bold">
+            <Award className="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <div className="text-2xl font-black text-slate-900">{totalCredits}</div>
@@ -92,8 +92,8 @@ export const SubjectsView: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <Clock className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-cove-sky/15 text-cove-deep flex items-center justify-center font-bold">
+            <Clock className="w-6 h-6 text-cove-sky" />
           </div>
           <div>
             <div className="text-2xl font-black text-slate-900">{totalSlotsCount}</div>
@@ -116,7 +116,7 @@ export const SubjectsView: React.FC = () => {
         </div>
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Inscribir Asignatura
@@ -125,7 +125,7 @@ export const SubjectsView: React.FC = () => {
 
       {subjects.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8 shadow-xs">
-          <div className="w-16 h-16 rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 text-cove-blue flex items-center justify-center mx-auto mb-3">
             <BookOpen className="w-8 h-8" />
           </div>
           <h3 className="text-base font-bold text-slate-800 mb-1">
@@ -136,7 +136,7 @@ export const SubjectsView: React.FC = () => {
           </p>
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Inscribir primera asignatura
@@ -151,7 +151,7 @@ export const SubjectsView: React.FC = () => {
             return (
               <div
                 key={subject.id}
-                className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between group"
+                className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between group hover:border-cove-sky/50"
               >
                 {/* Indicador de Color Superior en Estilo Ficha Curricular */}
                 <div
@@ -171,7 +171,7 @@ export const SubjectsView: React.FC = () => {
                           ASIGNATURA
                         </span>
                       )}
-                      <h3 className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                      <h3 className="text-lg font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-1">
                         {subject.name}
                       </h3>
                     </div>
@@ -179,14 +179,14 @@ export const SubjectsView: React.FC = () => {
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleOpenEdit(subject)}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-cove-blue hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                         title="Editar asignatura"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setSubjectToDelete(subject)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                         title="Eliminar asignatura"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -216,7 +216,7 @@ export const SubjectsView: React.FC = () => {
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
                     {classCount} {classCount === 1 ? 'bloque/sem' : 'bloques/sem'}
                   </span>
-                  <span className="flex items-center gap-1 text-indigo-600">
+                  <span className="flex items-center gap-1 text-cove-blue font-bold">
                     <FileText className="w-3.5 h-3.5" />
                     {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
                   </span>

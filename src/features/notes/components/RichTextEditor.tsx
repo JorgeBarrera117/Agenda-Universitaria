@@ -74,7 +74,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-[420px] sm:min-h-[580px] py-3 px-1 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-indigo max-w-none',
+          'min-h-[420px] sm:min-h-[580px] py-3 px-1 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-slate max-w-none',
       },
     },
   });
@@ -150,7 +150,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('bold')
-                ? 'bg-indigo-600 text-white shadow-2xs font-bold'
+                ? 'bg-cove-blue text-white shadow-2xs font-bold'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Negrita (Ctrl+B)"
@@ -162,7 +162,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('italic')
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Cursiva (Ctrl+I)"
@@ -174,7 +174,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleUnderline().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('underline')
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Subrayado (Ctrl+U)"
@@ -186,7 +186,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleStrike().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('strike')
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Tachado"
@@ -202,7 +202,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('heading', { level: 1 })
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Título Grande (H1)"
@@ -214,7 +214,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('heading', { level: 2 })
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Subtítulo (H2)"
@@ -230,7 +230,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('bulletList')
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Lista con viñetas"
@@ -242,7 +242,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('orderedList')
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Lista numerada"
@@ -254,7 +254,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
               editor.isActive('blockquote')
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-cove-blue text-white shadow-2xs'
                 : 'text-slate-700 hover:bg-slate-200/60'
             }`}
             title="Cita o nota destacada"
@@ -277,7 +277,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             type="button"
             disabled={isProcessingImage}
             onClick={() => cameraInputRef.current?.click()}
-            className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 bg-cove-blue/10 hover:bg-cove-blue/20 text-cove-blue text-xs font-bold rounded-lg border border-cove-sky/30 transition-colors cursor-pointer"
             title="Tomar foto con la cámara e insertarla en el texto"
           >
             <Camera className="w-3.5 h-3.5" />
@@ -295,7 +295,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
 
           {isProcessingImage && (
-            <span className="flex items-center gap-1 text-[11px] text-indigo-600 font-medium ml-1">
+            <span className="flex items-center gap-1 text-[11px] text-cove-blue font-medium ml-1">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               Insertando...
             </span>

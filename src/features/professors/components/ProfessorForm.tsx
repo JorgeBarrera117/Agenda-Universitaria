@@ -77,7 +77,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Ej: Dra. María Fernández, Ing. Roberto Silva"
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+          className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           required
         />
       </div>
@@ -92,7 +92,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="profesor@universidad.edu"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           />
         </div>
 
@@ -105,7 +105,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+52 55 1234 5678"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           />
         </div>
       </div>
@@ -119,7 +119,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
           value={office}
           onChange={(e) => setOffice(e.target.value)}
           placeholder="Ej: Edificio C, Cubículo 204 o Enlace de Zoom"
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+          className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
         />
       </div>
 
@@ -132,7 +132,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
             Primero crea materias en la sección de materias para asignarlas aquí.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 border border-slate-200 rounded-lg bg-slate-50">
+          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 border border-slate-200 rounded-xl bg-slate-50">
             {subjects.map((sub) => {
               const isSelected = selectedSubjectIds.includes(sub.id);
               return (
@@ -140,9 +140,9 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
                   key={sub.id}
                   type="button"
                   onClick={() => toggleSubject(sub.id)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full border transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      ? 'bg-cove-blue text-white border-cove-blue shadow-xs'
                       : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -163,7 +163,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Ej: Asesorías los viernes a las 11:00 am previa cita."
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm resize-none"
+          className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 text-sm resize-none"
         />
       </div>
 
@@ -171,14 +171,14 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors shadow-sm cursor-pointer"
+          className="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue disabled:opacity-50 rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Profesor' : 'Registrar Profesor'}
         </button>

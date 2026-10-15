@@ -115,7 +115,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           <select
             value={subjectId}
             onChange={(e) => handleSubjectChange(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white"
             required
           >
             <option value="" disabled>-- Selecciona una materia --</option>
@@ -136,7 +136,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           <select
             value={dayOfWeek}
             onChange={(e) => setDayOfWeek(Number(e.target.value) as DayOfWeek)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white"
           >
             {Object.entries(DAY_NAMES).map(([val, name]) => (
               <option key={val} value={val}>
@@ -153,7 +153,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           <select
             value={professorId}
             onChange={(e) => setProfessorId(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 bg-white"
           >
             <option value="">(Sin profesor asignado)</option>
             {professors.map((p) => (
@@ -174,7 +174,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
             required
           />
         </div>
@@ -187,7 +187,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
             required
           />
         </div>
@@ -203,7 +203,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             value={classroom}
             onChange={(e) => setClassroom(e.target.value)}
             placeholder="Ej: Aula 104, Lab 2"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           />
         </div>
 
@@ -216,7 +216,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             value={building}
             onChange={(e) => setBuilding(e.target.value)}
             placeholder="Ej: Edificio Central, Campus Norte"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           />
         </div>
       </div>
@@ -225,14 +225,14 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isSubmitting || subjects.length === 0}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors shadow-sm cursor-pointer"
+          className="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue disabled:opacity-50 rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Clase' : 'Agregar al Horario'}
         </button>

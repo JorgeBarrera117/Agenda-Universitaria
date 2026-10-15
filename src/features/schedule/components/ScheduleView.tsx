@@ -96,7 +96,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-cove-blue border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -116,10 +116,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
     <div className="space-y-6">
       {/* 1. CENTRO DE CONTROL EN VIVO (UX PENSAMIENTO DE DISEÑO) */}
       {(activeClassNow || nextClassToday || todaySlots.length > 0) && (
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 text-white p-6 shadow-xl border border-indigo-900/40">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-white p-6 shadow-xl border border-cove-sky/30">
           {/* Elementos decorativos de fondo sutiles */}
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 -mb-10 w-36 h-36 bg-blue-500/10 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-cove-sky/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 -mb-10 w-36 h-36 bg-cove-blue/20 rounded-full blur-xl pointer-events-none" />
 
           {activeClassNow ? (
             // A. ESTADO: EN CLASE AHORA
@@ -134,26 +134,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   <h3 className="text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
                     {getSubjectById(activeClassNow.subjectId)?.name || 'Clase Universitaria'}
                     {getSubjectById(activeClassNow.subjectId)?.code && (
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-white/10 text-indigo-200">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-white/10 text-cove-sand">
                         {getSubjectById(activeClassNow.subjectId)?.code}
                       </span>
                     )}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-4 mt-2 text-xs font-medium text-slate-300">
-                    <span className="flex items-center gap-1.5 font-mono text-amber-300">
+                  <div className="flex flex-wrap items-center gap-4 mt-2 text-xs font-medium text-slate-200">
+                    <span className="flex items-center gap-1.5 font-mono text-cove-gold font-bold">
                       <Clock className="w-3.5 h-3.5" />
                       {activeClassNow.startTime} - {activeClassNow.endTime}
                     </span>
                     {activeClassNow.classroom && (
-                      <span className="flex items-center gap-1.5 text-slate-200 bg-white/10 px-2.5 py-0.5 rounded-lg">
-                        <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="flex items-center gap-1.5 text-white bg-white/15 px-2.5 py-0.5 rounded-lg">
+                        <MapPin className="w-3.5 h-3.5 text-cove-sky" />
                         {activeClassNow.classroom}
                         {activeClassNow.building && ` (${activeClassNow.building})`}
                       </span>
                     )}
                     {getProfessorById(activeClassNow.professorId) && (
-                      <span className="flex items-center gap-1.5 text-slate-300">
-                        <span className="w-5 h-5 rounded-full bg-indigo-500/30 flex items-center justify-center text-[10px] font-bold text-indigo-200">
+                      <span className="flex items-center gap-1.5 text-slate-200">
+                        <span className="w-5 h-5 rounded-full bg-cove-sky/30 flex items-center justify-center text-[10px] font-bold text-cove-sand">
                           {getProfessorById(activeClassNow.professorId)?.name.charAt(0)}
                         </span>
                         {getProfessorById(activeClassNow.professorId)?.name}
@@ -167,9 +167,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               {onNavigateToNotes && (
                 <button
                   onClick={() => onNavigateToNotes(activeClassNow.subjectId)}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-sm font-extrabold shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-cove-gold to-amber-400 hover:from-amber-300 hover:to-amber-400 text-cove-navy text-sm font-extrabold shadow-lg shadow-cove-gold/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
                 >
-                  <FileEdit className="w-4 h-4 text-slate-950" />
+                  <FileEdit className="w-4 h-4 text-cove-navy" />
                   Tomar Apunte de esta Clase
                 </button>
               )}
@@ -178,7 +178,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             // B. ESTADO: SIGUIENTE CLASE HOY
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 mb-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-cove-gold/20 text-cove-gold border border-cove-gold/40 mb-2">
                   <Sparkles className="w-3.5 h-3.5" />
                   PRÓXIMA CLASE HOY
                 </div>
@@ -186,12 +186,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   {getSubjectById(nextClassToday.subjectId)?.name}
                 </h3>
                 <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-300">
-                  <span className="font-mono text-amber-300 font-bold">
+                  <span className="font-mono text-cove-gold font-bold">
                     Inicia a las {nextClassToday.startTime}
                   </span>
                   {nextClassToday.classroom && (
                     <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                      <MapPin className="w-3.5 h-3.5 text-cove-sky" />
                       {nextClassToday.classroom}
                     </span>
                   )}
@@ -200,7 +200,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
               <div className="text-right">
                 <span className="text-xs text-slate-400">Total clases hoy:</span>
-                <span className="ml-2 font-mono font-bold text-indigo-300">
+                <span className="ml-2 font-mono font-bold text-cove-sand">
                   {todaySlots.length} asignaturas
                 </span>
               </div>
@@ -214,7 +214,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">¡Jornada de hoy completada!</h4>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-300">
                     Has terminado todas tus clases del día. Aprovecha para repasar tus apuntes.
                   </p>
                 </div>
@@ -242,7 +242,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               onClick={() => setViewMode('weekly')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 viewMode === 'weekly'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'bg-white text-cove-navy shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -253,7 +253,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               onClick={() => setViewMode('daily')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 viewMode === 'daily'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'bg-white text-cove-navy shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -264,7 +264,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
           <button
             onClick={() => handleOpenCreate(selectedDay)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/25 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nueva Clase
@@ -288,7 +288,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               }}
               className={`flex-1 min-w-[76px] py-3 px-2 rounded-2xl text-center border transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-500/30'
+                  ? 'bg-cove-navy text-white border-cove-navy shadow-md ring-2 ring-cove-sky/40'
                   : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
@@ -298,12 +298,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               <div className="text-sm font-black flex items-center justify-center gap-1 mt-0.5">
                 {DAY_NAMES[day as DayOfWeek].slice(0, 3)}
                 {isToday && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white/50" />
+                  <span className="w-2 h-2 rounded-full bg-cove-gold ring-2 ring-white/50" />
                 )}
               </div>
               <div
                 className={`text-[10px] mt-1 font-semibold ${
-                  isSelected ? 'text-indigo-300' : 'text-slate-400'
+                  isSelected ? 'text-cove-sand' : 'text-slate-400'
                 }`}
               >
                 {count} {count === 1 ? 'bloque' : 'bloques'}
@@ -327,7 +327,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 key={day}
                 className={`flex flex-col gap-2.5 rounded-2xl p-3 transition-colors ${
                   isToday
-                    ? 'bg-white border-2 border-indigo-500/40 shadow-sm'
+                    ? 'bg-white border-2 border-cove-sky/60 shadow-sm'
                     : 'bg-slate-100/70 border border-slate-200/70'
                 }`}
               >
@@ -335,18 +335,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   <div className="flex items-center gap-1.5">
                     <span
                       className={`text-xs font-black uppercase tracking-wider ${
-                        isToday ? 'text-indigo-700' : 'text-slate-700'
+                        isToday ? 'text-cove-blue' : 'text-slate-700'
                       }`}
                     >
                       {DAY_NAMES[day]}
                     </span>
                     {isToday && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-cove-blue" />
                     )}
                   </div>
                   <button
                     onClick={() => handleOpenCreate(day)}
-                    className="p-1 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-200/50 transition-colors cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-cove-blue rounded-lg hover:bg-cove-blue/10 transition-colors cursor-pointer"
                     title={`Agregar clase el ${DAY_NAMES[day]}`}
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -373,13 +373,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                           className={`bg-white rounded-2xl p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md ${
                             isNow
                               ? 'border-emerald-500 ring-2 ring-emerald-400/30'
-                              : 'border-slate-200 hover:border-indigo-300'
+                              : 'border-slate-200 hover:border-cove-sky'
                           }`}
                         >
                           {/* Franja de Color de la Asignatura */}
                           <div
                             className="absolute top-0 left-0 bottom-0 w-2 rounded-l"
-                            style={{ backgroundColor: subject?.color || '#4f46e5' }}
+                            style={{ backgroundColor: subject?.color || '#006BBB' }}
                           />
 
                           <div className="pl-2">
@@ -391,7 +391,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
                                 <button
                                   onClick={() => handleOpenEdit(slot)}
-                                  className="p-1 text-slate-400 hover:text-indigo-600 rounded cursor-pointer"
+                                  className="p-1 text-slate-400 hover:text-cove-blue rounded cursor-pointer"
                                   title="Editar"
                                 >
                                   <Edit2 className="w-3 h-3" />
@@ -412,8 +412,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
                             <div className="mt-2.5 space-y-1.5 text-[11px]">
                               {/* Rango Horario */}
-                              <div className="flex items-center gap-1 font-mono font-bold text-indigo-950 bg-indigo-50/70 px-2 py-0.5 rounded-md">
-                                <Clock className="w-3 h-3 text-indigo-500 shrink-0" />
+                              <div className="flex items-center gap-1 font-mono font-bold text-cove-navy bg-cove-blue/10 px-2 py-0.5 rounded-md">
+                                <Clock className="w-3 h-3 text-cove-blue shrink-0" />
                                 <span>{slot.startTime} - {slot.endTime}</span>
                               </div>
 
@@ -456,7 +456,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 {DAY_NAMES[selectedDay]}
               </h3>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 text-cove-blue">
               {daySlots.length} {daySlots.length === 1 ? 'materia' : 'materias'}
             </span>
           </div>
@@ -469,7 +469,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               </p>
               <button
                 onClick={() => handleOpenCreate(selectedDay)}
-                className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-100 transition-colors cursor-pointer"
+                className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-cove-blue/10 text-cove-blue text-xs font-bold rounded-xl hover:bg-cove-blue/20 transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Programar clase para este día
@@ -491,12 +491,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     className={`bg-white rounded-3xl p-5 border shadow-xs hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between ${
                       isNow
                         ? 'border-emerald-500 ring-2 ring-emerald-400/30'
-                        : 'border-slate-200'
+                        : 'border-slate-200 hover:border-cove-sky'
                     }`}
                   >
                     <div
                       className="absolute top-0 left-0 bottom-0 w-2.5"
-                      style={{ backgroundColor: subject?.color || '#4f46e5' }}
+                      style={{ backgroundColor: subject?.color || '#006BBB' }}
                     />
 
                     <div className="pl-3">
@@ -516,7 +516,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                           {onNavigateToNotes && (
                             <button
                               onClick={() => onNavigateToNotes(slot.subjectId)}
-                              className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
+                              className="p-2 text-cove-blue hover:bg-cove-blue/10 rounded-xl transition-colors cursor-pointer"
                               title="Tomar apunte de esta materia"
                             >
                               <FileEdit className="w-4 h-4" />
@@ -524,7 +524,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                           )}
                           <button
                             onClick={() => handleOpenEdit(slot)}
-                            className="p-2 text-slate-400 hover:text-indigo-600 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="p-2 text-slate-400 hover:text-cove-blue rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
                             title="Editar clase"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -541,8 +541,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
                       {/* Detalles del Pase de Clase */}
                       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                        <div className="flex items-center gap-2 font-mono font-black text-indigo-900 bg-indigo-50/80 px-3 py-2 rounded-xl">
-                          <Clock className="w-4 h-4 text-indigo-600 shrink-0" />
+                        <div className="flex items-center gap-2 font-mono font-black text-cove-navy bg-cove-blue/10 px-3 py-2 rounded-xl">
+                          <Clock className="w-4 h-4 text-cove-blue shrink-0" />
                           <span>{slot.startTime} - {slot.endTime}</span>
                         </div>
 

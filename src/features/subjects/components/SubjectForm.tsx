@@ -8,13 +8,14 @@ interface SubjectFormProps {
 }
 
 const PRESET_COLORS = [
-  '#3b82f6', // blue
+  '#006BBB', // Cove blue
+  '#30A0E0', // Cove sky
+  '#FFC872', // Cove gold
+  '#004d88', // Cove deep
   '#10b981', // emerald
-  '#f59e0b', // amber
   '#ef4444', // red
   '#8b5cf6', // purple
   '#ec4899', // pink
-  '#06b6d4', // cyan
   '#64748b', // slate
 ];
 
@@ -59,7 +60,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
           {error}
         </div>
       )}
@@ -73,7 +74,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Ej: Cálculo Integral, Arquitectura de Software"
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900"
+          className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           required
         />
       </div>
@@ -88,7 +89,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Ej: INF-301"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           />
         </div>
 
@@ -103,7 +104,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
             value={credits ?? ''}
             onChange={(e) => setCredits(e.target.value ? Number(e.target.value) : undefined)}
             placeholder="Ej: 5"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
           />
         </div>
       </div>
@@ -117,7 +118,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
           value={classroomDefault}
           onChange={(e) => setClassroomDefault(e.target.value)}
           placeholder="Ej: Aula 302, Edificio B"
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+          className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900"
         />
       </div>
 
@@ -132,7 +133,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
               type="button"
               onClick={() => setColor(c)}
               className={`w-8 h-8 rounded-full border-2 transition-transform cursor-pointer ${
-                color === c ? 'scale-115 border-slate-900 ring-2 ring-indigo-400' : 'border-white hover:scale-105'
+                color === c ? 'scale-115 border-slate-900 ring-2 ring-cove-sky' : 'border-white hover:scale-105'
               }`}
               style={{ backgroundColor: c }}
               aria-label={`Color ${c}`}
@@ -145,14 +146,14 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors shadow-sm cursor-pointer"
+          className="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue disabled:opacity-50 rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Materia' : 'Crear Materia'}
         </button>
