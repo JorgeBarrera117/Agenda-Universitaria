@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import type { Professor, CreateProfessorDTO } from '../types';
+import {
+  ProfessorAvatar,
+  PROFESSOR_ICONS,
+  PROFESSOR_PRESET_COLORS,
+} from './ProfessorAvatar';
 
 interface ProfessorFormProps {
   initialData?: Professor;
@@ -23,6 +28,8 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>(
     initialData?.subjectIds || []
   );
+  const [icon, setIcon] = useState(initialData?.icon || 'user');
+  const [color, setColor] = useState(initialData?.color || '#081d33');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +58,8 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
         office: office.trim() || undefined,
         notes: notes.trim() || undefined,
         subjectIds: selectedSubjectIds,
+        icon,
+        color,
       });
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
@@ -67,6 +76,94 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
           {error}
         </div>
       )}
+
+      {/* Selector de Avatar: Ícono y Fondo del Muñequito */}
+      <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
+        <div className="flex items-center gap-3.5">
+          {/* Vista Previa en Vivo */}
+          <ProfessorAvatar
+            name={name || 'Docente'}
+            icon={icon}
+            color={color}
+            size="xl"
+            className="ring-2 ring-cove-sky/40"
+          />
+
+          <div className="min-w-0 flex-1">
+            <span className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-0.5">
+              Avatar y Color del Docente
+            </span>
+            <p className="text-[11px] text-slate-500 leading-snug">
+              Personaliza el muñequito y el fondo distintivo de este catedrático.
+            </p>
+          </div>
+        </div>
+
+        {/* 1. Selector de Ícono */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
+            1. Elige un ícono o muñequito
+          </label>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {PROFESSOR_ICONS.map((opt) => {
+              const IconComp = opt.icon;
+              const isSelected = icon === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setIcon(opt.id)}
+                  title={opt.label}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-cove-navy text-white border-cove-navy shadow-xs ring-2 ring-cove-sky/40'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 2. Selector de Color de Fondo */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
+            2. Color de fondo del muñequito
+          </label>
+          <div className="flex items-center gap-2 flex-wrap">
+            {PROFESSOR_PRESET_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                className={`w-7 h-7 rounded-xl border-2 transition-transform cursor-pointer shrink-0 ${
+                  color.toLowerCase() === c.toLowerCase()
+                    ? 'scale-115 border-slate-900 ring-2 ring-cove-sky shadow-sm'
+                    : 'border-white hover:scale-105 shadow-2xs'
+                }`}
+                style={{ backgroundColor: c }}
+                aria-label={`Color ${c}`}
+              />
+            ))}
+            {/* Color picker nativo */}
+            <label
+              className="w-7 h-7 rounded-xl border-2 border-dashed border-slate-300 hover:border-cove-blue flex items-center justify-center cursor-pointer transition-transform hover:scale-105 bg-white relative overflow-hidden shrink-0"
+              title="Elegir otro color"
+            >
+              <span className="text-xs font-black text-slate-500">+</span>
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="opacity-0 absolute inset-0 cursor-pointer w-full h-full"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">

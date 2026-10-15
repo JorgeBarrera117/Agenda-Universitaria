@@ -6,6 +6,8 @@ export interface Professor {
   office?: string;
   notes?: string;
   subjectIds: string[];
+  icon?: string;
+  color?: string;
   createdAt: string;
 }
 

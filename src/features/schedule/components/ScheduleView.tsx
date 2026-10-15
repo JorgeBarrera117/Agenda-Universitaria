@@ -17,6 +17,7 @@ import {
 import { useSchedule } from '../hooks/useSchedule';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
+import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
@@ -163,9 +164,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     )}
                     {getProfessorById(activeClassNow.professorId) && (
                       <span className="flex items-center gap-1.5 text-slate-200">
-                        <span className="w-5 h-5 rounded-full bg-cove-sky/30 flex items-center justify-center text-[10px] font-bold text-cove-sand">
-                          {getProfessorById(activeClassNow.professorId)?.name.charAt(0)}
-                        </span>
+                        <ProfessorAvatar
+                          name={getProfessorById(activeClassNow.professorId)!.name}
+                          icon={getProfessorById(activeClassNow.professorId)?.icon}
+                          color={getProfessorById(activeClassNow.professorId)?.color}
+                          size="xs"
+                        />
                         {getProfessorById(activeClassNow.professorId)?.name}
                       </span>
                     )}
@@ -434,9 +438,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               {/* Docente */}
                               {professor && (
                                 <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100 text-[10px] text-slate-600 truncate font-medium">
-                                  <div className="w-4 h-4 rounded-full bg-cove-navy text-cove-sand flex items-center justify-center text-[8px] font-black shrink-0">
-                                    {professor.name.charAt(0)}
-                                  </div>
+                                  <ProfessorAvatar
+                                    name={professor.name}
+                                    icon={professor.icon}
+                                    color={professor.color}
+                                    size="xs"
+                                  />
                                   <span className="truncate">{professor.name}</span>
                                 </div>
                               )}
@@ -596,9 +603,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       {professor && (
                         <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3 text-xs">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-cove-navy text-cove-sand flex items-center justify-center font-black text-xs ring-1 ring-cove-sky/30">
-                              {professor.name.charAt(0)}
-                            </div>
+                            <ProfessorAvatar
+                              name={professor.name}
+                              icon={professor.icon}
+                              color={professor.color}
+                              size="md"
+                              className="ring-1 ring-cove-sky/30"
+                            />
                             <div>
                               <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">
                                 Docente a cargo

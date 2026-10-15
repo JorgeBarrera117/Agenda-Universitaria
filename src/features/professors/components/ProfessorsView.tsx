@@ -13,6 +13,7 @@ import {
 import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { ProfessorForm } from './ProfessorForm';
+import { ProfessorAvatar } from './ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import type { Professor, CreateProfessorDTO } from '../types';
@@ -119,13 +120,13 @@ export const ProfessorsView: React.FC = () => {
                 <div>
                   {/* Cabecera de la Ficha Docente */}
                   <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-cove-sand border border-cove-sky/30 flex items-center justify-center font-black text-sm shadow-md ring-2 ring-cove-sky/20 shrink-0">
-                      {prof.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join('')}
-                    </div>
+                    <ProfessorAvatar
+                      name={prof.name}
+                      icon={prof.icon}
+                      color={prof.color}
+                      size="lg"
+                      className="border border-white/20"
+                    />
                     <div className="min-w-0 flex-1">
                       <h3 className="text-base font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug">
                         {prof.name}
