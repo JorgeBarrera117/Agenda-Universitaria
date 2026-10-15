@@ -445,8 +445,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             </div>
                           </div>
 
-                          {/* Columna Vertical de Acciones (Derecha) - Idéntica distribución a modo diario */}
-                          <div className="flex flex-col justify-between items-center shrink-0 pl-1.5 border-l border-slate-100 py-0.5">
+                          {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
+                          <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 border-l border-slate-100 py-0.5 gap-[15px]">
                             {/* Botón 1: Tomar apunte (Superior destacado en Cove Sand) */}
                             {onNavigateToNotes ? (
                               <button
@@ -614,8 +614,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       )}
                     </div>
 
-                    {/* Columna Vertical de Acciones (Derecha) - Distribución según diseño solicitado */}
-                    <div className="flex flex-col justify-between items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5">
+                    {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
+                    <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
                       {/* Botón 1: Tomar apunte (Superior destacado en paleta Cove Sand) */}
                       {onNavigateToNotes ? (
                         <button

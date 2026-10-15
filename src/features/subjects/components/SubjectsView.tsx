@@ -235,8 +235,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   </div>
                 </div>
 
-                {/* Columna Vertical de Acciones (Derecha) - Distribución solicitada */}
-                <div className="flex flex-col justify-between items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5">
+                {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
+                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
                   {/* Botón 1: Ver apuntes de la materia (Superior destacado) */}
                   <button
                     onClick={() => onNavigateToNotes && onNavigateToNotes(subject.id)}
