@@ -72,55 +72,28 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-200">
-      {/* 1. BARRA SUPERIOR DE NAVEGACIÓN Y ACCIÓN UNIFICADA (Jerarquía, Proximidad y Consistencia) */}
-      <header className="sticky top-0 z-20 -mx-3 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3 bg-slate-100/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between gap-3 shadow-2xs">
-        {/* Botón de retorno táctil accesible (mínimo 44x44px según WCAG) */}
-        <button
-          type="button"
-          onClick={onCancel}
-          aria-label="Volver al cuaderno"
-          title="Volver"
-          className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-xl shadow-2xs transition-all cursor-pointer shrink-0 active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-cove-blue" />
-        </button>
-
-        {/* Indicador de contexto sutil */}
-        <div className="hidden sm:block text-xs font-bold text-slate-500 uppercase tracking-wider">
-          {initialData ? 'Modo Edición' : 'Nuevo Documento'}
-        </div>
-
-        {/* Acciones principales unificadas (Sin duplicados al pie) */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
-          >
-            Descartar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || subjects.length === 0}
-            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue active:scale-98 disabled:opacity-50 rounded-xl shadow-sm shadow-cove-blue/25 transition-all cursor-pointer"
-          >
-            <Save className="w-4 h-4" />
-            <span>{isSubmitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Guardar Apunte'}</span>
-          </button>
-        </div>
-      </header>
+      {/* 1. Botón Flotante para Regresar (Reemplaza la barra superior completa para dar máximo espacio vertical) */}
+      <button
+        type="button"
+        onClick={onCancel}
+        aria-label="Volver a mis apuntes"
+        title="Volver"
+        className="fixed top-3 left-3 sm:top-5 sm:left-6 z-40 w-11 h-11 flex items-center justify-center text-slate-700 hover:text-slate-900 bg-white/95 hover:bg-white border border-slate-200/90 rounded-2xl shadow-md backdrop-blur-md transition-all active:scale-95 cursor-pointer ring-1 ring-slate-900/5 hover:shadow-lg"
+      >
+        <ArrowLeft className="w-5 h-5 text-cove-blue" />
+      </button>
 
       {error && (
-        <div className="p-3.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2">
+        <div className="p-3.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2 pl-14 sm:pl-4">
           <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* 2. LIENZO CONTINUO DE ESCRITURA (Alineación y Eliminación de marcos anidados innecesarios) */}
-      <div className="bg-white rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200/80 space-y-4">
-        {/* Metadatos compactos: Materia y Etiquetas (Divulgación progresiva) */}
-        <div className="flex flex-wrap items-center gap-2.5 pb-2 border-b border-slate-100">
+      {/* 2. Lienzo Continuo de Escritura a Pantalla Completa */}
+      <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-200/80 space-y-4">
+        {/* Metadatos: Materia y Etiquetas (con margen izquierdo en móvil para no colisionar con el botón flotante) */}
+        <div className="flex flex-wrap items-center gap-2.5 pb-2 border-b border-slate-100 pl-12 sm:pl-0">
           <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 focus-within:ring-2 focus-within:ring-cove-sky rounded-xl px-3 py-1.5 transition-colors">
             <span
               className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
@@ -156,7 +129,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
           </div>
         </div>
 
-        {/* Título en tipografía grande (Jerarquía: contenido principal primero) */}
+        {/* Título en tipografía grande sin bordes */}
         <div>
           <input
             type="text"
@@ -168,12 +141,25 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
           />
         </div>
 
-        {/* Editor WYSIWYG integrado sin dobles marcos */}
+        {/* Editor de Texto con el Menú de Herramientas y Botón Guardar en la Barra Inferior Fija */}
         <div className="pt-1">
           <RichTextEditor
             content={content}
             onChange={setContent}
             placeholder="Comienza a redactar tu apunte aquí. Puedes usar negrita, listas, citas o insertar fotos del pizarrón..."
+            actionsSlot={
+              <button
+                type="submit"
+                disabled={isSubmitting || subjects.length === 0}
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue active:scale-95 disabled:opacity-50 rounded-xl shadow-md shadow-cove-blue/25 transition-all cursor-pointer shrink-0"
+                title={initialData ? 'Actualizar apunte' : 'Guardar apunte'}
+              >
+                <Save className="w-4 h-4 text-white shrink-0" />
+                <span className="font-bold">
+                  {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Guardar Apunte'}
+                </span>
+              </button>
+            }
           />
         </div>
       </div>
