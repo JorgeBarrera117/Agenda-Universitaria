@@ -39,7 +39,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-cove-navy/95 backdrop-blur-md border-t border-cove-deep/40 px-3 py-2 safe-area-pb shadow-2xl">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-cove-navy/70 backdrop-blur-xl border-t border-cove-deep/30 px-3 py-2 safe-area-pb shadow-2xl">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -52,14 +52,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
               className={`flex flex-col items-center py-1 px-3 rounded-2xl transition-all cursor-pointer ${
                 isActive
                   ? 'text-white font-extrabold scale-105'
-                  : 'text-slate-400 font-semibold hover:text-slate-200'
+                  : 'text-slate-300 font-semibold hover:text-white'
               }`}
             >
               <div
                 className={`p-1.5 rounded-xl transition-all ${
                   isActive
                     ? `${theme.bg} text-white ${theme.shadow} ${theme.ring}`
-                    : 'text-slate-400'
+                    : 'text-slate-300'
                 }`}
               >
                 <Icon className="w-5 h-5" />

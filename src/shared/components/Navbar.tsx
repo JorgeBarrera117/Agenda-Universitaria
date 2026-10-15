@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-cove-navy/95 backdrop-blur-md border-b border-cove-deep/40 text-white shadow-md">
+    <header className="sticky top-0 z-40 bg-cove-navy/70 backdrop-blur-xl border-b border-cove-deep/30 text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18">
           {/* Identidad de Campus Universitario */}
