@@ -8,6 +8,7 @@ import {
   MapPin,
   Users,
   CalendarCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -142,33 +143,62 @@ export const ProfessorsView: React.FC = () => {
                     {prof.email && (
                       <a
                         href={`mailto:${prof.email}`}
-                        className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-cove-blue/10 border border-slate-200/60 hover:border-cove-sky/40 text-slate-700 hover:text-cove-blue transition-all truncate"
+                        className="group/contact flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/80 hover:bg-sky-50/90 border border-slate-200/80 hover:border-cove-sky/60 text-slate-700 hover:text-cove-blue transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                        title={`Enviar correo electrónico a ${prof.email}`}
+                        aria-label={`Enviar correo a ${prof.name}`}
                       >
-                        <div className="w-6 h-6 rounded-lg bg-cove-blue/10 text-cove-blue flex items-center justify-center shrink-0">
-                          <Mail className="w-3.5 h-3.5" />
+                        {/* Ícono con forma de botón táctil */}
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cove-blue to-cove-sky text-white flex items-center justify-center shrink-0 shadow-xs group-hover/contact:scale-105 group-hover/contact:shadow-sm transition-all">
+                          <Mail className="w-4 h-4" />
                         </div>
-                        <span className="truncate font-medium">{prof.email}</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
+                            Correo Electrónico
+                          </span>
+                          <span className="block truncate font-bold text-slate-800 group-hover/contact:text-cove-blue text-xs">
+                            {prof.email}
+                          </span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover/contact:text-cove-blue shrink-0 opacity-0 group-hover/contact:opacity-100 transition-opacity" />
                       </a>
                     )}
 
                     {prof.phone && (
                       <a
                         href={`tel:${prof.phone}`}
-                        className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-emerald-50 border border-slate-200/60 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 transition-all"
+                        className="group/contact flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/80 hover:bg-emerald-50/90 border border-slate-200/80 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
+                        title={`Llamar al ${prof.phone}`}
+                        aria-label={`Llamar a ${prof.name}`}
                       >
-                        <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                          <Phone className="w-3.5 h-3.5" />
+                        {/* Ícono con forma de botón táctil */}
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover/contact:scale-105 group-hover/contact:shadow-sm transition-all">
+                          <Phone className="w-4 h-4" />
                         </div>
-                        <span className="font-medium">{prof.phone}</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
+                            Teléfono / Contacto
+                          </span>
+                          <span className="block truncate font-bold text-slate-800 group-hover/contact:text-emerald-700 text-xs font-mono">
+                            {prof.phone}
+                          </span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover/contact:text-emerald-600 shrink-0 opacity-0 group-hover/contact:opacity-100 transition-opacity" />
                       </a>
                     )}
 
                     {prof.office && (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/60 text-slate-700">
-                        <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                          <MapPin className="w-3.5 h-3.5" />
+                      <div className="flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-white/60 border border-slate-200/60 text-slate-700 shadow-2xs">
+                        <div className="w-8 h-8 rounded-xl bg-amber-100/90 text-amber-800 flex items-center justify-center shrink-0">
+                          <MapPin className="w-4 h-4" />
                         </div>
-                        <span className="truncate font-medium">{prof.office}</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
+                            Cubículo / Ubicación
+                          </span>
+                          <span className="block truncate font-medium text-slate-800 text-xs">
+                            {prof.office}
+                          </span>
+                        </div>
                       </div>
                     )}
 
@@ -212,48 +242,23 @@ export const ProfessorsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
+              {/* Columna Vertical de Acciones (Derecha: Editar y Eliminar) */}
               <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-[15px]">
-                {/* Botón 1: Contactar al profesor (Superior - Ámbar para correo, Esmeralda para teléfono) */}
-                {prof.email ? (
-                  <a
-                    href={`mailto:${prof.email}`}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-600 to-slate-900 hover:from-amber-400 hover:via-orange-500 hover:to-slate-900 ring-1 ring-amber-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-orange-950/30 cursor-pointer"
-                    title={`Enviar correo a ${prof.name}`}
-                    aria-label="Contactar al docente"
-                  >
-                    <Mail className="w-5 h-5 text-white" />
-                  </a>
-                ) : prof.phone ? (
-                  <a
-                    href={`tel:${prof.phone}`}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 hover:from-emerald-500 hover:via-teal-600 hover:to-slate-900 ring-1 ring-teal-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-emerald-950/30 cursor-pointer"
-                    title={`Llamar a ${prof.name}`}
-                    aria-label="Llamar al docente"
-                  >
-                    <Phone className="w-5 h-5 text-white" />
-                  </a>
-                ) : (
-                  <div className="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center opacity-40">
-                    <Mail className="w-5 h-5 text-slate-400" />
-                  </div>
-                )}
-
-                {/* Botón 2: Editar profesor (Centro - Azul para editar) */}
+                {/* Botón 1: Editar profesor (Azul para editar) */}
                 <button
                   onClick={() => handleOpenEdit(prof)}
                   className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-blue-950/30 cursor-pointer"
-                  title="Editar profesor"
+                  title="Editar datos del catedrático"
                   aria-label="Editar profesor"
                 >
                   <Edit2 className="w-4 h-4 text-white" />
                 </button>
 
-                {/* Botón 3: Eliminar profesor (Inferior - Rojo para eliminar) */}
+                {/* Botón 2: Eliminar profesor (Rojo para eliminar) */}
                 <button
                   onClick={() => setProfToDelete(prof)}
                   className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-red-950/30 cursor-pointer"
-                  title="Eliminar profesor"
+                  title="Eliminar catedrático"
                   aria-label="Eliminar profesor"
                 >
                   <Trash2 className="w-4 h-4 text-white" />
