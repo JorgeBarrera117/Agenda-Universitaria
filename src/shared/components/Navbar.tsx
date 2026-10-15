@@ -6,8 +6,6 @@ import {
   FileText,
   Wifi,
   WifiOff,
-  GraduationCap,
-  Sparkles,
   Settings,
 } from 'lucide-react';
 
@@ -61,12 +59,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-18">
           {/* Identidad de Campus Universitario */}
           <div className="flex items-center gap-3.5">
-            <div className="relative group">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cove-blue to-cove-sky flex items-center justify-center text-white shadow-lg shadow-cove-blue/30 ring-2 ring-cove-sky/30">
-                <GraduationCap className="w-6 h-6 transform -rotate-6" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-cove-gold border-2 border-cove-navy flex items-center justify-center">
-                <Sparkles className="w-2.5 h-2.5 text-cove-navy" />
+            <div className="relative group shrink-0">
+              <img
+                src="/app-icon-claro.svg"
+                alt="Logo Agenda Universitaria"
+                className="w-11 h-11 rounded-2xl shadow-lg shadow-cove-blue/20 ring-2 ring-cove-sky/40 object-contain bg-white"
+              />
+              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-cove-gold border-2 border-cove-navy flex items-center justify-center">
+                <span className="w-1.5 h-1.5 rounded-full bg-cove-navy" />
               </div>
             </div>
 

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  
+  <rect width="32" height="32" rx="7" fill="#F8FAFC" stroke="#DCE1EA" stroke-width="0.8" />
+  <g transform="translate(2.00, 2.20) scale(0.1400)">
+  <rect x="49" y="12" width="14" height="32" rx="7" fill="#1769FD" />
+  <rect x="113" y="12" width="14" height="32" rx="7" fill="#1769FD" />
+  <path d="M 44,28
+      C 30,28 20,38 20,52
+      L 20,144
+      C 20,158 30,168 44,168
+      L 132,168
+      C 146,168 156,158 156,144
+      L 156,52
+      C 156,38 146,28 132,28
+      L 127,28
+      C 127,39 121,45 120,45
+      C 119,45 113,39 113,28
+      L 63,28
+      C 63,39 57,45 56,45
+      C 55,45 49,39 49,28
+      Z" fill="#0F224C" />
+  <rect x="32" y="56" width="112" height="94" rx="14" fill="#FFFFFF" />
+  <circle cx="48" cy="76" r="5.5" fill="#1769FD" />
+  <rect x="62" y="70.5" width="66" height="11" rx="5.5" fill="#1769FD" />
+  <circle cx="48" cy="96" r="5.5" fill="#BACCE0" />
+  <rect x="62" y="90.5" width="48" height="11" rx="5.5" fill="#BACCE0" />
+  <circle cx="48" cy="116" r="5.5" fill="#BACCE0" />
+  <rect x="62" y="110.5" width="28" height="11" rx="5.5" fill="#BACCE0" />
+  <path d="M 84,138.5 L 84,158 Q 84,160 86,161.2 L 117,177.2 Q 120,178.8 123,177.2 L 154,161.2 Q 156,160 156,158 L 156,140.5 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="12" stroke-linejoin="round" />
+  <path d="M 68,130 L 124,102 L 176,130 L 120,158 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="12" stroke-linejoin="round" />
+  <path d="M 84,138.5 L 84,158 Q 84,160 86,161.2 L 117,177.2 Q 120,178.8 123,177.2 L 154,161.2 Q 156,160 156,158 L 156,140.5 Z" fill="#0F224C" />
+  <path d="M 68,130 L 124,102 L 176,130 L 120,158 Z" fill="#0F224C" stroke="#0F224C" stroke-width="1.2" stroke-linejoin="round" />
+  <path d="M 68,130 L 120,158 L 176,130" fill="none" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 172,130 L 172,154" stroke="#1769FD" stroke-width="3" stroke-linecap="round" fill="none" />
+  <rect x="167" y="152" width="10" height="20" rx="5" fill="#1769FD" />
+</g>
+
+</svg>

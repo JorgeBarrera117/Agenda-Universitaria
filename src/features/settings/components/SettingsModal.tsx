@@ -6,7 +6,6 @@ import {
   Calendar,
   Camera,
   ShieldCheck,
-  Info,
   Check,
   RefreshCw,
   Sparkles,
@@ -301,13 +300,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* 4. INFORMACIÓN DEL SISTEMA Y ARQUITECTURA */}
-        <div className="p-3.5 bg-cove-sand/30 border border-cove-gold/50 rounded-2xl flex items-start gap-2.5 text-xs text-slate-700">
-          <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+        <div className="p-3.5 bg-cove-sand/30 border border-cove-gold/50 rounded-2xl flex items-center gap-3.5 text-xs text-slate-700">
+          <img
+            src="/app-icon-claro.svg"
+            alt="Logo Agenda Universitaria"
+            className="w-12 h-12 rounded-2xl shadow-xs ring-1 ring-cove-gold/60 shrink-0 bg-white p-0.5 object-contain"
+          />
           <div className="space-y-0.5">
-            <span className="font-black text-slate-900 block">
+            <span className="font-black text-slate-900 block text-sm">
               Agenda Universitaria PWA • v2.0
             </span>
-            <p className="text-[11px] text-slate-600">
+            <p className="text-[11px] text-slate-600 leading-relaxed">
               Arquitectura Offline-First con persistencia local en IndexedDB (Dexie.js). Sin rastreo ni servidores intermedios: tus notas de cátedra pertenecen exclusivamente a tu dispositivo.
             </p>
           </div>

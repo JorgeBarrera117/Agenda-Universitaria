@@ -15,7 +15,7 @@ export default defineConfig({
         name: 'Agenda Universitaria',
         short_name: 'AgendaUni',
         description: 'PWA Offline-First para horarios de clases, profesores y apuntes clasificados',
-        theme_color: '#4f46e5',
+        theme_color: '#0F224C',
         background_color: '#f8fafc',
         display: 'standalone',
         orientation: 'portrait-primary',
