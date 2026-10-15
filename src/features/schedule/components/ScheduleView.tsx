@@ -286,9 +286,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         </div>
       </div>
 
-      {/* 3. SELECTOR DE DÍAS (Píldoras estilo Campus) */}
+      {/* 3. SELECTOR DE DÍAS (Píldoras estilo Campus sincronizadas con la configuración) */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {(hasSaturday || hasSunday ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3, 4, 5]).map((day) => {
+        {displayedDays.map((day) => {
           const isSelected = selectedDay === day;
           const isToday = currentDayOfWeek === day;
           const count = slots.filter((s) => s.dayOfWeek === day).length;
@@ -329,7 +329,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
       {/* 4. VISTA SEMANAL (Cuadrícula Desktop estilo Tarjeta de Cátedra) */}
       {viewMode === 'weekly' && (
-        <div className="hidden sm:grid grid-cols-5 gap-3.5 bg-slate-200/50 p-3.5 rounded-3xl border border-slate-200">
+        <div
+          className={`hidden sm:grid ${
+            displayedDays.length === 7
+              ? 'grid-cols-7'
+              : displayedDays.length === 6
+              ? 'grid-cols-6'
+              : 'grid-cols-5'
+          } gap-3 bg-slate-200/50 p-3.5 rounded-3xl border border-slate-200`}
+        >
           {displayedDays.map((day) => {
             const daySlotsList = slots
               .filter((s) => s.dayOfWeek === day)

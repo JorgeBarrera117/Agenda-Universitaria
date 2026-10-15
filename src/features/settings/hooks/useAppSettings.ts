@@ -22,18 +22,47 @@ export function useAppSettings() {
     percent: number;
   }>({ usedMB: 0, quotaMB: 0, percent: 0 });
 
-  // Guardar en localStorage ante cambios
+  // Guardar en localStorage ante cambios y notificar a todas las instancias
   const updateSettings = (partial: Partial<AppSettings>) => {
     setSettings((prev) => {
       const updated = { ...prev, ...partial };
       try {
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
+        window.dispatchEvent(
+          new CustomEvent('agenda_settings_updated', { detail: updated })
+        );
       } catch (e) {
         console.error('Error saving settings to localStorage:', e);
       }
       return updated;
     });
   };
+
+  // Escuchar actualizaciones reactivas entre componentes y pestañas
+  useEffect(() => {
+    const handleUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<AppSettings>;
+      if (customEvent.detail) {
+        setSettings(customEvent.detail);
+      } else {
+        try {
+          const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
+          if (stored) {
+            setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(stored) });
+          }
+        } catch (err) {
+          console.warn('Error reading updated settings from localStorage:', err);
+        }
+      }
+    };
+
+    window.addEventListener('agenda_settings_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('agenda_settings_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   // Calcular uso real del almacenamiento IndexedDB
   const refreshStorageEstimate = async () => {
