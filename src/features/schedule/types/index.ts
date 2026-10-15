@@ -20,6 +20,8 @@ export const SHORT_DAY_NAMES: Record<DayOfWeek, string> = {
   7: 'Dom',
 };
 
+export type ClassModality = 'presencial' | 'virtual';
+
 export interface ScheduleSlot {
   id: string;
   subjectId: string;
@@ -27,8 +29,10 @@ export interface ScheduleSlot {
   dayOfWeek: DayOfWeek;
   startTime: string; // "HH:mm" (24h)
   endTime: string;   // "HH:mm" (24h)
+  modality?: ClassModality;
   classroom?: string;
   building?: string;
+  virtualLink?: string;
   createdAt: string;
 }
 

@@ -12,6 +12,8 @@ import {
   FileEdit,
   Building2,
   CheckCircle2,
+  Laptop,
+  Globe,
 } from 'lucide-react';
 import { useSchedule } from '../hooks/useSchedule';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -33,6 +35,27 @@ import {
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
 }
+
+const isSlotVirtual = (slot?: {
+  modality?: string;
+  classroom?: string;
+  building?: string;
+}): boolean => {
+  if (!slot) return false;
+  if (slot.modality === 'virtual') return true;
+  if (slot.modality === 'presencial') return false;
+  const c = (slot.classroom || '').toLowerCase();
+  const b = (slot.building || '').toLowerCase();
+  return (
+    c.includes('virtual') ||
+    c.includes('zoom') ||
+    c.includes('teams') ||
+    c.includes('meet') ||
+    c.includes('online') ||
+    b.includes('virtual') ||
+    b.includes('online')
+  );
+};
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes }) => {
   const { slots, isLoading, addSlot, updateSlot, removeSlot } = useSchedule();
@@ -155,12 +178,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       <Clock className="w-3.5 h-3.5" />
                       {activeClassNow.startTime} - {activeClassNow.endTime}
                     </span>
-                    {activeClassNow.classroom && (
-                      <span className="flex items-center gap-1.5 text-white bg-white/15 px-2.5 py-0.5 rounded-lg">
-                        <MapPin className="w-3.5 h-3.5 text-cove-sky" />
-                        {activeClassNow.classroom}
-                        {activeClassNow.building && ` (${activeClassNow.building})`}
+                    {isSlotVirtual(activeClassNow) ? (
+                      <span className="flex items-center gap-1.5 text-white bg-indigo-500/30 border border-indigo-300/40 px-2.5 py-0.5 rounded-lg font-bold">
+                        <Laptop className="w-3.5 h-3.5 text-sky-300" />
+                        <span>Clase Virtual {activeClassNow.classroom && activeClassNow.classroom.toLowerCase() !== 'virtual' ? `• ${activeClassNow.classroom}` : ''}</span>
                       </span>
+                    ) : (
+                      activeClassNow.classroom && (
+                        <span className="flex items-center gap-1.5 text-white bg-white/15 px-2.5 py-0.5 rounded-lg">
+                          <Building2 className="w-3.5 h-3.5 text-cove-sky" />
+                          <span>
+                            {activeClassNow.classroom}
+                            {activeClassNow.building && ` (${activeClassNow.building})`}
+                          </span>
+                        </span>
+                      )
                     )}
                     {getProfessorById(activeClassNow.professorId) && (
                       <span className="flex items-center gap-1.5 text-slate-200">
@@ -427,12 +459,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                 <span className="truncate">{slot.startTime} - {slot.endTime}</span>
                               </div>
 
-                              {/* Aula */}
-                              {slot.classroom && (
-                                <div className="flex items-center gap-1 text-slate-700 bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-lg truncate">
-                                  <MapPin className="w-3 h-3 text-cove-blue shrink-0" />
-                                  <span className="truncate font-semibold">{slot.classroom}</span>
+                              {/* Modalidad: Computadora si es Virtual, Edificio si es Presencial */}
+                              {isSlotVirtual(slot) ? (
+                                <div className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 rounded-lg truncate">
+                                  <Laptop className="w-3 h-3 text-indigo-600 shrink-0" />
+                                  <span className="truncate font-bold">
+                                    {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? slot.classroom : 'Virtual'}
+                                  </span>
                                 </div>
+                              ) : (
+                                slot.classroom && (
+                                  <div className="flex items-center gap-1 text-slate-700 bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-lg truncate">
+                                    <Building2 className="w-3 h-3 text-cove-blue shrink-0" />
+                                    <span className="truncate font-semibold">{slot.classroom}</span>
+                                  </div>
+                                )
                               )}
 
                               {/* Docente */}
@@ -553,7 +594,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     {/* Contenido Principal (Izquierda) */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
                       <div className="space-y-2.5">
-                        {/* Encabezado: Código y Estado en vivo */}
+                        {/* Encabezado: Código, Estado en vivo y Modalidad */}
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs"
@@ -562,6 +603,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 shrink-0" />
                             <span>{subject?.code || 'CLASE'}</span>
                           </span>
+
+                          {/* Modalidad Badge: Computadora para Virtual, Edificio para Presencial */}
+                          {isSlotVirtual(slot) ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black bg-indigo-100 text-indigo-900 border border-indigo-300 shadow-2xs">
+                              <Laptop className="w-3 h-3 text-indigo-700" />
+                              <span>VIRTUAL</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300/80 shadow-2xs">
+                              <Building2 className="w-3 h-3 text-cove-blue" />
+                              <span>PRESENCIAL</span>
+                            </span>
+                          )}
 
                           {isNow && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
@@ -577,25 +631,47 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                         </h4>
                       </div>
 
-                      {/* Filas de Información del Campus apiladas */}
+                      {/* Filas de Información del Campus / Modalidad apiladas */}
                       <div className="space-y-2 text-xs">
                         <div className="flex items-center gap-2.5 font-mono font-black text-cove-navy bg-cove-blue/10 border border-cove-sky/25 px-3.5 py-2 rounded-2xl">
                           <Clock className="w-4 h-4 text-cove-blue shrink-0" />
                           <span>{slot.startTime} - {slot.endTime}</span>
                         </div>
 
-                        {slot.classroom && (
-                          <div className="flex items-center gap-2 text-slate-800 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-2xl truncate font-bold">
-                            <MapPin className="w-4 h-4 text-cove-blue shrink-0" />
-                            <span className="truncate">{slot.classroom}</span>
-                          </div>
-                        )}
+                        {isSlotVirtual(slot) ? (
+                          <>
+                            <div className="flex items-center gap-2.5 text-indigo-950 bg-indigo-50 border border-indigo-200/80 px-3.5 py-2 rounded-2xl truncate font-bold">
+                              <Laptop className="w-4 h-4 text-indigo-600 shrink-0" />
+                              <span className="truncate">
+                                {slot.classroom && slot.classroom.toLowerCase() !== 'virtual'
+                                  ? `Plataforma: ${slot.classroom}`
+                                  : 'Clase Virtual / En Línea'}
+                              </span>
+                            </div>
 
-                        {slot.building && (
-                          <div className="flex items-center gap-2 text-slate-600 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-2xl truncate font-medium">
-                            <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
-                            <span className="truncate">{slot.building}</span>
-                          </div>
+                            {slot.building && (
+                              <div className="flex items-center gap-2 text-indigo-700 bg-indigo-50/60 border border-indigo-200/60 px-3.5 py-2 rounded-2xl truncate font-medium">
+                                <Globe className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                <span className="truncate">{slot.building}</span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {slot.classroom && (
+                              <div className="flex items-center gap-2.5 text-slate-800 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-2xl truncate font-bold">
+                                <MapPin className="w-4 h-4 text-cove-blue shrink-0" />
+                                <span className="truncate">{slot.classroom}</span>
+                              </div>
+                            )}
+
+                            {slot.building && (
+                              <div className="flex items-center gap-2.5 text-slate-700 bg-slate-50 border border-slate-200/80 px-3.5 py-2 rounded-2xl truncate font-medium">
+                                <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+                                <span className="truncate">{slot.building}</span>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
 
