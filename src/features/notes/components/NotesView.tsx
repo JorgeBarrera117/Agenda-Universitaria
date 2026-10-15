@@ -11,7 +11,6 @@ import {
   Camera,
   Image as ImageIcon,
   Maximize2,
-  X,
   Loader2,
   ArrowLeft,
 } from 'lucide-react';
@@ -22,6 +21,7 @@ import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
@@ -55,6 +55,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
   const [readingNote, setReadingNote] = useState<Note | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
   const [zoomedImage, setZoomedImage] = useState<NoteImage | null>(null);
+  const [zoomedInlineImage, setZoomedInlineImage] = useState<{ src: string; alt?: string } | null>(null);
 
   // Hook para las imágenes de la nota que se está leyendo
   const {
@@ -274,9 +275,19 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
           <div className="h-px bg-slate-100" />
 
-          {/* Cuerpo Enriquecido del Apunte */}
+          {/* Cuerpo Enriquecido del Apunte con zoom interactivo al tocar imágenes */}
           <div
-            className="text-slate-800 text-base sm:text-lg leading-relaxed prose prose-slate max-w-none"
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (target && target.tagName === 'IMG') {
+                const img = target as HTMLImageElement;
+                setZoomedInlineImage({
+                  src: img.src,
+                  alt: img.alt || 'Foto del apunte',
+                });
+              }
+            }}
+            className="text-slate-800 text-base sm:text-lg leading-relaxed prose prose-slate max-w-none [&_img]:cursor-zoom-in [&_img]:rounded-2xl [&_img]:shadow-md [&_img:hover]:ring-2 [&_img:hover]:ring-cove-sky/50 [&_img]:transition-all"
             dangerouslySetInnerHTML={{
               __html:
                 readingNote.content.trim() ||
@@ -397,6 +408,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
         {/* Visor Lightbox */}
         {zoomedImage && (
           <LightboxModal image={zoomedImage} onClose={() => setZoomedImage(null)} />
+        )}
+
+        {/* Visor de Zoom para fotos insertadas en el texto */}
+        {zoomedInlineImage && (
+          <ImageZoomModal
+            src={zoomedInlineImage.src}
+            alt={zoomedInlineImage.alt}
+            onClose={() => setZoomedInlineImage(null)}
+          />
         )}
       </div>
     );
@@ -738,7 +758,7 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, onZoom, onDelete }
   );
 };
 
-// Componente Lightbox para ver la imagen en alta resolución
+// Componente Lightbox para ver la imagen en alta resolución con zoom interactivo
 interface LightboxModalProps {
   image: NoteImage;
   onClose: () => void;
@@ -755,45 +775,13 @@ const LightboxModal: React.FC<LightboxModalProps> = ({ image, onClose }) => {
     };
   }, [image.blob]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   if (!objectUrl) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-60 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div className="absolute top-4 right-4 flex items-center gap-3">
-        <button
-          onClick={onClose}
-          className="p-2.5 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
-          title="Cerrar visor"
-        >
-          <X className="w-6 h-6" />
-        </button>
-      </div>
-
-      <div
-        className="max-w-5xl max-h-[85vh] w-full flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <img
-          src={objectUrl}
-          alt={image.name}
-          className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
-        />
-      </div>
-
-      <div className="mt-3 text-center text-xs font-mono text-slate-400">
-        {image.name} • Toca fuera o presiona ESC para cerrar
-      </div>
-    </div>
+    <ImageZoomModal
+      src={objectUrl}
+      alt={image.name}
+      onClose={onClose}
+    />
   );
 };

@@ -22,6 +22,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { compressImage } from '../utils/imageCompression';
+import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 
 interface RichTextEditorProps {
   content: string;
@@ -47,6 +48,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   actionsSlot,
 }) => {
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,7 +64,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class: 'rounded-xl max-w-full my-4 shadow-sm border border-slate-200 block mx-auto',
+          class: 'rounded-2xl max-w-full my-4 shadow-md border border-slate-200 block mx-auto cursor-zoom-in hover:ring-2 hover:ring-cove-sky/50 transition-all active:scale-[0.99]',
+          title: 'Toca para ampliar y hacer zoom',
         },
       }),
       Placeholder.configure({
@@ -77,6 +80,20 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       attributes: {
         class:
           'min-h-[420px] sm:min-h-[580px] py-3 px-1 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-slate max-w-none pb-28',
+      },
+      handleDOMEvents: {
+        click: (_view, event) => {
+          const target = event.target as HTMLElement;
+          if (target && target.tagName === 'IMG') {
+            const img = target as HTMLImageElement;
+            setZoomedImage({
+              src: img.src,
+              alt: img.alt || 'Foto del apunte',
+            });
+            return true;
+          }
+          return false;
+        },
       },
     },
   });
@@ -317,6 +334,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Visor Interactivo con Zoom y Arrastre para la foto ampliada */}
+      {zoomedImage && (
+        <ImageZoomModal
+          src={zoomedImage.src}
+          alt={zoomedImage.alt}
+          onClose={() => setZoomedImage(null)}
+        />
+      )}
     </div>
   );
 };
