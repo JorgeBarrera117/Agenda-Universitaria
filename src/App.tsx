@@ -14,6 +14,7 @@ export function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
+  const [isNoteEditorActive, setIsNoteEditorActive] = useState(false);
 
   const { subjects } = useSubjects();
 
@@ -38,6 +39,14 @@ export function App() {
     }, 3500);
   };
 
+  const handleTabChange = (tab: TabType) => {
+    if (tab !== 'notes') {
+      setSelectedSubjectForNotes(undefined);
+      setIsNoteEditorActive(false);
+    }
+    setActiveTab(tab);
+  };
+
   // Atajo contextual UX: Tomar apunte de la clase activa en el horario
   const handleNavigateToNotesFromSchedule = (subjectId?: string) => {
     if (subjectId) {
@@ -47,17 +56,20 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col pb-22 md:pb-10 selection:bg-cove-blue selection:text-white">
-      {/* Barra de navegación superior de Campus */}
-      <Navbar
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          if (tab !== 'notes') setSelectedSubjectForNotes(undefined);
-          setActiveTab(tab);
-        }}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        subjectCount={subjects.length}
-      />
+    <div
+      className={`min-h-screen bg-slate-100/70 text-slate-900 flex flex-col selection:bg-cove-blue selection:text-white transition-all ${
+        isNoteEditorActive ? 'pb-4' : 'pb-22 md:pb-10'
+      }`}
+    >
+      {/* Barra de navegación superior de Campus (Oculta al crear/editar apuntes) */}
+      {!isNoteEditorActive && (
+        <Navbar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          subjectCount={subjects.length}
+        />
+      )}
 
       {/* Modal de Configuración (Opción A) */}
       <SettingsModal
@@ -68,14 +80,22 @@ export function App() {
 
       {/* Notificación Toast Flotante */}
       {toastMessage && (
-        <div className="fixed bottom-22 md:bottom-8 right-6 z-50 bg-cove-navy text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-cove-sky/30 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2">
+        <div
+          className={`fixed right-6 z-50 bg-cove-navy text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-cove-sky/30 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2 ${
+            isNoteEditorActive ? 'bottom-6' : 'bottom-22 md:bottom-8'
+          }`}
+        >
           <span className="w-2 h-2 rounded-full bg-cove-gold" />
           {toastMessage}
         </div>
       )}
 
       {/* Contenedor Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main
+        className={`flex-1 max-w-7xl w-full mx-auto ${
+          isNoteEditorActive ? 'px-3 sm:px-6 lg:px-8 pt-1 sm:pt-3' : 'px-4 sm:px-6 lg:px-8 pt-6'
+        }`}
+      >
         {activeTab === 'schedule' && (
           <ScheduleView onNavigateToNotes={handleNavigateToNotesFromSchedule} />
         )}
@@ -84,18 +104,20 @@ export function App() {
         )}
         {activeTab === 'professors' && <ProfessorsView />}
         {activeTab === 'notes' && (
-          <NotesView initialSubjectFilterId={selectedSubjectForNotes} />
+          <NotesView
+            initialSubjectFilterId={selectedSubjectForNotes}
+            onEditorActiveChange={setIsNoteEditorActive}
+          />
         )}
       </main>
 
-      {/* Barra de navegación inferior ergonómica para teléfono */}
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          if (tab !== 'notes') setSelectedSubjectForNotes(undefined);
-          setActiveTab(tab);
-        }}
-      />
+      {/* Barra de navegación inferior ergonómica para teléfono (Oculta al crear/editar apuntes) */}
+      {!isNoteEditorActive && (
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
+      )}
     </div>
   );
 }

@@ -73,7 +73,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-200">
       {/* 1. BARRA SUPERIOR DE NAVEGACIÓN Y ACCIÓN UNIFICADA (Jerarquía, Proximidad y Consistencia) */}
-      <header className="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-slate-100/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-20 -mx-3 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3 bg-slate-100/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between gap-3 shadow-2xs">
         {/* Botón de retorno táctil accesible (mínimo 44x44px según WCAG) */}
         <button
           type="button"

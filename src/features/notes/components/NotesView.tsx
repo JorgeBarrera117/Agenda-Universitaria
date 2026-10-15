@@ -28,9 +28,13 @@ import type { Note, CreateNoteDTO, NoteImage } from '../types';
 
 interface NotesViewProps {
   initialSubjectFilterId?: string;
+  onEditorActiveChange?: (isActive: boolean) => void;
 }
 
-export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) => {
+export const NotesView: React.FC<NotesViewProps> = ({
+  initialSubjectFilterId,
+  onEditorActiveChange,
+}) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(
     initialSubjectFilterId || 'all'
   );
@@ -69,6 +73,14 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
       setSelectedSubjectId(initialSubjectFilterId);
     }
   }, [initialSubjectFilterId]);
+
+  // Notificar al layout principal si estamos en modo editor/creador para ocultar cabecera y barra inferior
+  useEffect(() => {
+    onEditorActiveChange?.(viewMode === 'editor');
+    return () => {
+      onEditorActiveChange?.(false);
+    };
+  }, [viewMode, onEditorActiveChange]);
 
   // Soporte para botón "Atrás" de Android / Navegador
   useEffect(() => {
