@@ -16,7 +16,11 @@ import { SubjectForm } from './SubjectForm';
 import { Modal } from '../../../shared/components/Modal';
 import type { Subject, CreateSubjectDTO } from '../types';
 
-export const SubjectsView: React.FC = () => {
+interface SubjectsViewProps {
+  onNavigateToNotes?: (subjectId?: string) => void;
+}
+
+export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes }) => {
   const { subjects, isLoading, addSubject, updateSubject, removeSubject } = useSubjects();
   const { slots } = useSchedule();
   const { notes } = useNotes();
@@ -151,7 +155,7 @@ export const SubjectsView: React.FC = () => {
             return (
               <div
                 key={subject.id}
-                className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-col justify-between group hover:border-cove-sky/50"
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group hover:border-cove-sky/50"
               >
                 {/* Franja superior distintiva de color con borde redondeado */}
                 <div
@@ -159,81 +163,96 @@ export const SubjectsView: React.FC = () => {
                   style={{ backgroundColor: subject.color }}
                 />
 
-                <div>
-                  {/* Encabezado: Código, Nombre y Acciones */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full ring-2 ring-white shadow-2xs shrink-0"
-                          style={{ backgroundColor: subject.color }}
-                        />
-                        <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
-                          {subject.code || 'ASIGNATURA'}
-                        </span>
-                      </div>
-
-                      <h3 className="text-xl font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug line-clamp-2">
-                        {subject.name}
-                      </h3>
+                {/* Contenido Principal (Izquierda) */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
+                  <div className="space-y-2">
+                    {/* Código e Indicador de Color */}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full ring-2 ring-white shadow-2xs shrink-0"
+                        style={{ backgroundColor: subject.color }}
+                      />
+                      <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
+                        {subject.code || 'ASIGNATURA'}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => handleOpenEdit(subject)}
-                        className="p-2 text-slate-400 hover:text-cove-blue hover:bg-cove-blue/10 rounded-xl transition-colors cursor-pointer"
-                        title="Editar asignatura"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setSubjectToDelete(subject)}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-                        title="Eliminar asignatura"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <h3 className="text-lg sm:text-xl font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug line-clamp-2">
+                      {subject.name}
+                    </h3>
                   </div>
 
                   {/* Ficha de Credenciales Académicas */}
-                  <div className="mt-5 space-y-2 text-xs">
+                  <div className="space-y-2 text-xs">
                     {subject.classroomDefault ? (
-                      <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 text-slate-700">
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/70 text-slate-700">
                         <MapPin className="w-4 h-4 text-cove-sky shrink-0" />
                         <span className="truncate font-semibold">{subject.classroomDefault}</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
                         <MapPin className="w-4 h-4 text-slate-300 shrink-0" />
-                        <span>Aula pendiente de asignar</span>
+                        <span>Aula por asignar</span>
                       </div>
                     )}
 
                     {subject.credits !== undefined ? (
-                      <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-cove-sand/40 border border-cove-gold/60 text-slate-900 font-bold">
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-cove-sand/40 border border-cove-gold/60 text-slate-900 font-bold">
                         <Award className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>{subject.credits} Créditos Académicos Oficiales</span>
+                        <span>{subject.credits} Créditos Académicos</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 border border-dashed border-slate-200 text-slate-400 italic">
                         <Award className="w-4 h-4 text-slate-300 shrink-0" />
-                        <span>Créditos no especificados</span>
+                        <span>Créditos sin especificar</span>
                       </div>
                     )}
                   </div>
+
+                  {/* Métricas al pie */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold gap-2">
+                    <span className="flex items-center gap-1.5 text-slate-600 font-bold">
+                      <Clock className="w-3.5 h-3.5 text-cove-blue" />
+                      {classCount} {classCount === 1 ? 'bloque' : 'bloques'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-black bg-cove-blue/10 text-cove-blue border border-cove-sky/30">
+                      <FileText className="w-3 h-3" />
+                      {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Métricas y Acceso Rápido al pie de la tarjeta */}
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
-                  <span className="flex items-center gap-1.5 text-slate-600 font-bold">
-                    <Clock className="w-3.5 h-3.5 text-cove-blue" />
-                    {classCount} {classCount === 1 ? 'bloque semanal' : 'bloques semanales'}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-cove-blue/10 text-cove-blue border border-cove-sky/30 shadow-2xs">
-                    <FileText className="w-3.5 h-3.5" />
-                    {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
-                  </span>
+                {/* Columna Vertical de Acciones (Derecha) - Distribución solicitada */}
+                <div className="flex flex-col justify-between items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5">
+                  {/* Botón 1: Ver apuntes de la materia (Superior destacado) */}
+                  <button
+                    onClick={() => onNavigateToNotes && onNavigateToNotes(subject.id)}
+                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    title="Ver o tomar apuntes de esta asignatura"
+                    aria-label="Ver apuntes"
+                  >
+                    <BookOpen className="w-5 h-5 text-cove-navy" />
+                  </button>
+
+                  {/* Botón 2: Editar asignatura (Centro) */}
+                  <button
+                    onClick={() => handleOpenEdit(subject)}
+                    className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    title="Editar asignatura"
+                    aria-label="Editar asignatura"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+
+                  {/* Botón 3: Eliminar asignatura (Inferior) */}
+                  <button
+                    onClick={() => setSubjectToDelete(subject)}
+                    className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    title="Eliminar asignatura"
+                    aria-label="Eliminar asignatura"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             );

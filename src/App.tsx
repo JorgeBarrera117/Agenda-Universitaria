@@ -70,7 +70,9 @@ export function App() {
         {activeTab === 'schedule' && (
           <ScheduleView onNavigateToNotes={handleNavigateToNotesFromSchedule} />
         )}
-        {activeTab === 'subjects' && <SubjectsView />}
+        {activeTab === 'subjects' && (
+          <SubjectsView onNavigateToNotes={handleNavigateToNotesFromSchedule} />
+        )}
         {activeTab === 'professors' && <ProfessorsView />}
         {activeTab === 'notes' && (
           <NotesView initialSubjectFilterId={selectedSubjectForNotes} />

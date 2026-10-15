@@ -8,7 +8,6 @@ import {
   Tag,
   Calendar,
   BookOpen,
-  ExternalLink,
   Camera,
   Image as ImageIcon,
   Maximize2,
@@ -521,7 +520,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="group relative bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between hover:border-cove-sky/60 hover:-translate-y-0.5 overflow-hidden"
+                className="group relative bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row items-stretch justify-between gap-3 sm:gap-4 hover:border-cove-sky/60 hover:-translate-y-0.5 overflow-hidden"
               >
                 {/* Acento superior de Materia */}
                 <div
@@ -529,62 +528,44 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                   style={{ backgroundColor: subject?.color || '#006BBB' }}
                 />
 
-                <div className="space-y-3.5">
-                  {/* Encabezado de la Ficha: Materia y Acciones Accesibles */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs truncate max-w-[200px]"
-                      style={{ backgroundColor: subject?.color || '#006BBB' }}
-                    >
-                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{subject?.name || 'Materia'}</span>
-                    </span>
+                {/* Contenido Principal (Izquierda) */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    {/* Encabezado: Materia y Fecha */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs truncate max-w-[180px]"
+                        style={{ backgroundColor: subject?.color || '#006BBB' }}
+                      >
+                        <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{subject?.name || 'Materia'}</span>
+                      </span>
 
-                    {/* Botones de acción táctiles y accesibles */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => handleOpenEdit(note, e)}
-                        className="p-1.5 text-slate-400 hover:text-cove-blue hover:bg-cove-blue/10 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-cove-sky/30"
-                        title="Editar apunte"
-                        aria-label="Editar apunte"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setNoteToDelete(note);
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-200/50"
-                        title="Eliminar apunte"
-                        aria-label="Eliminar apunte"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        {dateFormatted}
+                      </span>
                     </div>
+
+                    {/* Título de la Ficha */}
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug tracking-tight">
+                      {note.title}
+                    </h3>
                   </div>
 
-                  {/* Título de la Ficha */}
-                  <h3 className="text-lg font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug tracking-tight">
-                    {note.title}
-                  </h3>
-
-                  {/* Extracto de Cuaderno Sanitizeado (Libre de Markdown y Fórmulas desbordadas) */}
-                  <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/90 text-xs text-slate-600 line-clamp-3 leading-relaxed font-sans">
+                  {/* Extracto de Cuaderno Sanitizeado */}
+                  <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-100 text-xs text-slate-600 line-clamp-3 leading-relaxed font-sans">
                     {cleanSnippet}
                   </div>
-                </div>
 
-                {/* Pie de la Ficha: Etiquetas, Pizarras y Lectura */}
-                <div className="mt-5 pt-3.5 border-t border-slate-100 space-y-3">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    {/* Etiquetas */}
+                  {/* Pie de la Ficha: Etiquetas y Pizarras */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
                     {note.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {note.tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center gap-1 text-[11px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200/60"
+                            className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200/60"
                           >
                             <Tag className="w-2.5 h-2.5 text-slate-400" />
                             {tag}
@@ -600,25 +581,53 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       <div />
                     )}
 
-                    {/* Insignia de Fotos de Pizarrón en Paleta Cove Sand / Gold */}
+                    {/* Insignia de Fotos de Pizarrón */}
                     {imageCount > 0 && (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-900 bg-cove-sand/50 border border-cove-gold/60 px-2.5 py-1 rounded-xl shadow-2xs">
-                        <Camera className="w-3.5 h-3.5 text-amber-700" />
-                        <span>{imageCount} {imageCount === 1 ? 'foto pizarra' : 'fotos pizarra'}</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 bg-cove-sand/50 border border-cove-gold/60 px-2 py-0.5 rounded-xl shadow-2xs">
+                        <Camera className="w-3 h-3 text-amber-700" />
+                        <span>{imageCount} {imageCount === 1 ? 'pizarra' : 'pizarras'}</span>
                       </span>
                     )}
                   </div>
+                </div>
 
-                  {/* Metadatos y Llamado a la Lectura */}
-                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-1">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      {dateFormatted}
-                    </span>
-                    <span className="text-cove-blue font-bold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
-                      Leer apunte <ExternalLink className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
+                {/* Columna Vertical de Acciones (Derecha) - Distribución solicitada */}
+                <div className="flex flex-col justify-between items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5">
+                  {/* Botón 1: Leer / Abrir apunte (Superior destacado) */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenRead(note);
+                    }}
+                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    title="Leer apunte a pantalla completa"
+                    aria-label="Leer apunte"
+                  >
+                    <BookOpen className="w-5 h-5 text-cove-navy" />
+                  </button>
+
+                  {/* Botón 2: Editar apunte (Centro) */}
+                  <button
+                    onClick={(e) => handleOpenEdit(note, e)}
+                    className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    title="Editar apunte"
+                    aria-label="Editar apunte"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+
+                  {/* Botón 3: Eliminar apunte (Inferior) */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNoteToDelete(note);
+                    }}
+                    className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    title="Eliminar apunte"
+                    aria-label="Eliminar apunte"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             );

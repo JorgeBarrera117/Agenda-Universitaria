@@ -103,12 +103,16 @@ export const ProfessorsView: React.FC = () => {
           {professors.map((prof) => (
             <div
               key={prof.id}
-              className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group hover:border-cove-sky/50"
+              className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group hover:border-cove-sky/50"
             >
-              <div>
-                {/* Cabecera de la Ficha Docente */}
-                <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-3.5 min-w-0">
+              {/* Franja superior decorativa */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cove-navy via-cove-blue to-cove-sky" />
+
+              {/* Contenido Principal (Izquierda) */}
+              <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
+                <div>
+                  {/* Cabecera de la Ficha Docente */}
+                  <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
                     <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-cove-sand border border-cove-sky/30 flex items-center justify-center font-black text-sm shadow-md ring-2 ring-cove-sky/20 shrink-0">
                       {prof.name
                         .split(' ')
@@ -126,96 +130,127 @@ export const ProfessorsView: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => handleOpenEdit(prof)}
-                      className="p-2 text-slate-400 hover:text-cove-blue hover:bg-cove-blue/10 rounded-xl transition-colors cursor-pointer"
-                      title="Editar profesor"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setProfToDelete(prof)}
-                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-                      title="Eliminar profesor"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  {/* Medios de Contacto y Ubicación en el Campus */}
+                  <div className="mt-3.5 space-y-2 text-xs">
+                    {prof.email && (
+                      <a
+                        href={`mailto:${prof.email}`}
+                        className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-cove-blue/10 border border-slate-200/60 hover:border-cove-sky/40 text-slate-700 hover:text-cove-blue transition-all truncate"
+                      >
+                        <div className="w-6 h-6 rounded-lg bg-cove-blue/10 text-cove-blue flex items-center justify-center shrink-0">
+                          <Mail className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="truncate font-medium">{prof.email}</span>
+                      </a>
+                    )}
+
+                    {prof.phone && (
+                      <a
+                        href={`tel:${prof.phone}`}
+                        className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-emerald-50 border border-slate-200/60 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 transition-all"
+                      >
+                        <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                          <Phone className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="font-medium">{prof.phone}</span>
+                      </a>
+                    )}
+
+                    {prof.office && (
+                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/60 text-slate-700">
+                        <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                          <MapPin className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="truncate font-medium">{prof.office}</span>
+                      </div>
+                    )}
+
+                    {prof.notes && (
+                      <div className="mt-3 p-3 bg-cove-sand/35 border border-cove-gold/60 rounded-2xl text-[11px] text-slate-900 leading-relaxed shadow-2xs">
+                        <div className="flex items-center gap-1.5 font-bold text-amber-900 mb-0.5">
+                          <CalendarCheck className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                          <span>Horario de Asesoría:</span>
+                        </div>
+                        <p className="font-medium text-slate-800 italic">"{prof.notes}"</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Medios de Contacto y Ubicación en el Campus */}
-                <div className="mt-4 space-y-2 text-xs">
-                  {prof.email && (
-                    <a
-                      href={`mailto:${prof.email}`}
-                      className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-cove-blue/10 border border-slate-200/60 hover:border-cove-sky/40 text-slate-700 hover:text-cove-blue transition-all truncate"
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-cove-blue/10 text-cove-blue flex items-center justify-center shrink-0">
-                        <Mail className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="truncate font-medium">{prof.email}</span>
-                    </a>
-                  )}
-
-                  {prof.phone && (
-                    <a
-                      href={`tel:${prof.phone}`}
-                      className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-emerald-50 border border-slate-200/60 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 transition-all"
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                        <Phone className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="font-medium">{prof.phone}</span>
-                    </a>
-                  )}
-
-                  {prof.office && (
-                    <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/60 text-slate-700">
-                      <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                        <MapPin className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="truncate font-medium">{prof.office}</span>
-                    </div>
-                  )}
-
-                  {prof.notes && (
-                    <div className="mt-3 p-3.5 bg-cove-sand/35 border border-cove-gold/60 rounded-2xl text-[11px] text-slate-900 leading-relaxed shadow-2xs">
-                      <div className="flex items-center gap-1.5 font-bold text-amber-900 mb-1">
-                        <CalendarCheck className="w-4 h-4 text-amber-700 shrink-0" />
-                        <span>Horario de Asesoría Universitaria:</span>
-                      </div>
-                      <p className="font-medium text-slate-800 pl-5.5 italic">"{prof.notes}"</p>
+                {/* Materias a Cargo */}
+                <div className="pt-2.5 border-t border-slate-100">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Cátedras Asignadas:
+                  </span>
+                  {prof.subjectIds.length === 0 ? (
+                    <span className="text-xs text-slate-400 italic">Sin materias vinculadas</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {prof.subjectIds.map((sid) => {
+                        const sub = getSubjectById(sid);
+                        if (!sub) return null;
+                        return (
+                          <span
+                            key={sid}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl text-xs font-bold text-white shadow-2xs"
+                            style={{ backgroundColor: sub.color }}
+                          >
+                            <BookOpen className="w-3 h-3" />
+                            {sub.name}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Materias a Cargo */}
-              <div className="mt-5 pt-3.5 border-t border-slate-100">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                  Cátedras Asignadas:
-                </span>
-                {prof.subjectIds.length === 0 ? (
-                  <span className="text-xs text-slate-400 italic">Sin materias vinculadas</span>
+              {/* Columna Vertical de Acciones (Derecha) - Distribución solicitada */}
+              <div className="flex flex-col justify-between items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5">
+                {/* Botón 1: Contactar al profesor (Superior destacado) */}
+                {prof.email ? (
+                  <a
+                    href={`mailto:${prof.email}`}
+                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    title={`Enviar correo a ${prof.name}`}
+                    aria-label="Contactar al docente"
+                  >
+                    <Mail className="w-5 h-5 text-cove-navy" />
+                  </a>
+                ) : prof.phone ? (
+                  <a
+                    href={`tel:${prof.phone}`}
+                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    title={`Llamar a ${prof.name}`}
+                    aria-label="Llamar al docente"
+                  >
+                    <Phone className="w-5 h-5 text-cove-navy" />
+                  </a>
                 ) : (
-                  <div className="flex flex-wrap gap-1.5">
-                    {prof.subjectIds.map((sid) => {
-                      const sub = getSubjectById(sid);
-                      if (!sub) return null;
-                      return (
-                        <span
-                          key={sid}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-white shadow-2xs"
-                          style={{ backgroundColor: sub.color }}
-                        >
-                          <BookOpen className="w-3 h-3" />
-                          {sub.name}
-                        </span>
-                      );
-                    })}
+                  <div className="w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200/50 flex items-center justify-center opacity-40">
+                    <Mail className="w-5 h-5 text-slate-300" />
                   </div>
                 )}
+
+                {/* Botón 2: Editar profesor (Centro) */}
+                <button
+                  onClick={() => handleOpenEdit(prof)}
+                  className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  title="Editar profesor"
+                  aria-label="Editar profesor"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+
+                {/* Botón 3: Eliminar profesor (Inferior) */}
+                <button
+                  onClick={() => setProfToDelete(prof)}
+                  className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  title="Eliminar profesor"
+                  aria-label="Eliminar profesor"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}
