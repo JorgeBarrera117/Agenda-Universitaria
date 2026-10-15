@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, X, Maximize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
 
 export interface ImageZoomModalProps {
   src: string;
@@ -15,20 +15,24 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
+  const [showControls, setShowControls] = useState(true);
 
-  // Pinch-to-zoom en pantallas táctiles
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
+
+  // Gestos táctiles
   const initialPinchDistRef = useRef<number | null>(null);
   const initialScaleRef = useRef(1);
+  const lastTapRef = useRef<number>(0);
 
-  // Resetear posición si la escala vuelve a 1
+  // Resetear posición y escala
   const handleReset = () => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
   };
 
   const handleZoomIn = () => {
-    setScale((prev) => Math.min(5, Number((prev + 0.5).toFixed(2))));
+    setScale((prev) => Math.min(8, Number((prev + 0.5).toFixed(2))));
   };
 
   const handleZoomOut = () => {
@@ -51,9 +55,9 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
   // Zoom con rueda del ratón
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.25 : -0.25;
+    const delta = e.deltaY < 0 ? 0.35 : -0.35;
     setScale((prev) => {
-      const next = Math.min(5, Math.max(1, Number((prev + delta).toFixed(2))));
+      const next = Math.min(8, Math.max(1, Number((prev + delta).toFixed(2))));
       if (next === 1) setPosition({ x: 0, y: 0 });
       return next;
     });
@@ -61,6 +65,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
 
   // Arrastre con Mouse
   const handleMouseDown = (e: React.MouseEvent) => {
+    hasMovedRef.current = false;
     if (scale <= 1) return;
     setIsDragging(true);
     dragStartRef.current = {
@@ -71,6 +76,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || scale <= 1) return;
+    hasMovedRef.current = true;
     setPosition({
       x: e.clientX - dragStartRef.current.x,
       y: e.clientY - dragStartRef.current.y,
@@ -81,27 +87,30 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
     setIsDragging(false);
   };
 
-  // Gestos táctiles (Pellizco y Arrastre en móvil)
+  // Gestos táctiles en móvil (Pellizco, arrastre y toque simple/doble)
   const handleTouchStart = (e: React.TouchEvent) => {
+    hasMovedRef.current = false;
     if (e.touches.length === 2) {
-      // Iniciar pellizco con dos dedos
+      // Iniciar pellizco con 2 dedos
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
       initialPinchDistRef.current = dist;
       initialScaleRef.current = scale;
-    } else if (e.touches.length === 1 && scale > 1) {
-      // Iniciar arrastre con un dedo
-      setIsDragging(true);
-      dragStartRef.current = {
-        x: e.touches[0].clientX - position.x,
-        y: e.touches[0].clientY - position.y,
-      };
+    } else if (e.touches.length === 1) {
+      if (scale > 1) {
+        setIsDragging(true);
+        dragStartRef.current = {
+          x: e.touches[0].clientX - position.x,
+          y: e.touches[0].clientY - position.y,
+        };
+      }
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    hasMovedRef.current = true;
     if (e.touches.length === 2 && initialPinchDistRef.current !== null) {
       // Zoom por pellizco
       const dist = Math.hypot(
@@ -109,7 +118,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
         e.touches[0].clientY - e.touches[1].clientY
       );
       const factor = dist / initialPinchDistRef.current;
-      const newScale = Math.min(5, Math.max(1, Number((initialScaleRef.current * factor).toFixed(2))));
+      const newScale = Math.min(8, Math.max(1, Number((initialScaleRef.current * factor).toFixed(2))));
       setScale(newScale);
       if (newScale === 1) setPosition({ x: 0, y: 0 });
     } else if (e.touches.length === 1 && isDragging && scale > 1) {
@@ -121,9 +130,27 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     setIsDragging(false);
     initialPinchDistRef.current = null;
+
+    // Detectar toque simple vs doble toque cuando no hubo arrastre
+    if (!hasMovedRef.current && e.changedTouches.length === 1) {
+      const now = Date.now();
+      if (now - lastTapRef.current < 300) {
+        // Doble toque: alternar zoom
+        handleDoubleClick();
+        lastTapRef.current = 0;
+      } else {
+        // Toque simple: alternar visibilidad de botones
+        lastTapRef.current = now;
+        setTimeout(() => {
+          if (Date.now() - lastTapRef.current >= 280 && lastTapRef.current !== 0) {
+            setShowControls((prev) => !prev);
+          }
+        }, 280);
+      }
+    }
   };
 
   // Atajos de teclado (Escape, +, -, 0)
@@ -140,30 +167,12 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/92 backdrop-blur-md flex flex-col justify-between p-3 sm:p-5 select-none animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden select-none animate-in fade-in duration-200"
       style={{ touchAction: 'none' }}
     >
-      {/* Barra Superior del Visor */}
-      <header className="flex items-center justify-between z-20 gap-3">
-        <div className="flex items-center gap-2 min-w-0 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
-          <Maximize2 className="w-4 h-4 text-cove-sky shrink-0" />
-          <span className="text-xs font-semibold text-white truncate max-w-[200px] sm:max-w-md">
-            {alt}
-          </span>
-        </div>
-
-        <button
-          onClick={onClose}
-          className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 active:scale-95 rounded-full transition-all cursor-pointer border border-white/15 shadow-md"
-          title="Cerrar visor (Escape)"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </header>
-
-      {/* Contenedor Interactivo de la Imagen */}
-      <main
-        className="flex-1 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing relative"
+      {/* Contenedor Interactivo 100% Edge-to-Edge (Ocupa absolutamente toda la pantalla) */}
+      <div
+        className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -177,36 +186,57 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
           src={src}
           alt={alt}
           draggable={false}
-          className="max-w-full max-h-full object-contain pointer-events-auto rounded-lg shadow-2xl select-none"
+          className="w-full h-full object-contain select-none pointer-events-none"
           style={{
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transformOrigin: 'center center',
             transition: isDragging ? 'none' : 'transform 0.15s ease-out',
-            cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in',
           }}
         />
-      </main>
+      </div>
 
-      {/* Barra Inferior Flotante de Controles de Zoom */}
-      <footer className="flex flex-col items-center gap-2 z-20 pb-1">
-        {/* Cápsula de Controles Táctiles y Ergonómicos */}
-        <div className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 bg-slate-900/90 border border-white/20 rounded-2xl backdrop-blur-md shadow-2xl text-white">
+      {/* Botón Flotante para Cerrar en la esquina superior derecha */}
+      <div
+        className={`absolute top-3 right-3 sm:top-5 sm:right-5 z-40 transition-opacity duration-200 ${
+          showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-11 h-11 flex items-center justify-center text-white bg-black/60 hover:bg-black/90 active:scale-95 rounded-full backdrop-blur-md transition-all cursor-pointer border border-white/25 shadow-2xl"
+          title="Cerrar visor"
+        >
+          <X className="w-6 h-6 text-white" />
+        </button>
+      </div>
+
+      {/* Cápsula de Controles Flotante en la parte inferior */}
+      <div
+        className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-40 transition-all duration-200 ${
+          showControls
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+      >
+        <div className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 bg-black/75 border border-white/20 rounded-2xl backdrop-blur-md shadow-2xl text-white">
           {/* Zoom Out */}
           <button
             type="button"
             onClick={handleZoomOut}
             disabled={scale <= 1}
-            className="p-2 hover:bg-white/15 active:scale-90 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
+            className="p-2 hover:bg-white/20 active:scale-90 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
             title="Reducir zoom (-)"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
 
-          {/* Porcentaje actual (al tocarlo restablece a 100%) */}
+          {/* Porcentaje actual */}
           <button
             type="button"
             onClick={handleReset}
             className="px-2.5 py-1 text-xs font-mono font-black text-cove-sky hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            title="Restablecer tamaño original (0)"
+            title="Restablecer (100%)"
           >
             {Math.round(scale * 100)}%
           </button>
@@ -215,8 +245,8 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
           <button
             type="button"
             onClick={handleZoomIn}
-            disabled={scale >= 5}
-            className="p-2 hover:bg-white/15 active:scale-90 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
+            disabled={scale >= 8}
+            className="p-2 hover:bg-white/20 active:scale-90 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
             title="Aumentar zoom (+)"
           >
             <ZoomIn className="w-4 h-4" />
@@ -229,18 +259,13 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
             type="button"
             onClick={handleReset}
             disabled={scale === 1 && position.x === 0 && position.y === 0}
-            className="p-2 hover:bg-white/15 active:scale-90 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
+            className="p-2 hover:bg-white/20 active:scale-90 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
             title="Restablecer vista"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
-
-        {/* Sugerencia de Interacción */}
-        <p className="text-[11px] text-white/50 text-center font-medium">
-          Doble toque para zoom rápido • Pellizca o rueda para ampliar • Arrastra para mover
-        </p>
-      </footer>
+      </div>
     </div>
   );
 };
