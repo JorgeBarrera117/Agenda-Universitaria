@@ -20,6 +20,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  Heart,
 } from 'lucide-react';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -27,6 +28,7 @@ import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { NotificationService } from '../../../shared/services/notificationService';
 import { exportDatabaseBackup, importDatabaseBackup } from '../../../shared/utils/backup';
 import { applyTheme } from '../../../shared/utils/theme';
+import { APP_INFO } from '../../../shared/constants/appInfo';
 import type { AppSettings } from '../types';
 
 
@@ -738,18 +740,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 8. INFORMACIÓN DE LA APLICACIÓN */}
-        <div className="p-4 bg-cove-sand/30 dark:bg-slate-900/60 border border-cove-gold/50 dark:border-slate-800 rounded-3xl flex items-center gap-4 text-xs text-slate-700 dark:text-slate-300">
-          <img
-            src="/app-icon-claro.svg"
-            alt="Logo Agenda Universitaria"
-            className="w-14 h-14 rounded-2xl shadow-xs ring-1 ring-cove-gold/60 shrink-0 bg-white p-1 object-contain"
-          />
-          <div className="space-y-1">
-            <span className="font-black text-slate-900 dark:text-white block text-sm">
-              Agenda Universitaria PWA • v1.5.5
-            </span>
+        <div className="p-4 sm:p-5 bg-gradient-to-br from-cove-sand/40 via-white to-cove-sand/20 dark:from-slate-900/80 dark:via-slate-850 dark:to-slate-900/60 border border-cove-gold/50 dark:border-slate-800 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-4 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
+          <div className="flex items-center gap-3.5">
+            <img
+              src="/app-icon-claro.svg"
+              alt="Logo Agenda Universitaria"
+              className="w-14 h-14 rounded-2xl shadow-xs ring-1 ring-cove-gold/60 shrink-0 bg-white p-1 object-contain"
+            />
+            <div className="sm:hidden">
+              <span className="font-black text-slate-900 dark:text-white block text-sm">
+                {APP_INFO.name} • v{APP_INFO.version}
+              </span>
+              <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cove-blue/10 dark:bg-cove-blue/25 text-cove-blue dark:text-cove-sky border border-cove-sky/30">
+                "{APP_INFO.slogan}"
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
+              <span className="font-black text-slate-900 dark:text-white text-sm">
+                {APP_INFO.name} • v{APP_INFO.version}
+              </span>
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cove-blue/10 dark:bg-cove-blue/25 text-cove-blue dark:text-cove-sky border border-cove-sky/30">
+                "{APP_INFO.slogan}"
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
+              <span>
+                App desarrollada por <strong className="text-cove-blue dark:text-cove-sky font-black">{APP_INFO.author}</strong>
+              </span>
+            </div>
+
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-              Desarrollada para estudiantes con Clean Architecture, Dexie.js (IndexedDB local-first) y Capacitor para Android. Funciona 100% sin conexión a internet y tus apuntes son privados.
+              {APP_INFO.description}
             </p>
           </div>
         </div>

@@ -1,3 +1,11 @@
+/**
+ * ==============================================================================
+ * Agenda Universitaria PWA
+ * ==============================================================================
+ * App desarrollada por Jorge I. Barrera V.
+ * Eslogan: "POR Y PARA LOS ESTUDIANTES"
+ * ==============================================================================
+ */
 import { useState, useEffect } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';

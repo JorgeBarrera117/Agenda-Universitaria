@@ -2,6 +2,8 @@
   "name": "agenda-universitaria",
   "private": true,
   "version": "1.5.5",
+  "description": "Agenda Universitaria PWA - POR Y PARA LOS ESTUDIANTES",
+  "author": "Jorge I. Barrera V.",
   "type": "module",
 
   "scripts": {

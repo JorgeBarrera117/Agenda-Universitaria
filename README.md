@@ -1,32 +1,56 @@
-# React + TypeScript + Vite
+# 🎓 Agenda Universitaria PWA
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> *"POR Y PARA LOS ESTUDIANTES"*
 
-Currently, two official plugins are available:
+Aplicación Web Progresiva (PWA) y app nativa para Android (vía Capacitor) diseñada para la gestión integral de la vida académica universitaria con arquitectura **Local-First / Offline-First**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 👨‍💻 Autoría y Créditos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Desarrollador:** **Jorge I. Barrera V.**
+* **Eslogan:** *"POR Y PARA LOS ESTUDIANTES"*
+* **Versión:** `v1.5.5`
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 🚀 Características Principales
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+1. **Horarios Académicos Inteligentes:**
+   - Visualización por bloques lectivos (vista diaria y semanal de 5 a 7 días).
+   - Centro de Control en Vivo que detecta en tiempo real la clase en curso y el siguiente bloque.
+   - Modalidades Presencial (campus/aula) y Virtual (enlaces de videollamada con un clic).
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+2. **Plan de Asignaturas:**
+   - Catálogo curricular con cálculo automático de créditos, bloques lectivos y conteo de apuntes.
+   - Vinculación directa con docentes titulares.
+
+3. **Cuerpo Docente y Asesorías:**
+   - Directorio oficial de profesores con avatares personalizables.
+   - Enlaces directos a correo institucional, teléfono, cubículo y horarios de asesoría.
+
+4. **Cuaderno de Apuntes Universitario:**
+   - Editor de texto enriquecido (WYSIWYG con TipTap) optimizado con barra inferior docked en 2 filas ergonómica para móviles (*Thumb Zone*).
+   - Inserción y compresión de fotos de pizarrón directamente desde la cámara o galería.
+   - Visor Lightbox con Zoom multitáctil e interactivo.
+
+5. **Offline-First & Privacidad:**
+   - Todos los datos persisten localmente en el dispositivo con **IndexedDB** (`Dexie.js`).
+   - Exportación e importación de copias de seguridad en formato JSON.
+
+6. **Notificaciones Locales:**
+   - Recordatorios antes de cada clase mediante `@capacitor/local-notifications`.
+
+7. **Apariencia:**
+   - Soporte para Tema Claro, Modo Oscuro y Tema del Sistema.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+* **Frontend:** React 19, TypeScript, Vite.
+* **Estilos:** Tailwind CSS v4, Atomic Design (Tokens/Quarks & Atoms).
+* **Persistencia Local:** Dexie.js (IndexedDB).
+* **Móvil:** Capacitor Android SDK.
+* **Editor:** TipTap (StarterKit, Image, Underline, Placeholder).
+* **Íconos:** Lucide React.
