@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Building2,
   Laptop,
@@ -41,13 +41,13 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
     return 'presencial';
   };
 
-  const [subjectId, setSubjectId] = useState(initialData?.subjectId || subjects[0]?.id || '');
+  const [subjectId, setSubjectId] = useState(initialData?.subjectId || '');
   const [professorId, setProfessorId] = useState(initialData?.professorId || '');
   const [dayOfWeek, setDayOfWeek] = useState<DayOfWeek>(
     initialData?.dayOfWeek || defaultDay
   );
-  const [startTime, setStartTime] = useState(initialData?.startTime || '08:00');
-  const [endTime, setEndTime] = useState(initialData?.endTime || '10:00');
+  const [startTime, setStartTime] = useState(initialData?.startTime || '');
+  const [endTime, setEndTime] = useState(initialData?.endTime || '');
 
   // Modalidad: Presencial vs Virtual
   const [modality, setModality] = useState<ClassModality>(getInitialModality);
@@ -56,7 +56,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
   const [classroom, setClassroom] = useState(
     initialData && initialData.modality !== 'virtual' && !initialData.classroom?.toLowerCase().includes('virtual')
       ? initialData.classroom || ''
-      : (subjects.find((s) => s.id === (initialData?.subjectId || subjects[0]?.id))?.classroomDefault || '')
+      : ''
   );
   const [building, setBuilding] = useState(
     initialData && initialData.modality !== 'virtual' ? initialData.building || '' : ''
@@ -65,8 +65,8 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
   // Campos virtuales
   const [virtualPlatform, setVirtualPlatform] = useState(
     initialData?.modality === 'virtual' || initialData?.classroom?.toLowerCase().includes('virtual')
-      ? initialData?.classroom || 'Virtual'
-      : 'Virtual'
+      ? initialData?.classroom || ''
+      : ''
   );
   const [virtualLink, setVirtualLink] = useState(
     initialData?.virtualLink || (initialData?.modality === 'virtual' ? initialData.building || '' : '')
@@ -74,32 +74,6 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Sincronizar estado inicial cuando se cargan las materias de Dexie
-  useEffect(() => {
-    if (!initialData && subjects.length > 0 && !subjectId) {
-      const targetId = subjects[0].id;
-      setSubjectId(targetId);
-      const sub = subjects[0];
-      const profForSub = sub.professorId
-        ? professors.find((p) => p.id === sub.professorId)
-        : professors.find((p) => p.subjectIds.includes(targetId));
-
-      if (profForSub) {
-        setProfessorId(profForSub.id);
-      }
-      if (sub.classroomDefault) {
-        const lower = sub.classroomDefault.toLowerCase();
-        if (lower.includes('virtual') || lower.includes('zoom') || lower.includes('teams') || lower.includes('meet')) {
-          setModality('virtual');
-          setVirtualPlatform(sub.classroomDefault);
-        } else {
-          setModality('presencial');
-          setClassroom(sub.classroomDefault);
-        }
-      }
-    }
-  }, [subjects, subjectId, initialData, professors]);
 
   // Cuando cambia la materia seleccionada, auto-asignar inteligentemente su profesor y aula
   const handleSubjectChange = (newSubjectId: string) => {
@@ -138,6 +112,10 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
     e.preventDefault();
     if (!subjectId) {
       setError('Debes seleccionar una materia.');
+      return;
+    }
+    if (!startTime || !endTime) {
+      setError('Debes ingresar la hora de inicio y de término.');
       return;
     }
     if (startTime >= endTime) {
@@ -205,7 +183,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                 {selectedSubject?.code || 'ASIGNATURA'}
               </span>
               <span className="text-[11px] font-bold text-slate-500">
-                {DAY_NAMES[dayOfWeek]} • {startTime} - {endTime}
+                {DAY_NAMES[dayOfWeek]} • {startTime && endTime ? `${startTime} - ${endTime}` : 'Horario por definir'}
               </span>
             </div>
             <h4 className="text-sm font-black text-slate-900 truncate">

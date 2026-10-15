@@ -747,6 +747,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         title={editingSlot ? 'Modificar Cátedra Universitaria' : 'Programar Cátedra en el Horario'}
       >
         <ScheduleSlotForm
+          key={editingSlot?.id || 'new-slot'}
           initialData={editingSlot}
           defaultDay={selectedDay}
           onSubmit={handleSubmit}
