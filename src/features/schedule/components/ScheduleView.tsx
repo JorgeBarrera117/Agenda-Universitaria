@@ -371,7 +371,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       return (
                         <div
                           key={slot.id}
-                          className={`bg-white rounded-2xl p-3.5 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${
+                          className={`bg-white rounded-2xl p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-row items-stretch justify-between gap-2 ${
                             isNow
                               ? 'border-emerald-500 ring-2 ring-emerald-400/40 bg-emerald-50/10'
                               : 'border-slate-200/90 hover:border-cove-sky/60'
@@ -383,44 +383,29 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             style={{ backgroundColor: subject?.color || '#006BBB' }}
                           />
 
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-[10px] font-mono font-black text-white bg-cove-navy px-1.5 py-0.5 rounded-md shadow-2xs">
+                          {/* Contenido Principal (Izquierda) */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2">
+                            <div>
+                              {/* Código */}
+                              <span className="inline-block text-[10px] font-mono font-black text-white bg-cove-navy px-1.5 py-0.5 rounded-md shadow-2xs mb-1">
                                 {subject?.code || 'CLASE'}
                               </span>
 
-                              <div className="flex items-center gap-0.5">
-                                <button
-                                  onClick={() => handleOpenEdit(slot)}
-                                  className="p-1 text-slate-400 hover:text-cove-blue hover:bg-cove-blue/10 rounded-lg transition-colors cursor-pointer"
-                                  title="Editar bloque"
-                                  aria-label="Editar"
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => setSlotToDelete(slot)}
-                                  className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                  title="Eliminar bloque"
-                                  aria-label="Eliminar"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
+                              {/* Nombre */}
+                              <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug group-hover:text-cove-blue transition-colors">
+                                {subject?.name || 'Materia'}
+                              </h4>
                             </div>
 
-                            <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug group-hover:text-cove-blue transition-colors">
-                              {subject?.name || 'Materia'}
-                            </h4>
-
-                            <div className="space-y-1.5 pt-1 text-[11px]">
-                              {/* Rango Horario en Cove Blue / Navy */}
+                            {/* Filas de Información apiladas */}
+                            <div className="space-y-1.5 text-[11px]">
+                              {/* Rango Horario */}
                               <div className="flex items-center gap-1 font-mono font-bold text-cove-navy bg-cove-blue/10 border border-cove-sky/20 px-2 py-0.5 rounded-lg">
                                 <Clock className="w-3 h-3 text-cove-blue shrink-0" />
-                                <span>{slot.startTime} - {slot.endTime}</span>
+                                <span className="truncate">{slot.startTime} - {slot.endTime}</span>
                               </div>
 
-                              {/* Aula y Ubicación */}
+                              {/* Aula */}
                               {slot.classroom && (
                                 <div className="flex items-center gap-1 text-slate-700 bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-lg truncate">
                                   <MapPin className="w-3 h-3 text-cove-blue shrink-0" />
@@ -428,9 +413,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                 </div>
                               )}
 
-                              {/* Docente con micro-avatar */}
+                              {/* Docente */}
                               {professor && (
-                                <div className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-600 truncate font-medium">
+                                <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100 text-[10px] text-slate-600 truncate font-medium">
                                   <div className="w-4 h-4 rounded-full bg-cove-navy text-cove-sand flex items-center justify-center text-[8px] font-black shrink-0">
                                     {professor.name.charAt(0)}
                                   </div>
@@ -438,6 +423,43 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                 </div>
                               )}
                             </div>
+                          </div>
+
+                          {/* Columna Vertical de Acciones (Derecha) - Idéntica distribución a modo diario */}
+                          <div className="flex flex-col justify-between items-center shrink-0 pl-1.5 border-l border-slate-100 py-0.5">
+                            {/* Botón 1: Tomar apunte (Superior destacado en Cove Sand) */}
+                            {onNavigateToNotes ? (
+                              <button
+                                onClick={() => onNavigateToNotes(slot.subjectId)}
+                                className="w-8 h-8 rounded-xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                                title="Tomar apunte de esta materia"
+                                aria-label="Tomar apunte"
+                              >
+                                <FileEdit className="w-4 h-4 text-cove-navy" />
+                              </button>
+                            ) : (
+                              <div className="w-8 h-8" />
+                            )}
+
+                            {/* Botón 2: Editar clase (Centro) */}
+                            <button
+                              onClick={() => handleOpenEdit(slot)}
+                              className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                              title="Editar clase"
+                              aria-label="Editar clase"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Botón 3: Eliminar clase (Inferior) */}
+                            <button
+                              onClick={() => setSlotToDelete(slot)}
+                              className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                              title="Eliminar clase"
+                              aria-label="Eliminar clase"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       );
