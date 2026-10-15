@@ -20,6 +20,8 @@ import { useSchedule } from './features/schedule/hooks/useSchedule';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { NotificationService } from './shared/services/notificationService';
 import { applyTheme, setupSystemThemeListener } from './shared/utils/theme';
+import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
+import { backButtonManager } from './shared/services/backButtonManager';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
@@ -57,7 +59,24 @@ export function App() {
 
     // Inicializar canal de notificaciones nativas en Android
     NotificationService.init().catch(console.warn);
+
+    // Inicializar gestor centralizado del botón de retroceso (Android y Web)
+    backButtonManager.init({
+      onExitPrompt: () => {
+        showToast('Presiona de nuevo para salir de la aplicación');
+      },
+    });
   }, []);
+
+  // Al estar en cualquier pestaña secundaria (Materias, Profesores o Apuntes),
+  // presionar "Atrás" regresa al Horario principal en lugar de cerrar la app.
+  useBackButton(() => {
+    if (activeTab !== 'schedule') {
+      setActiveTab('schedule');
+      return true;
+    }
+    return false;
+  }, BACK_PRIORITY.TAB, activeTab !== 'schedule' && !isSettingsOpen);
 
   // Sincronizar automáticamente recordatorios locales al cambiar materias, horarios o configuración
   useEffect(() => {

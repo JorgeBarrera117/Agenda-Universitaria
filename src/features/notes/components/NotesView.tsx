@@ -26,6 +26,7 @@ import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card, Badge } from '../../../shared/components/atoms';
+import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 
 interface NotesViewProps {
@@ -85,48 +86,30 @@ export const NotesView: React.FC<NotesViewProps> = ({
     };
   }, [viewMode, onEditorActiveChange]);
 
-  const viewModeRef = useRef(viewMode);
-  useEffect(() => {
-    viewModeRef.current = viewMode;
-  }, [viewMode]);
-
-  // Soporte inteligente para botón "Atrás" de Android / Navegador
-  useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      // Si el evento de retroceso corresponde al cierre de un modal hijo (ej. zoom de foto o diálogo),
-      // protegemos la pantalla actual (editor o lector) para no perder el progreso.
-      if (e.state?.isModalOpen) {
-        return;
-      }
-
-      const noteMode = e.state?.noteMode;
-
-      if (noteMode === 'editor') {
-        if (viewModeRef.current !== 'editor') {
-          setViewMode('editor');
-        }
-      } else if (noteMode === 'reader') {
-        if (viewModeRef.current !== 'reader') {
-          setViewMode('reader');
-          setEditingNote(undefined);
-        }
+  // Interceptar botón "Atrás" de Android cuando estamos dentro de un apunte (editor o lector)
+  useBackButton(() => {
+    if (viewMode === 'editor') {
+      if (readingNote) {
+        setViewMode('reader');
+        setEditingNote(undefined);
       } else {
-        if (viewModeRef.current !== 'list') {
-          setViewMode('list');
-          setEditingNote(undefined);
-          setReadingNote(null);
-        }
+        setViewMode('list');
+        setEditingNote(undefined);
       }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+      return true;
+    }
+    if (viewMode === 'reader') {
+      setViewMode('list');
+      setReadingNote(null);
+      setEditingNote(undefined);
+      return true;
+    }
+    return false;
+  }, BACK_PRIORITY.SUBVIEW, viewMode !== 'list');
 
   const handleOpenCreate = () => {
     setEditingNote(undefined);
     setViewMode('editor');
-    window.history.pushState({ noteMode: 'editor' }, '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -134,20 +117,19 @@ export const NotesView: React.FC<NotesViewProps> = ({
     e?.stopPropagation();
     setEditingNote(note);
     setViewMode('editor');
-    window.history.pushState({ noteMode: 'editor' }, '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenRead = (note: Note) => {
     setReadingNote(note);
     setViewMode('reader');
-    window.history.pushState({ noteMode: 'reader' }, '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToList = () => {
-    if (window.history.state?.noteMode) {
-      window.history.back();
+    if (viewMode === 'editor' && readingNote) {
+      setViewMode('reader');
+      setEditingNote(undefined);
     } else {
       setViewMode('list');
       setEditingNote(undefined);
@@ -165,24 +147,16 @@ export const NotesView: React.FC<NotesViewProps> = ({
           ...dto,
           updatedAt: new Date().toISOString(),
         });
-        if (window.history.state?.noteMode === 'editor') {
-          window.history.back();
-        } else {
-          setViewMode('reader');
-          setEditingNote(undefined);
-        }
+        setViewMode('reader');
+        setEditingNote(undefined);
         return;
       }
     } else {
       await addNote(dto);
     }
 
-    if (window.history.state?.noteMode === 'editor') {
-      window.history.back();
-    } else {
-      setViewMode('list');
-      setEditingNote(undefined);
-    }
+    setViewMode('list');
+    setEditingNote(undefined);
   };
 
   const handleReaderFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,11 +181,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
       await removeNote(noteToDelete.id);
       if (readingNote?.id === noteToDelete.id) {
         setReadingNote(null);
-        if (window.history.state?.noteMode === 'reader') {
-          window.history.back();
-        } else {
-          setViewMode('list');
-        }
+        setViewMode('list');
       }
       setNoteToDelete(null);
     }

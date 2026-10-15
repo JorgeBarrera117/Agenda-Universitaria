@@ -29,6 +29,7 @@ import { NotificationService } from '../../../shared/services/notificationServic
 import { exportDatabaseBackup, importDatabaseBackup } from '../../../shared/utils/backup';
 import { applyTheme } from '../../../shared/utils/theme';
 import { APP_INFO } from '../../../shared/constants/appInfo';
+import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import type { AppSettings } from '../types';
 
 
@@ -59,35 +60,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     NotificationService.checkPermissions().then(setHasPermission);
   }, [settings]);
 
-  // Soporte para botón "Atrás" de Android / Navegador para volver a la agenda
-  const closedViaPopstateRef = useRef(false);
-  const onBackRef = useRef(onBack);
-  useEffect(() => {
-    onBackRef.current = onBack;
-  }, [onBack]);
-
-  useEffect(() => {
-    const settingsId = `settings-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    closedViaPopstateRef.current = false;
-
-    window.history.pushState({ isSettingsOpen: true, settingsId }, '');
-
-    const handlePopState = (e: PopStateEvent) => {
-      if (e.state?.settingsId !== settingsId) {
-        closedViaPopstateRef.current = true;
-        onBackRef.current();
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-      if (!closedViaPopstateRef.current && window.history.state?.settingsId === settingsId) {
-        window.history.back();
-      }
-    };
-  }, []);
+  // Interceptar botón "Atrás" de Android / Navegador para volver a la agenda
+  useBackButton(() => {
+    onBack();
+    return true;
+  }, BACK_PRIORITY.SETTINGS);
 
   // Manejar solicitud de permisos
   const handleRequestPermission = async () => {
