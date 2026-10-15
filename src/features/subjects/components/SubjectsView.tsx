@@ -19,6 +19,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { Button, Card, Badge } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
 
 interface SubjectsViewProps {
@@ -74,13 +75,13 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Resumen Métrico del Semestre (Distribuido Horizontalmente) */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
         {/* Métrica 1: Asignaturas */}
-        <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
+        <Card padding="compact" className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-3.5">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div className="min-w-0">
             <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
@@ -91,12 +92,12 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
               <span className="hidden sm:inline">Asignaturas Inscritas</span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Métrica 2: Créditos */}
-        <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-            <Award className="w-4 h-4 sm:w-6 sm:h-6" />
+        <Card padding="compact" className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-3.5">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <Award className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div className="min-w-0">
             <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
@@ -107,12 +108,12 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
               <span className="hidden sm:inline">Créditos Académicos</span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Métrica 3: Bloques */}
-        <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6" />
+        <Card padding="compact" className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-3.5">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div className="min-w-0">
             <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
@@ -123,11 +124,11 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
               <span className="hidden sm:inline">Bloques Semanales</span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Plan de Asignaturas
@@ -136,19 +137,21 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
             Catálogo curricular que estructura tus horarios, apuntes y docentes.
           </p>
         </div>
-        <button
+        <Button
+          variant="success"
+          size="md"
+          icon={<Plus className="w-4 h-4" />}
           onClick={handleOpenCreate}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-emerald-600 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-emerald-600/25 cursor-pointer"
+          className="hidden sm:inline-flex"
         >
-          <Plus className="w-4 h-4" />
           Inscribir Asignatura
-        </button>
+        </Button>
       </div>
 
       {subjects.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
-          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
-            <BookOpen className="w-8 h-8" />
+        <Card padding="relaxed" className="text-center py-14 border-dashed border-slate-300 dark:border-slate-800">
+          <div className="w-14 h-14 rounded-2xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
+            <BookOpen className="w-7 h-7" />
           </div>
           <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
             No tienes asignaturas registradas
@@ -156,70 +159,68 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
             Registra tus materias del ciclo universitario para poder armar tu horario y clasificar tus apuntes.
           </p>
-          <button
+          <Button
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
             Inscribir primera asignatura
-          </button>
-        </div>
+          </Button>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {subjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;
             const prof = professors.find((p) => p.id === subject.professorId || p.subjectIds.includes(subject.id));
 
             return (
-              <div
+              <Card
                 key={subject.id}
-                style={{
-                  background: `linear-gradient(145deg, ${subject.color}1f 0%, ${subject.color}0c 100%), var(--card-bg, #ffffff)`,
-                  borderColor: `${subject.color}45`,
-                }}
-                className="rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all relative overflow-hidden flex flex-row items-stretch justify-between gap-3 sm:gap-4 group"
+                padding="normal"
+                accentColor={subject.color}
+                interactive
+                className="flex flex-row items-stretch justify-between gap-3 group"
               >
                 {/* Contenido Principal (Izquierda) */}
-                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3.5">
-                  <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3">
+                  <div className="flex items-start gap-2.5">
                     {/* Badge / Avatar con el Ícono y Color de la Asignatura */}
                     <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ring-2 ring-white/30 shrink-0"
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md ring-2 ring-white/30 shrink-0"
                       style={{ backgroundColor: subject.color }}
                       title={subject.name}
                     >
-                      <SubjectIcon icon={subject.icon} className="w-6 h-6 text-white" />
+                      <SubjectIcon icon={subject.icon} className="w-5 h-5 text-white" />
                     </div>
 
-                    <div className="min-w-0 flex-1 space-y-1">
+                    <div className="min-w-0 flex-1 space-y-0.5">
                       {/* Código de Asignatura */}
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
-                          {subject.code || 'ASIGNATURA'}
-                        </span>
-                      </div>
+                      <Badge variant="navy" size="xs">
+                        {subject.code || 'ASIGNATURA'}
+                      </Badge>
 
-                      <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug line-clamp-2">
                         {subject.name}
                       </h3>
                     </div>
                   </div>
 
                   {/* Ficha de Credenciales Académicas */}
-                  <div className="space-y-2 text-xs">
+                  <div className="space-y-1.5 text-xs">
                     {/* Catedrático / Profesor Asignado */}
                     {prof ? (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-2xs">
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-2xs">
                         <ProfessorAvatar
                           name={prof.name}
                           icon={prof.icon}
                           color={prof.color}
-                          size="sm"
+                          size="xs"
                           className="shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="font-bold truncate text-slate-900 dark:text-white text-xs">
+                          <div className="font-bold truncate text-slate-900 dark:text-white text-[11px] leading-tight">
                             {prof.name}
                           </div>
                           <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
@@ -228,32 +229,32 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic">
-                        <User className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic text-[11px]">
+                        <User className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0" />
                         <span>Sin docente asignado</span>
                       </div>
                     )}
 
                     {subject.classroomDefault ? (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 text-slate-700 dark:text-slate-300">
-                        <MapPin className="w-4 h-4 text-cove-sky shrink-0" />
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 text-slate-700 dark:text-slate-300 text-[11px]">
+                        <MapPin className="w-3.5 h-3.5 text-cove-sky shrink-0" />
                         <span className="truncate font-semibold">{subject.classroomDefault}</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic">
-                        <MapPin className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic text-[11px]">
+                        <MapPin className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0" />
                         <span>Aula por asignar</span>
                       </div>
                     )}
 
                     {subject.credits !== undefined ? (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-cove-sand/40 dark:bg-amber-950/40 border border-cove-gold/60 dark:border-amber-800/60 text-slate-900 dark:text-amber-200 font-bold">
-                        <Award className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-cove-sand/40 dark:bg-amber-950/40 border border-cove-gold/60 dark:border-amber-800/60 text-slate-900 dark:text-amber-200 font-bold text-[11px]">
+                        <Award className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span>{subject.credits} Créditos Académicos</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic">
-                        <Award className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 italic text-[11px]">
+                        <Award className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0" />
                         <span>Créditos sin especificar</span>
                       </div>
                     )}
@@ -261,51 +262,49 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
 
                   {/* Métricas al pie */}
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold gap-2">
-                    <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold">
+                    <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold text-[11px]">
                       <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky" />
                       {classCount} {classCount === 1 ? 'bloque' : 'bloques'}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-black bg-cove-blue/10 dark:bg-cove-blue/25 text-cove-blue dark:text-cove-sky border border-cove-sky/30 dark:border-cove-sky/40">
-                      <FileText className="w-3 h-3" />
+                    <Badge variant="primary" size="xs" icon={<FileText className="w-3 h-3" />}>
                       {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
 
-
-                {/* Columna Vertical de Acciones (Derecha) - Alineada y Proporcional */}
-                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-2.5 sm:gap-3">
-                  {/* Botón 1: Ver apuntes de la materia (Superior - Índigo para apuntes) */}
-                  <button
+                {/* Columna Vertical de Acciones (Derecha) - Estandarizada con Átomo Button */}
+                <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 sm:pl-2 py-0.5 gap-2 sm:gap-2.5">
+                  {/* Botón 1: Ver apuntes */}
+                  <Button
+                    variant="action-indigo"
+                    size="icon-md"
                     onClick={() => onNavigateToNotes && onNavigateToNotes(subject.id)}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-indigo-950/20 cursor-pointer"
                     title="Ver o tomar apuntes de esta asignatura"
                     aria-label="Ver apuntes"
-                  >
-                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </button>
+                    icon={<BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
+                  />
 
-                  {/* Botón 2: Editar asignatura (Centro - Azul para editar) */}
-                  <button
+                  {/* Botón 2: Editar asignatura */}
+                  <Button
+                    variant="action-blue"
+                    size="icon-md"
                     onClick={() => handleOpenEdit(subject)}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-blue-950/20 cursor-pointer"
                     title="Editar asignatura"
                     aria-label="Editar asignatura"
-                  >
-                    <Edit2 className="w-4 h-4 text-white" />
-                  </button>
+                    icon={<Edit2 className="w-4 h-4 text-white" />}
+                  />
 
-                  {/* Botón 3: Eliminar asignatura (Inferior - Rojo para eliminar) */}
-                  <button
+                  {/* Botón 3: Eliminar asignatura */}
+                  <Button
+                    variant="action-rose"
+                    size="icon-md"
                     onClick={() => setSubjectToDelete(subject)}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-red-950/20 cursor-pointer"
                     title="Eliminar asignatura"
                     aria-label="Eliminar asignatura"
-                  >
-                    <Trash2 className="w-4 h-4 text-white" />
-                  </button>
+                    icon={<Trash2 className="w-4 h-4 text-white" />}
+                  />
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

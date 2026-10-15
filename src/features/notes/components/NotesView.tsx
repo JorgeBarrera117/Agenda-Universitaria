@@ -24,6 +24,7 @@ import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Button, Card, Badge } from '../../../shared/components/atoms';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 
 interface NotesViewProps {
@@ -445,9 +446,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Encabezado Estilo Cuaderno de Cátedra */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Cuaderno de Apuntes
@@ -456,13 +457,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
             Tus notas de clase, resúmenes y fotos de pizarrón clasificadas por materia.
           </p>
         </div>
-        <button
+        <Button
+          variant="action-indigo"
+          size="md"
+          icon={<Plus className="w-4 h-4" />}
           onClick={handleOpenCreate}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-indigo-500/25 cursor-pointer"
+          className="hidden sm:inline-flex"
         >
-          <Plus className="w-4 h-4" />
           Nuevo Apunte
-        </button>
+        </Button>
       </div>
 
       {/* Buscador de Apuntes Universitario */}
@@ -473,15 +476,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar fórmulas, conceptos, pizarras o #etiquetas..."
-          className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-2xs"
+          className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-2xs"
         />
       </div>
 
       {/* Separadores de Carpeta Universitaria (Subject Folder Tabs) */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => setSelectedSubjectId('all')}
-          className={`px-4 py-2 rounded-2xl text-xs font-black transition-all shrink-0 cursor-pointer ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${
             selectedSubjectId === 'all'
               ? 'bg-cove-navy text-white shadow-sm ring-2 ring-cove-sky/40'
               : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
@@ -495,7 +498,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
             <button
               key={sub.id}
               onClick={() => setSelectedSubjectId(sub.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black transition-all shrink-0 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${
                 isSelected
                   ? 'text-white shadow-md'
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
@@ -505,13 +508,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
               }}
             >
               <span
-                className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0 shadow-2xs"
+                className="w-4 h-4 rounded-md flex items-center justify-center shrink-0 shadow-2xs"
                 style={{
                   backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : `${sub.color}25`,
                   color: isSelected ? '#ffffff' : sub.color,
                 }}
               >
-                <SubjectIcon icon={sub.icon} className="w-3.5 h-3.5" />
+                <SubjectIcon icon={sub.icon} className="w-3 h-3" />
               </span>
               {sub.name}
             </button>
@@ -521,9 +524,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
       {/* Lista / Grid de Apuntes */}
       {notes.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
-          <div className="w-16 h-16 rounded-3xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
-            <FileText className="w-8 h-8" />
+        <Card padding="relaxed" className="text-center py-14 border-dashed border-slate-300 dark:border-slate-800">
+          <div className="w-14 h-14 rounded-2xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
+            <FileText className="w-7 h-7" />
           </div>
           <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
             {searchQuery ? 'No se encontraron apuntes' : 'No hay notas en esta asignatura'}
@@ -533,16 +536,17 @@ export const NotesView: React.FC<NotesViewProps> = ({
               ? 'Intenta con otro término de búsqueda o selecciona otra asignatura.'
               : 'Escribe tu primer apunte con formato enriquecido o toma fotos de las diapositivas.'}
           </p>
-          <button
+          <Button
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
             Crear apunte de cátedra
-          </button>
-        </div>
+          </Button>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {notes.map((note) => {
             const subject = getSubjectById(note.subjectId);
             const imageCount = allImages?.filter((img) => img.noteId === note.id).length || 0;
@@ -556,42 +560,41 @@ export const NotesView: React.FC<NotesViewProps> = ({
             const cleanSnippet = cleanSnippetPreview(note.content);
 
             return (
-              <div
+              <Card
                 key={note.id}
+                padding="normal"
+                accentColor={subject?.color}
+                interactive
                 onClick={() => handleOpenRead(note)}
-                style={{
-                  background: `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), var(--card-bg, #ffffff)`,
-                  borderColor: `${subject?.color || '#006BBB'}45`,
-                }}
-                className="group relative rounded-3xl p-5 sm:p-6 border shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row items-stretch justify-between gap-3 sm:gap-4 hover:-translate-y-0.5 overflow-hidden"
+                className="flex flex-row items-stretch justify-between gap-3 group"
               >
                 {/* Contenido Principal (Izquierda) */}
-                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3">
-                  <div className="space-y-2">
+                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2.5">
+                  <div className="space-y-1.5">
                     {/* Encabezado: Materia y Fecha */}
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs truncate max-w-[180px]"
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-black text-white shadow-2xs truncate max-w-[170px]"
                         style={{ backgroundColor: subject?.color || '#006BBB' }}
                       >
-                        <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 shrink-0" />
+                        <SubjectIcon icon={subject?.icon} className="w-3 h-3 shrink-0" />
                         <span className="truncate">{subject?.name || 'Materia'}</span>
                       </span>
 
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                         {dateFormatted}
                       </span>
                     </div>
 
                     {/* Título de la Ficha */}
-                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors line-clamp-2 leading-snug tracking-tight">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors line-clamp-1 leading-snug tracking-tight">
                       {note.title}
                     </h3>
                   </div>
 
                   {/* Extracto de Cuaderno Sanitizeado */}
-                  <div className="bg-slate-50/80 dark:bg-slate-800/60 rounded-2xl p-3 border border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed font-sans">
+                  <div className="bg-slate-50/80 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed font-sans">
                     {cleanSnippet}
                   </div>
 
@@ -600,16 +603,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     {note.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {note.tags.slice(0, 2).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60"
-                          >
-                            <Tag className="w-2.5 h-2.5 text-slate-400 dark:text-slate-500" />
+                          <Badge key={tag} variant="neutral" size="xs" icon={<Tag className="w-2.5 h-2.5" />}>
                             {tag}
-                          </span>
+                          </Badge>
                         ))}
                         {note.tags.length > 2 && (
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold px-1">
                             +{note.tags.length - 2}
                           </span>
                         )}
@@ -620,54 +619,52 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
                     {/* Insignia de Fotos de Pizarrón */}
                     {imageCount > 0 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 dark:text-amber-100 bg-cove-sand/50 dark:bg-amber-950/40 border border-cove-gold/60 dark:border-amber-800/60 px-2 py-0.5 rounded-xl shadow-2xs">
-                        <Camera className="w-3 h-3 text-amber-700 dark:text-amber-400" />
-                        <span>{imageCount} {imageCount === 1 ? 'pizarra' : 'pizarras'}</span>
-                      </span>
+                      <Badge variant="secondary" size="xs" icon={<Camera className="w-3 h-3 text-amber-700 dark:text-amber-400" />}>
+                        {imageCount} {imageCount === 1 ? 'pizarra' : 'pizarras'}
+                      </Badge>
                     )}
                   </div>
                 </div>
 
-
-                {/* Columna Vertical de Acciones (Derecha) - Alineada y Proporcional */}
-                <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 py-0.5 gap-2.5 sm:gap-3">
-                  {/* Botón 1: Leer / Abrir apunte (Superior - Esmeralda para modo lectura) */}
-                  <button
+                {/* Columna Vertical de Acciones (Derecha) */}
+                <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 sm:pl-2 py-0.5 gap-2 sm:gap-2.5">
+                  {/* Botón 1: Leer / Abrir apunte */}
+                  <Button
+                    variant="action-emerald"
+                    size="icon-md"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenRead(note);
                     }}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 hover:from-emerald-500 hover:via-teal-600 hover:to-slate-900 ring-1 ring-teal-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-emerald-950/20 cursor-pointer"
                     title="Leer apunte a pantalla completa"
                     aria-label="Leer apunte"
-                  >
-                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </button>
+                    icon={<BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
+                  />
 
-                  {/* Botón 2: Editar apunte (Centro - Azul para editar) */}
-                  <button
+                  {/* Botón 2: Editar apunte */}
+                  <Button
+                    variant="action-blue"
+                    size="icon-md"
                     onClick={(e) => handleOpenEdit(note, e)}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-blue-950/20 cursor-pointer"
                     title="Editar apunte"
                     aria-label="Editar apunte"
-                  >
-                    <Edit2 className="w-4 h-4 text-white" />
-                  </button>
+                    icon={<Edit2 className="w-4 h-4 text-white" />}
+                  />
 
-                  {/* Botón 3: Eliminar apunte (Inferior - Rojo para eliminar) */}
-                  <button
+                  {/* Botón 3: Eliminar apunte */}
+                  <Button
+                    variant="action-rose"
+                    size="icon-md"
                     onClick={(e) => {
                       e.stopPropagation();
                       setNoteToDelete(note);
                     }}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm hover:shadow-md shadow-red-950/20 cursor-pointer"
                     title="Eliminar apunte"
                     aria-label="Eliminar apunte"
-                  >
-                    <Trash2 className="w-4 h-4 text-white" />
-                  </button>
+                    icon={<Trash2 className="w-4 h-4 text-white" />}
+                  />
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

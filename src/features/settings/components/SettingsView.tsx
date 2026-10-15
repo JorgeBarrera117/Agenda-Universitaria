@@ -746,7 +746,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           />
           <div className="space-y-1">
             <span className="font-black text-slate-900 dark:text-white block text-sm">
-              Agenda Universitaria PWA • v1.5.4
+              Agenda Universitaria PWA • v1.5.5
             </span>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               Desarrollada para estudiantes con Clean Architecture, Dexie.js (IndexedDB local-first) y Capacitor para Android. Funciona 100% sin conexión a internet y tus apuntes son privados.

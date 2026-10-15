@@ -9,6 +9,8 @@ import {
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 
+import { Button } from '../../../shared/components/atoms';
+
 interface SubjectFormProps {
   initialData?: Subject;
   onSubmit: (data: CreateSubjectDTO) => Promise<void>;
@@ -383,20 +385,22 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
         >
           Cancelar
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
+          variant="primary"
+          size="sm"
           disabled={isSubmitting}
-          className="px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue disabled:opacity-50 rounded-xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
         >
           {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Materia' : 'Crear Materia'}
-        </button>
+        </Button>
       </div>
     </form>
   );
