@@ -74,7 +74,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-[380px] sm:min-h-[520px] p-5 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-indigo max-w-none',
+          'min-h-[420px] sm:min-h-[580px] py-3 px-1 focus:outline-none text-slate-800 text-sm sm:text-base leading-relaxed prose prose-indigo max-w-none',
       },
     },
   });
@@ -101,7 +101,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <div className="border border-slate-300 rounded-2xl bg-white overflow-hidden shadow-xs focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+    <div className="space-y-3">
       {/* Inputs ocultos para Cámara directa y Galería */}
       <input
         ref={cameraInputRef}
@@ -119,8 +119,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         className="hidden"
       />
 
-      {/* Barra de herramientas estilo Word / Procesador de texto */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 p-2 bg-slate-50 border-b border-slate-200">
+      {/* Barra de herramientas estilo Word / Procesador de texto minimalista */}
+      <div className="sticky top-16 sm:top-20 z-10 flex flex-wrap items-center gap-1 p-2 bg-slate-50/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xs">
         {/* Deshacer / Rehacer */}
         <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200">
           <button
