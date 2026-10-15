@@ -194,26 +194,27 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
     return (
       <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in duration-200">
         {/* Barra superior de navegación del lector */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200">
           <button
             onClick={handleBackToList}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-2xl shadow-2xs transition-all cursor-pointer w-fit"
+            aria-label="Volver a mis apuntes"
+            title="Volver"
+            className="p-2.5 text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl shadow-2xs transition-all cursor-pointer shrink-0"
           >
-            <ArrowLeft className="w-4 h-4 text-indigo-600" />
-            <span>Volver a mis Apuntes</span>
+            <ArrowLeft className="w-5 h-5 text-indigo-600" />
           </button>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handleOpenEdit(readingNote)}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors cursor-pointer border border-indigo-200/60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-indigo-200/60"
             >
               <Edit2 className="w-4 h-4" />
               <span>Editar Apunte</span>
             </button>
             <button
               onClick={() => setNoteToDelete(readingNote)}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-2xl transition-colors cursor-pointer border border-red-200/60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-red-200/60"
             >
               <Trash2 className="w-4 h-4" />
               <span>Eliminar</span>

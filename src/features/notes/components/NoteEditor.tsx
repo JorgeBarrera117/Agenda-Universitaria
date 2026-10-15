@@ -73,28 +73,29 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-200">
       {/* Barra Superior de Navegación del Editor */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-2xl shadow-2xs transition-all cursor-pointer w-fit"
+          aria-label="Volver al cuaderno"
+          title="Volver"
+          className="p-2.5 text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl shadow-2xs transition-all cursor-pointer shrink-0"
         >
-          <ArrowLeft className="w-4 h-4 text-indigo-600" />
-          <span>Volver al Cuaderno</span>
+          <ArrowLeft className="w-5 h-5 text-indigo-600" />
         </button>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+            className="px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
           >
             Descartar
           </button>
           <button
             type="submit"
             disabled={isSubmitting || subjects.length === 0}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 rounded-2xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 rounded-xl sm:rounded-2xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Apunte' : 'Guardar Apunte'}</span>
