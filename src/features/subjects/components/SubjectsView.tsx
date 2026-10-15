@@ -70,40 +70,52 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
 
   return (
     <div className="space-y-6">
-      {/* Resumen del Plan Académico / Semestre (UX) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-cove-blue/10 text-cove-blue flex items-center justify-center font-bold">
-            <BookOpen className="w-6 h-6" />
+      {/* Resumen Métrico del Semestre (Distribuido Horizontalmente) */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        {/* Métrica 1: Asignaturas */}
+        <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{subjects.length}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Asignaturas Inscritas
+          <div className="min-w-0">
+            <div className="text-lg sm:text-2xl font-black text-slate-900 leading-tight">
+              {subjects.length}
+            </div>
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">
+              <span className="sm:hidden">Materias</span>
+              <span className="hidden sm:inline">Asignaturas Inscritas</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-cove-sand/50 text-slate-800 flex items-center justify-center font-bold">
-            <Award className="w-6 h-6 text-amber-600" />
+        {/* Métrica 2: Créditos */}
+        <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+            <Award className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{totalCredits}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Créditos Académicos
+          <div className="min-w-0">
+            <div className="text-lg sm:text-2xl font-black text-slate-900 leading-tight">
+              {totalCredits}
+            </div>
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">
+              <span className="sm:hidden">Créditos</span>
+              <span className="hidden sm:inline">Créditos Académicos</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-cove-sky/15 text-cove-deep flex items-center justify-center font-bold">
-            <Clock className="w-6 h-6 text-cove-sky" />
+        {/* Métrica 3: Bloques */}
+        <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-4 transition-all hover:shadow-xs">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{totalSlotsCount}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Bloques Semanales
+          <div className="min-w-0">
+            <div className="text-lg sm:text-2xl font-black text-slate-900 leading-tight">
+              {totalSlotsCount}
+            </div>
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">
+              <span className="sm:hidden">Bloques</span>
+              <span className="hidden sm:inline">Bloques Semanales</span>
             </div>
           </div>
         </div>
