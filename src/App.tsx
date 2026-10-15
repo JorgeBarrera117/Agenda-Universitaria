@@ -109,10 +109,10 @@ export function App() {
 
       {/* Contenedor Principal */}
       <main
-        className={`flex-1 max-w-7xl w-full mx-auto ${
+        className={`flex-1 max-w-[1750px] w-full mx-auto ${
           isNoteEditorActive || isSettingsOpen
             ? 'px-3 sm:px-6 lg:px-8 pt-1 sm:pt-3'
-            : 'px-4 sm:px-6 lg:px-8 pt-6'
+            : 'px-4 sm:px-6 lg:px-8 2xl:px-10 pt-6'
         }`}
       >
         {isSettingsOpen ? (

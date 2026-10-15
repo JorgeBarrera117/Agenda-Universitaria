@@ -362,179 +362,209 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         })}
       </div>
 
-      {/* 4. VISTA SEMANAL (Cuadrícula Desktop estilo Tarjeta de Cátedra) */}
+      {/* 4. VISTA SEMANAL (Cuadrícula Desktop estilo Tarjeta de Cátedra Ampliada) */}
       {viewMode === 'weekly' && (
-        <div
-          className={`hidden sm:grid ${
-            displayedDays.length === 7
-              ? 'grid-cols-7'
-              : displayedDays.length === 6
-              ? 'grid-cols-6'
-              : 'grid-cols-5'
-          } gap-3 bg-slate-200/50 p-3.5 rounded-3xl border border-slate-200`}
-        >
-          {displayedDays.map((day) => {
-            const daySlotsList = slots
-              .filter((s) => s.dayOfWeek === day)
-              .sort((a, b) => a.startTime.localeCompare(b.startTime));
-            const isToday = currentDayOfWeek === day;
+        <div className="overflow-x-auto pb-4">
+          <div
+            className={`hidden sm:grid ${
+              displayedDays.length === 7
+                ? 'grid-cols-7'
+                : displayedDays.length === 6
+                ? 'grid-cols-6'
+                : 'grid-cols-5'
+            } gap-3.5 bg-slate-200/60 p-3.5 sm:p-4 rounded-3xl border border-slate-200 min-w-[1080px] xl:min-w-0`}
+          >
+            {displayedDays.map((day) => {
+              const daySlotsList = slots
+                .filter((s) => s.dayOfWeek === day)
+                .sort((a, b) => a.startTime.localeCompare(b.startTime));
+              const isToday = currentDayOfWeek === day;
 
-            return (
-              <div
-                key={day}
-                className={`flex flex-col gap-2.5 rounded-2xl p-3 transition-colors ${
-                  isToday
-                    ? 'bg-white border-2 border-cove-sky/60 shadow-sm'
-                    : 'bg-slate-100/70 border border-slate-200/70'
-                }`}
-              >
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`text-xs font-black uppercase tracking-wider ${
-                        isToday ? 'text-cove-blue' : 'text-slate-700'
-                      }`}
-                    >
-                      {DAY_NAMES[day]}
-                    </span>
-                    {isToday && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-cove-blue" />
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleOpenCreate(day)}
-                    className="p-1 text-slate-400 hover:text-cove-blue rounded-lg hover:bg-cove-blue/10 transition-colors cursor-pointer"
-                    title={`Agregar clase el ${DAY_NAMES[day]}`}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="space-y-2.5 min-h-[320px]">
-                  {daySlotsList.length === 0 ? (
-                    <div className="h-full flex items-center justify-center py-12 text-center text-xs text-slate-400 font-medium italic">
-                      Día libre de clases
+              return (
+                <div
+                  key={day}
+                  className={`flex flex-col gap-3 rounded-2xl p-3 sm:p-3.5 transition-colors ${
+                    isToday
+                      ? 'bg-white border-2 border-cove-sky/80 shadow-sm'
+                      : 'bg-slate-100/80 border border-slate-200/80'
+                  }`}
+                >
+                  {/* Encabezado del Día */}
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/90">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-xs font-black uppercase tracking-wider ${
+                          isToday ? 'text-cove-blue' : 'text-slate-800'
+                        }`}
+                      >
+                        {DAY_NAMES[day]}
+                      </span>
+                      {isToday && (
+                        <span className="w-2 h-2 rounded-full bg-cove-gold ring-1 ring-white shrink-0" />
+                      )}
                     </div>
-                  ) : (
-                    daySlotsList.map((slot) => {
-                      const subject = getSubjectById(slot.subjectId);
-                      const professor = getProfessorById(slot.professorId);
-                      const isNow =
-                        isToday &&
-                        nowTimeString >= slot.startTime &&
-                        nowTimeString < slot.endTime;
+                    <button
+                      onClick={() => handleOpenCreate(day)}
+                      className="p-1 text-slate-400 hover:text-cove-blue rounded-lg hover:bg-cove-blue/10 transition-colors cursor-pointer"
+                      title={`Agregar clase el ${DAY_NAMES[day]}`}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
 
-                      return (
-                        <div
-                          key={slot.id}
-                          style={{
-                            background: isNow ? undefined : `linear-gradient(145deg, ${subject?.color || '#006BBB'}1f 0%, ${subject?.color || '#006BBB'}0c 100%), #ffffff`,
-                            borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}45`,
-                          }}
-                          className={`rounded-2xl p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-row items-stretch justify-between gap-2 ${
-                            isNow
-                              ? 'border-emerald-500 ring-2 ring-emerald-400/40 bg-emerald-50/10'
-                              : 'hover:border-cove-sky/60'
-                          }`}
-                        >
-                          {/* Contenido Principal (Izquierda) */}
-                          <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2">
+                  {/* Lista de Bloques del Día */}
+                  <div className="space-y-3 min-h-[340px]">
+                    {daySlotsList.length === 0 ? (
+                      <div className="h-full flex items-center justify-center py-12 text-center text-xs text-slate-400 font-medium italic">
+                        Día libre de clases
+                      </div>
+                    ) : (
+                      daySlotsList.map((slot) => {
+                        const subject = getSubjectById(slot.subjectId);
+                        const professor = getProfessorById(slot.professorId);
+                        const isNow =
+                          isToday &&
+                          nowTimeString >= slot.startTime &&
+                          nowTimeString < slot.endTime;
+
+                        return (
+                          <div
+                            key={slot.id}
+                            style={{
+                              background: isNow
+                                ? undefined
+                                : `linear-gradient(155deg, ${subject?.color || '#006BBB'}22 0%, ${subject?.color || '#006BBB'}0a 100%), #ffffff`,
+                              borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}55`,
+                            }}
+                            className={`rounded-2xl p-3 sm:p-3.5 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between gap-2.5 ${
+                              isNow
+                                ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/20'
+                                : 'hover:border-cove-sky/80'
+                            }`}
+                          >
+                            {/* Banda superior con el color de la materia */}
+                            <div
+                              className="absolute top-0 left-0 right-0 h-1.5 opacity-90"
+                              style={{ backgroundColor: subject?.color || '#006BBB' }}
+                            />
+
+                            {/* 1. Cabecera: Ícono con Color, Código y Acciones Rápidas */}
                             <div>
-                              {/* Código */}
-                              <span className="inline-block text-[10px] font-mono font-black text-white bg-cove-navy px-1.5 py-0.5 rounded-md shadow-2xs mb-1">
-                                {subject?.code || 'CLASE'}
-                              </span>
+                              <div className="flex items-start justify-between gap-2 pt-0.5 mb-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {/* Badge con Ícono y Color */}
+                                  <div
+                                    className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0 ring-1 ring-white/60"
+                                    style={{ backgroundColor: subject?.color || '#006BBB' }}
+                                    title={subject?.name}
+                                  >
+                                    <SubjectIcon icon={subject?.icon} className="w-4 h-4 text-white" />
+                                  </div>
 
-                              {/* Nombre */}
-                              <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug group-hover:text-cove-blue transition-colors">
+                                  {/* Código de Asignatura */}
+                                  <span
+                                    className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black text-white bg-cove-navy shadow-2xs tracking-wider shrink-0"
+                                  >
+                                    {subject?.code || 'CLASE'}
+                                  </span>
+                                </div>
+
+                                {/* Acciones Rápidas (Agrupadas en la esquina superior) */}
+                                <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                                  {onNavigateToNotes && (
+                                    <button
+                                      onClick={() => onNavigateToNotes(slot.subjectId)}
+                                      className="w-7 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                      title="Tomar apunte de esta materia"
+                                      aria-label="Tomar apunte"
+                                    >
+                                      <FileEdit className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleOpenEdit(slot)}
+                                    className="w-7 h-7 rounded-lg bg-blue-50 hover:bg-cove-blue text-blue-700 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                    title="Editar clase"
+                                    aria-label="Editar clase"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setSlotToDelete(slot)}
+                                    className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                    title="Eliminar clase"
+                                    aria-label="Eliminar clase"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Nombre de la Materia (ancho completo sin colisiones) */}
+                              <h4 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-cove-blue transition-colors leading-snug break-words">
                                 {subject?.name || 'Materia'}
                               </h4>
                             </div>
 
-                            {/* Filas de Información apiladas */}
-                            <div className="space-y-1.5 text-[11px]">
-                              {/* Rango Horario */}
-                              <div className="flex items-center gap-1 font-mono font-bold text-cove-navy bg-cove-blue/10 border border-cove-sky/20 px-2 py-0.5 rounded-lg">
-                                <Clock className="w-3 h-3 text-cove-blue shrink-0" />
-                                <span className="truncate">{slot.startTime} - {slot.endTime}</span>
+                            {/* 2. Cuerpo de Información Completo */}
+                            <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-200/60">
+                              {/* Rango Horario Completo */}
+                              <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy bg-cove-blue/10 border border-cove-sky/25 px-2.5 py-1 rounded-xl">
+                                <Clock className="w-3.5 h-3.5 text-cove-blue shrink-0" />
+                                <span className="font-mono text-xs">{slot.startTime} - {slot.endTime}</span>
                               </div>
 
-                              {/* Modalidad: Computadora si es Virtual, Edificio si es Presencial */}
+                              {/* Modalidad y Ubicación Completa */}
                               {isSlotVirtual(slot) ? (
-                                <div className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 rounded-lg truncate">
-                                  <Laptop className="w-3 h-3 text-indigo-600 shrink-0" />
-                                  <span className="truncate font-bold">
-                                    {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? slot.classroom : 'Virtual'}
+                                <div className="flex items-center gap-1.5 text-indigo-900 bg-indigo-50/90 border border-indigo-200 px-2.5 py-1 rounded-xl">
+                                  <Laptop className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                  <span className="font-bold text-[11px] leading-tight break-words">
+                                    Virtual: {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? slot.classroom : 'En Línea'}
                                   </span>
                                 </div>
                               ) : (
                                 slot.classroom && (
-                                  <div className="flex items-center gap-1 text-slate-700 bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-lg truncate">
-                                    <Building2 className="w-3 h-3 text-cove-blue shrink-0" />
-                                    <span className="truncate font-semibold">{slot.classroom}</span>
+                                  <div className="flex items-center gap-1.5 text-slate-700 bg-white/80 border border-slate-200 px-2.5 py-1 rounded-xl">
+                                    <Building2 className="w-3.5 h-3.5 text-cove-blue shrink-0" />
+                                    <span className="font-semibold text-[11px] leading-tight break-words">
+                                      {slot.classroom}{slot.building ? ` (${slot.building})` : ''}
+                                    </span>
                                   </div>
                                 )
                               )}
 
-                              {/* Docente */}
+                              {/* Catedrático Asignado */}
                               {professor && (
-                                <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100 text-[10px] text-slate-600 truncate font-medium">
+                                <div className="flex items-center gap-2 pt-1 border-t border-slate-200/50 text-[11px] text-slate-700 font-medium">
                                   <ProfessorAvatar
                                     name={professor.name}
                                     icon={professor.icon}
                                     color={professor.color}
                                     size="xs"
                                   />
-                                  <span className="truncate">{professor.name}</span>
+                                  <span className="truncate leading-tight font-semibold">{professor.name}</span>
                                 </div>
                               )}
                             </div>
-                          </div>
 
-                          {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
-                          <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 py-0.5 gap-[15px]">
-                            {/* Botón 1: Tomar apunte (Superior - Índigo para apuntes) */}
-                            {onNavigateToNotes ? (
-                              <button
-                                onClick={() => onNavigateToNotes(slot.subjectId)}
-                                className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shadow-indigo-950/30 cursor-pointer"
-                                title="Tomar apunte de esta materia"
-                                aria-label="Tomar apunte"
-                              >
-                                <FileEdit className="w-4 h-4 text-white" />
-                              </button>
-                            ) : (
-                              <div className="w-8 h-8" />
+                            {/* 3. Indicador En Vivo */}
+                            {isNow && (
+                              <div className="pt-0.5">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white shadow-2xs animate-pulse">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                  EN CURSO AHORA
+                                </span>
+                              </div>
                             )}
-
-                            {/* Botón 2: Editar clase (Centro - Azul para editar) */}
-                            <button
-                              onClick={() => handleOpenEdit(slot)}
-                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shadow-blue-950/30 cursor-pointer"
-                              title="Editar clase"
-                              aria-label="Editar clase"
-                            >
-                              <Edit2 className="w-3.5 h-3.5 text-white" />
-                            </button>
-
-                            {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
-                            <button
-                              onClick={() => setSlotToDelete(slot)}
-                              className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shadow-red-950/30 cursor-pointer"
-                              title="Eliminar clase"
-                              aria-label="Eliminar clase"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-white" />
-                            </button>
                           </div>
-                        </div>
-                      );
-                    })
-                  )}
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
