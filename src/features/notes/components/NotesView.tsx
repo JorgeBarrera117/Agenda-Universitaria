@@ -425,7 +425,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
         </div>
         <button
           onClick={handleOpenCreate}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
+          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-indigo-500/25 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Nuevo Apunte
@@ -671,6 +671,7 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
       <DraggableFAB
+        colorScheme="notes"
         onClick={handleOpenCreate}
         label="Nuevo Apunte de Cátedra"
       />

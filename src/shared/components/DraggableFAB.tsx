@@ -11,17 +11,91 @@ const BUTTON_SIZE = 56; // 56px (w-14 h-14)
 const EDGE_OFFSET = 16; // 16px margen del borde (right-4 / left-4)
 const SAFE_TOP = 72; // Debajo del header navbar
 
+export type FABColorScheme =
+  | 'schedule'
+  | 'subjects'
+  | 'professors'
+  | 'notes'
+  | 'blue'
+  | 'emerald'
+  | 'amber'
+  | 'purple';
+
+const FAB_THEMES: Record<
+  FABColorScheme,
+  {
+    bg: string;
+    ring: string;
+    shadow: string;
+    dragRing: string;
+  }
+> = {
+  schedule: {
+    bg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy',
+    ring: 'ring-2 ring-sky-300/40',
+    shadow: 'shadow-xl shadow-blue-950/50',
+    dragRing: 'ring-4 ring-sky-400/70',
+  },
+  blue: {
+    bg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy',
+    ring: 'ring-2 ring-sky-300/40',
+    shadow: 'shadow-xl shadow-blue-950/50',
+    dragRing: 'ring-4 ring-sky-400/70',
+  },
+  subjects: {
+    bg: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900',
+    ring: 'ring-2 ring-teal-300/40',
+    shadow: 'shadow-xl shadow-emerald-950/50',
+    dragRing: 'ring-4 ring-teal-400/70',
+  },
+  emerald: {
+    bg: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900',
+    ring: 'ring-2 ring-teal-300/40',
+    shadow: 'shadow-xl shadow-emerald-950/50',
+    dragRing: 'ring-4 ring-teal-400/70',
+  },
+  professors: {
+    bg: 'bg-gradient-to-br from-amber-500 via-orange-600 to-slate-900',
+    ring: 'ring-2 ring-amber-300/40',
+    shadow: 'shadow-xl shadow-orange-950/50',
+    dragRing: 'ring-4 ring-amber-400/70',
+  },
+  amber: {
+    bg: 'bg-gradient-to-br from-amber-500 via-orange-600 to-slate-900',
+    ring: 'ring-2 ring-amber-300/40',
+    shadow: 'shadow-xl shadow-orange-950/50',
+    dragRing: 'ring-4 ring-amber-400/70',
+  },
+  notes: {
+    bg: 'bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900',
+    ring: 'ring-2 ring-violet-300/40',
+    shadow: 'shadow-xl shadow-indigo-950/50',
+    dragRing: 'ring-4 ring-violet-400/70',
+  },
+  purple: {
+    bg: 'bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900',
+    ring: 'ring-2 ring-violet-300/40',
+    shadow: 'shadow-xl shadow-indigo-950/50',
+    dragRing: 'ring-4 ring-violet-400/70',
+  },
+};
+
 interface DraggableFABProps {
   onClick: () => void;
   label: string;
   icon?: React.ReactNode;
+  colorScheme?: FABColorScheme;
+  className?: string;
 }
 
 export const DraggableFAB: React.FC<DraggableFABProps> = ({
   onClick,
   label,
   icon,
+  colorScheme = 'schedule',
+  className = '',
 }) => {
+  const currentTheme = FAB_THEMES[colorScheme] || FAB_THEMES.schedule;
   // Dimensiones del viewport
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 390,
@@ -214,11 +288,11 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
             currentCoords.y
           )}px, 0)`,
         }}
-        className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-white bg-gradient-to-br from-cove-blue via-cove-deep to-cove-navy shadow-xl shadow-cove-navy/40 ring-2 ring-white/30 touch-none select-none cursor-grab active:cursor-grabbing ${
+        className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-white ${currentTheme.bg} ${currentTheme.shadow} ${currentTheme.ring} touch-none select-none cursor-grab active:cursor-grabbing ${
           isDragging
-            ? 'transition-none scale-110 shadow-2xl ring-4 ring-cove-sky/60 opacity-95'
+            ? `transition-none scale-110 shadow-2xl ${currentTheme.dragRing} opacity-95`
             : 'transition-transform duration-300 ease-out active:scale-95'
-        }`}
+        } ${className}`}
       >
         {icon || <Plus className="w-7 h-7 text-white stroke-[2.5]" />}
       </button>

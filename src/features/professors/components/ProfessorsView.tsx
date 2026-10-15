@@ -73,7 +73,7 @@ export const ProfessorsView: React.FC = () => {
         </div>
         <button
           onClick={handleOpenCreate}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/20 cursor-pointer"
+          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-amber-500 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-amber-500/25 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Registrar Catedrático
@@ -301,6 +301,7 @@ export const ProfessorsView: React.FC = () => {
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
       <DraggableFAB
+        colorScheme="professors"
         onClick={handleOpenCreate}
         label="Registrar Catedrático"
       />

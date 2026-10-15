@@ -18,6 +18,13 @@ interface NavbarProps {
   subjectCount?: number;
 }
 
+const DESKTOP_TAB_THEMES: Record<TabType, string> = {
+  schedule: 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/30',
+  subjects: 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/30',
+  professors: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30',
+  notes: 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30',
+};
+
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onTabChange,
@@ -108,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => onTabChange(item.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-gradient-to-r from-cove-blue to-cove-sky text-white shadow-md shadow-cove-blue/30'
+                      ? DESKTOP_TAB_THEMES[item.id]
                       : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
                   }`}
                 >

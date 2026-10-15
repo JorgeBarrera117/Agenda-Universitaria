@@ -7,6 +7,29 @@ interface BottomNavProps {
   onTabChange: (tab: TabType) => void;
 }
 
+const TAB_THEMES: Record<TabType, { bg: string; ring: string; shadow: string }> = {
+  schedule: {
+    bg: 'bg-gradient-to-r from-blue-600 to-sky-500',
+    ring: 'ring-1 ring-sky-400/50',
+    shadow: 'shadow-md shadow-blue-500/40',
+  },
+  subjects: {
+    bg: 'bg-gradient-to-r from-emerald-600 to-teal-500',
+    ring: 'ring-1 ring-teal-400/50',
+    shadow: 'shadow-md shadow-emerald-500/40',
+  },
+  professors: {
+    bg: 'bg-gradient-to-r from-amber-500 to-orange-500',
+    ring: 'ring-1 ring-amber-400/50',
+    shadow: 'shadow-md shadow-amber-500/40',
+  },
+  notes: {
+    bg: 'bg-gradient-to-r from-indigo-500 to-violet-600',
+    ring: 'ring-1 ring-violet-400/50',
+    shadow: 'shadow-md shadow-indigo-500/40',
+  },
+};
+
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
   const navItems = [
     { id: 'schedule' as TabType, label: 'Horario', icon: Calendar },
@@ -21,6 +44,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const theme = TAB_THEMES[item.id];
           return (
             <button
               key={item.id}
@@ -34,7 +58,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
               <div
                 className={`p-1.5 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-cove-blue to-cove-sky text-white shadow-md shadow-cove-blue/40 ring-1 ring-cove-sky/40'
+                    ? `${theme.bg} text-white ${theme.shadow} ${theme.ring}`
                     : 'text-slate-400'
                 }`}
               >

@@ -279,7 +279,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
           <button
             onClick={() => handleOpenCreate(selectedDay)}
-            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-cove-blue/25 cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-blue-600 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-blue-500/25 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nueva Clase
@@ -701,6 +701,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
       <DraggableFAB
+        colorScheme="schedule"
         onClick={() => handleOpenCreate(selectedDay)}
         label="Programar Nueva Cátedra"
       />
