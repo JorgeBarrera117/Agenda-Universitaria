@@ -5,12 +5,6 @@ import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
-  Bold,
-  Italic,
-  Underline as UnderlineIcon,
-  Strikethrough,
-  Heading1,
-  Heading2,
   List,
   ListOrdered,
   Quote,
@@ -141,121 +135,143 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       {/* Área del documento editable (con espacio suficiente para no solaparse con la barra inferior) */}
       <EditorContent editor={editor} />
 
-      {/* Menú inferior exclusivo de edición (Docked Bottom Action Bar) */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-2xl px-2 sm:px-4 py-2 flex items-center justify-between gap-1.5 sm:gap-3">
-        {/* Herramientas de formato con scroll horizontal suave */}
-        <div className="flex-1 min-w-0 flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
-          {/* Deshacer / Rehacer */}
-          <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().undo().run()}
-              disabled={!editor.can().undo()}
-              className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 disabled:opacity-30 rounded-lg cursor-pointer transition-colors"
-              title="Deshacer (Ctrl+Z)"
-            >
-              <Undo2 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().redo().run()}
-              disabled={!editor.can().redo()}
-              className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 disabled:opacity-30 rounded-lg cursor-pointer transition-colors"
-              title="Rehacer (Ctrl+Y)"
-            >
-              <Redo2 className="w-4 h-4" />
-            </button>
+      {/* Menú inferior exclusivo de edición (Docked Two-Row Bottom Action Bar) */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-2xl px-3 sm:px-6 py-2.5 space-y-2">
+        {/* FILA 1: Deshacer, Rehacer, Formato (B, I, U, S), Encabezados (H1, H2) + Guardar Apunte */}
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
+          {/* Herramientas de formato con scroll horizontal suave en móviles pequeños */}
+          <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+            {/* Deshacer / Rehacer */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().undo().run()}
+                disabled={!editor.can().undo()}
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-200 disabled:opacity-30 rounded-lg cursor-pointer transition-all active:scale-90"
+                title="Deshacer (Ctrl+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().redo().run()}
+                disabled={!editor.can().redo()}
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-200 disabled:opacity-30 rounded-lg cursor-pointer transition-all active:scale-90"
+                title="Rehacer (Ctrl+Y)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Separador vertical */}
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
+
+            {/* Formato de texto básico: Negrita, Cursiva, Subrayado, Tachado */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+                  editor.isActive('bold')
+                    ? 'bg-cove-blue text-white shadow-2xs font-bold'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title="Negrita (Ctrl+B)"
+              >
+                <span className="font-bold text-sm">B</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+                  editor.isActive('italic')
+                    ? 'bg-cove-blue text-white shadow-2xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title="Cursiva (Ctrl+I)"
+              >
+                <span className="italic font-serif font-bold text-sm">I</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+                  editor.isActive('underline')
+                    ? 'bg-cove-blue text-white shadow-2xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title="Subrayado (Ctrl+U)"
+              >
+                <span className="underline font-bold text-sm underline-offset-2">U</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+                  editor.isActive('strike')
+                    ? 'bg-cove-blue text-white shadow-2xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title="Tachado"
+              >
+                <span className="line-through font-bold text-sm">S</span>
+              </button>
+            </div>
+
+            {/* Separador vertical */}
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
+
+            {/* Encabezados H1, H2 */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+                  editor.isActive('heading', { level: 1 })
+                    ? 'bg-cove-blue text-white shadow-2xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title="Título Principal (H1)"
+              >
+                <span className="font-black text-xs">H<sub className="text-[10px]">1</sub></span>
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+                  editor.isActive('heading', { level: 2 })
+                    ? 'bg-cove-blue text-white shadow-2xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title="Subtítulo (H2)"
+              >
+                <span className="font-black text-xs">H<sub className="text-[10px]">2</sub></span>
+              </button>
+            </div>
+
+            {/* Separador vertical */}
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
           </div>
 
-          {/* Formato de texto básico: Negrita, Cursiva, Subrayado, Tachado */}
-          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
-                editor.isActive('bold')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs font-bold'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-              }`}
-              title="Negrita (Ctrl+B)"
-            >
-              <Bold className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
-                editor.isActive('italic')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-              }`}
-              title="Cursiva (Ctrl+I)"
-            >
-              <Italic className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
-                editor.isActive('underline')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-              }`}
-              title="Subrayado (Ctrl+U)"
-            >
-              <UnderlineIcon className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
-                editor.isActive('strike')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-              }`}
-              title="Tachado"
-            >
-              <Strikethrough className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Botón Guardar Apunte en la Fila 1 */}
+          {actionsSlot && (
+            <div className="shrink-0 pl-1.5">
+              {actionsSlot}
+            </div>
+          )}
+        </div>
 
-          {/* Encabezados y Estructura */}
-          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
-                editor.isActive('heading', { level: 1 })
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-              }`}
-              title="Título Grande (H1)"
-            >
-              <Heading1 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
-                editor.isActive('heading', { level: 2 })
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-              }`}
-              title="Subtítulo (H2)"
-            >
-              <Heading2 className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Listas y Citas */}
-          <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200 dark:border-slate-800 shrink-0">
+        {/* FILA 2: Viñetas, Lista ordenada, Citas, Separador + Botones Foto y Galería */}
+        <div className="flex items-center gap-1 sm:gap-1.5 pt-0.5">
+          {/* Listas, Cita y Separador */}
+          <div className="flex items-center gap-0.5 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
+              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('bulletList')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                  ? 'bg-cove-blue text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
               title="Lista con viñetas"
             >
@@ -264,10 +280,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
+              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('orderedList')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                  ? 'bg-cove-blue text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
               title="Lista numerada"
             >
@@ -276,10 +292,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
+              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('blockquote')
-                  ? 'bg-cove-blue dark:bg-blue-600 text-white shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                  ? 'bg-cove-blue text-white shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
               title="Cita o nota destacada"
             >
@@ -288,34 +304,38 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <button
               type="button"
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              className="p-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-all active:scale-90"
               title="Línea divisoria horizontal"
             >
               <Minus className="w-4 h-4" />
             </button>
           </div>
 
+          {/* Separador vertical */}
+          <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0" />
+
           {/* Inserción de Fotos Inline */}
-          <div className="flex items-center gap-1 pl-1 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               disabled={isProcessingImage}
               onClick={() => cameraInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky text-xs font-bold rounded-lg border border-cove-sky/30 dark:border-cove-sky/40 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-cove-blue dark:text-cove-sky text-xs font-bold rounded-xl border border-cove-sky/40 dark:border-cove-sky/50 transition-all active:scale-95 cursor-pointer shadow-2xs"
               title="Tomar foto con la cámara e insertarla en el texto"
             >
               <Camera className="w-3.5 h-3.5" />
-              Foto
+              <span>Foto</span>
             </button>
+
             <button
               type="button"
               disabled={isProcessingImage}
               onClick={() => galleryInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-700/80"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-900 dark:text-white text-xs font-bold rounded-xl border-2 border-slate-900 dark:border-slate-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
               title="Subir imagen de la galería e insertarla en el texto"
             >
               <ImageIcon className="w-3.5 h-3.5" />
-              Galería
+              <span>Galería</span>
             </button>
 
             {isProcessingImage && (
@@ -326,13 +346,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             )}
           </div>
         </div>
-
-        {/* Botón de Guardar integrado en el menú inferior */}
-        {actionsSlot && (
-          <div className="shrink-0 pl-1.5 border-l border-slate-200/80">
-            {actionsSlot}
-          </div>
-        )}
       </div>
 
       {/* Visor Interactivo con Zoom y Arrastre para la foto ampliada */}
