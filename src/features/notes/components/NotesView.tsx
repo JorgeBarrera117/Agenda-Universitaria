@@ -5,6 +5,7 @@ import {
   Edit2,
   Trash2,
   FileText,
+  FilePlus2,
   Tag,
   Calendar,
   BookOpen,
@@ -457,15 +458,16 @@ export const NotesView: React.FC<NotesViewProps> = ({
             Tus notas de clase, resúmenes y fotos de pizarrón clasificadas por materia.
           </p>
         </div>
-        <Button
-          variant="action-indigo"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={handleOpenCreate}
-          className="hidden sm:inline-flex"
-        >
-          Nuevo Apunte
-        </Button>
+        <div className="hidden sm:block">
+          <Button
+            variant="action-indigo"
+            size="md"
+            icon={<FilePlus2 className="w-4 h-4" />}
+            onClick={handleOpenCreate}
+          >
+            Nuevo Apunte
+          </Button>
+        </div>
       </div>
 
       {/* Buscador de Apuntes Universitario */}
@@ -708,6 +710,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         colorScheme="notes"
         onClick={handleOpenCreate}
         label="Nuevo Apunte de Cátedra"
+        icon={<FilePlus2 className="w-7 h-7 text-white stroke-[2.2]" />}
       />
     </div>
   );

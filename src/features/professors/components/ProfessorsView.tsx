@@ -7,6 +7,7 @@ import {
   Phone,
   MapPin,
   Users,
+  UserPlus,
   CalendarCheck,
   ExternalLink,
 } from 'lucide-react';
@@ -74,15 +75,16 @@ export const ProfessorsView: React.FC = () => {
             Directorio oficial de profesores, cubículos de consulta y medios de contacto.
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={handleOpenCreate}
-          className="hidden sm:inline-flex"
-        >
-          Registrar Catedrático
-        </Button>
+        <div className="hidden sm:block">
+          <Button
+            variant="primary"
+            size="md"
+            icon={<UserPlus className="w-4 h-4" />}
+            onClick={handleOpenCreate}
+          >
+            Registrar Catedrático
+          </Button>
+        </div>
       </div>
 
       {professors.length === 0 ? (
@@ -317,6 +319,7 @@ export const ProfessorsView: React.FC = () => {
         colorScheme="professors"
         onClick={handleOpenCreate}
         label="Registrar Catedrático"
+        icon={<UserPlus className="w-7 h-7 text-white stroke-[2.2]" />}
       />
     </div>
   );

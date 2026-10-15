@@ -38,8 +38,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     // 1. Estilos base comunes a todos los botones
-    const baseStyles =
-      'inline-flex items-center justify-center font-bold transition-all duration-200 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cove-sky/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed';
+    const isHidden = className.includes('hidden');
+    const baseStyles = `${
+      isHidden ? '' : 'inline-flex'
+    } items-center justify-center font-bold transition-all duration-200 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cove-sky/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed`;
 
     // 2. Variantes visuales semánticas
     const variantStyles: Record<ButtonVariant, string> = {

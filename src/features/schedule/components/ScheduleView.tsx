@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   Calendar,
+  CalendarPlus,
   LayoutGrid,
   List,
   Sparkles,
@@ -316,15 +317,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             </button>
           </div>
 
-          <Button
-            variant="primary"
-            size="md"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={() => handleOpenCreate(selectedDay)}
-            className="hidden sm:inline-flex"
-          >
-            Nueva Clase
-          </Button>
+          <div className="hidden sm:block">
+            <Button
+              variant="primary"
+              size="md"
+              icon={<CalendarPlus className="w-4 h-4" />}
+              onClick={() => handleOpenCreate(selectedDay)}
+            >
+              Nueva Clase
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -835,6 +837,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         colorScheme="schedule"
         onClick={() => handleOpenCreate(selectedDay)}
         label="Programar Nueva Cátedra"
+        icon={<CalendarPlus className="w-7 h-7 text-white stroke-[2.2]" />}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import {
   Edit2,
   Trash2,
   BookOpen,
+  BookPlus,
   MapPin,
   Award,
   Clock,
@@ -137,15 +138,16 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
             Catálogo curricular que estructura tus horarios, apuntes y docentes.
           </p>
         </div>
-        <Button
-          variant="success"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={handleOpenCreate}
-          className="hidden sm:inline-flex"
-        >
-          Inscribir Asignatura
-        </Button>
+        <div className="hidden sm:block">
+          <Button
+            variant="success"
+            size="md"
+            icon={<BookPlus className="w-4 h-4" />}
+            onClick={handleOpenCreate}
+          >
+            Inscribir Asignatura
+          </Button>
+        </div>
       </div>
 
       {subjects.length === 0 ? (
@@ -356,6 +358,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
         colorScheme="subjects"
         onClick={handleOpenCreate}
         label="Inscribir Asignatura"
+        icon={<BookPlus className="w-7 h-7 text-white stroke-[2.2]" />}
       />
     </div>
   );
