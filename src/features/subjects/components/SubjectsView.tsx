@@ -240,17 +240,17 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   {/* Botón 1: Ver apuntes de la materia (Superior - Índigo para apuntes) */}
                   <button
                     onClick={() => onNavigateToNotes && onNavigateToNotes(subject.id)}
-                    className="w-11 h-11 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/90 text-indigo-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-200/65 to-violet-200/65 hover:from-indigo-300/70 hover:to-violet-200/70 border border-indigo-300/60 text-indigo-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title="Ver o tomar apuntes de esta asignatura"
                     aria-label="Ver apuntes"
                   >
-                    <BookOpen className="w-5 h-5 text-indigo-600" />
+                    <BookOpen className="w-5 h-5 text-indigo-700" />
                   </button>
 
                   {/* Botón 2: Editar asignatura (Centro - Azul para editar) */}
                   <button
                     onClick={() => handleOpenEdit(subject)}
-                    className="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200/90 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/65 to-sky-200/65 hover:from-blue-300/70 hover:to-sky-200/70 border border-blue-300/60 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title="Editar asignatura"
                     aria-label="Editar asignatura"
                   >
@@ -260,7 +260,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({ onNavigateToNotes })
                   {/* Botón 3: Eliminar asignatura (Inferior - Rojo para eliminar) */}
                   <button
                     onClick={() => setSubjectToDelete(subject)}
-                    className="w-11 h-11 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200/90 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/65 to-rose-200/65 hover:from-red-300/70 hover:to-rose-200/70 border border-red-300/60 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title="Eliminar asignatura"
                     aria-label="Eliminar asignatura"
                   >

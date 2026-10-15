@@ -212,31 +212,31 @@ export const ProfessorsView: React.FC = () => {
                 {prof.email ? (
                   <a
                     href={`mailto:${prof.email}`}
-                    className="w-11 h-11 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200/90 text-amber-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-200/65 to-orange-200/65 hover:from-amber-300/70 hover:to-orange-200/70 border border-amber-300/60 text-amber-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title={`Enviar correo a ${prof.name}`}
                     aria-label="Contactar al docente"
                   >
-                    <Mail className="w-5 h-5 text-amber-600" />
+                    <Mail className="w-5 h-5 text-amber-700" />
                   </a>
                 ) : prof.phone ? (
                   <a
                     href={`tel:${prof.phone}`}
-                    className="w-11 h-11 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 text-emerald-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200/65 to-teal-200/65 hover:from-emerald-300/70 hover:to-teal-200/70 border border-emerald-300/60 text-emerald-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                     title={`Llamar a ${prof.name}`}
                     aria-label="Llamar al docente"
                   >
-                    <Phone className="w-5 h-5 text-emerald-600" />
+                    <Phone className="w-5 h-5 text-emerald-700" />
                   </a>
                 ) : (
-                  <div className="w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200/50 flex items-center justify-center opacity-40">
-                    <Mail className="w-5 h-5 text-slate-300" />
+                  <div className="w-11 h-11 rounded-2xl bg-slate-100/65 border border-slate-200/50 flex items-center justify-center opacity-40">
+                    <Mail className="w-5 h-5 text-slate-400" />
                   </div>
                 )}
 
                 {/* Botón 2: Editar profesor (Centro - Azul para editar) */}
                 <button
                   onClick={() => handleOpenEdit(prof)}
-                  className="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200/90 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200/65 to-sky-200/65 hover:from-blue-300/70 hover:to-sky-200/70 border border-blue-300/60 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                   title="Editar profesor"
                   aria-label="Editar profesor"
                 >
@@ -246,7 +246,7 @@ export const ProfessorsView: React.FC = () => {
                 {/* Botón 3: Eliminar profesor (Inferior - Rojo para eliminar) */}
                 <button
                   onClick={() => setProfToDelete(prof)}
-                  className="w-11 h-11 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200/90 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                  className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200/65 to-rose-200/65 hover:from-red-300/70 hover:to-rose-200/70 border border-red-300/60 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs backdrop-blur-xs cursor-pointer"
                   title="Eliminar profesor"
                   aria-label="Eliminar profesor"
                 >
