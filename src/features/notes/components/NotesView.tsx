@@ -85,18 +85,43 @@ export const NotesView: React.FC<NotesViewProps> = ({
     };
   }, [viewMode, onEditorActiveChange]);
 
-  // Soporte para botón "Atrás" de Android / Navegador
+  const viewModeRef = useRef(viewMode);
   useEffect(() => {
-    const handlePopState = () => {
-      if (viewMode !== 'list') {
-        setViewMode('list');
-        setEditingNote(undefined);
-        setReadingNote(null);
+    viewModeRef.current = viewMode;
+  }, [viewMode]);
+
+  // Soporte inteligente para botón "Atrás" de Android / Navegador
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Si el evento de retroceso corresponde al cierre de un modal hijo (ej. zoom de foto o diálogo),
+      // protegemos la pantalla actual (editor o lector) para no perder el progreso.
+      if (e.state?.isModalOpen) {
+        return;
+      }
+
+      const noteMode = e.state?.noteMode;
+
+      if (noteMode === 'editor') {
+        if (viewModeRef.current !== 'editor') {
+          setViewMode('editor');
+        }
+      } else if (noteMode === 'reader') {
+        if (viewModeRef.current !== 'reader') {
+          setViewMode('reader');
+          setEditingNote(undefined);
+        }
+      } else {
+        if (viewModeRef.current !== 'list') {
+          setViewMode('list');
+          setEditingNote(undefined);
+          setReadingNote(null);
+        }
       }
     };
+
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [viewMode]);
+  }, []);
 
   const handleOpenCreate = () => {
     setEditingNote(undefined);
@@ -121,10 +146,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
   };
 
   const handleBackToList = () => {
-    setViewMode('list');
-    setEditingNote(undefined);
-    setReadingNote(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.history.state?.noteMode) {
+      window.history.back();
+    } else {
+      setViewMode('list');
+      setEditingNote(undefined);
+      setReadingNote(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleSubmit = async (dto: CreateNoteDTO) => {
@@ -136,13 +165,24 @@ export const NotesView: React.FC<NotesViewProps> = ({
           ...dto,
           updatedAt: new Date().toISOString(),
         });
-        setViewMode('reader');
+        if (window.history.state?.noteMode === 'editor') {
+          window.history.back();
+        } else {
+          setViewMode('reader');
+          setEditingNote(undefined);
+        }
         return;
       }
     } else {
       await addNote(dto);
     }
-    setViewMode('list');
+
+    if (window.history.state?.noteMode === 'editor') {
+      window.history.back();
+    } else {
+      setViewMode('list');
+      setEditingNote(undefined);
+    }
   };
 
   const handleReaderFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +207,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
       await removeNote(noteToDelete.id);
       if (readingNote?.id === noteToDelete.id) {
         setReadingNote(null);
-        setViewMode('list');
+        if (window.history.state?.noteMode === 'reader') {
+          window.history.back();
+        } else {
+          setViewMode('list');
+        }
       }
       setNoteToDelete(null);
     }

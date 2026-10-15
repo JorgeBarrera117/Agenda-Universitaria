@@ -153,6 +153,43 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
     }
   };
 
+  // Control del historial de navegación para el botón "Atrás" de Android / Navegador
+  const closedViaPopstateRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    // Generar un identificador único para la instancia de este modal
+    const modalId = `image-zoom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    closedViaPopstateRef.current = false;
+
+    // Registrar estado en el historial para interceptar el botón Atrás de Android
+    window.history.pushState({ isModalOpen: 'image-zoom', modalId }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Si la entrada actual en el historial ya no tiene el ID de este modal,
+      // significa que el usuario presionó el botón Atrás de Android
+      if (e.state?.modalId !== modalId) {
+        closedViaPopstateRef.current = true;
+        onCloseRef.current();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      // Si se desmontó por interacción directa (ej. botón 'X' o Escape) y NO por popstate,
+      // revertimos la entrada agregada con history.back() para mantener el stack limpio.
+      if (!closedViaPopstateRef.current && window.history.state?.modalId === modalId) {
+        window.history.back();
+      }
+    };
+  }, []);
+
   // Atajos de teclado (Escape, +, -, 0)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

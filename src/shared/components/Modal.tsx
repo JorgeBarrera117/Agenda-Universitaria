@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -16,6 +16,12 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'md',
 }) => {
+  const closedViaPopstateRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -29,6 +35,32 @@ export const Modal: React.FC<ModalProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
+
+  // Manejo del botón "Atrás" de Android / Navegador para cerrar el modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const modalId = `modal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    closedViaPopstateRef.current = false;
+
+    window.history.pushState({ isModalOpen: true, modalId }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state?.modalId !== modalId) {
+        closedViaPopstateRef.current = true;
+        onCloseRef.current();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (!closedViaPopstateRef.current && window.history.state?.modalId === modalId) {
+        window.history.back();
+      }
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

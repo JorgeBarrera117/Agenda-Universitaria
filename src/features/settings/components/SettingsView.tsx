@@ -59,6 +59,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     NotificationService.checkPermissions().then(setHasPermission);
   }, [settings]);
 
+  // Soporte para botón "Atrás" de Android / Navegador para volver a la agenda
+  const closedViaPopstateRef = useRef(false);
+  const onBackRef = useRef(onBack);
+  useEffect(() => {
+    onBackRef.current = onBack;
+  }, [onBack]);
+
+  useEffect(() => {
+    const settingsId = `settings-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    closedViaPopstateRef.current = false;
+
+    window.history.pushState({ isSettingsOpen: true, settingsId }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state?.settingsId !== settingsId) {
+        closedViaPopstateRef.current = true;
+        onBackRef.current();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (!closedViaPopstateRef.current && window.history.state?.settingsId === settingsId) {
+        window.history.back();
+      }
+    };
+  }, []);
+
   // Manejar solicitud de permisos
   const handleRequestPermission = async () => {
     const granted = await NotificationService.requestPermissions();
