@@ -103,40 +103,40 @@ export const ProfessorsView: React.FC = () => {
           {professors.map((prof) => (
             <div
               key={prof.id}
-              className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group hover:border-cove-sky/50"
+              className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col justify-between group hover:border-cove-sky/50"
             >
               <div>
                 {/* Cabecera de la Ficha Docente */}
                 <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cove-blue/10 to-cove-sky/20 text-cove-blue border border-cove-sky/30 flex items-center justify-center font-black text-sm shadow-2xs shrink-0">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-cove-sand border border-cove-sky/30 flex items-center justify-center font-black text-sm shadow-md ring-2 ring-cove-sky/20 shrink-0">
                       {prof.name
                         .split(' ')
                         .map((n) => n[0])
                         .slice(0, 2)
                         .join('')}
                     </div>
-                    <div>
-                      <h3 className="text-base font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-1">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug">
                         {prof.name}
                       </h3>
-                      <span className="text-xs font-semibold text-slate-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-md text-[10px] font-bold bg-cove-sky/15 text-cove-deep border border-cove-sky/20">
                         Catedrático Titular
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => handleOpenEdit(prof)}
-                      className="p-1.5 text-slate-400 hover:text-cove-blue hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-cove-blue hover:bg-cove-blue/10 rounded-xl transition-colors cursor-pointer"
                       title="Editar profesor"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setProfToDelete(prof)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                       title="Eliminar profesor"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -144,14 +144,16 @@ export const ProfessorsView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Medios de Contacto Rápido */}
-                <div className="mt-4 space-y-2.5 text-xs text-slate-600">
+                {/* Medios de Contacto y Ubicación en el Campus */}
+                <div className="mt-4 space-y-2 text-xs">
                   {prof.email && (
                     <a
                       href={`mailto:${prof.email}`}
-                      className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 hover:bg-cove-blue/10 hover:text-cove-blue transition-colors truncate"
+                      className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-cove-blue/10 border border-slate-200/60 hover:border-cove-sky/40 text-slate-700 hover:text-cove-blue transition-all truncate"
                     >
-                      <Mail className="w-4 h-4 text-cove-blue shrink-0" />
+                      <div className="w-6 h-6 rounded-lg bg-cove-blue/10 text-cove-blue flex items-center justify-center shrink-0">
+                        <Mail className="w-3.5 h-3.5" />
+                      </div>
                       <span className="truncate font-medium">{prof.email}</span>
                     </a>
                   )}
@@ -159,27 +161,31 @@ export const ProfessorsView: React.FC = () => {
                   {prof.phone && (
                     <a
                       href={`tel:${prof.phone}`}
-                      className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors text-slate-700"
+                      className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 hover:bg-emerald-50 border border-slate-200/60 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 transition-all"
                     >
-                      <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <Phone className="w-3.5 h-3.5" />
+                      </div>
                       <span className="font-medium">{prof.phone}</span>
                     </a>
                   )}
 
                   {prof.office && (
-                    <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 text-slate-700">
-                      <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+                    <div className="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50/80 border border-slate-200/60 text-slate-700">
+                      <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <MapPin className="w-3.5 h-3.5" />
+                      </div>
                       <span className="truncate font-medium">{prof.office}</span>
                     </div>
                   )}
 
                   {prof.notes && (
-                    <div className="mt-3 p-3 bg-cove-sand/40 border border-cove-gold/60 rounded-2xl text-[11px] text-slate-900 leading-relaxed">
-                      <div className="flex items-center gap-1 font-bold text-amber-800 mb-1">
-                        <CalendarCheck className="w-3.5 h-3.5" />
-                        Horario de Asesoría:
+                    <div className="mt-3 p-3.5 bg-cove-sand/35 border border-cove-gold/60 rounded-2xl text-[11px] text-slate-900 leading-relaxed shadow-2xs">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-900 mb-1">
+                        <CalendarCheck className="w-4 h-4 text-amber-700 shrink-0" />
+                        <span>Horario de Asesoría Universitaria:</span>
                       </div>
-                      "{prof.notes}"
+                      <p className="font-medium text-slate-800 pl-5.5 italic">"{prof.notes}"</p>
                     </div>
                   )}
                 </div>

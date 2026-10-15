@@ -389,6 +389,28 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
     );
   }
 
+  // Helper para purgar markdown, KaTeX y HTML de los fragmentos de vista previa
+  const cleanSnippetPreview = (rawContent: string): string => {
+    if (!rawContent) return '';
+    const cleaned = rawContent
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\$\$[\s\S]*?\$\$/g, ' [Fórmula] ')
+      .replace(/\$([^$]+)\$/g, '$1')
+      .replace(/#{1,6}\s+/g, '')
+      .replace(/(\*\*|__)(.*?)\1/g, '$2')
+      .replace(/(\*|_)(.*?)\1/g, '$2')
+      .replace(/~~(.*?)~~/g, '$1')
+      .replace(/^>\s+/gm, '')
+      .replace(/^[\*\-\+]\s+/gm, '')
+      .replace(/^\d+\.\s+/gm, '')
+      .replace(/```[\s\S]*?```/g, ' [Código] ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return cleaned || 'Apunte visual con fotografías de cátedra.';
+  };
+
   return (
     <div className="space-y-6">
       {/* Encabezado Estilo Cuaderno de Cátedra */}
@@ -489,40 +511,42 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
               month: 'short',
+              year: 'numeric',
             });
 
-            // Extraer texto limpio de HTML para la previsualización en la tarjeta
-            const cleanSnippet =
-              note.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() ||
-              '(Contenido visual con fotos)';
+            // Extraer texto limpio de Markdown, fórmulas KaTeX y etiquetas HTML
+            const cleanSnippet = cleanSnippetPreview(note.content);
 
             return (
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group hover:border-cove-sky/50 relative overflow-hidden"
+                className="group relative bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between hover:border-cove-sky/60 hover:-translate-y-0.5 overflow-hidden"
               >
-                {/* Franja superior de materia */}
+                {/* Acento superior de Materia */}
                 <div
                   className="absolute top-0 left-0 right-0 h-1.5"
                   style={{ backgroundColor: subject?.color || '#006BBB' }}
                 />
 
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="space-y-3.5">
+                  {/* Encabezado de la Ficha: Materia y Acciones Accesibles */}
+                  <div className="flex items-center justify-between gap-2">
                     <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-white shadow-2xs truncate max-w-[200px]"
                       style={{ backgroundColor: subject?.color || '#006BBB' }}
                     >
-                      <BookOpen className="w-3 h-3" />
-                      {subject?.name || 'Materia'}
+                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{subject?.name || 'Materia'}</span>
                     </span>
 
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Botones de acción táctiles y accesibles */}
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={(e) => handleOpenEdit(note, e)}
-                        className="p-1.5 text-slate-400 hover:text-cove-blue hover:bg-slate-100 rounded-xl cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-cove-blue hover:bg-cove-blue/10 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-cove-sky/30"
                         title="Editar apunte"
+                        aria-label="Editar apunte"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -531,38 +555,43 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                           e.stopPropagation();
                           setNoteToDelete(note);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-200/50"
                         title="Eliminar apunte"
+                        aria-label="Eliminar apunte"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2">
+                  {/* Título de la Ficha */}
+                  <h3 className="text-lg font-black text-slate-900 group-hover:text-cove-blue transition-colors line-clamp-2 leading-snug tracking-tight">
                     {note.title}
                   </h3>
 
-                  <p className="mt-2.5 text-xs text-slate-500 line-clamp-3 leading-relaxed font-normal">
+                  {/* Extracto de Cuaderno Sanitizeado (Libre de Markdown y Fórmulas desbordadas) */}
+                  <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-100/90 text-xs text-slate-600 line-clamp-3 leading-relaxed font-sans">
                     {cleanSnippet}
-                  </p>
+                  </div>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-slate-100 flex flex-col gap-2.5">
-                  <div className="flex items-center justify-between gap-1 flex-wrap">
+                {/* Pie de la Ficha: Etiquetas, Pizarras y Lectura */}
+                <div className="mt-5 pt-3.5 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    {/* Etiquetas */}
                     {note.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {note.tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200/60"
                           >
                             <Tag className="w-2.5 h-2.5 text-slate-400" />
                             {tag}
                           </span>
                         ))}
                         {note.tags.length > 2 && (
-                          <span className="text-[10px] text-slate-400 font-bold">
+                          <span className="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded-md">
                             +{note.tags.length - 2}
                           </span>
                         )}
@@ -571,22 +600,23 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       <div />
                     )}
 
-                    {/* Indicador de fotos */}
+                    {/* Insignia de Fotos de Pizarrón en Paleta Cove Sand / Gold */}
                     {imageCount > 0 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-800 bg-cove-sand/50 border border-cove-gold/40 px-2.5 py-1 rounded-lg">
-                        <Camera className="w-3 h-3 text-amber-600" />
-                        {imageCount} {imageCount === 1 ? 'pizarra' : 'pizarras'}
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-900 bg-cove-sand/50 border border-cove-gold/60 px-2.5 py-1 rounded-xl shadow-2xs">
+                        <Camera className="w-3.5 h-3.5 text-amber-700" />
+                        <span>{imageCount} {imageCount === 1 ? 'foto pizarra' : 'fotos pizarra'}</span>
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
+                  {/* Metadatos y Llamado a la Lectura */}
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-1">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
                       {dateFormatted}
                     </span>
-                    <span className="text-cove-blue font-bold group-hover:underline flex items-center gap-0.5">
-                      Abrir <ExternalLink className="w-3 h-3" />
+                    <span className="text-cove-blue font-bold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
+                      Leer apunte <ExternalLink className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </div>
