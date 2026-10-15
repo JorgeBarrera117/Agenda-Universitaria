@@ -208,24 +208,24 @@ export const ProfessorsView: React.FC = () => {
 
               {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
               <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
-                {/* Botón 1: Contactar al profesor (Superior destacado) */}
+                {/* Botón 1: Contactar al profesor (Superior - Ámbar para correo, Esmeralda para teléfono) */}
                 {prof.email ? (
                   <a
                     href={`mailto:${prof.email}`}
-                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200/90 text-amber-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title={`Enviar correo a ${prof.name}`}
                     aria-label="Contactar al docente"
                   >
-                    <Mail className="w-5 h-5 text-cove-navy" />
+                    <Mail className="w-5 h-5 text-amber-600" />
                   </a>
                 ) : prof.phone ? (
                   <a
                     href={`tel:${prof.phone}`}
-                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 text-emerald-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title={`Llamar a ${prof.name}`}
                     aria-label="Llamar al docente"
                   >
-                    <Phone className="w-5 h-5 text-cove-navy" />
+                    <Phone className="w-5 h-5 text-emerald-600" />
                   </a>
                 ) : (
                   <div className="w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200/50 flex items-center justify-center opacity-40">
@@ -233,24 +233,24 @@ export const ProfessorsView: React.FC = () => {
                   </div>
                 )}
 
-                {/* Botón 2: Editar profesor (Centro) */}
+                {/* Botón 2: Editar profesor (Centro - Azul para editar) */}
                 <button
                   onClick={() => handleOpenEdit(prof)}
-                  className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  className="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200/90 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                   title="Editar profesor"
                   aria-label="Editar profesor"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="w-4 h-4 text-blue-600" />
                 </button>
 
-                {/* Botón 3: Eliminar profesor (Inferior) */}
+                {/* Botón 3: Eliminar profesor (Inferior - Rojo para eliminar) */}
                 <button
                   onClick={() => setProfToDelete(prof)}
-                  className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  className="w-11 h-11 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200/90 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                   title="Eliminar profesor"
                   aria-label="Eliminar profesor"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 text-red-600" />
                 </button>
               </div>
             </div>

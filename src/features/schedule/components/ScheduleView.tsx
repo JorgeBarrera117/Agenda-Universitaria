@@ -447,38 +447,38 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
                           {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
                           <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 border-l border-slate-100 py-0.5 gap-[15px]">
-                            {/* Botón 1: Tomar apunte (Superior destacado en Cove Sand) */}
+                            {/* Botón 1: Tomar apunte (Superior - Índigo para apuntes) */}
                             {onNavigateToNotes ? (
                               <button
                                 onClick={() => onNavigateToNotes(slot.subjectId)}
-                                className="w-8 h-8 rounded-xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                                className="w-8 h-8 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/90 text-indigo-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                                 title="Tomar apunte de esta materia"
                                 aria-label="Tomar apunte"
                               >
-                                <FileEdit className="w-4 h-4 text-cove-navy" />
+                                <FileEdit className="w-4 h-4 text-indigo-600" />
                               </button>
                             ) : (
                               <div className="w-8 h-8" />
                             )}
 
-                            {/* Botón 2: Editar clase (Centro) */}
+                            {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                             <button
                               onClick={() => handleOpenEdit(slot)}
-                              className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                              className="w-8 h-8 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200/90 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                               title="Editar clase"
                               aria-label="Editar clase"
                             >
-                              <Edit2 className="w-3.5 h-3.5" />
+                              <Edit2 className="w-3.5 h-3.5 text-blue-600" />
                             </button>
 
-                            {/* Botón 3: Eliminar clase (Inferior) */}
+                            {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                             <button
                               onClick={() => setSlotToDelete(slot)}
-                              className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                              className="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200/90 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                               title="Eliminar clase"
                               aria-label="Eliminar clase"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3.5 h-3.5 text-red-600" />
                             </button>
                           </div>
                         </div>
@@ -616,38 +616,38 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
                     {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
                     <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
-                      {/* Botón 1: Tomar apunte (Superior destacado en paleta Cove Sand) */}
+                      {/* Botón 1: Tomar apunte (Superior - Índigo para apuntes) */}
                       {onNavigateToNotes ? (
                         <button
                           onClick={() => onNavigateToNotes(slot.subjectId)}
-                          className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                          className="w-11 h-11 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/90 text-indigo-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                           title="Tomar apunte de esta materia"
                           aria-label="Tomar apunte"
                         >
-                          <FileEdit className="w-5 h-5 text-cove-navy" />
+                          <FileEdit className="w-5 h-5 text-indigo-600" />
                         </button>
                       ) : (
                         <div className="w-11 h-11" />
                       )}
 
-                      {/* Botón 2: Editar clase (Centro) */}
+                      {/* Botón 2: Editar clase (Centro - Azul para editar) */}
                       <button
                         onClick={() => handleOpenEdit(slot)}
-                        className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                        className="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200/90 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                         title="Editar clase"
                         aria-label="Editar clase"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4 text-blue-600" />
                       </button>
 
-                      {/* Botón 3: Eliminar clase (Inferior) */}
+                      {/* Botón 3: Eliminar clase (Inferior - Rojo para eliminar) */}
                       <button
                         onClick={() => setSlotToDelete(slot)}
-                        className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                        className="w-11 h-11 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200/90 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                         title="Eliminar clase"
                         aria-label="Eliminar clase"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
                     </div>
                   </div>

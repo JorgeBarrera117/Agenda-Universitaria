@@ -594,40 +594,40 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
 
                 {/* Columna Vertical de Acciones (Derecha) - Separados por 15px */}
                 <div className="flex flex-col justify-center items-center shrink-0 pl-2 sm:pl-3 border-l border-slate-100 py-0.5 gap-[15px]">
-                  {/* Botón 1: Leer / Abrir apunte (Superior destacado) */}
+                  {/* Botón 1: Leer / Abrir apunte (Superior - Esmeralda para modo lectura) */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenRead(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-cove-sand/60 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 text-emerald-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Leer apunte a pantalla completa"
                     aria-label="Leer apunte"
                   >
-                    <BookOpen className="w-5 h-5 text-cove-navy" />
+                    <BookOpen className="w-5 h-5 text-emerald-600" />
                   </button>
 
-                  {/* Botón 2: Editar apunte (Centro) */}
+                  {/* Botón 2: Editar apunte (Centro - Azul para editar) */}
                   <button
                     onClick={(e) => handleOpenEdit(note, e)}
-                    className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-cove-blue/10 border border-slate-200/80 text-slate-500 hover:text-cove-blue flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200/90 text-blue-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Editar apunte"
                     aria-label="Editar apunte"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-4 h-4 text-blue-600" />
                   </button>
 
-                  {/* Botón 3: Eliminar apunte (Inferior) */}
+                  {/* Botón 3: Eliminar apunte (Inferior - Rojo para eliminar) */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setNoteToDelete(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200/80 text-slate-400 hover:text-red-600 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200/90 text-red-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
                     title="Eliminar apunte"
                     aria-label="Eliminar apunte"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 text-red-600" />
                   </button>
                 </div>
               </div>
