@@ -598,21 +598,21 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       e.stopPropagation();
                       handleOpenRead(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-200 to-teal-200 hover:from-emerald-300 hover:to-teal-200 border border-emerald-300 text-emerald-800 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 hover:from-emerald-500 hover:via-teal-600 hover:to-slate-900 ring-1 ring-teal-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-emerald-950/30 cursor-pointer"
                     title="Leer apunte a pantalla completa"
                     aria-label="Leer apunte"
                   >
-                    <BookOpen className="w-5 h-5 text-emerald-800" />
+                    <BookOpen className="w-5 h-5 text-white" />
                   </button>
 
                   {/* Botón 2: Editar apunte (Centro - Azul para editar) */}
                   <button
                     onClick={(e) => handleOpenEdit(note, e)}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-200 to-sky-200 hover:from-blue-300 hover:to-sky-200 border border-blue-300 text-blue-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-blue-950/30 cursor-pointer"
                     title="Editar apunte"
                     aria-label="Editar apunte"
                   >
-                    <Edit2 className="w-4 h-4 text-blue-700" />
+                    <Edit2 className="w-4 h-4 text-white" />
                   </button>
 
                   {/* Botón 3: Eliminar apunte (Inferior - Rojo para eliminar) */}
@@ -621,11 +621,11 @@ export const NotesView: React.FC<NotesViewProps> = ({ initialSubjectFilterId }) 
                       e.stopPropagation();
                       setNoteToDelete(note);
                     }}
-                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-200 to-rose-200 hover:from-red-300 hover:to-rose-200 border border-red-300 text-red-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white flex items-center justify-center transition-all active:scale-95 shadow-md shadow-red-950/30 cursor-pointer"
                     title="Eliminar apunte"
                     aria-label="Eliminar apunte"
                   >
-                    <Trash2 className="w-4 h-4 text-red-700" />
+                    <Trash2 className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
