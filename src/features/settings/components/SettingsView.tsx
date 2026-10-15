@@ -185,7 +185,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 3. SECCIÓN: APARIENCIA Y MODO OSCURO */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-5 transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4 transition-colors">
           <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
               <Sun className="w-5 h-5 hidden dark:block" />
@@ -201,7 +201,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {/* Opción 1: Modo Claro */}
             <button
               type="button"
@@ -209,35 +209,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 setDraftSettings((prev) => ({ ...prev, theme: 'light' }));
                 applyTheme('light');
               }}
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-start gap-2 text-left relative overflow-hidden ${
+              className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
                 draftSettings.theme === 'light'
-                  ? 'bg-amber-50/70 dark:bg-slate-800/90 border-amber-500 text-slate-900 dark:text-white shadow-xs'
-                  : 'bg-white dark:bg-slate-850/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
+                  ? 'bg-amber-500/10 border-amber-500 text-amber-950 dark:text-amber-300 shadow-xs ring-1 ring-amber-500/20'
+                  : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-650'
               }`}
             >
-              <div className="flex items-center justify-between w-full">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                    draftSettings.theme === 'light'
-                      ? 'bg-amber-500 text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                  }`}
-                >
-                  <Sun className="w-5 h-5" />
-                </div>
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                  draftSettings.theme === 'light'
+                    ? 'bg-amber-500 text-white shadow-xs scale-105'
+                    : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-xs sm:text-sm">
+                  Claro
+                </span>
                 {draftSettings.theme === 'light' && (
-                  <div className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">
-                    <Check className="w-3.5 h-3.5" />
+                  <div className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px]">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
                 )}
-              </div>
-              <div>
-                <span className="font-extrabold text-sm block text-slate-900 dark:text-white">
-                  Modo Claro
-                </span>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                  Limpio, luminoso y con alto contraste para uso durante el día.
-                </p>
               </div>
             </button>
 
@@ -248,35 +243,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 setDraftSettings((prev) => ({ ...prev, theme: 'dark' }));
                 applyTheme('dark');
               }}
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-start gap-2 text-left relative overflow-hidden ${
+              className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
                 draftSettings.theme === 'dark'
-                  ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-xs'
-                  : 'bg-white dark:bg-slate-850/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
+                  ? 'bg-indigo-500/10 dark:bg-indigo-950/50 border-indigo-500 text-indigo-950 dark:text-indigo-200 shadow-xs ring-1 ring-indigo-500/20'
+                  : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-650'
               }`}
             >
-              <div className="flex items-center justify-between w-full">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                    draftSettings.theme === 'dark'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                  }`}
-                >
-                  <Moon className="w-5 h-5" />
-                </div>
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                  draftSettings.theme === 'dark'
+                    ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                    : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-xs sm:text-sm">
+                  Oscuro
+                </span>
                 {draftSettings.theme === 'dark' && (
-                  <div className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">
-                    <Check className="w-3.5 h-3.5" />
+                  <div className="w-3.5 h-3.5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px]">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
                 )}
-              </div>
-              <div>
-                <span className="font-extrabold text-sm block text-slate-900 dark:text-white">
-                  Modo Oscuro
-                </span>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                  Descanso visual y menor consumo de batería en pantallas OLED.
-                </p>
               </div>
             </button>
 
@@ -287,35 +277,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 setDraftSettings((prev) => ({ ...prev, theme: 'system' }));
                 applyTheme('system');
               }}
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-start gap-2 text-left relative overflow-hidden ${
+              className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
                 draftSettings.theme === 'system'
-                  ? 'bg-cove-blue/15 border-cove-sky text-slate-900 dark:text-white shadow-xs'
-                  : 'bg-white dark:bg-slate-850/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
+                  ? 'bg-cove-blue/10 dark:bg-cove-blue/20 border-cove-sky text-slate-900 dark:text-white shadow-xs ring-1 ring-cove-sky/30'
+                  : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-650'
               }`}
             >
-              <div className="flex items-center justify-between w-full">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                    draftSettings.theme === 'system'
-                      ? 'bg-cove-blue text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                  }`}
-                >
-                  <Monitor className="w-5 h-5" />
-                </div>
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                  draftSettings.theme === 'system'
+                    ? 'bg-cove-blue text-white shadow-xs scale-105'
+                    : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                <Monitor className="w-4 h-4" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-xs sm:text-sm">
+                  <span className="sm:hidden">Auto</span>
+                  <span className="hidden sm:inline">Automático</span>
+                </span>
                 {draftSettings.theme === 'system' && (
-                  <div className="w-5 h-5 rounded-full bg-cove-blue text-white flex items-center justify-center text-xs">
-                    <Check className="w-3.5 h-3.5" />
+                  <div className="w-3.5 h-3.5 rounded-full bg-cove-blue text-white flex items-center justify-center text-[9px]">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
                 )}
-              </div>
-              <div>
-                <span className="font-extrabold text-sm block text-slate-900 dark:text-white">
-                  Automático (Sistema)
-                </span>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                  Sigue automáticamente la configuración de tu celular o navegador.
-                </p>
               </div>
             </button>
           </div>
@@ -323,7 +309,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
 
         {/* 4. SECCIÓN: NOTIFICACIONES Y RECORDATORIOS EN EL CELULAR */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-5 transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4 transition-colors">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
@@ -331,7 +317,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <div>
                 <h3 className="text-base font-black text-slate-900 dark:text-white">
-                  Notificaciones y Avisos de Clases en el Celular
+                  Notificaciones y Avisos de Clases
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Recibe recordatorios automáticos en tu móvil antes y durante tus clases.
@@ -340,7 +326,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Switch Maestro */}
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
               <input
                 type="checkbox"
                 checked={draftSettings.notificationsEnabled}
@@ -357,15 +343,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           {/* Estado de Permisos del Sistema */}
-          <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-750 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-750 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
             <div className="flex items-center gap-2">
               <div
-                className={`w-2.5 h-2.5 rounded-full ${
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                   hasPermission ? 'bg-emerald-500' : 'bg-amber-500'
                 }`}
               />
               <span className="font-semibold text-slate-700 dark:text-slate-300">
-                Permisos del Dispositivo:{' '}
+                Permisos:{' '}
                 <strong className={hasPermission ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}>
                   {hasPermission === null
                     ? 'Comprobando...'
@@ -398,139 +384,130 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          {/* Opciones Específicas de Notificación */}
+          {/* Opciones Específicas de Notificación (Grid Horizontal Compacto) */}
           <div
-            className={`grid grid-cols-1 md:grid-cols-2 gap-3.5 transition-opacity ${
+            className={`space-y-2 transition-opacity ${
               draftSettings.notificationsEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'
             }`}
           >
-            {/* Opción A: 15 minutos antes */}
-            <div
-              onClick={() =>
-                setDraftSettings((prev) => ({
-                  ...prev,
-                  notify15MinBefore: !prev.notify15MinBefore,
-                }))
-              }
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 ${
-                draftSettings.notify15MinBefore
-                  ? 'bg-sky-50/70 dark:bg-sky-950/40 border-sky-400 dark:border-sky-500 shadow-2xs'
-                  : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
-              }`}
-            >
-              <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {/* Opción A: 15 minutos antes */}
+              <button
+                type="button"
+                onClick={() =>
+                  setDraftSettings((prev) => ({
+                    ...prev,
+                    notify15MinBefore: !prev.notify15MinBefore,
+                  }))
+                }
+                className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
                   draftSettings.notify15MinBefore
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                    ? 'bg-sky-500/10 dark:bg-sky-950/40 border-sky-400 dark:border-sky-500 text-sky-950 dark:text-sky-200 shadow-2xs'
+                    : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-650'
                 }`}
               >
-                <Clock className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">
-                    Aviso 15 minutos antes
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={draftSettings.notify15MinBefore}
-                    onChange={() => {}}
-                    className="rounded text-cove-blue focus:ring-cove-sky cursor-pointer"
-                  />
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                    draftSettings.notify15MinBefore
+                      ? 'bg-sky-500 text-white shadow-xs scale-105'
+                      : 'bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                  }`}
+                >
+                  <Clock className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Te avisa con antelación para que puedas dirigirte al aula o conectarte a la videollamada.
-                </p>
-              </div>
-            </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-xs sm:text-sm">
+                    15 min antes
+                  </span>
+                  {draftSettings.notify15MinBefore && (
+                    <div className="w-3.5 h-3.5 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px]">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+              </button>
 
-            {/* Opción B: Al momento de iniciar */}
-            <div
-              onClick={() =>
-                setDraftSettings((prev) => ({
-                  ...prev,
-                  notifyAtClassStart: !prev.notifyAtClassStart,
-                }))
-              }
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 ${
-                draftSettings.notifyAtClassStart
-                  ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-400 dark:border-indigo-500 shadow-2xs'
-                  : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
-              }`}
-            >
-              <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              {/* Opción B: Al momento de iniciar */}
+              <button
+                type="button"
+                onClick={() =>
+                  setDraftSettings((prev) => ({
+                    ...prev,
+                    notifyAtClassStart: !prev.notifyAtClassStart,
+                  }))
+                }
+                className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
                   draftSettings.notifyAtClassStart
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                    ? 'bg-indigo-500/10 dark:bg-indigo-950/40 border-indigo-500 text-indigo-950 dark:text-indigo-200 shadow-2xs'
+                    : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-650'
                 }`}
               >
-                <Bell className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">
-                    Al momento de empezar la clase
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={draftSettings.notifyAtClassStart}
-                    onChange={() => {}}
-                    className="rounded text-cove-blue focus:ring-cove-sky cursor-pointer"
-                  />
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                    draftSettings.notifyAtClassStart
+                      ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                      : 'bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                  }`}
+                >
+                  <Bell className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Alarma en la hora exacta de inicio con el aula o enlace del profesor asignado.
-                </p>
-              </div>
-            </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-xs sm:text-sm">
+                    Al iniciar
+                  </span>
+                  {draftSettings.notifyAtClassStart && (
+                    <div className="w-3.5 h-3.5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px]">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+              </button>
 
-            {/* Opción C: Sonido y Vibración */}
-            <div
-              onClick={() =>
-                setDraftSettings((prev) => ({
-                  ...prev,
-                  notificationSound: !prev.notificationSound,
-                }))
-              }
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 md:col-span-2 ${
-                draftSettings.notificationSound
-                  ? 'bg-slate-50 dark:bg-slate-800/90 border-slate-300 dark:border-slate-600'
-                  : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
-              }`}
-            >
-              <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              {/* Opción C: Sonido y Vibración */}
+              <button
+                type="button"
+                onClick={() =>
+                  setDraftSettings((prev) => ({
+                    ...prev,
+                    notificationSound: !prev.notificationSound,
+                  }))
+                }
+                className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
                   draftSettings.notificationSound
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                    ? 'bg-emerald-500/10 dark:bg-emerald-950/40 border-emerald-500 text-emerald-950 dark:text-emerald-200 shadow-2xs'
+                    : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-650'
                 }`}
               >
-                <Volume2 className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">
-                    Sonido y Vibración
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={draftSettings.notificationSound}
-                    onChange={() => {}}
-                    className="rounded text-cove-blue focus:ring-cove-sky cursor-pointer"
-                  />
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform ${
+                    draftSettings.notificationSound
+                      ? 'bg-emerald-600 text-white shadow-xs scale-105'
+                      : 'bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                  }`}
+                >
+                  <Volume2 className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Emite el timbre predeterminado del sistema y vibración al llegar cada notificación.
-                </p>
-              </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-xs sm:text-sm">
+                    <span className="sm:hidden">Sonido</span>
+                    <span className="hidden sm:inline">Sonido / vibrar</span>
+                  </span>
+                  {draftSettings.notificationSound && (
+                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px]">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+              </button>
             </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">
+              Toca cada casilla para activar o desactivar los avisos automáticos en tu móvil.
+            </p>
           </div>
         </div>
 
         {/* 5. SECCIÓN: SEMESTRE Y HORARIO ACADÉMICO */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-5 transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4 transition-colors">
           <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-cove-blue dark:text-cove-sky flex items-center justify-center shrink-0">
               <Calendar className="w-5 h-5" />
@@ -545,7 +522,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Nombre del Periodo */}
             <div className="sm:col-span-2">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
@@ -573,28 +550,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() =>
                     setDraftSettings((prev) => ({ ...prev, defaultScheduleView: 'weekly' }))
                   }
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                     draftSettings.defaultScheduleView === 'weekly'
-                      ? 'bg-cove-navy text-white border-cove-navy shadow-sm'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      ? 'bg-cove-navy text-white border-cove-navy shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
                   }`}
                 >
-                  <Layers className="w-4 h-4" />
-                  <span>Semana (Cuadrícula)</span>
+                  <Layers className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Semana (Cuadrícula)</span>
+                  <span className="sm:hidden">Semanal</span>
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     setDraftSettings((prev) => ({ ...prev, defaultScheduleView: 'daily' }))
                   }
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                     draftSettings.defaultScheduleView === 'daily'
-                      ? 'bg-cove-navy text-white border-cove-navy shadow-sm'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      ? 'bg-cove-navy text-white border-cove-navy shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
-                  <span>Por Día (Pases)</span>
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Por Día (Pases)</span>
+                  <span className="sm:hidden">Por Día</span>
                 </button>
               </div>
             </div>
@@ -608,7 +587,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {[
                   { id: 'mon-fri', label: 'Lun - Vie' },
                   { id: 'mon-sat', label: 'Lun - Sáb' },
-                  { id: 'all', label: 'Toda la semana' },
+                  { id: 'all', label: 'Todos', labelFull: 'Toda la semana' },
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -619,13 +598,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         visibleDays: item.id as AppSettings['visibleDays'],
                       }))
                     }
-                    className={`py-2.5 px-2 rounded-2xl text-[11px] font-bold text-center transition-all cursor-pointer border ${
+                    className={`py-2 px-1.5 rounded-2xl text-[11px] font-bold text-center transition-all cursor-pointer border ${
                       draftSettings.visibleDays === item.id
                         ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
                     }`}
                   >
-                    {item.label}
+                    <span className="hidden sm:inline">{item.labelFull || item.label}</span>
+                    <span className="sm:hidden">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -635,7 +615,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
 
         {/* 6. SECCIÓN: FOTOGRAFÍA Y APUNTES */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4 transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-3 transition-colors">
           <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
               <Camera className="w-5 h-5" />
@@ -654,34 +634,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
               Calidad de Compresión al Insertar Fotos
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() =>
                   setDraftSettings((prev) => ({ ...prev, imageQuality: 'balanced' }))
                 }
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                   draftSettings.imageQuality === 'balanced'
                     ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
                 }`}
               >
-                <Check className="w-4 h-4" />
-                <span>Equilibrada (720p - Recomendada)</span>
+                <Check className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Equilibrada (720p - Recomendada)</span>
+                <span className="sm:hidden">Equilibrada (720p)</span>
               </button>
               <button
                 type="button"
                 onClick={() =>
                   setDraftSettings((prev) => ({ ...prev, imageQuality: 'high' }))
                 }
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                   draftSettings.imageQuality === 'high'
                     ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Alta Nitidez (1080p)</span>
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Alta Nitidez (1080p)</span>
+                <span className="sm:hidden">Alta (1080p)</span>
               </button>
             </div>
             <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
@@ -691,7 +673,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 7. SECCIÓN: DATOS Y RESPALDOS (OFFLINE-FIRST) */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4 transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-3 transition-colors">
           <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <HardDrive className="w-5 h-5" />
@@ -706,31 +688,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               onClick={handleExport}
               disabled={isExporting}
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky font-bold text-xs rounded-2xl border border-cove-sky/30 dark:border-cove-sky/40 transition-all active:scale-98 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky font-bold text-xs rounded-2xl border border-cove-sky/30 dark:border-cove-sky/40 transition-all active:scale-98 cursor-pointer disabled:opacity-50"
             >
               {isExporting ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-cove-blue dark:text-cove-sky" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-cove-blue dark:text-cove-sky shrink-0" />
               ) : (
-                <Download className="w-4 h-4 text-cove-blue dark:text-cove-sky" />
+                <Download className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
               )}
-              <span>Exportar Copia de Seguridad (JSON)</span>
+              <span className="hidden sm:inline">Exportar Copia (JSON)</span>
+              <span className="sm:hidden">Exportar JSON</span>
             </button>
 
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting}
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-750 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-750 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50"
             >
               {isImporting ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-cove-navy dark:text-cove-sand" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-cove-navy dark:text-cove-sand shrink-0" />
               ) : (
-                <Upload className="w-4 h-4 text-cove-navy dark:text-cove-sand" />
+                <Upload className="w-3.5 h-3.5 text-cove-navy dark:text-cove-sand shrink-0" />
               )}
-              <span>Restaurar Copia de Seguridad</span>
+              <span className="hidden sm:inline">Restaurar Copia de Seguridad</span>
+              <span className="sm:hidden">Restaurar JSON</span>
             </button>
 
             <input
@@ -745,10 +729,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="pt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-1.5 font-medium">
               <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Espacio ocupado en memoria local:</span>
+              <span>Espacio ocupado en memoria:</span>
             </div>
             <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
-              {storageEstimate.usedMB} MB / {storageEstimate.quotaMB} MB disponibles
+              {storageEstimate.usedMB} MB / {storageEstimate.quotaMB} MB
             </span>
           </div>
         </div>
@@ -762,7 +746,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           />
           <div className="space-y-1">
             <span className="font-black text-slate-900 dark:text-white block text-sm">
-              Agenda Universitaria PWA • v1.5.3
+              Agenda Universitaria PWA • v1.5.4
             </span>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               Desarrollada para estudiantes con Clean Architecture, Dexie.js (IndexedDB local-first) y Capacitor para Android. Funciona 100% sin conexión a internet y tus apuntes son privados.
