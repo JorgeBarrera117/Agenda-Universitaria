@@ -37,31 +37,34 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_agenda_layout);
 
-        // Fecha actual formateada (ej. "Jueves, 15 Oct")
+        // Fecha actual formateada (ej. "Jueves, 15 oct")
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM", new Locale("es", "ES"));
         String todayDate = sdf.format(new Date());
-        // Capitalizar primera letra
         if (todayDate.length() > 0) {
             todayDate = todayDate.substring(0, 1).toUpperCase(new Locale("es", "ES")) + todayDate.substring(1);
         }
         views.setTextViewText(R.id.widget_date_subtitle, todayDate);
 
-        // Configurar pestañas visuales según la selección activa
+        // Configurar pestañas visuales con iconos vectoriales de la app (sin emojis)
         boolean isSchedule = "schedule".equals(selectedTab);
         if (isSchedule) {
             views.setInt(R.id.widget_btn_tab_schedule, "setBackgroundResource", R.drawable.widget_tab_active);
-            views.setTextColor(R.id.widget_btn_tab_schedule, 0xFFFFFFFF);
+            views.setTextColor(R.id.widget_text_tab_schedule, 0xFFFFFFFF);
+            views.setInt(R.id.widget_icon_tab_schedule, "setColorFilter", 0xFFFFFFFF);
 
             views.setInt(R.id.widget_btn_tab_notes, "setBackgroundResource", R.drawable.widget_tab_inactive);
-            views.setTextColor(R.id.widget_btn_tab_notes, 0xFF94A3B8);
+            views.setTextColor(R.id.widget_text_tab_notes, 0xFF94A3B8);
+            views.setInt(R.id.widget_icon_tab_notes, "setColorFilter", 0xFF94A3B8);
 
             views.setTextViewText(R.id.widget_empty_view, context.getString(R.string.widget_empty_schedule));
         } else {
             views.setInt(R.id.widget_btn_tab_schedule, "setBackgroundResource", R.drawable.widget_tab_inactive);
-            views.setTextColor(R.id.widget_btn_tab_schedule, 0xFF94A3B8);
+            views.setTextColor(R.id.widget_text_tab_schedule, 0xFF94A3B8);
+            views.setInt(R.id.widget_icon_tab_schedule, "setColorFilter", 0xFF94A3B8);
 
             views.setInt(R.id.widget_btn_tab_notes, "setBackgroundResource", R.drawable.widget_tab_active);
-            views.setTextColor(R.id.widget_btn_tab_notes, 0xFFFFFFFF);
+            views.setTextColor(R.id.widget_text_tab_notes, 0xFFFFFFFF);
+            views.setInt(R.id.widget_icon_tab_notes, "setColorFilter", 0xFFFFFFFF);
 
             views.setTextViewText(R.id.widget_empty_view, context.getString(R.string.widget_empty_notes));
         }

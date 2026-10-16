@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_note_item_container"
+    android:id="@+id/widget_item_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/widget_item_bg"
     android:orientation="horizontal"
     android:padding="8dp">
 
-    <!-- Indicador de color de la materia asociada -->
-    <View
-        android:id="@+id/widget_note_color_bar"
+    <!-- Indicador de color lateral usando ImageView (100% compatible con RemoteViews) -->
+    <ImageView
+        android:id="@+id/widget_item_color_bar"
         android:layout_width="4dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="8dp"
-        android:background="#10b981" />
+        android:background="#38bdf8"
+        android:contentDescription="Color" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -21,40 +22,58 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
+        <!-- Fila Superior: Badge (HOY/DÍA) + Título + Hora/Fecha -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/widget_note_title"
+                android:id="@+id/widget_item_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/widget_badge_today"
+                android:paddingHorizontal="5dp"
+                android:paddingVertical="1dp"
+                android:text="HOY"
+                android:textColor="#ffffff"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_item_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Título del apunte"
+                android:text="Título del elemento"
                 android:textColor="#ffffff"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/widget_note_date"
+                android:id="@+id/widget_item_time_or_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="15 oct"
-                android:textColor="#64748b"
-                android:textSize="10sp" />
+                android:layout_marginStart="4dp"
+                android:text="07:00 - 08:30"
+                android:textColor="#38bdf8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- Fila Inferior: Detalles de Aula / Profesor / Fragmento -->
         <TextView
-            android:id="@+id/widget_note_subtitle"
+            android:id="@+id/widget_item_details"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Cálculo Diferencial • Fragmento de notas..."
+            android:text="Detalles del elemento"
             android:textColor="#94a3b8"
             android:textSize="10sp" />
     </LinearLayout>

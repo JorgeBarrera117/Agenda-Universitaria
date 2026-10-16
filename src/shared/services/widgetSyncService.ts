@@ -1,5 +1,6 @@
 import { registerPlugin, Capacitor } from '@capacitor/core';
 import type { ScheduleSlot } from '../../features/schedule/types';
+import { DAY_NAMES, SHORT_DAY_NAMES } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { Note } from '../../features/notes/types';
@@ -12,7 +13,7 @@ const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
 
 export class WidgetSyncService {
   /**
-   * Sincroniza las clases de hoy y los apuntes más recientes con el Widget de Android
+   * Sincroniza el horario diario y semanal, así como los apuntes más recientes, con el Widget de Android
    */
   public static async syncWidgetData(
     slots: ScheduleSlot[],
@@ -34,17 +35,34 @@ export class WidgetSyncService {
       const professorMap = new Map<string, Professor>();
       professors.forEach((p) => professorMap.set(p.id, p));
 
-      // Filtrar y ordenar clases de hoy
-      const todaySlots = slots
-        .filter((slot) => slot.dayOfWeek === todayDay)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+      // Orden de los días de la semana empezando por HOY
+      const dayOrder = [0, 1, 2, 3, 4, 5, 6].map((offset) => {
+        let d = todayDay + offset;
+        if (d > 7) d -= 7;
+        return d;
+      });
 
-      const scheduleData = todaySlots.map((slot) => {
+      // Ordenar todas las clases de la semana: primero las de hoy, luego las de días futuros
+      const sortedSlots = [...slots].sort((a, b) => {
+        const orderA = dayOrder.indexOf(a.dayOfWeek);
+        const orderB = dayOrder.indexOf(b.dayOfWeek);
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        return a.startTime.localeCompare(b.startTime);
+      });
+
+      const scheduleData = sortedSlots.map((slot) => {
         const subject = subjectMap.get(slot.subjectId);
         const professorId = slot.professorId || subject?.professorId;
         const prof = professorId ? professorMap.get(professorId) : undefined;
+        const isToday = slot.dayOfWeek === todayDay;
 
         const detailsParts: string[] = [];
+        if (!isToday) {
+          detailsParts.push(DAY_NAMES[slot.dayOfWeek]);
+        }
+
         if (slot.classroom) {
           detailsParts.push(`Aula ${slot.classroom}`);
         } else if (slot.building) {
@@ -57,12 +75,18 @@ export class WidgetSyncService {
           detailsParts.push(prof.name);
         }
 
+        const badge = isToday
+          ? 'HOY'
+          : (SHORT_DAY_NAMES[slot.dayOfWeek] || 'CLASE').toUpperCase();
+
         return {
           id: slot.id,
-          subjectName: subject ? subject.name : 'Clase Universitaria',
-          subjectColor: subject ? subject.color : '#3b82f6',
-          time: `${slot.startTime} - ${slot.endTime}`,
-          details: detailsParts.length > 0 ? detailsParts.join(' • ') : 'Campus Universitario',
+          title: subject ? subject.name : 'Clase Universitaria',
+          timeOrDate: `${slot.startTime} - ${slot.endTime}`,
+          details: detailsParts.length > 0 ? detailsParts.join(' • ') : (isToday ? 'Clase de hoy' : DAY_NAMES[slot.dayOfWeek]),
+          color: subject ? subject.color : '#3b82f6',
+          badge,
+          isToday,
         };
       });
 
@@ -75,20 +99,25 @@ export class WidgetSyncService {
           const dateObj = new Date(note.updatedAt);
           const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 
-          // Fragmento limpio de texto sin etiquetas HTML ni markdown
+          // Fragmento limpio de texto sin etiquetas HTML ni caracteres markdown
           const cleanSnippet = note.content
-            ? note.content.replace(/[#*`_~>\-[\]]/g, '').slice(0, 60).trim()
+            ? note.content.replace(/[#*`_~>\-[\]\n\r]/g, ' ').replace(/\s+/g, ' ').slice(0, 50).trim()
             : '';
+
+          const badge = subject && subject.name.length > 0
+            ? subject.name.slice(0, 4).toUpperCase()
+            : 'NOTA';
 
           return {
             id: note.id,
             title: note.title || 'Sin título',
-            subjectName: subject ? subject.name : 'General',
-            subjectColor: subject ? subject.color : '#10b981',
-            date: dateStr,
+            timeOrDate: dateStr,
             details: subject
               ? `${subject.name}${cleanSnippet ? ' • ' + cleanSnippet : ''}`
-              : `Apunte${cleanSnippet ? ' • ' + cleanSnippet : ''}`,
+              : (cleanSnippet || 'Apunte universitario'),
+            color: subject ? subject.color : '#10b981',
+            badge,
+            isToday: false,
           };
         });
 

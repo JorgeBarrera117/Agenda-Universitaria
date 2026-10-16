@@ -90,60 +90,40 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         }
 
         JSONObject item = itemList.get(position);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_list_item);
 
-        if ("schedule".equals(currentTab)) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_item_schedule);
+        String title = item.optString("title", "Elemento");
+        String timeOrDate = item.optString("timeOrDate", "");
+        String details = item.optString("details", "");
+        String colorHex = item.optString("color", "#38bdf8");
+        String badge = item.optString("badge", "");
+        boolean isToday = item.optBoolean("isToday", false);
+        String id = item.optString("id", "");
 
-            String subjectName = item.optString("subjectName", "Materia");
-            String time = item.optString("time", "");
-            String details = item.optString("details", "");
-            String colorHex = item.optString("subjectColor", "#3b82f6");
-            String id = item.optString("id", "");
+        views.setTextViewText(R.id.widget_item_title, title);
+        views.setTextViewText(R.id.widget_item_time_or_date, timeOrDate);
+        views.setTextViewText(R.id.widget_item_details, details);
+        views.setTextViewText(R.id.widget_item_badge, badge);
 
-            views.setTextViewText(R.id.widget_schedule_subject_name, subjectName);
-            views.setTextViewText(R.id.widget_schedule_time, time);
-            views.setTextViewText(R.id.widget_schedule_details, details);
-
-            try {
-                int color = Color.parseColor(colorHex);
-                views.setInt(R.id.widget_schedule_color_bar, "setBackgroundColor", color);
-            } catch (Exception ignored) {
-                views.setInt(R.id.widget_schedule_color_bar, "setBackgroundColor", 0xFF3B82F6);
-            }
-
-            Intent fillInIntent = new Intent();
-            fillInIntent.putExtra("item_type", "schedule");
-            fillInIntent.putExtra("item_id", id);
-            views.setOnClickFillInIntent(R.id.widget_schedule_item_container, fillInIntent);
-
-            return views;
+        if (isToday) {
+            views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_today);
         } else {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_item_note);
-
-            String title = item.optString("title", "Apunte");
-            String date = item.optString("date", "");
-            String subtitle = item.optString("details", "");
-            String colorHex = item.optString("subjectColor", "#10b981");
-            String id = item.optString("id", "");
-
-            views.setTextViewText(R.id.widget_note_title, title);
-            views.setTextViewText(R.id.widget_note_date, date);
-            views.setTextViewText(R.id.widget_note_subtitle, subtitle);
-
-            try {
-                int color = Color.parseColor(colorHex);
-                views.setInt(R.id.widget_note_color_bar, "setBackgroundColor", color);
-            } catch (Exception ignored) {
-                views.setInt(R.id.widget_note_color_bar, "setBackgroundColor", 0xFF10B981);
-            }
-
-            Intent fillInIntent = new Intent();
-            fillInIntent.putExtra("item_type", "note");
-            fillInIntent.putExtra("item_id", id);
-            views.setOnClickFillInIntent(R.id.widget_note_item_container, fillInIntent);
-
-            return views;
+            views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_day);
         }
+
+        try {
+            int color = Color.parseColor(colorHex);
+            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", color);
+        } catch (Exception ignored) {
+            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", 0xFF38BDF8);
+        }
+
+        Intent fillInIntent = new Intent();
+        fillInIntent.putExtra("item_type", currentTab);
+        fillInIntent.putExtra("item_id", id);
+        views.setOnClickFillInIntent(R.id.widget_item_container, fillInIntent);
+
+        return views;
     }
 
     @Override
@@ -153,7 +133,7 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
 
     @Override
     public int getViewTypeCount() {
-        return 2; // Horario y Apuntes
+        return 1;
     }
 
     @Override
