@@ -232,9 +232,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   <Sparkles className="w-3 h-3" />
                   PRÓXIMA CLASE HOY
                 </div>
-                <h3 className="text-sm sm:text-base font-extrabold text-white truncate max-w-[280px] sm:max-w-[380px]">
-                  {getSubjectById(nextClassToday.subjectId)?.name}
-                </h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm sm:text-base font-extrabold text-white">
+                    {getSubjectById(nextClassToday.subjectId)?.name}
+                  </h3>
+                  {getSubjectById(nextClassToday.subjectId)?.code && (
+                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black bg-cove-navy/80 border border-cove-sky/35 text-white shadow-2xs">
+                      {getSubjectById(nextClassToday.subjectId)?.code}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 text-xs text-slate-300">
                   <span className="font-mono text-cove-gold font-bold">
                     Inicia a las {nextClassToday.startTime}
@@ -471,22 +478,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               style={{ backgroundColor: subject?.color || '#006BBB' }}
                             />
 
-                            {/* 1. Cabecera compacta: Ícono + Código y Botones de Acción Superiores */}
-                            <div className="flex items-center justify-between gap-1 pt-0.5">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                {/* Badge con Ícono y Color */}
-                                <div
-                                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-white shadow-2xs shrink-0 ring-1 ring-white/60"
-                                  style={{ backgroundColor: subject?.color || '#006BBB' }}
-                                  title={subject?.name}
-                                >
-                                  <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 text-white" />
-                                </div>
-
-                                {/* Código de Asignatura */}
-                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black text-white bg-cove-navy shadow-2xs tracking-wider truncate max-w-[65px] sm:max-w-[85px]">
-                                  {subject?.code || 'CLASE'}
-                                </span>
+                            {/* 1. Cabecera: Ícono de Materia (Izq) y Botones de Acción (Der) */}
+                            <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                              {/* Badge con Ícono y Color */}
+                              <div
+                                className="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-2xs shrink-0 ring-1 ring-white/60"
+                                style={{ backgroundColor: subject?.color || '#006BBB' }}
+                                title={subject?.name}
+                              >
+                                <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 text-white" />
                               </div>
 
                               {/* Botones de Acción Superiores alineados a la derecha */}
@@ -520,10 +520,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               </div>
                             </div>
 
-                            {/* 2. Nombre de la Materia (100% de Ancho Disponible) */}
-                            <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug line-clamp-2">
-                              {subject?.name || 'Materia'}
-                            </h4>
+                            {/* 2. Código / Sigla Completa (100% visible, sin cortes) y Título de la Asignatura */}
+                            <div className="space-y-1">
+                              {subject?.code && (
+                                <div className="flex items-center">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-mono font-black text-white bg-cove-navy dark:bg-slate-800 border border-cove-sky/35 tracking-wider shadow-2xs">
+                                    {subject.code}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Nombre de la Materia (100% de Ancho Disponible) */}
+                              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug line-clamp-2">
+                                {subject?.name || 'Materia'}
+                              </h4>
+                            </div>
 
                             {/* 3. Cuerpo de Información Completo */}
                             <div className="space-y-1 text-[11px] pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
