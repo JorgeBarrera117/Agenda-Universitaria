@@ -33,6 +33,27 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Receptor del Widget de la Pantalla de Inicio (3x3, 4x4) -->
+        <receiver
+            android:name=".AgendaWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.agenda.universitaria.ACTION_SWITCH_TAB" />
+                <action android:name="com.agenda.universitaria.ACTION_ITEM_CLICK" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/agenda_widget_info" />
+        </receiver>
+
+        <!-- Servicio de datos para la lista interactiva del Widget -->
+        <service
+            android:name=".AgendaWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->

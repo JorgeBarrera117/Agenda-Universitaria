@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_note_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_item_bg"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <!-- Indicador de color de la materia asociada -->
+    <View
+        android:id="@+id/widget_note_color_bar"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="8dp"
+        android:background="#10b981" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_note_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Título del apunte"
+                android:textColor="#ffffff"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_note_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15 oct"
+                android:textColor="#64748b"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_note_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Cálculo Diferencial • Fragmento de notas..."
+            android:textColor="#94a3b8"
+            android:textSize="10sp" />
+    </LinearLayout>
+</LinearLayout>

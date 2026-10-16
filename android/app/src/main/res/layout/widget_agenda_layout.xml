@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Fila Superior: Título de la App y Botón de Apertura Rápida -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="6dp">
+
+        <LinearLayout
+            android:id="@+id/widget_header_clickable"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/widget_name"
+                android:textColor="#ffffff"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_date_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hoy"
+                android:textColor="#94a3b8"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Botón rápido para abrir la app -->
+        <TextView
+            android:id="@+id/widget_btn_open_app"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:background="@drawable/widget_add_btn_bg"
+            android:gravity="center"
+            android:text="↗"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Fila de Pestañas Interactivas: [ 📅 Horario ] y [ 📝 Apuntes ] -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="2dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/widget_btn_tab_schedule"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_active"
+            android:gravity="center"
+            android:text="@string/widget_tab_schedule"
+            android:textColor="#ffffff"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_btn_tab_notes"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="@string/widget_tab_notes"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Contenedor Principal de la Lista -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/widget_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="6dp"
+            android:overScrollMode="never"
+            android:scrollbars="none" />
+
+        <TextView
+            android:id="@+id/widget_empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="@string/widget_empty_schedule"
+            android:textColor="#64748b"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>

@@ -17,11 +17,14 @@ import { SettingsView } from './features/settings/components/SettingsView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useSubjects } from './features/subjects/hooks/useSubjects';
 import { useSchedule } from './features/schedule/hooks/useSchedule';
+import { useProfessors } from './features/professors/hooks/useProfessors';
+import { useNotes } from './features/notes/hooks/useNotes';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { NotificationService } from './shared/services/notificationService';
 import { applyTheme, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { backButtonManager } from './shared/services/backButtonManager';
+import { WidgetSyncService } from './shared/services/widgetSyncService';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
@@ -32,6 +35,8 @@ export function App() {
 
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
+  const { professors } = useProfessors();
+  const { notes } = useNotes();
   const { settings } = useAppSettings();
 
   // Sincronizar tema de apariencia (claro, oscuro o sistema)
@@ -91,6 +96,11 @@ export function App() {
     settings.notifyAtClassStart,
     settings.notificationSound,
   ]);
+
+  // Sincronizar automáticamente el Widget de la Pantalla de Inicio de Android (Horario y Apuntes)
+  useEffect(() => {
+    WidgetSyncService.syncWidgetData(slots, subjects, professors, notes).catch(console.warn);
+  }, [slots, subjects, professors, notes]);
 
   const showToast = (message: string) => {
     setToastMessage(message);

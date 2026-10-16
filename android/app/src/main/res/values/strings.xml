@@ -4,4 +4,10 @@
     <string name="title_activity_main">Agenda Universitaria</string>
     <string name="package_name">com.agenda.universitaria</string>
     <string name="custom_url_scheme">com.agenda.universitaria</string>
+    <string name="widget_name">Agenda Universitaria</string>
+    <string name="widget_description">Horario de clases y apuntes universitarios en tu pantalla de inicio</string>
+    <string name="widget_tab_schedule">📅 Horario</string>
+    <string name="widget_tab_notes">📝 Apuntes</string>
+    <string name="widget_empty_schedule">¡Sin clases hoy! Disfruta tu día libre 🎓</string>
+    <string name="widget_empty_notes">No hay apuntes registrados aún 📝</string>
 </resources>
