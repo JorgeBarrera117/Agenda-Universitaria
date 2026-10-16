@@ -60,6 +60,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
   const [zoomedImage, setZoomedImage] = useState<NoteImage | null>(null);
   const [zoomedInlineImage, setZoomedInlineImage] = useState<{ src: string; alt?: string } | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<NoteImage | null>(null);
 
   // Hook para las imágenes de la nota que se está leyendo
   const {
@@ -229,26 +230,28 @@ export const NotesView: React.FC<NotesViewProps> = ({
             onClick={handleBackToList}
             aria-label="Volver a mis apuntes"
             title="Volver"
-            className="p-2.5 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-xs flex items-center justify-center text-cove-blue dark:text-cove-sky active:scale-95 transition-all cursor-pointer shrink-0 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
-            <ArrowLeft className="w-5 h-5 text-cove-blue dark:text-cove-sky" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2">
-            <button
+          <div className="flex items-center gap-2.5">
+            <Button
+              variant="action-blue"
+              size="icon-md"
               onClick={() => handleOpenEdit(readingNote)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-cove-blue dark:text-cove-sky bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-cove-sky/30 dark:border-cove-sky/40"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span>Editar Apunte</span>
-            </button>
-            <button
+              title="Editar apunte"
+              aria-label="Editar apunte"
+              icon={<Edit2 className="w-5 h-5 text-white" />}
+            />
+            <Button
+              variant="action-rose"
+              size="icon-md"
               onClick={() => setNoteToDelete(readingNote)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl sm:rounded-2xl transition-colors cursor-pointer border border-red-200/60 dark:border-red-800/60"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Eliminar</span>
-            </button>
+              title="Eliminar apunte"
+              aria-label="Eliminar apunte"
+              icon={<Trash2 className="w-5 h-5 text-white" />}
+            />
           </div>
         </div>
 
@@ -385,7 +388,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     key={img.id}
                     image={img}
                     onZoom={() => setZoomedImage(img)}
-                    onDelete={() => removeImageFromReadingNote(img.id)}
+                    onDelete={() => setImageToDelete(img)}
                   />
                 ))}
               </div>
@@ -393,7 +396,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           </div>
         </div>
 
-        {/* Modal Confirmar Eliminación */}
+        {/* Modal Confirmar Eliminación de Apunte */}
         <Modal
           isOpen={noteToDelete !== null}
           onClose={() => setNoteToDelete(null)}
@@ -401,21 +404,58 @@ export const NotesView: React.FC<NotesViewProps> = ({
           maxWidth="sm"
         >
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               ¿Deseas eliminar <strong>{noteToDelete?.title}</strong>? Esta acción borrará también todas las fotos adjuntas permanentemente.
             </p>
             <div className="flex justify-end gap-3 pt-3">
               <button
+                type="button"
                 onClick={() => setNoteToDelete(null)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm cursor-pointer"
               >
-                Eliminar
+                Eliminar Apunte
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Modal Confirmar Eliminación de Fotografía */}
+        <Modal
+          isOpen={imageToDelete !== null}
+          onClose={() => setImageToDelete(null)}
+          title="¿Eliminar Fotografía?"
+          maxWidth="sm"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              ¿Estás seguro de que deseas eliminar esta fotografía del pizarrón? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setImageToDelete(null)}
+                className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (imageToDelete) {
+                    await removeImageFromReadingNote(imageToDelete.id);
+                    setImageToDelete(null);
+                  }
+                }}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+              >
+                Eliminar Foto
               </button>
             </div>
           </div>
@@ -751,23 +791,43 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, onZoom, onDelete }
   if (!objectUrl) return null;
 
   return (
-    <div className="relative group rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-2xs hover:shadow-md transition-all">
-      <img src={objectUrl} alt={image.name} className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-        <button
-          onClick={onZoom}
-          className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-xl backdrop-blur-xs cursor-pointer transition-colors"
-          title="Ver en pantalla completa con zoom"
-        >
-          <Maximize2 className="w-4 h-4" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-xl backdrop-blur-xs cursor-pointer transition-colors"
-          title="Eliminar foto"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+    <div
+      onClick={onZoom}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onZoom();
+        }
+      }}
+      className="relative group rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 aspect-square shadow-2xs hover:shadow-md transition-all cursor-zoom-in active:scale-95 select-none"
+      title="Tocar para ver en pantalla completa con zoom"
+    >
+      <img
+        src={objectUrl}
+        alt={image.name || 'Foto del pizarrón'}
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
+      />
+
+      {/* Botón para Eliminar foto (Aislado en la esquina superior derecha con stopPropagation) */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-900/75 hover:bg-red-600 text-white flex items-center justify-center shadow-md active:scale-90 transition-all z-10 cursor-pointer"
+        title="Eliminar fotografía"
+        aria-label="Eliminar fotografía"
+      >
+        <Trash2 className="w-4 h-4 text-white" />
+      </button>
+
+      {/* Indicador visual de zoom al pie de la foto */}
+      <div className="absolute bottom-2 left-2 px-2 py-1 bg-slate-950/65 backdrop-blur-xs rounded-lg flex items-center gap-1.5 text-[10px] text-white font-bold pointer-events-none shadow-xs">
+        <Maximize2 className="w-3 h-3 text-cove-sky" />
+        <span>Ver Foto</span>
       </div>
     </div>
   );
