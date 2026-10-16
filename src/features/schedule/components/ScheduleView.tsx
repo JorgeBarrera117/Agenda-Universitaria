@@ -339,8 +339,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
       {/* 3. SELECTOR DE DÍAS (Visible solo en vista diaria en desktop, o en móvil) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
-        <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 sm:p-2 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto custom-scrollbar pb-0.5">
+        <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto custom-scrollbar p-1.5 sm:p-2">
             {displayedDays.map((day) => {
               const isSelected = selectedDay === day;
               const isToday = currentDayOfWeek === day;

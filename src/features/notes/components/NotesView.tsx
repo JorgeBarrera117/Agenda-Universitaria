@@ -537,7 +537,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
       </div>
 
       {/* Separadores de Carpeta Universitaria (Subject Folder Tabs) */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto p-1.5 scrollbar-none">
         <button
           onClick={() => setSelectedSubjectId('all')}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${

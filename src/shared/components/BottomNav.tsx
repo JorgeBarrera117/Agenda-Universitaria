@@ -39,7 +39,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-cove-navy/85 backdrop-blur-xl border-t border-cove-deep/30 px-3 py-1.5 landscape:py-0.5 safe-area-pb shadow-2xl">
+    <nav className="md:hidden fixed bottom-3 inset-x-3.5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[420px] z-40 bg-cove-navy/90 dark:bg-slate-950/95 backdrop-blur-2xl border border-cove-sky/30 dark:border-slate-800 rounded-3xl sm:rounded-[28px] px-2.5 py-1.5 landscape:py-1 shadow-2xl shadow-cove-navy/50 dark:shadow-black/80 ring-1 ring-white/10 safe-area-pb">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -49,22 +49,28 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex flex-col items-center py-0.5 landscape:py-0 px-2.5 sm:px-3 rounded-2xl transition-all cursor-pointer ${
+              className={`flex flex-col items-center py-0.5 px-3 rounded-2xl transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'text-white font-extrabold scale-105'
-                  : 'text-slate-300 font-semibold hover:text-white'
+                  : 'text-slate-400 hover:text-white font-semibold'
               }`}
             >
               <div
-                className={`p-1.5 landscape:p-1 rounded-xl transition-all ${
+                className={`p-1.5 sm:p-2 landscape:p-1 rounded-2xl transition-all duration-200 ${
                   isActive
                     ? `${theme.bg} text-white ${theme.shadow} ${theme.ring}`
-                    : 'text-slate-300'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Icon className="w-5 h-5 landscape:w-4 landscape:h-4" />
               </div>
-              <span className="text-[10px] landscape:text-[9px] mt-0.5 tracking-tight">{item.label}</span>
+              <span
+                className={`text-[10px] landscape:text-[9px] mt-0.5 tracking-tight font-bold transition-colors ${
+                  isActive ? 'text-white' : 'text-slate-400'
+                }`}
+              >
+                {item.label}
+              </span>
             </button>
           );
         })}

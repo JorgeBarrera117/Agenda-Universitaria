@@ -148,7 +148,7 @@ export function App() {
       {toastMessage && (
         <div
           className={`fixed right-6 z-50 bg-cove-navy text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-cove-sky/30 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2 ${
-            isNoteEditorActive || isSettingsOpen ? 'bottom-6' : 'bottom-22 md:bottom-8'
+            isNoteEditorActive || isSettingsOpen ? 'bottom-6' : 'bottom-24 md:bottom-8'
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-cove-gold" />
@@ -161,7 +161,7 @@ export function App() {
         className={`flex-1 max-w-[1750px] w-full mx-auto ${
           isNoteEditorActive || isSettingsOpen
             ? 'px-3 sm:px-6 lg:px-8 pt-1 sm:pt-3'
-            : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-20 md:pb-8'
+            : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-24 sm:pb-28 md:pb-8'
         }`}
       >
         {isSettingsOpen ? (

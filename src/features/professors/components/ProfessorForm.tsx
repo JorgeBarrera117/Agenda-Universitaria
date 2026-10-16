@@ -106,7 +106,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
           <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1.5">
             1. Elige un ícono o muñequito
           </label>
-          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-1.5 overflow-x-auto p-1 scrollbar-none">
             {PROFESSOR_ICONS.map((opt) => {
               const IconComp = opt.icon;
               const isSelected = icon === opt.id;

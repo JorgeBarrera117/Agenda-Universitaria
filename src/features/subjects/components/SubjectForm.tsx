@@ -148,7 +148,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
           <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1.5">
             1. Elige un ícono para la materia
           </label>
-          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-1.5 overflow-x-auto p-1 scrollbar-none">
             {SUBJECT_ICONS.map((opt) => {
               const IconComp = opt.icon;
               const isSelected = icon === opt.id;
