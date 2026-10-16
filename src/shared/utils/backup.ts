@@ -1,5 +1,13 @@
+import { registerPlugin, Capacitor } from '@capacitor/core';
 import { db } from '../db/AppDatabase';
 import type { NoteImage } from '../../features/notes/types';
+
+interface WidgetBridgePlugin {
+  updateWidgetData(options: { dataJson: string }): Promise<{ success: boolean }>;
+  exportJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean; canceled?: boolean }>;
+}
+
+const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
 
 // Convertir Blob a DataURL base64 para exportar en JSON
 function blobToDataUrl(blob: Blob): Promise<string> {
@@ -64,25 +72,23 @@ export async function exportDatabaseBackup(): Promise<ExportResult> {
   const fileName = `agenda_universitaria_backup_${new Date().toISOString().split('T')[0]}.json`;
   const blob = new Blob([jsonString], { type: 'application/json' });
 
-  // 1. En entornos móviles (Android / iOS):
-  // Despliega la hoja nativa de compartir (Share Sheet), permitiendo al usuario elegir
-  // "Guardar en Archivos / Dispositivo" para seleccionar la carpeta exacta, o guardar en Google Drive.
-  if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
+  // 1. En entorno Android / Nativo de Capacitor:
+  // Usamos el Storage Access Framework (SAF) nativo mediante ACTION_CREATE_DOCUMENT.
+  // Abre el explorador de archivos oficial del sistema ("Guardar como...") permitiendo al usuario
+  // elegir la carpeta exacta (Descargas, Documentos, Drive, SD), modificar el nombre si desea y guardar.
+  if (Capacitor.isNativePlatform()) {
     try {
-      const file = new File([blob], fileName, { type: 'application/json' });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Respaldo Agenda Universitaria',
-          text: 'Copia de seguridad en formato JSON de la Agenda Universitaria.',
-        });
-        return { method: 'share' };
+      const res = await WidgetBridge.exportJsonFile({
+        content: jsonString,
+        fileName,
+      });
+      if (res && res.canceled) {
+        return { method: 'file-picker', canceled: true };
       }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return { method: 'share', canceled: true };
-      }
-      // Si falla o el usuario no puede compartir archivos, continúa al siguiente método
+      return { method: 'file-picker', canceled: false };
+    } catch (nativeErr) {
+      console.error('Error en exportación nativa SAF:', nativeErr);
+      // Si por alguna anomalía el selector nativo falla, continúa a los fallbacks web
     }
   }
 
@@ -114,11 +120,31 @@ export async function exportDatabaseBackup(): Promise<ExportResult> {
       if (err instanceof Error && err.name === 'AbortError') {
         return { method: 'file-picker', canceled: true };
       }
-      // Si el usuario cancela o hay error, continuar a descarga estándar
+      // Si el usuario cancela o hay error, continuar a compartir o descarga
     }
   }
 
-  // 3. Fallback tradicional: descarga directa en la carpeta de Descargas
+  // 3. En navegadores móviles con Web Share API (archivos):
+  if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
+    try {
+      const file = new File([blob], fileName, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Respaldo Agenda Universitaria',
+          text: 'Copia de seguridad en formato JSON de la Agenda Universitaria.',
+        });
+        return { method: 'share' };
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return { method: 'share', canceled: true };
+      }
+      // Si falla o el usuario no puede compartir archivos, continúa al siguiente método
+    }
+  }
+
+  // 4. Fallback tradicional: descarga directa en la carpeta de Descargas
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
