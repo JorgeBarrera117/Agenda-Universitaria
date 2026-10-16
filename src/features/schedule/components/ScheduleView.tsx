@@ -457,7 +457,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                 : `linear-gradient(155deg, ${subject?.color || '#006BBB'}22 0%, ${subject?.color || '#006BBB'}0a 100%), var(--card-bg, #ffffff)`,
                               borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}55`,
                             }}
-                            className={`rounded-2xl p-3 sm:p-3.5 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between gap-2.5 ${
+                            className={`rounded-2xl p-3 sm:p-3.5 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-row items-stretch justify-between gap-2.5 ${
                               isNow
                                 ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/20'
                                 : 'hover:border-cove-sky/80'
@@ -470,17 +470,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               style={{ backgroundColor: subject?.color || '#006BBB' }}
                             />
 
-                            {/* 1. Cabecera: Ícono con Color, Código y Acciones Rápidas */}
-                            <div>
-                              <div className="flex items-start justify-between gap-2 pt-0.5 mb-2">
-                                <div className="flex items-center gap-2 min-w-0">
+                            {/* Contenido Principal (Izquierda) */}
+                            <div className="flex-1 min-w-0 flex flex-col justify-between gap-2 pt-0.5">
+                              {/* 1. Cabecera: Ícono con Color, Código y Nombre */}
+                              <div>
+                                <div className="flex items-center gap-2 mb-1.5">
                                   {/* Badge con Ícono y Color */}
                                   <div
-                                    className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0 ring-1 ring-white/60"
+                                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0 ring-1 ring-white/60"
                                     style={{ backgroundColor: subject?.color || '#006BBB' }}
                                     title={subject?.name}
                                   >
-                                    <SubjectIcon icon={subject?.icon} className="w-4 h-4 text-white" />
+                                    <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                                   </div>
 
                                   {/* Código de Asignatura */}
@@ -491,93 +492,100 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                   </span>
                                 </div>
 
-                                {/* Acciones Rápidas (Agrupadas en la esquina superior) */}
-                                <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                                  {onNavigateToNotes && (
-                                    <button
-                                      onClick={() => onNavigateToNotes(slot.subjectId)}
-                                      className="w-7 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
-                                      title="Tomar apunte de esta materia"
-                                      aria-label="Tomar apunte"
-                                    >
-                                      <FileEdit className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => handleOpenEdit(slot)}
-                                    className="w-7 h-7 rounded-lg bg-blue-50 hover:bg-cove-blue text-blue-700 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
-                                    title="Editar clase"
-                                    aria-label="Editar clase"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => setSlotToDelete(slot)}
-                                    className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
-                                    title="Eliminar clase"
-                                    aria-label="Eliminar clase"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
+                                {/* Nombre de la Materia */}
+                                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug break-words">
+                                  {subject?.name || 'Materia'}
+                                </h4>
                               </div>
 
-                              {/* Nombre de la Materia (ancho completo sin colisiones) */}
-                              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug break-words">
-                                {subject?.name || 'Materia'}
-                              </h4>
-                            </div>
-
-                            {/* 2. Cuerpo de Información Completo */}
-                            <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                              {/* Rango Horario Completo */}
-                              <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2.5 py-1 rounded-xl">
-                                <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
-                                <span className="font-mono text-xs">{slot.startTime} - {slot.endTime}</span>
-                              </div>
-
-                              {/* Modalidad y Ubicación Completa */}
-                              {isSlotVirtual(slot) ? (
-                                <div className="flex items-center gap-1.5 text-indigo-900 bg-indigo-50/90 border border-indigo-200 px-2.5 py-1 rounded-xl">
-                                  <Laptop className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                                  <span className="font-bold text-[11px] leading-tight break-words">
-                                    Virtual: {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? slot.classroom : 'En Línea'}
-                                  </span>
+                              {/* 2. Cuerpo de Información Completo */}
+                              <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                                {/* Rango Horario Completo */}
+                                <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2.5 py-1 rounded-xl">
+                                  <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
+                                  <span className="font-mono text-xs">{slot.startTime} - {slot.endTime}</span>
                                 </div>
-                              ) : (
-                                slot.classroom && (
-                                  <div className="flex items-center gap-1.5 text-slate-700 bg-white/80 border border-slate-200 px-2.5 py-1 rounded-xl">
-                                    <Building2 className="w-3.5 h-3.5 text-cove-blue shrink-0" />
-                                    <span className="font-semibold text-[11px] leading-tight break-words">
-                                      {slot.classroom}{slot.building ? ` (${slot.building})` : ''}
+
+                                {/* Modalidad y Ubicación Completa */}
+                                {isSlotVirtual(slot) ? (
+                                  <div className="flex items-center gap-1.5 text-indigo-900 dark:text-indigo-200 bg-indigo-50/90 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 px-2.5 py-1 rounded-xl">
+                                    <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                    <span className="font-bold text-[11px] leading-tight break-words">
+                                      Virtual: {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? slot.classroom : 'En Línea'}
                                     </span>
                                   </div>
-                                )
-                              )}
+                                ) : (
+                                  slot.classroom && (
+                                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-xl">
+                                      <Building2 className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
+                                      <span className="font-semibold text-[11px] leading-tight break-words">
+                                        {slot.classroom}{slot.building ? ` (${slot.building})` : ''}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
 
-                              {/* Catedrático Asignado */}
-                              {professor && (
-                                <div className="flex items-center gap-2 pt-1 border-t border-slate-200/50 text-[11px] text-slate-700 font-medium">
-                                  <ProfessorAvatar
-                                    name={professor.name}
-                                    icon={professor.icon}
-                                    color={professor.color}
-                                    size="xs"
-                                  />
-                                  <span className="truncate leading-tight font-semibold">{professor.name}</span>
+                                {/* Catedrático Asignado */}
+                                {professor && (
+                                  <div className="flex items-center gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                                    <ProfessorAvatar
+                                      name={professor.name}
+                                      icon={professor.icon}
+                                      color={professor.color}
+                                      size="xs"
+                                    />
+                                    <span className="truncate leading-tight font-semibold">{professor.name}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 3. Indicador En Vivo */}
+                              {isNow && (
+                                <div className="pt-0.5">
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white shadow-2xs animate-pulse">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                    EN CURSO AHORA
+                                  </span>
                                 </div>
                               )}
                             </div>
 
-                            {/* 3. Indicador En Vivo */}
-                            {isNow && (
-                              <div className="pt-0.5">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white shadow-2xs animate-pulse">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                                  EN CURSO AHORA
-                                </span>
-                              </div>
-                            )}
+                            {/* Columna Vertical de Acciones (Derecha) - Botones Circulares con Gradiente */}
+                            <div className="flex flex-col justify-center items-center shrink-0 pl-1 py-0.5 gap-2">
+                              {/* Botón 1: Tomar apunte */}
+                              {onNavigateToNotes ? (
+                                <Button
+                                  variant="action-indigo"
+                                  size="icon-sm"
+                                  onClick={() => onNavigateToNotes(slot.subjectId)}
+                                  title="Tomar apunte de esta materia"
+                                  aria-label="Tomar apunte"
+                                  icon={<FileEdit className="w-3.5 h-3.5 text-white" />}
+                                />
+                              ) : (
+                                <div className="w-8 h-8" />
+                              )}
+
+                              {/* Botón 2: Editar clase */}
+                              <Button
+                                variant="action-blue"
+                                size="icon-sm"
+                                onClick={() => handleOpenEdit(slot)}
+                                title="Editar clase"
+                                aria-label="Editar clase"
+                                icon={<Edit2 className="w-3.5 h-3.5 text-white" />}
+                              />
+
+                              {/* Botón 3: Eliminar clase */}
+                              <Button
+                                variant="action-rose"
+                                size="icon-sm"
+                                onClick={() => setSlotToDelete(slot)}
+                                title="Eliminar clase"
+                                aria-label="Eliminar clase"
+                                icon={<Trash2 className="w-3.5 h-3.5 text-white" />}
+                              />
+                            </div>
                           </div>
                         );
                       })

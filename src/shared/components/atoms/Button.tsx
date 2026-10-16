@@ -73,8 +73,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       sm: 'px-3 py-1.5 text-xs rounded-xl gap-1.5',
       md: 'px-4 py-2.5 text-xs sm:text-sm rounded-2xl gap-2',
       lg: 'px-6 py-3 text-sm sm:text-base rounded-2xl gap-2.5',
-      'icon-sm': 'w-8 h-8 rounded-xl p-0 shrink-0',
-      'icon-md': 'w-10 h-10 sm:w-11 sm:h-11 rounded-2xl p-0 shrink-0',
+      'icon-sm': 'w-8 h-8 rounded-full p-0 shrink-0',
+      'icon-md': 'w-10 h-10 sm:w-11 sm:h-11 rounded-full p-0 shrink-0',
     };
 
     const widthStyle = fullWidth ? 'w-full' : '';
