@@ -5,6 +5,8 @@ import type { NoteImage } from '../../features/notes/types';
 interface WidgetBridgePlugin {
   updateWidgetData(options: { dataJson: string }): Promise<{ success: boolean }>;
   exportJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean; canceled?: boolean }>;
+  saveToDownloads(options: { content: string; fileName: string }): Promise<{ success: boolean; fileName: string }>;
+  shareJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean }>;
 }
 
 const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
@@ -33,18 +35,21 @@ function dataUrlToBlob(dataUrl: string): Blob {
 }
 
 export interface ExportResult {
-  method: 'share' | 'file-picker' | 'download';
+  method: 'downloads' | 'share' | 'file-picker' | 'clipboard' | 'download';
   canceled?: boolean;
+  fileName?: string;
 }
 
-export async function exportDatabaseBackup(): Promise<ExportResult> {
+/**
+ * Genera la cadena JSON y el nombre de archivo con todos los datos del semestre actual.
+ */
+export async function generateBackupData(): Promise<{ jsonString: string; fileName: string }> {
   const subjects = await db.subjects.toArray();
   const professors = await db.professors.toArray();
   const scheduleSlots = await db.scheduleSlots.toArray();
   const notes = await db.notes.toArray();
   const rawImages = await db.noteImages.toArray();
 
-  // Convertir cada imagen en base64 para poder exportarla dentro del JSON
   const serializedImages = await Promise.all(
     rawImages.map(async (img) => ({
       id: img.id,
@@ -70,12 +75,88 @@ export async function exportDatabaseBackup(): Promise<ExportResult> {
 
   const jsonString = JSON.stringify(backupData, null, 2);
   const fileName = `agenda_universitaria_backup_${new Date().toISOString().split('T')[0]}.json`;
+  return { jsonString, fileName };
+}
+
+/**
+ * 1. Guardar directamente en la carpeta de Descargas (Download) de Android
+ */
+export async function saveBackupToDownloads(): Promise<{ success: boolean; fileName: string }> {
+  const { jsonString, fileName } = await generateBackupData();
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await WidgetBridge.saveToDownloads({
+        content: jsonString,
+        fileName,
+      });
+      return { success: true, fileName: res.fileName || fileName };
+    } catch (e) {
+      console.warn('Fallo guardando en MediaStore Downloads:', e);
+    }
+  }
+
+  // Fallback para navegador web
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+  return { success: true, fileName };
+}
+
+/**
+ * 2. Compartir respaldo mediante la hoja nativa de Android (WhatsApp, Drive, Gmail, etc.)
+ */
+export async function shareBackup(): Promise<{ success: boolean; canceled?: boolean }> {
+  const { jsonString, fileName } = await generateBackupData();
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await WidgetBridge.shareJsonFile({
+        content: jsonString,
+        fileName,
+      });
+      return { success: res.success };
+    } catch (e) {
+      console.warn('Fallo compartiendo archivo nativo:', e);
+    }
+  }
+
+  // Fallback web: Web Share API si está disponible
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
+    try {
+      const file = new File([blob], fileName, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Respaldo Agenda Universitaria',
+          text: 'Copia de seguridad en formato JSON de la Agenda Universitaria.',
+        });
+        return { success: true };
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return { success: false, canceled: true };
+      }
+    }
+  }
+
+  // Si no se puede compartir, copiar al portapapeles como respaldo seguro
+  await copyBackupToClipboard();
+  return { success: true };
+}
+
+/**
+ * 3. Guardar como... eligiendo carpeta con Storage Access Framework (SAF) o File System API
+ */
+export async function saveBackupWithPicker(): Promise<ExportResult> {
+  const { jsonString, fileName } = await generateBackupData();
   const blob = new Blob([jsonString], { type: 'application/json' });
 
-  // 1. En entorno Android / Nativo de Capacitor:
-  // Usamos el Storage Access Framework (SAF) nativo mediante ACTION_CREATE_DOCUMENT.
-  // Abre el explorador de archivos oficial del sistema ("Guardar como...") permitiendo al usuario
-  // elegir la carpeta exacta (Descargas, Documentos, Drive, SD), modificar el nombre si desea y guardar.
   if (Capacitor.isNativePlatform()) {
     try {
       const res = await WidgetBridge.exportJsonFile({
@@ -86,14 +167,11 @@ export async function exportDatabaseBackup(): Promise<ExportResult> {
         return { method: 'file-picker', canceled: true };
       }
       return { method: 'file-picker', canceled: false };
-    } catch (nativeErr) {
-      console.error('Error en exportación nativa SAF:', nativeErr);
-      // Si por alguna anomalía el selector nativo falla, continúa a los fallbacks web
+    } catch (e) {
+      console.warn('Fallo en selector SAF:', e);
     }
   }
 
-  // 2. En Desktop (Chrome, Edge, Opera) con File System Access API:
-  // Abre el explorador de archivos nativo "Guardar como..." para que el usuario elija la ruta exacta.
   if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
     try {
       const handle = await (window as unknown as {
@@ -115,51 +193,77 @@ export async function exportDatabaseBackup(): Promise<ExportResult> {
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      return { method: 'file-picker' };
+      return { method: 'file-picker', canceled: false };
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') {
         return { method: 'file-picker', canceled: true };
       }
-      // Si el usuario cancela o hay error, continuar a compartir o descarga
     }
   }
 
-  // 3. En navegadores móviles con Web Share API (archivos):
-  if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
-    try {
-      const file = new File([blob], fileName, { type: 'application/json' });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Respaldo Agenda Universitaria',
-          text: 'Copia de seguridad en formato JSON de la Agenda Universitaria.',
-        });
-        return { method: 'share' };
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return { method: 'share', canceled: true };
-      }
-      // Si falla o el usuario no puede compartir archivos, continúa al siguiente método
-    }
-  }
-
-  // 4. Fallback tradicional: descarga directa en la carpeta de Descargas
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-  return { method: 'download' };
+  // Fallback si el selector no está disponible
+  return saveBackupToDownloads().then((r) => ({
+    method: 'downloads',
+    fileName: r.fileName,
+  }));
 }
 
-export async function importDatabaseBackup(file: File): Promise<void> {
-  const text = await file.text();
-  const parsed = JSON.parse(text);
+/**
+ * 4. Copiar texto JSON completo al portapapeles (Infalible, cero permisos requeridos)
+ */
+export async function copyBackupToClipboard(): Promise<boolean> {
+  const { jsonString } = await generateBackupData();
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(jsonString);
+      return true;
+    }
+  } catch {
+    // Continuar a fallback
+  }
+
+  // Fallback clásico con textarea oculto
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = jsonString;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    console.error('Error al copiar al portapapeles:', err);
+    return false;
+  }
+}
+
+/**
+ * Función compatible retrocompatible: exporta de forma inteligente
+ */
+export async function exportDatabaseBackup(): Promise<ExportResult> {
+  if (Capacitor.isNativePlatform()) {
+    // En Android, primero intentar guardar en Descargas directamente
+    try {
+      const res = await saveBackupToDownloads();
+      return { method: 'downloads', fileName: res.fileName };
+    } catch {
+      return saveBackupWithPicker();
+    }
+  }
+  return saveBackupWithPicker();
+}
+
+/**
+ * Restaura toda la base de datos a partir de una cadena JSON en texto crudo
+ */
+export async function restoreFromRawJson(rawText: string): Promise<void> {
+  const parsed = JSON.parse(rawText);
 
   if (!parsed.data || !parsed.data.subjects) {
-    throw new Error('El archivo no contiene un formato de respaldo válido.');
+    throw new Error('El archivo no contiene un formato de respaldo válido de Agenda Universitaria.');
   }
 
   // Reconstruir los Blobs binarios desde base64
@@ -192,4 +296,12 @@ export async function importDatabaseBackup(file: File): Promise<void> {
     if (parsed.data.notes?.length) await db.notes.bulkAdd(parsed.data.notes);
     if (restoredImages.length) await db.noteImages.bulkAdd(restoredImages);
   });
+}
+
+/**
+ * Restaura toda la base de datos a partir de un archivo File (.json)
+ */
+export async function importDatabaseBackup(file: File): Promise<void> {
+  const text = await file.text();
+  await restoreFromRawJson(text);
 }

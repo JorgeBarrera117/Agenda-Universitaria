@@ -1,20 +1,15 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   Bell,
   BellRing,
   Clock,
   Volume2,
-  HardDrive,
   Calendar,
   Camera,
-  ShieldCheck,
   Check,
-  RefreshCw,
   Sparkles,
   Layers,
-  Download,
-  Upload,
   Send,
   Smartphone,
   Sun,
@@ -26,7 +21,7 @@ import { useAppSettings } from '../hooks/useAppSettings';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { NotificationService } from '../../../shared/services/notificationService';
-import { exportDatabaseBackup, importDatabaseBackup } from '../../../shared/utils/backup';
+import { BackupSection } from './BackupSection';
 import { applyTheme } from '../../../shared/utils/theme';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
@@ -46,10 +41,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [draftSettings, setDraftSettings] = useState<AppSettings>(settings);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isTestingNotification, setIsTestingNotification] = useState(false);
 
@@ -117,45 +109,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     onBack();
   };
 
-  // Exportar respaldo JSON
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const res = await exportDatabaseBackup();
-      if (res.canceled) return;
-      if (res.method === 'download') {
-        onShowToast('Copia guardada en la carpeta Descargas de tu dispositivo.');
-      } else {
-        onShowToast('Copia de seguridad del semestre exportada con éxito.');
-      }
-    } catch {
-      onShowToast('Error al exportar la copia de seguridad.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
-  // Importar respaldo JSON
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsImporting(true);
-    try {
-      await importDatabaseBackup(file);
-      onShowToast('Datos del semestre restaurados correctamente.');
-      await refreshStorageEstimate();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        onShowToast(err.message);
-      } else {
-        onShowToast('Error al restaurar los datos.');
-      }
-    } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
 
   return (
     <div className="relative min-h-screen text-slate-800 dark:text-slate-100 pb-16 animate-in fade-in duration-200">
@@ -687,69 +641,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 7. SECCIÓN: DATOS Y RESPALDOS (OFFLINE-FIRST) */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-3 transition-colors">
-          <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <HardDrive className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-black text-slate-900 dark:text-white">
-                Almacenamiento Local y Copias de Seguridad
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Tus datos residen 100% en tu dispositivo con IndexedDB (Dexie.js).
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky font-bold text-xs rounded-2xl border border-cove-sky/30 dark:border-cove-sky/40 transition-all active:scale-98 cursor-pointer disabled:opacity-50"
-            >
-              {isExporting ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-cove-blue dark:text-cove-sky shrink-0" />
-              ) : (
-                <Download className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
-              )}
-              <span className="hidden sm:inline">Exportar Copia (JSON)</span>
-              <span className="sm:hidden">Exportar JSON</span>
-            </button>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isImporting}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-700 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50"
-            >
-              {isImporting ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-cove-navy dark:text-cove-sand shrink-0" />
-              ) : (
-                <Upload className="w-3.5 h-3.5 text-cove-navy dark:text-cove-sand shrink-0" />
-              )}
-              <span className="hidden sm:inline">Restaurar Copia de Seguridad</span>
-              <span className="sm:hidden">Restaurar JSON</span>
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-            />
-          </div>
-
-          <div className="pt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <div className="flex items-center gap-1.5 font-medium">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Espacio ocupado en memoria:</span>
-            </div>
-            <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
-              {storageEstimate.usedMB} MB / {storageEstimate.quotaMB} MB
-            </span>
-          </div>
-        </div>
+        <BackupSection
+          onShowToast={onShowToast}
+          storageEstimate={storageEstimate}
+          refreshStorageEstimate={refreshStorageEstimate}
+        />
 
         {/* 8. INFORMACIÓN DE LA APLICACIÓN */}
         <div className="p-4 sm:p-5 bg-gradient-to-br from-cove-sand/40 via-white to-cove-sand/20 dark:from-slate-900/80 dark:via-slate-800 dark:to-slate-900/60 border border-cove-gold/50 dark:border-slate-800 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-4 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">

@@ -1,20 +1,15 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Download,
-  Upload,
-  HardDrive,
   Calendar,
   Camera,
-  ShieldCheck,
   Check,
-  RefreshCw,
   Sparkles,
   Layers,
 } from 'lucide-react';
 import { Modal } from '../../../shared/components/Modal';
 import { useAppSettings } from '../hooks/useAppSettings';
 import type { AppSettings } from '../types';
-import { exportDatabaseBackup, importDatabaseBackup } from '../../../shared/utils/backup';
+import { BackupSection } from './BackupSection';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -29,9 +24,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const { settings, updateSettings, storageEstimate, refreshStorageEstimate } =
     useAppSettings();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [draftSettings, setDraftSettings] = useState<AppSettings>(settings);
 
   // Sincronizar el borrador de configuración cada vez que se abre el modal
@@ -53,114 +45,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onClose();
   };
 
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const res = await exportDatabaseBackup();
-      if (res.canceled) return;
-      if (res.method === 'download') {
-        onShowToast('Copia guardada en la carpeta Descargas de tu dispositivo.');
-      } else {
-        onShowToast('Copia de seguridad del semestre exportada con éxito.');
-      }
-    } catch {
-      onShowToast('Error al exportar la copia de seguridad.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsImporting(true);
-    try {
-      await importDatabaseBackup(file);
-      onShowToast('Datos del semestre restaurados correctamente.');
-      await refreshStorageEstimate();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        onShowToast(err.message);
-      } else {
-        onShowToast('Error al restaurar los datos.');
-      }
-    } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="Configuración de la Agenda" maxWidth="md">
       <div className="space-y-6 text-slate-800">
         {/* 1. SECCIÓN: GESTIÓN DE DATOS Y RESPALDOS (OFFLINE-FIRST) */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-cove-navy">
-            <HardDrive className="w-4 h-4 text-cove-blue" />
-            <span>Datos y Copias de Seguridad (Local-First)</span>
-          </div>
-
-          <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 space-y-3.5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h4 className="text-sm font-black text-slate-900">
-                  Respaldo Completo del Semestre
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Exporta todas tus asignaturas, profesores, horarios, apuntes y fotos de pizarra en un único archivo JSON seguro.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <button
-                onClick={handleExport}
-                disabled={isExporting}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-cove-blue/10 hover:bg-cove-blue/20 text-cove-blue font-bold text-xs rounded-xl border border-cove-sky/30 transition-all active:scale-98 cursor-pointer disabled:opacity-50"
-              >
-                {isExporting ? (
-                  <RefreshCw className="w-4 h-4 animate-spin text-cove-blue" />
-                ) : (
-                  <Download className="w-4 h-4 text-cove-blue" />
-                )}
-                <span>Exportar Copia (JSON)</span>
-              </button>
-
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isImporting}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-cove-sand/50 hover:bg-cove-sand border border-cove-gold/70 text-cove-navy font-bold text-xs rounded-xl transition-all active:scale-98 cursor-pointer disabled:opacity-50"
-              >
-                {isImporting ? (
-                  <RefreshCw className="w-4 h-4 animate-spin text-cove-navy" />
-                ) : (
-                  <Upload className="w-4 h-4 text-cove-navy" />
-                )}
-                <span>Restaurar Copia</span>
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                className="hidden"
-              />
-            </div>
-
-            {/* Métrica de almacenamiento local en el dispositivo */}
-            <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-              <div className="flex items-center gap-1.5 font-medium">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Almacenamiento ocupado en el dispositivo:</span>
-              </div>
-              <span className="font-mono font-bold text-slate-800">
-                {storageEstimate.usedMB} MB
-              </span>
-            </div>
-          </div>
-        </div>
+        <BackupSection
+          onShowToast={onShowToast}
+          storageEstimate={storageEstimate}
+          refreshStorageEstimate={refreshStorageEstimate}
+          compact
+        />
 
         {/* 2. SECCIÓN: PREFERENCIAS DEL SEMESTRE Y HORARIO */}
         <div className="space-y-3">
