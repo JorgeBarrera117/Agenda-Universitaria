@@ -19,10 +19,12 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -71,13 +73,21 @@ public class WidgetBridgePlugin extends Plugin {
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                 values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
                 values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                values.put(MediaStore.MediaColumns.IS_PENDING, 1);
 
                 fileUri = context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
                 if (fileUri != null) {
                     try (OutputStream out = context.getContentResolver().openOutputStream(fileUri)) {
-                        out.write(content.getBytes(StandardCharsets.UTF_8));
-                        out.flush();
+                        if (out != null) {
+                            out.write(content.getBytes(StandardCharsets.UTF_8));
+                            out.flush();
+                        }
                     }
+
+                    // Liberar IS_PENDING para publicar el archivo completo al sistema
+                    values.clear();
+                    values.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                    context.getContentResolver().update(fileUri, values, null, null);
                 }
             } else {
                 File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -216,6 +226,74 @@ public class WidgetBridgePlugin extends Plugin {
             tempFile.delete();
         }
 
+        JSObject ret = new JSObject();
+        ret.put("success", false);
+        ret.put("canceled", true);
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void pickAndReadJsonFile(PluginCall call) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        String[] mimeTypes = {"application/json", "text/plain", "application/octet-stream"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
+        startActivityForResult(call, intent, "openFileResult");
+    }
+
+    @ActivityCallback
+    private void openFileResult(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+
+        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+            Uri fileUri = result.getData().getData();
+            if (fileUri != null) {
+                try {
+                    try {
+                        getContext().getContentResolver().takePersistableUriPermission(
+                            fileUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        );
+                    } catch (Exception ignored) {
+                    }
+
+                    try (InputStream in = getContext().getContentResolver().openInputStream(fileUri);
+                         BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                        if (in == null) {
+                            call.reject("No se pudo abrir el archivo seleccionado.");
+                            return;
+                        }
+
+                        StringBuilder sb = new StringBuilder();
+                        char[] buffer = new char[8192];
+                        int bytesRead;
+                        while ((bytesRead = reader.read(buffer)) != -1) {
+                            sb.append(buffer, 0, bytesRead);
+                        }
+
+                        String content = sb.toString().trim();
+                        if (content.isEmpty()) {
+                            call.reject("El archivo seleccionado está vacío (0 bytes). Verifica que elegiste la copia de seguridad correcta.");
+                            return;
+                        }
+
+                        JSObject ret = new JSObject();
+                        ret.put("success", true);
+                        ret.put("content", content);
+                        ret.put("canceled", false);
+                        call.resolve(ret);
+                        return;
+                    }
+                } catch (Exception e) {
+                    call.reject("Error al leer el archivo seleccionado: " + e.getMessage());
+                    return;
+                }
+            }
+        }
+
+        // Si el usuario canceló la selección de archivo
         JSObject ret = new JSObject();
         ret.put("success", false);
         ret.put("canceled", true);

@@ -7,6 +7,7 @@ interface WidgetBridgePlugin {
   exportJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean; canceled?: boolean }>;
   saveToDownloads(options: { content: string; fileName: string }): Promise<{ success: boolean; fileName: string }>;
   shareJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean }>;
+  pickAndReadJsonFile(): Promise<{ success: boolean; content?: string; canceled?: boolean }>;
 }
 
 const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
@@ -260,9 +261,32 @@ export async function exportDatabaseBackup(): Promise<ExportResult> {
  * Restaura toda la base de datos a partir de una cadena JSON en texto crudo
  */
 export async function restoreFromRawJson(rawText: string): Promise<void> {
-  const parsed = JSON.parse(rawText);
+  let cleanText = (rawText || '').trim();
 
-  if (!parsed.data || !parsed.data.subjects) {
+  // Eliminar Byte Order Mark (BOM) UTF-8 si está presente al inicio del archivo
+  if (cleanText.charCodeAt(0) === 0xfeff) {
+    cleanText = cleanText.slice(1).trim();
+  }
+
+  if (!cleanText || cleanText.length === 0) {
+    throw new Error(
+      'El archivo de respaldo seleccionado está completamente vacío (0 bytes). Verifica que seleccionaste el archivo correcto o usa la opción "Restaurar Pegando Texto".'
+    );
+  }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(cleanText);
+  } catch (err: unknown) {
+    if (err instanceof SyntaxError) {
+      throw new Error(
+        'El archivo seleccionado no tiene un formato JSON válido o está incompleto (Unexpected end of JSON input). Si guardaste el respaldo recientemente, asegúrate de que se descargó completo o prueba la opción "Restaurar Pegando Texto".'
+      );
+    }
+    throw err;
+  }
+
+  if (!parsed || !parsed.data || !parsed.data.subjects) {
     throw new Error('El archivo no contiene un formato de respaldo válido de Agenda Universitaria.');
   }
 
@@ -299,9 +323,51 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
 }
 
 /**
- * Restaura toda la base de datos a partir de un archivo File (.json)
+ * 5. Restaura toda la base de datos de forma nativa e infalible en Android mediante SAF (Storage Access Framework)
+ */
+export async function pickAndRestoreBackup(): Promise<{ success: boolean; canceled?: boolean }> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await WidgetBridge.pickAndReadJsonFile();
+      if (res.canceled) {
+        return { success: false, canceled: true };
+      }
+      if (res.content) {
+        await restoreFromRawJson(res.content);
+        return { success: true, canceled: false };
+      }
+    } catch (e) {
+      console.warn('Fallo en selector nativo pickAndReadJsonFile:', e);
+      throw e;
+    }
+  }
+  return { success: false, canceled: false };
+}
+
+/**
+ * Restaura toda la base de datos a partir de un archivo File (.json) en navegadores web
  */
 export async function importDatabaseBackup(file: File): Promise<void> {
-  const text = await file.text();
+  let text = '';
+  try {
+    text = await file.text();
+  } catch {
+    text = '';
+  }
+
+  // Si file.text() devolvió vacío en algún WebView, recurrir a FileReader tradicional
+  if (!text || text.trim() === '') {
+    text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string) || '');
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo seleccionado.'));
+      reader.readAsText(file, 'UTF-8');
+    });
+  }
+
+  if (!text || text.trim() === '') {
+    throw new Error('El archivo seleccionado está vacío (0 bytes). Verifica que elegiste la copia de seguridad correcta.');
+  }
+
   await restoreFromRawJson(text);
 }

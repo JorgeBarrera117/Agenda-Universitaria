@@ -12,6 +12,7 @@ import {
   Check,
   FileCode,
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import {
   saveBackupToDownloads,
   shareBackup,
@@ -19,6 +20,7 @@ import {
   copyBackupToClipboard,
   importDatabaseBackup,
   restoreFromRawJson,
+  pickAndRestoreBackup,
 } from '../../../shared/utils/backup';
 import { Modal } from '../../../shared/components/Modal';
 
@@ -104,7 +106,38 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
     }
   };
 
-  // 5. Importar archivo .json
+  // 5. Iniciar selección y restauración de archivo (Nativo en Android / Fallback en Web)
+  const handleRestoreFromFile = async () => {
+    if (Capacitor.isNativePlatform()) {
+      setIsImporting(true);
+      try {
+        const res = await pickAndRestoreBackup();
+        if (res.canceled) {
+          // El usuario canceló la selección en el gestor de archivos de Android
+          return;
+        }
+        if (res.success) {
+          onShowToast('¡Datos del semestre restaurados correctamente!');
+          if (refreshStorageEstimate) await refreshStorageEstimate();
+          return;
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          onShowToast(err.message);
+        } else {
+          onShowToast('Error al restaurar los datos desde el archivo.');
+        }
+        return;
+      } finally {
+        setIsImporting(false);
+      }
+    }
+
+    // Fallback para navegador web
+    fileInputRef.current?.click();
+  };
+
+  // 5.1 Fallback para navegador Web mediante input HTML
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -255,7 +288,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
           {/* Opción A: Desde archivo */}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleRestoreFromFile}
             disabled={isImporting}
             className="flex items-center gap-2.5 px-3.5 py-2.5 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-700 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
           >
