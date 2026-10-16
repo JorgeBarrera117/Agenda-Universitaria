@@ -50,8 +50,21 @@ export const NotesView: React.FC<NotesViewProps> = ({
   );
   const { subjects, getSubjectById } = useSubjects();
 
-  // Conteo de fotos por nota para mostrar en las tarjetas
-  const allImages = useLiveQuery(() => db.noteImages.toArray(), []);
+  // Optimización de Memoria: Conteo de fotos por apunte mediante claves de índice
+  // (Evita deserializar en el Heap de JS los pesados objetos Blob de cada imagen de la base de datos)
+  const imageCounts = useLiveQuery(async () => {
+    try {
+      const noteIds = (await db.noteImages.orderBy('noteId').keys()) as string[];
+      const counts: Record<string, number> = {};
+      for (const id of noteIds) {
+        counts[id] = (counts[id] || 0) + 1;
+      }
+      return counts;
+    } catch (err) {
+      console.warn('Error al consultar conteo de imágenes:', err);
+      return {};
+    }
+  }, []);
 
   // Vistas a pantalla completa: 'list' (general), 'editor' (crear/editar), 'reader' (lectura generosa)
   const [viewMode, setViewMode] = useState<'list' | 'editor' | 'reader'>('list');
@@ -481,7 +494,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // Helper para purgar markdown, KaTeX y HTML de los fragmentos de vista previa
   const cleanSnippetPreview = (rawContent: string): string => {
     if (!rawContent) return '';
-    const cleaned = rawContent
+    // Optimización de Memoria y CPU: Solo procesar los primeros 1000 caracteres
+    // ya que la tarjeta solo muestra un extracto de 2 líneas. Si hay imágenes Base64 grandes,
+    // evitamos procesar megabytes de strings con expresiones regulares pesadas.
+    const truncated = rawContent.length > 1000 ? rawContent.slice(0, 1000) : rawContent;
+    const cleaned = truncated
+      .replace(/<img[^>]*>/gi, ' [Imagen] ')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\$\$[\s\S]*?\$\$/g, ' [Fórmula] ')
       .replace(/\$([^$]+)\$/g, '$1')
@@ -490,7 +508,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
       .replace(/(\*|_)(.*?)\1/g, '$2')
       .replace(/~~(.*?)~~/g, '$1')
       .replace(/^>\s+/gm, '')
-      .replace(/^[\*\-\+]\s+/gm, '')
+      .replace(/^[*+-]\s+/gm, '')
       .replace(/^\d+\.\s+/gm, '')
       .replace(/```[\s\S]*?```/g, ' [Código] ')
       .replace(/`([^`]+)`/g, '$1')
@@ -605,7 +623,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {notes.map((note) => {
             const subject = getSubjectById(note.subjectId);
-            const imageCount = allImages?.filter((img) => img.noteId === note.id).length || 0;
+            const imageCount = imageCounts?.[note.id] || 0;
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
               month: 'short',

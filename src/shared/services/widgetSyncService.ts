@@ -12,6 +12,8 @@ interface WidgetBridgePlugin {
 const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
 
 export class WidgetSyncService {
+  private static lastWidgetHash = '';
+
   /**
    * Sincroniza el horario diario y semanal, así como los apuntes más recientes, con el Widget de Android
    */
@@ -23,12 +25,19 @@ export class WidgetSyncService {
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
 
-    try {
-      const todayDay = (() => {
-        const d = new Date().getDay();
-        return (d === 0 ? 7 : d); // 1 = Lunes ... 7 = Domingo
-      })();
+    // Guard de rendimiento: Si el contenido no ha variado, evitar serialización JSON y bridge IPC
+    const todayDay = (() => {
+      const d = new Date().getDay();
+      return (d === 0 ? 7 : d); // 1 = Lunes ... 7 = Domingo
+    })();
 
+    const currentHash = `${todayDay}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => s.id).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
+    if (currentHash === this.lastWidgetHash) {
+      return;
+    }
+    this.lastWidgetHash = currentHash;
+
+    try {
       const subjectMap = new Map<string, Subject>();
       subjects.forEach((s) => subjectMap.set(s.id, s));
 
@@ -99,10 +108,14 @@ export class WidgetSyncService {
           const dateObj = new Date(note.updatedAt);
           const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 
-          // Fragmento limpio de texto sin etiquetas HTML ni caracteres markdown
-          const cleanSnippet = note.content
-            ? note.content.replace(/[#*`_~>\-[\]\n\r]/g, ' ').replace(/\s+/g, ' ').slice(0, 50).trim()
-            : '';
+          // Fragmento limpio de texto sin etiquetas HTML ni caracteres markdown (Truncado previo para proteger CPU)
+          const snippetSource = note.content ? note.content.slice(0, 200) : '';
+          const cleanSnippet = snippetSource
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/[#*`_~>\-[\]\n\r]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .slice(0, 50)
+            .trim();
 
           const badge = subject && subject.name.length > 0
             ? subject.name.slice(0, 4).toUpperCase()

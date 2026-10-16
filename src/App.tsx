@@ -83,11 +83,14 @@ export function App() {
     return false;
   }, BACK_PRIORITY.TAB, activeTab !== 'schedule' && !isSettingsOpen);
 
-  // Sincronizar automáticamente recordatorios locales al cambiar materias, horarios o configuración
+  // Sincronizar automáticamente recordatorios locales (con debounce de 600ms para agrupar cargas reactivas)
   useEffect(() => {
-    if (settings.notificationsEnabled && slots.length > 0) {
-      NotificationService.syncScheduleNotifications(slots, subjects, settings).catch(console.warn);
-    }
+    const timer = setTimeout(() => {
+      if (settings.notificationsEnabled && slots.length > 0) {
+        NotificationService.syncScheduleNotifications(slots, subjects, settings).catch(console.warn);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
   }, [
     slots,
     subjects,
@@ -97,9 +100,12 @@ export function App() {
     settings.notificationSound,
   ]);
 
-  // Sincronizar automáticamente el Widget de la Pantalla de Inicio de Android (Horario y Apuntes)
+  // Sincronizar automáticamente el Widget de la Pantalla de Inicio de Android (con debounce de 600ms para optimizar CPU y batería)
   useEffect(() => {
-    WidgetSyncService.syncWidgetData(slots, subjects, professors, notes).catch(console.warn);
+    const timer = setTimeout(() => {
+      WidgetSyncService.syncWidgetData(slots, subjects, professors, notes).catch(console.warn);
+    }, 600);
+    return () => clearTimeout(timer);
   }, [slots, subjects, professors, notes]);
 
   const showToast = (message: string) => {

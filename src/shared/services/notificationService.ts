@@ -19,6 +19,7 @@ function generateNotificationId(slotId: string, typeSuffix: number): number {
 
 export class NotificationService {
   private static isInitialized = false;
+  private static lastNotificationHash = '';
 
   /**
    * Inicializa el canal de notificaciones en Android
@@ -132,6 +133,13 @@ export class NotificationService {
     if (!Capacitor.isNativePlatform()) {
       return { scheduledCount: 0 };
     }
+
+    // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
+    const currentHash = `${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}`).join(',')}`;
+    if (currentHash === this.lastNotificationHash) {
+      return { scheduledCount: 0 };
+    }
+    this.lastNotificationHash = currentHash;
 
     await this.init();
 

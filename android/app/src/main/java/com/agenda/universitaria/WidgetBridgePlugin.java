@@ -38,7 +38,7 @@ public class WidgetBridgePlugin extends Plugin {
         if (dataJson != null) {
             Context context = getContext();
             SharedPreferences prefs = context.getSharedPreferences(AgendaWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE);
-            prefs.edit().putString("widget_data", dataJson).commit();
+            prefs.edit().putString("widget_data", dataJson).apply();
 
             // Actualizar ambos widgets colocados en la pantalla de inicio
             AgendaWidgetProvider.updateAllWidgets(context);
