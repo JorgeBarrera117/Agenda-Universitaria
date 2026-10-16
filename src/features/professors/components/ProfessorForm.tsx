@@ -119,7 +119,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-xs ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-900 dark:hover:text-white'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <IconComp className="w-3.5 h-3.5" />
@@ -231,7 +231,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
             Primero crea materias en la sección de materias para asignarlas aquí.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/80">
+          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/60">
             {subjects.map((sub) => {
               const isSelected = selectedSubjectIds.includes(sub.id);
               return (
@@ -242,7 +242,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
                   className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-cove-blue text-white border-cove-blue shadow-xs'
-                      : 'bg-white dark:bg-slate-750 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   {sub.name}

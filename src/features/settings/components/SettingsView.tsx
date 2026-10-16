@@ -352,7 +352,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           {/* Estado de Permisos del Sistema */}
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-750 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
             <div className="flex items-center gap-2">
               <div
                 className={`w-2.5 h-2.5 rounded-full shrink-0 ${
@@ -562,7 +562,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                     draftSettings.defaultScheduleView === 'weekly'
                       ? 'bg-cove-navy text-white border-cove-navy shadow-xs'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
@@ -577,7 +577,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                     draftSettings.defaultScheduleView === 'daily'
                       ? 'bg-cove-navy text-white border-cove-navy shadow-xs'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                 >
                   <Calendar className="w-3.5 h-3.5" />
@@ -610,7 +610,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     className={`py-2 px-1.5 rounded-2xl text-[11px] font-bold text-center transition-all cursor-pointer border ${
                       draftSettings.visibleDays === item.id
                         ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <span className="hidden sm:inline">{item.labelFull || item.label}</span>
@@ -652,7 +652,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className={`flex items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                   draftSettings.imageQuality === 'balanced'
                     ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <Check className="w-3.5 h-3.5 shrink-0" />
@@ -667,7 +667,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className={`flex items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
                   draftSettings.imageQuality === 'high'
                     ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
@@ -715,7 +715,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-750 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-700 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50"
             >
               {isImporting ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-cove-navy dark:text-cove-sand shrink-0" />
@@ -747,7 +747,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
         {/* 8. INFORMACIÓN DE LA APLICACIÓN */}
-        <div className="p-4 sm:p-5 bg-gradient-to-br from-cove-sand/40 via-white to-cove-sand/20 dark:from-slate-900/80 dark:via-slate-850 dark:to-slate-900/60 border border-cove-gold/50 dark:border-slate-800 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-4 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
+        <div className="p-4 sm:p-5 bg-gradient-to-br from-cove-sand/40 via-white to-cove-sand/20 dark:from-slate-900/80 dark:via-slate-800 dark:to-slate-900/60 border border-cove-gold/50 dark:border-slate-800 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-4 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
           <div className="flex items-center gap-3.5">
             <img
               src="/app-icon-claro.svg"

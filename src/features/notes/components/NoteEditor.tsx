@@ -6,14 +6,12 @@ import type { Note, CreateNoteDTO } from '../types';
 
 interface NoteEditorProps {
   initialData?: Note;
-  defaultSubjectId?: string;
   onSubmit: (data: CreateNoteDTO) => Promise<void>;
   onCancel: () => void;
 }
 
 export const NoteEditor: React.FC<NoteEditorProps> = ({
   initialData,
-  defaultSubjectId,
   onSubmit,
   onCancel,
 }) => {
@@ -21,19 +19,19 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
 
   const [title, setTitle] = useState(initialData?.title || '');
   const [subjectId, setSubjectId] = useState(
-    initialData?.subjectId || defaultSubjectId || subjects[0]?.id || ''
+    initialData?.subjectId || ''
   );
   const [content, setContent] = useState(initialData?.content || '');
   const [tagInput, setTagInput] = useState(initialData?.tags.join(', ') || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Sincronizar subjectId cuando las materias cargan desde IndexedDB
+  // Sincronizar solo cuando se edita un apunte existente
   useEffect(() => {
-    if (!subjectId && subjects.length > 0) {
-      setSubjectId(initialData?.subjectId || defaultSubjectId || subjects[0].id);
+    if (initialData?.subjectId) {
+      setSubjectId(initialData.subjectId);
     }
-  }, [subjects, subjectId, initialData, defaultSubjectId]);
+  }, [initialData]);
 
   const selectedSubject = subjects.find((s) => s.id === subjectId);
 
@@ -44,7 +42,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
       return;
     }
     if (!subjectId) {
-      setError('Debes clasificar este apunte en una materia.');
+      setError('Debes elegir a qué materia pertenece este apunte.');
       return;
     }
 
@@ -79,16 +77,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
           onClick={onCancel}
           aria-label="Volver a mis apuntes"
           title="Volver"
-          className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-xs flex items-center justify-center text-cove-blue dark:text-cove-sky active:scale-95 transition-all cursor-pointer shrink-0 hover:bg-slate-50 dark:hover:bg-slate-750"
+          className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-xs flex items-center justify-center text-cove-blue dark:text-cove-sky active:scale-95 transition-all cursor-pointer shrink-0 hover:bg-slate-50 dark:hover:bg-slate-700"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
         {/* Selector de Materia estilo Píldora */}
-        <div className="flex-1 max-w-sm flex items-center gap-2 bg-white dark:bg-slate-850 border border-slate-200/90 dark:border-slate-700 rounded-full px-3.5 py-2 shadow-2xs relative transition-colors">
+        <div className="flex-1 max-w-sm flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-full px-3.5 py-2 shadow-2xs relative transition-colors">
           <span
-            className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-            style={{ backgroundColor: selectedSubject?.color || '#0284c7' }}
+            className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs transition-colors"
+            style={{ backgroundColor: selectedSubject?.color || (subjectId ? '#0284c7' : '#94a3b8') }}
           />
           <select
             value={subjectId}
@@ -99,7 +97,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             className="bg-transparent text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer w-full pr-6 appearance-none truncate"
             required
           >
-            <option value="" disabled className="dark:bg-slate-800 dark:text-white">
+            <option value="" disabled className="dark:bg-slate-800 dark:text-slate-400">
               -- Selecciona Materia --
             </option>
             {subjects.map((s) => (
@@ -113,7 +111,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
       </div>
 
       {/* 2. Barra de Etiquetas (#resumen, #examen) en píldora horizontal */}
-      <div className="w-full flex items-center gap-2 bg-slate-50/90 dark:bg-slate-850/90 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl sm:rounded-full px-3.5 py-2 transition-colors">
+      <div className="w-full flex items-center gap-2 bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl sm:rounded-full px-3.5 py-2 transition-colors">
         <Hash className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
         <input
           type="text"

@@ -202,7 +202,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               <span>Clase Virtual ({virtualPlatform || 'En Línea'})</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-slate-200/70 dark:bg-slate-750 text-slate-800 dark:text-slate-200 border border-slate-300/70 dark:border-slate-700">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-slate-200/70 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300/70 dark:border-slate-700">
               <Building2 className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky" />
               <span className="truncate">
                 Presencial: {classroom ? classroom : 'Aula sin asignar'}
@@ -232,7 +232,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
               modality === 'presencial'
                 ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
             <div
@@ -261,7 +261,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
             className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
               modality === 'virtual'
                 ? 'bg-gradient-to-br from-indigo-900 to-indigo-950 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400/40'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
             <div
@@ -451,7 +451,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                     className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                       virtualPlatform === plat
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                        : 'bg-white dark:bg-slate-800 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-slate-750'
+                        : 'bg-white dark:bg-slate-800 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     {plat}

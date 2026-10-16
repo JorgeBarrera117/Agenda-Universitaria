@@ -331,7 +331,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               disabled={isProcessingImage}
               onClick={() => galleryInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-900 dark:text-white text-xs font-bold rounded-xl border-2 border-slate-900 dark:border-slate-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-bold rounded-xl border-2 border-slate-900 dark:border-slate-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
               title="Subir imagen de la galería e insertarla en el texto"
             >
               <ImageIcon className="w-3.5 h-3.5" />

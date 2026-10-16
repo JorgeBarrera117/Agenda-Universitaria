@@ -27,6 +27,7 @@ import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card, Badge } from '../../../shared/components/atoms';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import DOMPurify from 'dompurify';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 
 interface NotesViewProps {
@@ -201,7 +202,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
       <div className="max-w-4xl mx-auto pb-10">
         <NoteEditor
           initialData={editingNote}
-          defaultSubjectId={selectedSubjectId !== 'all' ? selectedSubjectId : undefined}
           onSubmit={handleSubmit}
           onCancel={handleBackToList}
         />
@@ -306,7 +306,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
             className="text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed prose prose-slate dark:prose-invert max-w-none [&_img]:cursor-zoom-in [&_img]:rounded-2xl [&_img]:shadow-md [&_img:hover]:ring-2 [&_img:hover]:ring-cove-sky/50 [&_img]:transition-all"
             dangerouslySetInnerHTML={{
               __html:
-                readingNote.content.trim() ||
+                DOMPurify.sanitize(readingNote.content.trim()) ||
                 '<p class="text-slate-400 italic">Este apunte no contiene texto redactado.</p>',
             }}
           />
@@ -369,7 +369,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
             </div>
 
             {readingNoteImages.length === 0 ? (
-              <div className="text-center py-8 bg-slate-50 dark:bg-slate-850/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+              <div className="text-center py-8 bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                 <Camera className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
                   No hay fotos anexadas a este apunte.

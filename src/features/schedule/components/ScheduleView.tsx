@@ -348,7 +348,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 className={`relative flex-1 min-w-[50px] sm:min-w-[74px] py-2.5 sm:py-3.5 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md shadow-cove-navy/25 dark:shadow-blue-600/30 ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                    : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-2xs'
+                    : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs'
                 }`}
               >
                 {/* Indicador de "Hoy": Micro-badge absoluto en esquina para no alterar el centrado geométrico del texto */}
