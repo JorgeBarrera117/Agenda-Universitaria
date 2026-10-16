@@ -121,8 +121,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      await exportDatabaseBackup();
-      onShowToast('Copia de seguridad del semestre exportada con éxito.');
+      const res = await exportDatabaseBackup();
+      if (res.canceled) return;
+      if (res.method === 'download') {
+        onShowToast('Copia guardada en la carpeta Descargas de tu dispositivo.');
+      } else {
+        onShowToast('Copia de seguridad del semestre exportada con éxito.');
+      }
     } catch {
       onShowToast('Error al exportar la copia de seguridad.');
     } finally {

@@ -24,7 +24,12 @@ function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-export async function exportDatabaseBackup() {
+export interface ExportResult {
+  method: 'share' | 'file-picker' | 'download';
+  canceled?: boolean;
+}
+
+export async function exportDatabaseBackup(): Promise<ExportResult> {
   const subjects = await db.subjects.toArray();
   const professors = await db.professors.toArray();
   const scheduleSlots = await db.scheduleSlots.toArray();
@@ -56,14 +61,71 @@ export async function exportDatabaseBackup() {
   };
 
   const jsonString = JSON.stringify(backupData, null, 2);
+  const fileName = `agenda_universitaria_backup_${new Date().toISOString().split('T')[0]}.json`;
   const blob = new Blob([jsonString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
 
+  // 1. En entornos móviles (Android / iOS):
+  // Despliega la hoja nativa de compartir (Share Sheet), permitiendo al usuario elegir
+  // "Guardar en Archivos / Dispositivo" para seleccionar la carpeta exacta, o guardar en Google Drive.
+  if (typeof navigator !== 'undefined' && 'canShare' in navigator) {
+    try {
+      const file = new File([blob], fileName, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Respaldo Agenda Universitaria',
+          text: 'Copia de seguridad en formato JSON de la Agenda Universitaria.',
+        });
+        return { method: 'share' };
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return { method: 'share', canceled: true };
+      }
+      // Si falla o el usuario no puede compartir archivos, continúa al siguiente método
+    }
+  }
+
+  // 2. En Desktop (Chrome, Edge, Opera) con File System Access API:
+  // Abre el explorador de archivos nativo "Guardar como..." para que el usuario elija la ruta exacta.
+  if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+    try {
+      const handle = await (window as unknown as {
+        showSaveFilePicker: (options?: unknown) => Promise<{
+          createWritable: () => Promise<{
+            write: (data: unknown) => Promise<void>;
+            close: () => Promise<void>;
+          }>;
+        }>;
+      }).showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: 'Archivo de Respaldo JSON',
+            accept: { 'application/json': ['.json'] },
+          },
+        ],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return { method: 'file-picker' };
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return { method: 'file-picker', canceled: true };
+      }
+      // Si el usuario cancela o hay error, continuar a descarga estándar
+    }
+  }
+
+  // 3. Fallback tradicional: descarga directa en la carpeta de Descargas
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `agenda_universitaria_backup_${new Date().toISOString().split('T')[0]}.json`;
+  link.download = fileName;
   link.click();
   URL.revokeObjectURL(url);
+  return { method: 'download' };
 }
 
 export async function importDatabaseBackup(file: File): Promise<void> {
