@@ -10,4 +10,8 @@
     <string name="widget_tab_notes">Apuntes</string>
     <string name="widget_empty_schedule">Sin clases programadas en la agenda</string>
     <string name="widget_empty_notes">No hay apuntes registrados aún</string>
+    <string name="widget_day_name">Horario por Día</string>
+    <string name="widget_day_description">Consulta y navega tus clases de cualquier día de la semana</string>
+    <string name="widget_day_empty">Sin clases programadas para este día</string>
+    <string name="widget_btn_today">Hoy</string>
 </resources>

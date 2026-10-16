@@ -121,9 +121,52 @@ export class WidgetSyncService {
           };
         });
 
+      // Agrupar clases por cada día de la semana (1 = Lunes ... 7 = Domingo) para el Widget de Horario por Día
+      const scheduleByDay: Record<number, any[]> = {};
+      for (let dayNum = 1; dayNum <= 7; dayNum++) {
+        const daySlots = slots
+          .filter((s) => s.dayOfWeek === dayNum)
+          .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+        scheduleByDay[dayNum] = daySlots.map((slot) => {
+          const subject = subjectMap.get(slot.subjectId);
+          const professorId = slot.professorId || subject?.professorId;
+          const prof = professorId ? professorMap.get(professorId) : undefined;
+          const isToday = dayNum === todayDay;
+
+          const detailsParts: string[] = [];
+          if (slot.classroom) {
+            detailsParts.push(`Aula ${slot.classroom}`);
+          } else if (slot.building) {
+            detailsParts.push(slot.building);
+          } else if (subject?.classroomDefault) {
+            detailsParts.push(`Aula ${subject.classroomDefault}`);
+          }
+
+          if (prof) {
+            detailsParts.push(prof.name);
+          }
+
+          const badge = isToday
+            ? 'HOY'
+            : (SHORT_DAY_NAMES[slot.dayOfWeek] || 'CLASE').toUpperCase();
+
+          return {
+            id: slot.id,
+            title: subject ? subject.name : 'Clase Universitaria',
+            timeOrDate: `${slot.startTime} - ${slot.endTime}`,
+            details: detailsParts.length > 0 ? detailsParts.join(' • ') : (isToday ? 'Clase de hoy' : DAY_NAMES[slot.dayOfWeek]),
+            color: subject ? subject.color : '#3b82f6',
+            badge,
+            isToday,
+          };
+        });
+      }
+
       const payload = {
         schedule: scheduleData,
         notes: recentNotes,
+        scheduleByDay,
       };
 
       await WidgetBridge.updateWidgetData({

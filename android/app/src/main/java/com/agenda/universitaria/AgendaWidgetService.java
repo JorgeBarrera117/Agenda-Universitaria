@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Binder;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -38,7 +39,12 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
 
     @Override
     public void onDataSetChanged() {
-        loadData();
+        final long identityToken = Binder.clearCallingIdentity();
+        try {
+            loadData();
+        } finally {
+            Binder.restoreCallingIdentity(identityToken);
+        }
     }
 
     private void loadData() {

@@ -69,29 +69,31 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
             views.setTextViewText(R.id.widget_empty_view, context.getString(R.string.widget_empty_notes));
         }
 
-        // PendingIntent para conmutar a la pestaña Horario
+        // PendingIntent para conmutar a la pestaña Horario (estable e inmutable)
         Intent scheduleTabIntent = new Intent(context, AgendaWidgetProvider.class);
         scheduleTabIntent.setAction(ACTION_SWITCH_TAB);
         scheduleTabIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         scheduleTabIntent.putExtra(EXTRA_TAB, "schedule");
+        scheduleTabIntent.setData(Uri.parse("tab://" + appWidgetId + "/schedule"));
         PendingIntent schedulePending = PendingIntent.getBroadcast(
                 context,
                 appWidgetId * 10 + 1,
                 scheduleTabIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widget_btn_tab_schedule, schedulePending);
 
-        // PendingIntent para conmutar a la pestaña Apuntes
+        // PendingIntent para conmutar a la pestaña Apuntes (estable e inmutable)
         Intent notesTabIntent = new Intent(context, AgendaWidgetProvider.class);
         notesTabIntent.setAction(ACTION_SWITCH_TAB);
         notesTabIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         notesTabIntent.putExtra(EXTRA_TAB, "notes");
+        notesTabIntent.setData(Uri.parse("tab://" + appWidgetId + "/notes"));
         PendingIntent notesPending = PendingIntent.getBroadcast(
                 context,
                 appWidgetId * 10 + 2,
                 notesTabIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widget_btn_tab_notes, notesPending);
 
@@ -107,11 +109,10 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_header_clickable, openAppPending);
         views.setOnClickPendingIntent(R.id.widget_btn_open_app, openAppPending);
 
-        // Configurar el servicio para la lista de clases / apuntes
+        // Adaptador con URI ESTABLE para evitar reconexiones de IPC repetidas que congelaban el widget
         Intent serviceIntent = new Intent(context, AgendaWidgetService.class);
         serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        serviceIntent.putExtra(EXTRA_TAB, selectedTab);
-        serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
+        serviceIntent.setData(Uri.parse("content://agenda_widget/widget_" + appWidgetId));
         views.setRemoteAdapter(R.id.widget_list_view, serviceIntent);
         views.setEmptyView(R.id.widget_list_view, R.id.widget_empty_view);
 
@@ -158,7 +159,7 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
                     editor.putString(KEY_SELECTED_TAB + "_" + appWidgetId, newTab);
                 }
                 editor.putString(KEY_SELECTED_TAB, newTab);
-                editor.apply();
+                editor.commit(); // Commit sincrónico para garantizar lectura inmediata en onDataSetChanged
 
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {

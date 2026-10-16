@@ -49,9 +49,31 @@
                 android:resource="@xml/agenda_widget_info" />
         </receiver>
 
-        <!-- Servicio de datos para la lista interactiva del Widget -->
+        <!-- Servicio de datos para la lista interactiva del Widget 1 -->
         <service
             android:name=".AgendaWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+        <!-- Receptor del Widget 2: Horario por Día de la Semana (3x3, 4x4) -->
+        <receiver
+            android:name=".ScheduleDayWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_day_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.agenda.universitaria.ACTION_SELECT_DAY" />
+                <action android:name="com.agenda.universitaria.ACTION_SELECT_TODAY" />
+                <action android:name="com.agenda.universitaria.ACTION_DAY_ITEM_CLICK" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/schedule_day_widget_info" />
+        </receiver>
+
+        <!-- Servicio de datos para el Widget 2 de Horario por Día -->
+        <service
+            android:name=".ScheduleDayWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
     </application>

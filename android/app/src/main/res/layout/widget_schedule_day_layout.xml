@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_day_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Fila Superior: Título con Día Seleccionado y Acciones Rápidas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="6dp">
+
+        <LinearLayout
+            android:id="@+id/widget_day_header_clickable"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_day_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Horario • Jueves"
+                android:textColor="#ffffff"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_day_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Toca un día para consultar"
+                android:textColor="#94a3b8"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Botón para volver a HOY rápidamente -->
+        <TextView
+            android:id="@+id/widget_day_btn_today"
+            android:layout_width="wrap_content"
+            android:layout_height="26dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/widget_tab_active"
+            android:gravity="center"
+            android:paddingHorizontal="8dp"
+            android:text="@string/widget_btn_today"
+            android:textColor="#ffffff"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <!-- Botón para abrir la app -->
+        <FrameLayout
+            android:id="@+id/widget_day_btn_open_app"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:background="@drawable/widget_add_btn_bg">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:contentDescription="Abrir Agenda"
+                android:src="@drawable/ic_widget_external_link" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Barra de Selección de Día de la Semana (Lun, Mar, Mié, Jue, Vie, Sáb, Dom) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="2dp"
+        android:paddingBottom="8dp">
+
+        <!-- Lunes (1) -->
+        <TextView
+            android:id="@+id/widget_btn_day_1"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="Lun"
+            android:textColor="#94a3b8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <!-- Martes (2) -->
+        <TextView
+            android:id="@+id/widget_btn_day_2"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="Mar"
+            android:textColor="#94a3b8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <!-- Miércoles (3) -->
+        <TextView
+            android:id="@+id/widget_btn_day_3"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="Mié"
+            android:textColor="#94a3b8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <!-- Jueves (4) -->
+        <TextView
+            android:id="@+id/widget_btn_day_4"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_active"
+            android:gravity="center"
+            android:text="Jue"
+            android:textColor="#ffffff"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <!-- Viernes (5) -->
+        <TextView
+            android:id="@+id/widget_btn_day_5"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="Vie"
+            android:textColor="#94a3b8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <!-- Sábado (6) -->
+        <TextView
+            android:id="@+id/widget_btn_day_6"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="Sáb"
+            android:textColor="#94a3b8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <!-- Domingo (7) -->
+        <TextView
+            android:id="@+id/widget_btn_day_7"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_tab_inactive"
+            android:gravity="center"
+            android:text="Dom"
+            android:textColor="#94a3b8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Contenedor Principal de la Lista de Clases del Día -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/widget_day_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="6dp"
+            android:overScrollMode="never"
+            android:scrollbars="none" />
+
+        <TextView
+            android:id="@+id/widget_day_empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="@string/widget_day_empty"
+            android:textColor="#64748b"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>
