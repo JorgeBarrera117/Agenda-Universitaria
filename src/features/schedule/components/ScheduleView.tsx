@@ -149,25 +149,25 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   return (
-    <div className="space-y-5">
-      {/* 1. CENTRO DE CONTROL EN VIVO (UX PENSAMIENTO DE DISEÑO) */}
+    <div className="space-y-4">
+      {/* 1. CENTRO DE CONTROL EN VIVO (UX PENSAMIENTO DE DISEÑO - ULTRA SLEEK Y COMPACTO) */}
       {(activeClassNow || nextClassToday || todaySlots.length > 0) && (
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-white p-4 sm:p-5 shadow-lg border border-cove-sky/30">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-white p-3 sm:py-3 sm:px-5 shadow-lg border border-cove-sky/30">
           {/* Elementos decorativos de fondo sutiles */}
           <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-cove-sky/15 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/3 -mb-10 w-36 h-36 bg-cove-blue/20 rounded-full blur-xl pointer-events-none" />
 
           {activeClassNow ? (
             // A. ESTADO: EN CLASE AHORA
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="space-y-1 sm:space-y-1.5 min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   EN CLASE AHORA MISMO
                 </div>
 
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 flex-wrap">
+                  <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-2">
                     {getSubjectById(activeClassNow.subjectId)?.name || 'Clase Universitaria'}
                     {getSubjectById(activeClassNow.subjectId)?.code && (
                       <Badge variant="navy" size="xs">
@@ -175,19 +175,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       </Badge>
                     )}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs font-medium text-slate-200">
-                    <span className="flex items-center gap-1.5 font-mono text-cove-gold font-bold">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-200">
+                    <span className="flex items-center gap-1 font-mono text-cove-gold font-bold">
                       <Clock className="w-3.5 h-3.5" />
                       {activeClassNow.startTime} - {activeClassNow.endTime}
                     </span>
                     {isSlotVirtual(activeClassNow) ? (
-                      <span className="flex items-center gap-1.5 text-white bg-indigo-500/30 border border-indigo-300/40 px-2 py-0.5 rounded-lg font-bold text-[11px]">
+                      <span className="flex items-center gap-1 text-white bg-indigo-500/30 border border-indigo-300/40 px-2 py-0.5 rounded-lg font-bold text-[11px]">
                         <Laptop className="w-3.5 h-3.5 text-sky-300" />
                         <span>Clase Virtual {activeClassNow.classroom && activeClassNow.classroom.toLowerCase() !== 'virtual' ? `• ${activeClassNow.classroom}` : ''}</span>
                       </span>
                     ) : (
                       activeClassNow.classroom && (
-                        <span className="flex items-center gap-1.5 text-white bg-white/15 px-2 py-0.5 rounded-lg text-[11px]">
+                        <span className="flex items-center gap-1 text-white bg-white/15 px-2 py-0.5 rounded-lg text-[11px]">
                           <Building2 className="w-3.5 h-3.5 text-cove-sky" />
                           <span>
                             {activeClassNow.classroom}
@@ -197,7 +197,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                       )
                     )}
                     {getProfessorById(activeClassNow.professorId) && (
-                      <span className="flex items-center gap-1.5 text-slate-200 text-xs">
+                      <span className="flex items-center gap-1 text-slate-200 text-xs">
                         <ProfessorAvatar
                           name={getProfessorById(activeClassNow.professorId)!.name}
                           icon={getProfessorById(activeClassNow.professorId)?.icon}
@@ -215,32 +215,32 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               {onNavigateToNotes && (
                 <Button
                   variant="secondary"
-                  size="md"
+                  size="sm"
                   onClick={() => onNavigateToNotes(activeClassNow.subjectId)}
-                  className="bg-gradient-to-r from-cove-gold to-amber-400 text-cove-navy font-black shadow-lg shadow-cove-gold/25 hover:from-amber-300 hover:to-amber-400 shrink-0"
-                  icon={<FileEdit className="w-4 h-4 text-cove-navy" />}
+                  className="bg-gradient-to-r from-cove-gold to-amber-400 text-cove-navy font-black shadow-md shadow-cove-gold/25 hover:from-amber-300 hover:to-amber-400 shrink-0 self-start md:self-center"
+                  icon={<FileEdit className="w-3.5 h-3.5 text-cove-navy" />}
                 >
-                  Tomar Apunte de esta Clase
+                  Tomar Apunte
                 </Button>
               )}
             </div>
           ) : nextClassToday ? (
-            // B. ESTADO: SIGUIENTE CLASE HOY
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-cove-gold/20 text-cove-gold border border-cove-gold/40 mb-1.5">
+            // B. ESTADO: SIGUIENTE CLASE HOY (Línea compacta de alta densidad)
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cove-gold/20 text-cove-gold border border-cove-gold/40 shrink-0">
                   <Sparkles className="w-3 h-3" />
                   PRÓXIMA CLASE HOY
                 </div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-white">
+                <h3 className="text-sm sm:text-base font-extrabold text-white truncate max-w-[280px] sm:max-w-[380px]">
                   {getSubjectById(nextClassToday.subjectId)?.name}
                 </h3>
-                <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-300">
+                <div className="flex items-center gap-2 text-xs text-slate-300">
                   <span className="font-mono text-cove-gold font-bold">
                     Inicia a las {nextClassToday.startTime}
                   </span>
                   {nextClassToday.classroom && (
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-[11px]">
                       <MapPin className="w-3 h-3 text-cove-sky" />
                       {nextClassToday.classroom}
                     </span>
@@ -248,10 +248,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-xs text-slate-400">Total clases hoy:</span>
-                <span className="ml-2 font-mono font-bold text-cove-sand">
-                  {todaySlots.length} asignaturas
+              <div className="text-left sm:text-right text-xs text-slate-400 shrink-0">
+                <span>Total hoy: </span>
+                <span className="font-mono font-bold text-cove-sand">
+                  {todaySlots.length} {todaySlots.length === 1 ? 'clase' : 'clases'}
                 </span>
               </div>
             </div>
@@ -259,12 +259,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             // C. ESTADO: CLASES COMPLETADAS HOY
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-400/30">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-400/30">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">¡Jornada de hoy completada!</h4>
-                  <p className="text-xs text-slate-300">
+                  <h4 className="text-xs sm:text-sm font-bold text-white">¡Jornada de hoy completada!</h4>
+                  <p className="text-[11px] sm:text-xs text-slate-300 hidden sm:block">
                     Has terminado todas tus clases del día. Aprovecha para repasar tus apuntes.
                   </p>
                 </div>
@@ -275,17 +275,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
       )}
 
       {/* 2. ENCABEZADO Y SELECTOR DE VISTAS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Horario Académico
             </h2>
             <Badge variant="primary" size="sm">
               {settings.semesterName}
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 hidden sm:block">
             Planificación de bloques lectivos, aulas y cátedras universitarias.
           </p>
         </div>
@@ -330,70 +330,72 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         </div>
       </div>
 
-      {/* 3. SELECTOR DE DÍAS (Segmented Campus Control alineado y con micro-badge absoluto de Hoy) */}
-      <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 sm:p-2 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-        <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto scrollbar-none">
-          {displayedDays.map((day) => {
-            const isSelected = selectedDay === day;
-            const isToday = currentDayOfWeek === day;
-            const count = slots.filter((s) => s.dayOfWeek === day).length;
+      {/* 3. SELECTOR DE DÍAS (Visible solo en vista diaria en desktop, o en móvil) */}
+      <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
+        <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 sm:p-2 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto custom-scrollbar pb-0.5">
+            {displayedDays.map((day) => {
+              const isSelected = selectedDay === day;
+              const isToday = currentDayOfWeek === day;
+              const count = slots.filter((s) => s.dayOfWeek === day).length;
 
-            return (
-              <button
-                key={day}
-                onClick={() => {
-                  setSelectedDay(day as DayOfWeek);
-                  if (window.innerWidth < 640) setViewMode('daily');
-                }}
-                className={`relative flex-1 min-w-[50px] sm:min-w-[74px] py-2.5 sm:py-3.5 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer ${
-                  isSelected
-                    ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md shadow-cove-navy/25 dark:shadow-blue-600/30 ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                    : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs'
-                }`}
-              >
-                {/* Indicador de "Hoy": Micro-badge absoluto en esquina para no alterar el centrado geométrico del texto */}
-                {isToday && (
-                  <span
-                    className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full ${
-                      isSelected
-                        ? 'bg-cove-gold ring-2 ring-cove-navy dark:ring-blue-600 animate-pulse'
-                        : 'bg-amber-500 ring-2 ring-white dark:ring-slate-800'
-                    }`}
-                    title="Hoy"
-                  />
-                )}
-
-                {/* Día de la semana perfectamente centrado */}
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider block leading-tight text-center">
-                  {SHORT_DAY_NAMES[day as DayOfWeek]}
-                </span>
-
-                {/* Conteo de bloques con contraste de alta legibilidad */}
-                <div
-                  className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-semibold truncate ${
-                    isSelected ? 'text-cove-sky dark:text-sky-200' : 'text-slate-400 dark:text-slate-400'
+              return (
+                <button
+                  key={day}
+                  onClick={() => {
+                    setSelectedDay(day as DayOfWeek);
+                    if (window.innerWidth < 640) setViewMode('daily');
+                  }}
+                  className={`relative flex-1 min-w-[50px] sm:min-w-[74px] py-2 sm:py-3 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md shadow-cove-navy/25 dark:shadow-blue-600/30 ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
+                      : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs'
                   }`}
                 >
-                  <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
-                  <span className="hidden sm:inline">{count} {count === 1 ? 'bloque' : 'bloques'}</span>
-                </div>
-              </button>
-            );
-          })}
+                  {/* Indicador de "Hoy": Micro-badge absoluto en esquina para no alterar el centrado geométrico del texto */}
+                  {isToday && (
+                    <span
+                      className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full ${
+                        isSelected
+                          ? 'bg-cove-gold ring-2 ring-cove-navy dark:ring-blue-600 animate-pulse'
+                          : 'bg-amber-500 ring-2 ring-white dark:ring-slate-800'
+                      }`}
+                      title="Hoy"
+                    />
+                  )}
+
+                  {/* Día de la semana perfectamente centrado */}
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider block leading-tight text-center">
+                    {SHORT_DAY_NAMES[day as DayOfWeek]}
+                  </span>
+
+                  {/* Conteo de bloques con contraste de alta legibilidad */}
+                  <div
+                    className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-semibold truncate ${
+                      isSelected ? 'text-cove-sky dark:text-sky-200' : 'text-slate-400 dark:text-slate-400'
+                    }`}
+                  >
+                    <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
+                    <span className="hidden sm:inline">{count} {count === 1 ? 'bloque' : 'bloques'}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* 4. VISTA SEMANAL (Cuadrícula Desktop estilo Tarjeta de Cátedra Ampliada) */}
+      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva Desktop / Laptop con Tarjetas Verticales de Ancho Completo) */}
       {viewMode === 'weekly' && (
-        <div className="overflow-x-auto pb-4">
+        <div className="overflow-x-auto pb-4 custom-scrollbar">
           <div
             className={`hidden sm:grid ${
               displayedDays.length === 7
-                ? 'grid-cols-7'
+                ? 'grid-cols-7 min-w-[1260px] 2xl:min-w-0'
                 : displayedDays.length === 6
-                ? 'grid-cols-6'
-                : 'grid-cols-5'
-            } gap-3.5 bg-slate-200/60 dark:bg-slate-900/60 p-3.5 sm:p-4 rounded-3xl border border-slate-200 dark:border-slate-800 min-w-[1080px] xl:min-w-0`}
+                ? 'grid-cols-6 min-w-[1080px] 2xl:min-w-0'
+                : 'grid-cols-5 min-w-[900px] xl:min-w-0'
+            } gap-3 bg-slate-200/60 dark:bg-slate-900/60 p-3 sm:p-3.5 rounded-3xl border border-slate-200 dark:border-slate-800`}
           >
             {displayedDays.map((day) => {
               const daySlotsList = slots
@@ -404,14 +406,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
               return (
                 <div
                   key={day}
-                  className={`flex flex-col gap-3 rounded-2xl p-3 sm:p-3.5 transition-colors ${
+                  className={`flex flex-col gap-2.5 rounded-2xl p-2.5 sm:p-3 transition-colors ${
                     isToday
                       ? 'bg-white dark:bg-slate-900 border-2 border-cove-sky/80 shadow-sm'
                       : 'bg-slate-100/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80'
                   }`}
                 >
                   {/* Encabezado del Día */}
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/90 dark:border-slate-800">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/90 dark:border-slate-800">
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`text-xs font-black uppercase tracking-wider ${
@@ -434,7 +436,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                   </div>
 
                   {/* Lista de Bloques del Día */}
-                  <div className="space-y-3 min-h-[340px]">
+                  <div className="space-y-2.5 min-h-[300px]">
                     {daySlotsList.length === 0 ? (
                       <div className="h-full flex items-center justify-center py-12 text-center text-xs text-slate-400 dark:text-slate-500 font-medium italic">
                         Día libre de clases
@@ -454,138 +456,125 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                             style={{
                               background: isNow
                                 ? undefined
-                                : `linear-gradient(155deg, ${subject?.color || '#006BBB'}22 0%, ${subject?.color || '#006BBB'}0a 100%), var(--card-bg, #ffffff)`,
-                              borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}55`,
+                                : `linear-gradient(155deg, ${subject?.color || '#006BBB'}18 0%, ${subject?.color || '#006BBB'}06 100%), var(--card-bg, #ffffff)`,
+                              borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}45`,
                             }}
-                            className={`rounded-2xl p-3 sm:p-3.5 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-row items-stretch justify-between gap-2.5 ${
+                            className={`rounded-2xl p-2.5 sm:p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between gap-2 ${
                               isNow
                                 ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/20'
                                 : 'hover:border-cove-sky/80'
                             }`}
                           >
-
                             {/* Banda superior con el color de la materia */}
                             <div
                               className="absolute top-0 left-0 right-0 h-1.5 opacity-90"
                               style={{ backgroundColor: subject?.color || '#006BBB' }}
                             />
 
-                            {/* Contenido Principal (Izquierda) */}
-                            <div className="flex-1 min-w-0 flex flex-col justify-between gap-2 pt-0.5">
-                              {/* 1. Cabecera: Ícono con Color, Código y Nombre */}
-                              <div>
-                                <div className="flex items-center gap-2 mb-1.5">
-                                  {/* Badge con Ícono y Color */}
-                                  <div
-                                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0 ring-1 ring-white/60"
-                                    style={{ backgroundColor: subject?.color || '#006BBB' }}
-                                    title={subject?.name}
-                                  >
-                                    <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                                  </div>
-
-                                  {/* Código de Asignatura */}
-                                  <span
-                                    className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black text-white bg-cove-navy shadow-2xs tracking-wider shrink-0"
-                                  >
-                                    {subject?.code || 'CLASE'}
-                                  </span>
+                            {/* 1. Cabecera compacta: Ícono + Código y Botones de Acción Superiores */}
+                            <div className="flex items-center justify-between gap-1 pt-0.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                {/* Badge con Ícono y Color */}
+                                <div
+                                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-white shadow-2xs shrink-0 ring-1 ring-white/60"
+                                  style={{ backgroundColor: subject?.color || '#006BBB' }}
+                                  title={subject?.name}
+                                >
+                                  <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 text-white" />
                                 </div>
 
-                                {/* Nombre de la Materia */}
-                                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug break-words">
-                                  {subject?.name || 'Materia'}
-                                </h4>
+                                {/* Código de Asignatura */}
+                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black text-white bg-cove-navy shadow-2xs tracking-wider truncate max-w-[65px] sm:max-w-[85px]">
+                                  {subject?.code || 'CLASE'}
+                                </span>
                               </div>
 
-                              {/* 2. Cuerpo de Información Completo */}
-                              <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                                {/* Rango Horario Completo */}
-                                <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2.5 py-1 rounded-xl">
-                                  <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
-                                  <span className="font-mono text-xs">{slot.startTime} - {slot.endTime}</span>
-                                </div>
+                              {/* Botones de Acción Superiores alineados a la derecha */}
+                              <div className="flex items-center gap-1 shrink-0">
+                                {onNavigateToNotes && (
+                                  <Button
+                                    variant="action-indigo"
+                                    size="icon-xs"
+                                    onClick={() => onNavigateToNotes(slot.subjectId)}
+                                    title="Tomar apunte"
+                                    aria-label="Tomar apunte"
+                                    icon={<FileEdit className="w-3 h-3 text-white" />}
+                                  />
+                                )}
+                                <Button
+                                  variant="action-blue"
+                                  size="icon-xs"
+                                  onClick={() => handleOpenEdit(slot)}
+                                  title="Editar clase"
+                                  aria-label="Editar clase"
+                                  icon={<Edit2 className="w-3 h-3 text-white" />}
+                                />
+                                <Button
+                                  variant="action-rose"
+                                  size="icon-xs"
+                                  onClick={() => setSlotToDelete(slot)}
+                                  title="Eliminar clase"
+                                  aria-label="Eliminar clase"
+                                  icon={<Trash2 className="w-3 h-3 text-white" />}
+                                />
+                              </div>
+                            </div>
 
-                                {/* Modalidad y Ubicación Completa */}
-                                {isSlotVirtual(slot) ? (
-                                  <div className="flex items-center gap-1.5 text-indigo-900 dark:text-indigo-200 bg-indigo-50/90 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 px-2.5 py-1 rounded-xl">
-                                    <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                                    <span className="font-bold text-[11px] leading-tight break-words">
-                                      Virtual: {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? slot.classroom : 'En Línea'}
+                            {/* 2. Nombre de la Materia (100% de Ancho Disponible) */}
+                            <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors leading-snug line-clamp-2">
+                              {subject?.name || 'Materia'}
+                            </h4>
+
+                            {/* 3. Cuerpo de Información Completo */}
+                            <div className="space-y-1 text-[11px] pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                              {/* Rango Horario Completo */}
+                              <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2 py-0.5 rounded-lg">
+                                <Clock className="w-3 h-3 text-cove-blue dark:text-cove-sky shrink-0" />
+                                <span className="font-mono text-[11px] sm:text-xs">{slot.startTime} - {slot.endTime}</span>
+                              </div>
+
+                              {/* Modalidad y Ubicación */}
+                              {isSlotVirtual(slot) ? (
+                                <div className="flex items-center gap-1.5 text-indigo-900 dark:text-indigo-200 bg-indigo-50/90 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 px-2 py-0.5 rounded-lg">
+                                  <Laptop className="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                  <span className="font-bold text-[10px] sm:text-[11px] truncate leading-tight">
+                                    Virtual {slot.classroom && slot.classroom.toLowerCase() !== 'virtual' ? `• ${slot.classroom}` : ''}
+                                  </span>
+                                </div>
+                              ) : (
+                                slot.classroom && (
+                                  <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-lg">
+                                    <Building2 className="w-3 h-3 text-cove-blue dark:text-cove-sky shrink-0" />
+                                    <span className="font-semibold text-[10px] sm:text-[11px] truncate leading-tight">
+                                      {slot.classroom}{slot.building ? ` (${slot.building})` : ''}
                                     </span>
                                   </div>
-                                ) : (
-                                  slot.classroom && (
-                                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-xl">
-                                      <Building2 className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
-                                      <span className="font-semibold text-[11px] leading-tight break-words">
-                                        {slot.classroom}{slot.building ? ` (${slot.building})` : ''}
-                                      </span>
-                                    </div>
-                                  )
-                                )}
+                                )
+                              )}
 
-                                {/* Catedrático Asignado */}
-                                {professor && (
-                                  <div className="flex items-center gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
-                                    <ProfessorAvatar
-                                      name={professor.name}
-                                      icon={professor.icon}
-                                      color={professor.color}
-                                      size="xs"
-                                    />
-                                    <span className="truncate leading-tight font-semibold">{professor.name}</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* 3. Indicador En Vivo */}
-                              {isNow && (
-                                <div className="pt-0.5">
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-emerald-500 text-white shadow-2xs animate-pulse">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                                    EN CURSO AHORA
-                                  </span>
+                              {/* Catedrático Asignado */}
+                              {professor && (
+                                <div className="flex items-center gap-1.5 pt-0.5 text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                                  <ProfessorAvatar
+                                    name={professor.name}
+                                    icon={professor.icon}
+                                    color={professor.color}
+                                    size="xs"
+                                  />
+                                  <span className="truncate leading-tight font-semibold">{professor.name}</span>
                                 </div>
                               )}
                             </div>
 
-                            {/* Columna Vertical de Acciones (Derecha) - Botones Circulares con Gradiente */}
-                            <div className="flex flex-col justify-center items-center shrink-0 pl-1 py-0.5 gap-2">
-                              {/* Botón 1: Tomar apunte */}
-                              {onNavigateToNotes ? (
-                                <Button
-                                  variant="action-indigo"
-                                  size="icon-sm"
-                                  onClick={() => onNavigateToNotes(slot.subjectId)}
-                                  title="Tomar apunte de esta materia"
-                                  aria-label="Tomar apunte"
-                                  icon={<FileEdit className="w-3.5 h-3.5 text-white" />}
-                                />
-                              ) : (
-                                <div className="w-8 h-8" />
-                              )}
-
-                              {/* Botón 2: Editar clase */}
-                              <Button
-                                variant="action-blue"
-                                size="icon-sm"
-                                onClick={() => handleOpenEdit(slot)}
-                                title="Editar clase"
-                                aria-label="Editar clase"
-                                icon={<Edit2 className="w-3.5 h-3.5 text-white" />}
-                              />
-
-                              {/* Botón 3: Eliminar clase */}
-                              <Button
-                                variant="action-rose"
-                                size="icon-sm"
-                                onClick={() => setSlotToDelete(slot)}
-                                title="Eliminar clase"
-                                aria-label="Eliminar clase"
-                                icon={<Trash2 className="w-3.5 h-3.5 text-white" />}
-                              />
-                            </div>
+                            {/* 4. Indicador En Vivo */}
+                            {isNow && (
+                              <div className="pt-0.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black bg-emerald-500 text-white shadow-2xs animate-pulse">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                  EN CURSO AHORA
+                                </span>
+                              </div>
+                            )}
                           </div>
                         );
                       })
@@ -629,7 +618,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             </button>
           </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5">
               {daySlots.map((slot) => {
                 const subject = getSubjectById(slot.subjectId);
                 const professor = getProfessorById(slot.professorId);

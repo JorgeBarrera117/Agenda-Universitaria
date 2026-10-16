@@ -61,16 +61,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-cove-navy/70 backdrop-blur-xl border-b border-cove-deep/30 text-white shadow-md">
-      <div className="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
-        <div className="flex items-center justify-between h-18">
+    <header className="sticky top-0 z-40 bg-cove-navy/80 backdrop-blur-xl border-b border-cove-deep/30 text-white shadow-md">
+      <div className="max-w-[1750px] mx-auto px-3 sm:px-6 lg:px-8 2xl:px-10">
+        <div className="flex items-center justify-between h-14 sm:h-16 lg:h-18 landscape:h-12">
           {/* Identidad de Campus Universitario */}
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
             <div className="relative group shrink-0">
               <img
                 src="/app-icon-claro.svg"
                 alt="Logo Agenda Universitaria"
-                className="w-11 h-11 rounded-2xl shadow-lg shadow-cove-blue/20 ring-2 ring-cove-sky/40 object-contain bg-white"
+                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 landscape:w-8 landscape:h-8 rounded-2xl shadow-lg shadow-cove-blue/20 ring-2 ring-cove-sky/40 object-contain bg-white"
               />
               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-cove-gold border-2 border-cove-navy flex items-center justify-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-cove-navy" />
