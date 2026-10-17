@@ -9,6 +9,7 @@ import {
   Award,
   Clock,
   FileText,
+  FolderOpen,
 } from 'lucide-react';
 import { useSubjects } from '../hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
@@ -16,6 +17,8 @@ import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useNotes } from '../../notes/hooks/useNotes';
 import { SubjectForm } from './SubjectForm';
 import { SubjectIcon } from './SubjectIcon';
+import { SubjectDocumentsModal } from './SubjectDocumentsModal';
+import { useSubjectDocuments } from '../hooks/useSubjectDocuments';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
@@ -41,6 +44,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>(undefined);
   const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
+  const [selectedSubjectForDocs, setSelectedSubjectForDocs] = useState<Subject | null>(null);
+  const { getDocumentCountForSubject } = useSubjectDocuments();
 
   useEffect(() => {
     onEditorActiveChange?.(isModalOpen);
@@ -192,6 +197,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           {subjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;
+            const docCount = getDocumentCountForSubject(subject.id);
             const prof = professors.find((p) => p.id === subject.professorId || p.subjectIds.includes(subject.id));
 
             return (
@@ -228,6 +234,14 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
                   {/* Botones de Acción Superiores alineados a la derecha */}
                   <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                    <Button
+                      variant="action-indigo"
+                      size="icon-xs"
+                      onClick={() => setSelectedSubjectForDocs(subject)}
+                      title="Archivos y documentos vinculados"
+                      aria-label="Ver documentos"
+                      icon={<FolderOpen className="w-3.5 h-3.5" />}
+                    />
                     <Button
                       variant="action-blue"
                       size="icon-xs"
@@ -289,31 +303,57 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                   )}
                 </div>
 
-                {/* 3. Pie de Tarjeta: Métricas a la izquierda y Botón de Apuntes a la derecha */}
+                {/* 3. Pie de Tarjeta: Métricas a la izquierda y Botón de Apuntes/Docs a la derecha */}
                 <div className="pt-2 border-t border-[#C2C7CE]/30 dark:border-white/5 flex items-center justify-between text-xs font-semibold gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="flex items-center gap-1.5 text-[#41474D] dark:text-[#C2C7CF] font-medium text-[11px]">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="flex items-center gap-1 text-[#41474D] dark:text-[#C2C7CF] font-medium text-[11px]">
                       <Clock className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
-                      {classCount} {classCount === 1 ? 'bloque' : 'bloques'}
+                      {classCount}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
                       <FileText className="w-3 h-3" />
                       {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
                     </span>
+                    {/* Chip de Documentos */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubjectForDocs(subject)}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                        docCount > 0
+                          ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-900/50 shadow-2xs'
+                          : 'bg-[#E2E7EF]/60 dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#D0E4FF]/60'
+                      }`}
+                      title="Acceso directo a documentos locales"
+                    >
+                      <FolderOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                      <span>{docCount > 0 ? `${docCount} docs` : 'Docs'}</span>
+                    </button>
                   </div>
 
-                  {onNavigateToNotes && (
-                    <Button
-                      variant="action-indigo"
-                      size="xs"
-                      onClick={() => onNavigateToNotes(subject.id)}
-                      title="Ver o tomar apuntes de esta asignatura"
-                      aria-label="Ver apuntes"
-                      icon={<BookOpen className="w-3.5 h-3.5" />}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubjectForDocs(subject)}
+                      className="px-2.5 py-1 rounded-xl text-xs font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                      title="Abrir o vincular documentos de esta asignatura"
                     >
-                      Apuntes
-                    </Button>
-                  )}
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      <span>Archivos</span>
+                    </button>
+
+                    {onNavigateToNotes && (
+                      <Button
+                        variant="action-indigo"
+                        size="xs"
+                        onClick={() => onNavigateToNotes(subject.id)}
+                        title="Ver o tomar apuntes de esta asignatura"
+                        aria-label="Ver apuntes"
+                        icon={<BookOpen className="w-3.5 h-3.5" />}
+                      >
+                        Apuntes
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </Card>
             );
@@ -348,6 +388,13 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </div>
         </div>
       </Modal>
+
+      {/* Modal Prototipo de Documentos y Recursos de la Asignatura */}
+      <SubjectDocumentsModal
+        subject={selectedSubjectForDocs}
+        isOpen={selectedSubjectForDocs !== null}
+        onClose={() => setSelectedSubjectForDocs(null)}
+      />
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
       <DraggableFAB
