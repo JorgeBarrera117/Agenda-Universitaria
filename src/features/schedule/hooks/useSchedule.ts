@@ -6,6 +6,7 @@ import type { CreateScheduleSlotDTO, UpdateScheduleSlotDTO, DayOfWeek } from '..
 export function useSchedule() {
   const slots = useLiveQuery(
     () => db.scheduleSlots.toArray(),
+    [],
     []
   );
 
@@ -30,7 +31,7 @@ export function useSchedule() {
 
   return {
     slots: slots ?? [],
-    isLoading: slots === undefined,
+    isLoading: false,
     addSlot,
     updateSlot,
     removeSlot,

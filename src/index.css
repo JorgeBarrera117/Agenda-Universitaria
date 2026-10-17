@@ -3,29 +3,43 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-cove-blue: #006BBB;
-  --color-cove-sky: #30A0E0;
-  --color-cove-gold: #FFC872;
-  --color-cove-sand: #FFE3B3;
-  --color-cove-deep: #004d88;
-  --color-cove-navy: #081d33;
+  --color-cove-blue: #00639B;
+  --color-cove-sky: #96CCFF;
+  --color-cove-gold: #FFB77C;
+  --color-cove-sand: #FFDCC1;
+  --color-cove-deep: #004B76;
+  --color-cove-navy: #001D32;
+
+  /* Material Design 3 (Material Web) System Tokens */
+  --color-md-primary: #00639B;
+  --color-md-primary-container: #D0E4FF;
+  --color-md-on-primary-container: #001D32;
+  --color-md-secondary-container: #D8E3F8;
+  --color-md-on-secondary-container: #101C2B;
+  --color-md-surface: #FDFBFF;
+  --color-md-surface-container: #F1F4FA;
+  --color-md-surface-container-high: #EBEFF5;
+  --color-md-surface-container-highest: #E2E7EF;
+  --color-md-on-surface: #191C20;
+  --color-md-on-surface-variant: #41474D;
+  --color-md-outline: #72787E;
+  --color-md-outline-variant: #C2C7CE;
 }
 
 :root {
-  --card-bg: #ffffff;
-  --card-border: #e2e8f0;
+  --card-bg: #FAF8FD;
+  --card-border: #C2C7CE;
 }
 
 .dark {
-  --card-bg: #0f172a;
-  --card-border: #1e293b;
+  --card-bg: #1D2024;
+  --card-border: #42474E;
 }
-
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-[#006BBB] selection:text-white min-h-screen transition-colors duration-200;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    @apply bg-[#FDFBFF] text-[#191C20] dark:bg-[#101418] dark:text-[#E2E2E6] antialiased selection:bg-[#D0E4FF] selection:text-[#001D32] dark:selection:bg-[#004B76] dark:selection:text-[#D0E4FF] min-h-screen transition-colors duration-200;
+    font-family: Roboto, 'Google Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 }
 

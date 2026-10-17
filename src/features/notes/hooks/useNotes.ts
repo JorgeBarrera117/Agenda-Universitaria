@@ -26,7 +26,8 @@ export function useNotes(subjectFilterId?: string, searchQuery?: string) {
 
       return result.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     },
-    [subjectFilterId, searchQuery]
+    [subjectFilterId, searchQuery],
+    []
   );
 
   const addNote = async (dto: CreateNoteDTO) => {
@@ -43,7 +44,7 @@ export function useNotes(subjectFilterId?: string, searchQuery?: string) {
 
   return {
     notes: notes ?? [],
-    isLoading: notes === undefined,
+    isLoading: false,
     addNote,
     updateNote,
     removeNote,

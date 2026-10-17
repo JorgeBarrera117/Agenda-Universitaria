@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import type { Professor, CreateProfessorDTO } from '../types';
 import {
@@ -6,8 +7,7 @@ import {
   PROFESSOR_ICONS,
   PROFESSOR_PRESET_COLORS,
 } from './ProfessorAvatar';
-
-import { Button } from '../../../shared/components/atoms';
+import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 
 interface ProfessorFormProps {
   initialData?: Professor;
@@ -34,6 +34,12 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
   const [color, setColor] = useState(initialData?.color || '#081d33');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Soporte de navegación con botón "Atrás" de Android
+  useBackButton(() => {
+    onCancel();
+    return true;
+  }, BACK_PRIORITY.MODAL, true);
 
   const toggleSubject = (subjectId: string) => {
     setSelectedSubjectIds((prev) =>
@@ -72,41 +78,83 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-200 pb-10">
+      {/* 1. Barra Superior Fija (Material Design 3 Top App Bar) */}
+      <div className="sticky top-0 z-30 -mx-3 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 py-3 bg-[#FDFBFF]/95 dark:bg-[#14171B]/95 backdrop-blur-xl border-b border-[#C3C7D0]/40 dark:border-[#43474E]/40 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Volver al directorio docente"
+            title="Volver"
+            className="w-10 h-10 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center justify-center text-[#191C20] dark:text-[#E2E2E6] transition-all active:scale-90 cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-black text-[#191C20] dark:text-[#E2E2E6] truncate leading-tight">
+              {initialData ? 'Editar Catedrático' : 'Registrar Catedrático'}
+            </h2>
+            <p className="text-[11px] text-[#43474E] dark:text-[#8C9199] truncate leading-none mt-0.5">
+              {name.trim() || 'Directorio Docente y Asesorías'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="hidden sm:inline-flex px-4 py-2 rounded-full text-xs font-semibold text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold text-white dark:text-[#003353] bg-[#00639B] hover:bg-[#005282] dark:bg-[#92CCFF] dark:hover:bg-[#72BAF5] active:scale-95 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+          >
+            <Check className="w-4 h-4 stroke-[2.5]" />
+            <span>{isSubmitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Guardar'}</span>
+          </button>
+        </div>
+      </div>
+
       {error && (
-        <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
-          {error}
+        <div className="p-3.5 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-2xl flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Selector de Avatar: Ícono y Fondo del Muñequito */}
-      <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl space-y-3">
-        <div className="flex items-center gap-3.5">
-          {/* Vista Previa en Vivo */}
+      {/* Tarjeta 1: Avatar y Muñequito del Docente */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-4">
+        {/* Vista previa en vivo */}
+        <div className="p-3.5 bg-[#F1F4FA] dark:bg-[#272A2F] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl flex items-center gap-3.5">
           <ProfessorAvatar
             name={name || 'Docente'}
             icon={icon}
             color={color}
             size="xl"
-            className="ring-2 ring-cove-sky/40"
+            className="ring-2 ring-[#00639B]/30 shadow-xs"
           />
 
           <div className="min-w-0 flex-1">
-            <span className="block text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-0.5">
-              Avatar y Color del Docente
+            <span className="block text-xs font-black text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider mb-0.5">
+              Avatar y Color Distintivo
             </span>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-              Personaliza el muñequito y el fondo distintivo de este catedrático.
+            <p className="text-[11px] text-[#72777F] dark:text-[#8C9199] leading-snug">
+              Personaliza el muñequito y el tono de fondo para identificarlo rápidamente en el horario.
             </p>
           </div>
         </div>
 
         {/* 1. Selector de Ícono */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+          <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider mb-2">
             1. Elige un ícono o muñequito
           </label>
-          <div className="flex gap-1.5 overflow-x-auto p-1 scrollbar-none">
+          <div className="flex gap-2 overflow-x-auto p-1 scrollbar-none">
             {PROFESSOR_ICONS.map((opt) => {
               const IconComp = opt.icon;
               const isSelected = icon === opt.id;
@@ -116,13 +164,13 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
                   type="button"
                   onClick={() => setIcon(opt.id)}
                   title={opt.label}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold shrink-0 transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-xs ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#00639B] dark:border-[#92CCFF] shadow-xs'
+                      : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
                   }`}
                 >
-                  <IconComp className="w-3.5 h-3.5" />
+                  <IconComp className="w-4 h-4" />
                   <span>{opt.label}</span>
                 </button>
               );
@@ -132,30 +180,30 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
 
         {/* 2. Selector de Color de Fondo */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-            2. Color de fondo del muñequito
+          <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider mb-2">
+            2. Color de fondo del avatar
           </label>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
             {PROFESSOR_PRESET_COLORS.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setColor(c)}
-                className={`w-7 h-7 rounded-xl border-2 transition-transform cursor-pointer shrink-0 ${
+                className={`w-8 h-8 rounded-xl border-2 transition-transform cursor-pointer shrink-0 ${
                   color.toLowerCase() === c.toLowerCase()
-                    ? 'scale-115 border-slate-900 dark:border-white ring-2 ring-cove-sky dark:ring-blue-400 shadow-sm'
-                    : 'border-white dark:border-slate-800 hover:scale-105 shadow-2xs'
+                    ? 'scale-115 border-[#191C20] dark:border-[#E2E2E6] ring-2 ring-[#00639B] shadow-md'
+                    : 'border-white dark:border-[#1D2024] hover:scale-105 shadow-2xs'
                 }`}
                 style={{ backgroundColor: c }}
                 aria-label={`Color ${c}`}
               />
             ))}
-            {/* Color picker nativo */}
+            {/* Color picker personalizado */}
             <label
-              className="w-7 h-7 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-cove-blue dark:hover:border-cove-sky flex items-center justify-center cursor-pointer transition-transform hover:scale-105 bg-white dark:bg-slate-800 relative overflow-hidden shrink-0"
-              title="Elegir otro color"
+              className="w-8 h-8 rounded-xl border-2 border-dashed border-[#C3C7D0] dark:border-[#43474E] hover:border-[#00639B] dark:hover:border-[#92CCFF] flex items-center justify-center cursor-pointer transition-transform hover:scale-105 bg-[#F1F4FA] dark:bg-[#272A2F] relative overflow-hidden shrink-0"
+              title="Elegir otro color personalizado"
             >
-              <span className="text-xs font-black text-slate-500 dark:text-slate-400">+</span>
+              <span className="text-sm font-black text-[#72777F] dark:text-[#8C9199]">+</span>
               <input
                 type="color"
                 value={color}
@@ -167,122 +215,117 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-          Nombre completo del docente *
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ej: Dra. María Fernández, Ing. Roberto Silva"
-          className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium"
-          required
-        />
-      </div>
+      {/* Tarjeta 2: Datos Personales y Contacto */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-4">
+        <h3 className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
+          Información Personal y Contacto
+        </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Correo electrónico
+          <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+            Nombre completo del docente *
           </label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="profesor@universidad.edu"
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej: Dra. María Fernández, Ing. Roberto Silva"
+            className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all"
+            required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Teléfono / WhatsApp
-          </label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+52 55 1234 5678"
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-          Cubículo / Oficina / Sala Virtual
-        </label>
-        <input
-          type="text"
-          value={office}
-          onChange={(e) => setOffice(e.target.value)}
-          placeholder="Ej: Edificio C, Cubículo 204 o Enlace de Zoom"
-          className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-          Materias que imparte
-        </label>
-        {subjects.length === 0 ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-            Primero crea materias en la sección de materias para asignarlas aquí.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/60">
-            {subjects.map((sub) => {
-              const isSelected = selectedSubjectIds.includes(sub.id);
-              return (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => toggleSubject(sub.id)}
-                  className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-cove-blue text-white border-cove-blue shadow-xs'
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  {sub.name}
-                </button>
-              );
-            })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="profesor@universidad.edu"
+              className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all"
+            />
           </div>
-        )}
+
+          <div>
+            <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+              Teléfono / WhatsApp
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+52 55 1234 5678"
+              className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all font-mono"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+            Cubículo / Oficina / Sala Virtual
+          </label>
+          <input
+            type="text"
+            value={office}
+            onChange={(e) => setOffice(e.target.value)}
+            placeholder="Ej: Edificio C, Cubículo 204 o Enlace de Zoom"
+            className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all"
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-          Horarios de Asesoría o Notas Adicionales
-        </label>
-        <textarea
-          rows={3}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Ej: Asesorías los viernes a las 11:00 am previa cita."
-          className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm resize-none font-medium"
-        />
-      </div>
+      {/* Tarjeta 3: Materias y Horarios de Asesoría */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-4">
+        <h3 className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
+          Cátedras y Asesorías
+        </h3>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={onCancel}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          size="sm"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Profesor' : 'Registrar Profesor'}
-        </Button>
+        <div>
+          <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+            Materias que imparte
+          </label>
+          {subjects.length === 0 ? (
+            <p className="text-xs text-[#72777F] dark:text-[#8C9199] italic">
+              Primero inscribe asignaturas en la sección de materias para vincularlas aquí.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2 p-3 border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl bg-[#F1F4FA] dark:bg-[#272A2F]">
+              {subjects.map((sub) => {
+                const isSelected = selectedSubjectIds.includes(sub.id);
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => toggleSubject(sub.id)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-2xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#00639B] dark:border-[#92CCFF] shadow-xs'
+                        : 'bg-white dark:bg-[#1D2024] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
+                    }`}
+                  >
+                    {sub.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+            Horarios de Asesoría o Notas Adicionales
+          </label>
+          <textarea
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Ej: Asesorías los viernes a las 11:00 am previa cita por correo."
+            className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all resize-none"
+          />
+        </div>
       </div>
     </form>
   );

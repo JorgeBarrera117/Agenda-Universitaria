@@ -43,39 +43,39 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isHidden ? '' : 'inline-flex'
     } items-center justify-center font-bold transition-all duration-200 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cove-sky/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed`;
 
-    // 2. Variantes visuales semánticas
+    // 2. Variantes visuales semánticas Material Design 3 (Material Web M3)
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-gradient-to-r from-cove-blue to-cove-sky hover:from-cove-deep hover:to-cove-blue text-white shadow-md shadow-cove-blue/25 active:scale-95',
+        'bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:shadow-xs hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 shadow-xs',
       secondary:
-        'bg-cove-navy dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-slate-700 text-white shadow-sm active:scale-95',
+        'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#B3D3FF] dark:hover:bg-[#005B8F] active:scale-95 shadow-2xs',
       outline:
-        'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 active:scale-95 shadow-2xs',
+        'border border-[#72787E] dark:border-[#8C9199] text-[#00639B] dark:text-[#96CCFF] bg-transparent hover:bg-[#00639B]/8 dark:hover:bg-white/8 active:scale-95',
       ghost:
-        'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white active:scale-95',
+        'bg-transparent text-[#00639B] dark:text-[#96CCFF] hover:bg-[#00639B]/8 dark:hover:bg-white/8 active:scale-95',
       danger:
-        'bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white shadow-md shadow-rose-600/25 active:scale-95',
+        'bg-[#BA1A1A] dark:bg-[#FFB4AB] text-white dark:text-[#690005] hover:bg-[#93000A] dark:hover:bg-[#FFDAD6] active:scale-95 shadow-xs',
       success:
-        'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-md shadow-emerald-600/25 active:scale-95',
+        'bg-[#006E1C] dark:bg-[#78DC77] text-white dark:text-[#003A0B] hover:bg-[#005313] dark:hover:bg-[#98F096] active:scale-95 shadow-xs',
       'action-blue':
-        'bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy hover:from-blue-500 hover:via-blue-600 hover:to-cove-navy ring-1 ring-sky-300/40 text-white shadow-sm hover:shadow-md shadow-blue-950/20 active:scale-95',
+        'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#B3D3FF] dark:hover:bg-[#005B8F] active:scale-90 transition-all shadow-2xs',
       'action-emerald':
-        'bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 hover:from-emerald-500 hover:via-teal-600 hover:to-slate-900 ring-1 ring-teal-300/40 text-white shadow-sm hover:shadow-md shadow-emerald-950/20 active:scale-95',
+        'bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] hover:bg-[#A6E6B8] dark:hover:bg-[#0E6838] active:scale-90 transition-all shadow-2xs',
       'action-indigo':
-        'bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900 hover:from-indigo-400 hover:via-violet-600 hover:to-slate-900 ring-1 ring-violet-300/40 text-white shadow-sm hover:shadow-md shadow-indigo-950/20 active:scale-95',
+        'bg-[#E8DEF8] dark:bg-[#4A4458] text-[#1D192B] dark:text-[#E8DEF8] hover:bg-[#DBCDEE] dark:hover:bg-[#585168] active:scale-90 transition-all shadow-2xs',
       'action-rose':
-        'bg-gradient-to-br from-red-500 via-rose-600 to-slate-900 hover:from-red-400 hover:via-rose-500 hover:to-slate-900 ring-1 ring-rose-300/40 text-white shadow-sm hover:shadow-md shadow-red-950/20 active:scale-95',
+        'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:bg-[#FFB4AB] dark:hover:bg-[#BA1A1A] active:scale-90 transition-all shadow-2xs',
     };
 
-    // 3. Tamaños calibrados para optimizar espacio
+    // 3. Tamaños calibrados Material Design 3 (Pills y Icon Buttons circulares)
     const sizeStyles: Record<ButtonSize, string> = {
-      xs: 'px-2.5 py-1 text-xs rounded-xl gap-1.5',
-      sm: 'px-3 py-1.5 text-xs rounded-xl gap-1.5',
-      md: 'px-4 py-2.5 text-xs sm:text-sm rounded-2xl gap-2',
-      lg: 'px-6 py-3 text-sm sm:text-base rounded-2xl gap-2.5',
-      'icon-xs': 'w-6 h-6 sm:w-7 sm:h-7 rounded-full p-0 shrink-0',
-      'icon-sm': 'w-8 h-8 rounded-full p-0 shrink-0',
-      'icon-md': 'w-10 h-10 sm:w-11 sm:h-11 rounded-full p-0 shrink-0',
+      xs: 'px-3 py-1 text-xs rounded-full gap-1.5',
+      sm: 'px-4 py-1.5 text-xs rounded-full gap-1.5 font-medium',
+      md: 'px-5 py-2.5 text-xs sm:text-sm rounded-full gap-2 font-medium',
+      lg: 'px-7 py-3 text-sm sm:text-base rounded-full gap-2.5 font-medium',
+      'icon-xs': 'w-8 h-8 rounded-full p-0 shrink-0',
+      'icon-sm': 'w-9 h-9 rounded-full p-0 shrink-0',
+      'icon-md': 'w-10 h-10 rounded-full p-0 shrink-0',
     };
 
     const widthStyle = fullWidth ? 'w-full' : '';
@@ -90,7 +90,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (
           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
         ) : (
-          icon && <span className="shrink-0">{icon}</span>
+          icon && <span className="shrink-0 text-current flex items-center justify-center">{icon}</span>
         )}
         {children && <span>{children}</span>}
       </button>

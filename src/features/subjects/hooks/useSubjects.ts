@@ -6,6 +6,7 @@ import type { CreateSubjectDTO, UpdateSubjectDTO } from '../types';
 export function useSubjects() {
   const subjects = useLiveQuery(
     () => db.subjects.toArray(),
+    [],
     []
   );
 
@@ -28,7 +29,7 @@ export function useSubjects() {
 
   return {
     subjects: subjects ?? [],
-    isLoading: subjects === undefined,
+    isLoading: false,
     addSubject,
     updateSubject,
     removeSubject,

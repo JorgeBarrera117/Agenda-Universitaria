@@ -118,3 +118,34 @@ export interface SubjectIconProps {
 export const SubjectIcon: React.FC<SubjectIconProps> = ({ icon, className = 'w-4 h-4' }) => {
   return <>{renderSubjectGlyph(icon, className)}</>;
 };
+
+export interface SubjectBadgeProps {
+  icon?: string;
+  color?: string;
+  size?: 'select' | 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+export const SubjectBadge: React.FC<SubjectBadgeProps> = ({
+  icon,
+  color = '#00639B',
+  size = 'select',
+  className = '',
+}) => {
+  const sizeStyles = {
+    select: { box: 'w-6 h-6', shape: 'rounded-lg', icon: 'w-3.5 h-3.5' },
+    sm: { box: 'w-5 h-5', shape: 'rounded-lg', icon: 'w-3 h-3' },
+    md: { box: 'w-8 h-8', shape: 'rounded-xl', icon: 'w-4 h-4' },
+    lg: { box: 'w-10 h-10', shape: 'rounded-2xl', icon: 'w-5 h-5' },
+  }[size];
+
+  return (
+    <div
+      style={{ backgroundColor: color }}
+      className={`${sizeStyles.box} ${sizeStyles.shape} text-white flex items-center justify-center shadow-md ring-2 ring-white/20 shrink-0 select-none overflow-hidden ${className}`}
+    >
+      {renderSubjectGlyph(icon, sizeStyles.icon)}
+    </div>
+  );
+};
+

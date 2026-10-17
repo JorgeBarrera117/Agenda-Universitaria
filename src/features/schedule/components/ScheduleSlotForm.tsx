@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import {
   Building2,
   Laptop,
+  ArrowLeft,
+  Check,
+  UserCheck,
+  Calendar,
+  UserX,
 } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
-import { SubjectIcon } from '../../subjects/components/SubjectIcon';
+import { SubjectIcon, SubjectBadge } from '../../subjects/components/SubjectIcon';
+import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
+import { M3Select } from '../../../shared/components/M3Select';
 import {
   DAY_NAMES,
   type ScheduleSlot,
@@ -13,8 +20,7 @@ import {
   type DayOfWeek,
   type ClassModality,
 } from '../types';
-
-import { Button } from '../../../shared/components/atoms';
+import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 
 interface ScheduleSlotFormProps {
   initialData?: ScheduleSlot;
@@ -76,6 +82,12 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Soporte de navegación con botón "Atrás" de Android
+  useBackButton(() => {
+    onCancel();
+    return true;
+  }, BACK_PRIORITY.MODAL, true);
 
   // Cuando cambia la materia seleccionada, auto-asignar inteligentemente su profesor y aula
   const handleSubjectChange = (newSubjectId: string) => {
@@ -161,67 +173,109 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-200 pb-10">
+      {/* 1. Barra Superior Fija (Material Design 3 Top App Bar) */}
+      <div className="sticky top-0 z-30 -mx-3 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 py-3 bg-[#FDFBFF]/95 dark:bg-[#14171B]/95 backdrop-blur-xl border-b border-[#C3C7D0]/40 dark:border-[#43474E]/40 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Volver al horario"
+            title="Volver"
+            className="w-10 h-10 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center justify-center text-[#191C20] dark:text-[#E2E2E6] transition-all active:scale-90 cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-black text-[#191C20] dark:text-[#E2E2E6] truncate leading-tight">
+              {initialData ? 'Modificar Cátedra' : 'Programar Cátedra'}
+            </h2>
+            <p className="text-[11px] text-[#43474E] dark:text-[#8C9199] truncate leading-none mt-0.5">
+              {DAY_NAMES[dayOfWeek]} • {selectedSubject?.name || 'Horario Semanal'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="hidden sm:inline-flex px-4 py-2 rounded-full text-xs font-semibold text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || subjects.length === 0}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold text-white dark:text-[#003353] bg-[#00639B] hover:bg-[#005282] dark:bg-[#92CCFF] dark:hover:bg-[#72BAF5] active:scale-95 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+          >
+            <Check className="w-4 h-4 stroke-[2.5]" />
+            <span>{isSubmitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Guardar'}</span>
+          </button>
+        </div>
+      </div>
+
       {error && (
-        <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
-          {error}
+        <div className="p-3.5 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-2xl flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Tarjeta de Live Preview de la Cátedra */}
-      <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl space-y-2.5">
-        <div className="flex items-center gap-3">
-          {/* Badge con Ícono y Color de la Materia */}
+      {/* Tarjeta 1: Live Preview de la Cátedra */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-3">
+        <div className="p-3.5 bg-[#F1F4FA] dark:bg-[#272A2F] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl flex items-center gap-3.5">
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ring-2 ring-white/40 shrink-0"
-            style={{ backgroundColor: selectedSubject?.color || '#006BBB' }}
+            style={{ backgroundColor: selectedSubject?.color || '#00639B' }}
           >
             <SubjectIcon icon={selectedSubject?.icon} className="w-6 h-6 text-white" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-cove-navy text-white shadow-2xs tracking-wider">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-[#191C20] dark:bg-[#E2E2E6] text-[#FDFBFF] dark:text-[#191C20] shadow-2xs tracking-wider border border-[#C3C7D0]/40">
                 {selectedSubject?.code || 'ASIGNATURA'}
               </span>
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199]">
                 {DAY_NAMES[dayOfWeek]} • {startTime && endTime ? `${startTime} - ${endTime}` : 'Horario por definir'}
               </span>
             </div>
-            <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
+            <h4 className="text-base font-black text-[#191C20] dark:text-[#E2E2E6] truncate leading-tight">
               {selectedSubject?.name || 'Selecciona una materia'}
             </h4>
           </div>
         </div>
 
-        {/* Indicador de Modalidad en el Preview */}
-        <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs font-semibold gap-2">
+        {/* Indicador de Modalidad y Profesor */}
+        <div className="pt-2 border-t border-[#C3C7D0]/30 dark:border-[#43474E]/30 flex items-center justify-between text-xs font-semibold gap-2 flex-wrap">
           {modality === 'virtual' ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-indigo-100 dark:bg-indigo-950/80 text-indigo-900 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800">
-              <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border border-[#00639B]/30 dark:border-[#92CCFF]/30">
+              <Laptop className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] shrink-0" />
               <span>Clase Virtual ({virtualPlatform || 'En Línea'})</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-slate-200/70 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300/70 dark:border-slate-700">
-              <Building2 className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-[#F1F4FA] dark:bg-[#272A2F] text-[#191C20] dark:text-[#E2E2E6] border border-[#C3C7D0]/40 dark:border-[#43474E]/40">
+              <Building2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] shrink-0" />
               <span className="truncate">
-                Presencial: {classroom ? classroom : 'Aula sin asignar'}
+                {classroom ? `Aula ${classroom}` : 'Aula sin asignar'}
                 {building ? ` • ${building}` : ''}
               </span>
             </span>
           )}
 
           {selectedProfessor && (
-            <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate font-medium">
-              Prof: <strong className="text-slate-800 dark:text-slate-200">{selectedProfessor.name}</strong>
+            <span className="text-xs text-[#43474E] dark:text-[#C3C7D0] truncate font-medium flex items-center gap-1">
+              <UserCheck className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] shrink-0" />
+              <span>Prof: <strong className="text-[#191C20] dark:text-[#E2E2E6]">{selectedProfessor.name}</strong></span>
             </span>
           )}
         </div>
       </div>
 
-      {/* Selector de Modalidad (Presencial vs Virtual) */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+      {/* Tarjeta 2: Modalidad de Asistencia */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-3">
+        <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
           Modalidad de Asistencia *
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -229,26 +283,26 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           <button
             type="button"
             onClick={() => setModality('presencial')}
-            className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
+            className={`p-3.5 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
               modality === 'presencial'
-                ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+                ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] shadow-xs text-[#001D32] dark:text-[#D0E4FF]'
+                : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
             }`}
           >
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                modality === 'presencial' ? 'bg-white/15 text-white' : 'bg-slate-100 dark:bg-slate-700 text-cove-blue dark:text-cove-sky'
+                modality === 'presencial'
+                  ? 'bg-[#00639B] text-white dark:bg-[#92CCFF] dark:text-[#003353] shadow-xs'
+                  : 'bg-white dark:bg-[#14171B] text-[#72777F]'
               }`}
             >
               <Building2 className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="block text-xs font-black leading-tight">Presencial</span>
-              <span
-                className={`text-[10px] block leading-tight ${
-                  modality === 'presencial' ? 'text-slate-200' : 'text-slate-400 dark:text-slate-500'
-                }`}
-              >
+              <span className="block text-xs font-black leading-tight text-[#191C20] dark:text-[#E2E2E6]">
+                Presencial
+              </span>
+              <span className="text-[10px] block leading-tight text-[#72777F] dark:text-[#8C9199] mt-0.5">
                 Campus y aulas físicas
               </span>
             </div>
@@ -258,26 +312,26 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
           <button
             type="button"
             onClick={() => setModality('virtual')}
-            className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
+            className={`p-3.5 rounded-2xl border-2 flex items-center gap-3 transition-all cursor-pointer text-left ${
               modality === 'virtual'
-                ? 'bg-gradient-to-br from-indigo-900 to-indigo-950 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400/40'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+                ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] shadow-xs text-[#001D32] dark:text-[#D0E4FF]'
+                : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
             }`}
           >
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                modality === 'virtual' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400'
+                modality === 'virtual'
+                  ? 'bg-[#00639B] text-white dark:bg-[#92CCFF] dark:text-[#003353] shadow-xs'
+                  : 'bg-white dark:bg-[#14171B] text-[#72777F]'
               }`}
             >
               <Laptop className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="block text-xs font-black leading-tight">Virtual</span>
-              <span
-                className={`text-[10px] block leading-tight ${
-                  modality === 'virtual' ? 'text-indigo-200' : 'text-slate-400 dark:text-slate-500'
-                }`}
-              >
+              <span className="block text-xs font-black leading-tight text-[#191C20] dark:text-[#E2E2E6]">
+                Virtual
+              </span>
+              <span className="text-[10px] block leading-tight text-[#72777F] dark:text-[#8C9199] mt-0.5">
                 Videollamada / En línea
               </span>
             </div>
@@ -285,173 +339,183 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
         </div>
       </div>
 
-      {/* Selección de Materia y Profesor */}
-      <div className="space-y-3">
+      {/* Tarjeta 3: Materia, Día y Docente */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-4">
+        <h3 className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
+          Asignatura y Cátedra
+        </h3>
+
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Materia *
-          </label>
           {subjects.length === 0 ? (
             <p className="text-xs text-red-600 dark:text-red-400">
-              No tienes materias registradas. Ve a la sección Materias para crear una primero.
+              No tienes materias inscritas. Ve a la sección Materias para crear una primero.
             </p>
           ) : (
-            <div className="relative">
-              <select
-                value={subjectId}
-                onChange={(e) => handleSubjectChange(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium text-sm"
-                required
-              >
-                <option value="" disabled className="dark:bg-slate-800 dark:text-white">-- Selecciona una materia --</option>
-                {subjects.map((s) => {
-                  const prof = s.professorId
-                    ? professors.find((p) => p.id === s.professorId)
-                    : professors.find((p) => p.subjectIds.includes(s.id));
-                  return (
-                    <option key={s.id} value={s.id} className="dark:bg-slate-800 dark:text-white">
-                      {s.name} {s.code ? `(${s.code})` : ''} {prof ? `• Prof. ${prof.name}` : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+            <M3Select
+              label="Materia"
+              value={subjectId}
+              onChange={(val) => handleSubjectChange(val)}
+              options={subjects.map((s) => {
+                const prof = s.professorId
+                  ? professors.find((p) => p.id === s.professorId)
+                  : professors.find((p) => p.subjectIds.includes(s.id));
+                return {
+                  value: s.id,
+                  label: s.name,
+                  sublabel: `${s.code ? `${s.code} • ` : ''}${prof ? `Prof. ${prof.name}` : ''}`.trim(),
+                  color: s.color,
+                  icon: <SubjectBadge icon={s.icon} color={s.color} size="select" />,
+                };
+              })}
+              placeholder="-- Selecciona una materia --"
+              required
+            />
           )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Día de la semana *
-            </label>
-            <select
+            <M3Select
+              label="Día de la semana"
               value={dayOfWeek}
-              onChange={(e) => setDayOfWeek(Number(e.target.value) as DayOfWeek)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium text-sm"
-            >
-              {Object.entries(DAY_NAMES).map(([val, name]) => (
-                <option key={val} value={val} className="dark:bg-slate-800 dark:text-white">
-                  {name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setDayOfWeek(Number(val) as DayOfWeek)}
+              options={(Object.entries(DAY_NAMES) as [string, string][]).map(([val, name]) => ({
+                value: Number(val) as DayOfWeek,
+                label: name,
+                icon: (
+                  <div className="w-6 h-6 rounded-lg bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center shrink-0 shadow-2xs">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                ),
+              }))}
+              required
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Profesor Asignado
-            </label>
-            <select
+            <M3Select
+              label="Catedrático Asignado"
               value={professorId}
-              onChange={(e) => setProfessorId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-medium text-sm"
-            >
-              <option value="" className="dark:bg-slate-800 dark:text-white">(Sin profesor asignado)</option>
-              {professors.map((p) => (
-                <option key={p.id} value={p.id} className="dark:bg-slate-800 dark:text-white">
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setProfessorId(val)}
+              options={[
+                {
+                  value: '',
+                  label: '(Sin profesor asignado)',
+                  icon: (
+                    <div className="w-6 h-6 rounded-lg bg-[#E2E7EF] dark:bg-[#272A2F] text-[#72777F] dark:text-[#8C9199] flex items-center justify-center shrink-0">
+                      <UserX className="w-3.5 h-3.5" />
+                    </div>
+                  ),
+                },
+                ...professors.map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                  sublabel: p.office || p.email,
+                  color: p.color,
+                  icon: (
+                    <ProfessorAvatar
+                      name={p.name}
+                      icon={p.icon}
+                      color={p.color}
+                      size="select"
+                      shape="squircle"
+                    />
+                  ),
+                })),
+              ]}
+              placeholder="(Sin profesor asignado)"
+            />
           </div>
         </div>
-      </div>
 
-      {/* Rango Horario */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Hora Inicio *
-          </label>
-          <div className="relative">
+        {/* Rango Horario */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+              Hora Inicio *
+            </label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-mono font-bold text-sm"
+              className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] font-mono font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF]"
               required
             />
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Hora Término *
-          </label>
-          <div className="relative">
+          <div>
+            <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+              Hora Término *
+            </label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 font-mono font-bold text-sm"
+              className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] font-mono font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF]"
               required
             />
           </div>
         </div>
       </div>
 
-      {/* Campos Dinámicos según Modalidad */}
-      {modality === 'presencial' ? (
-        <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl space-y-3 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-            <Building2 className="w-4 h-4 text-cove-blue dark:text-cove-sky" />
-            <span>Ubicación Física en el Campus</span>
-          </div>
+      {/* Tarjeta 4: Ubicación (Presencial o Virtual) */}
+      <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-4">
+        {modality === 'presencial' ? (
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-[#00639B] dark:text-[#92CCFF]" />
+              <span>Ubicación Física en el Campus</span>
+            </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Aula / Laboratorio / Taller
-              </label>
-              <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+                  Aula / Laboratorio / Salón
+                </label>
                 <input
                   type="text"
                   value={classroom}
                   onChange={(e) => setClassroom(e.target.value)}
-                  placeholder="Ej: Aula 204, Lab 3"
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm"
+                  placeholder="Ej: Aula 204, Lab de Redes"
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Edificio / Pabellón / Campus
-              </label>
-              <div className="relative">
+              <div>
+                <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
+                  Edificio / Pabellón / Campus
+                </label>
                 <input
                   type="text"
                   value={building}
                   onChange={(e) => setBuilding(e.target.value)}
-                  placeholder="Ej: Edificio A, Campus Central"
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cove-sky text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm"
+                  placeholder="Ej: Edificio C, Campus Central"
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all"
                 />
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="p-3.5 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/80 rounded-2xl space-y-3 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2 text-xs font-bold text-indigo-900 dark:text-indigo-200">
-            <Laptop className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span>Configuración de Clase Virtual</span>
-          </div>
+        ) : (
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-[#00639B] dark:text-[#92CCFF] uppercase tracking-wider flex items-center gap-1.5">
+              <Laptop className="w-4 h-4 text-[#00639B] dark:text-[#92CCFF]" />
+              <span>Configuración de Clase Virtual</span>
+            </h3>
 
-          <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
-                Plataforma / Medio Virtual
+              <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-2">
+                Plataforma de Videollamada
               </label>
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {['Zoom', 'Microsoft Teams', 'Google Meet', 'Campus Virtual', 'Discord'].map((plat) => (
                   <button
                     key={plat}
                     type="button"
                     onClick={() => setVirtualPlatform(plat)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${
                       virtualPlatform === plat
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                        : 'bg-white dark:bg-slate-800 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-slate-700'
+                        ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#00639B] dark:border-[#92CCFF] shadow-2xs'
+                        : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
                     }`}
                   >
                     {plat}
@@ -463,46 +527,24 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
                 value={virtualPlatform}
                 onChange={(e) => setVirtualPlatform(e.target.value)}
                 placeholder="Ej: Zoom, Teams, Moodle"
-                className="w-full px-3 py-2 border border-indigo-200 dark:border-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-medium text-sm transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
+              <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1.5">
                 Enlace de la Clase o ID de Reunión (Opcional)
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={virtualLink}
-                  onChange={(e) => setVirtualLink(e.target.value)}
-                  placeholder="Ej: https://zoom.us/j/... o ID: 123 456 7890"
-                  className="w-full px-3 py-2 border border-indigo-200 dark:border-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-sm font-mono text-xs"
-                />
-              </div>
+              <input
+                type="text"
+                value={virtualLink}
+                onChange={(e) => setVirtualLink(e.target.value)}
+                placeholder="Ej: https://zoom.us/j/... o ID: 123 456 7890"
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-[#C3C7D0]/60 dark:border-[#43474E]/60 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF] font-mono text-xs transition-all"
+              />
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Botones de Acción */}
-      <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={onCancel}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          size="sm"
-          disabled={isSubmitting || subjects.length === 0}
-        >
-          {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar Clase' : 'Agregar al Horario'}
-        </Button>
+        )}
       </div>
     </form>
   );

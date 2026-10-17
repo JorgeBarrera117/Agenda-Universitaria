@@ -32,25 +32,25 @@ export const Badge: React.FC<BadgeProps> = ({
     'inline-flex items-center gap-1 font-bold leading-none select-none tracking-tight';
 
   const sizeStyles: Record<BadgeSize, string> = {
-    xs: 'px-2 py-0.5 text-[10px] rounded-lg font-mono',
-    sm: 'px-2.5 py-1 text-xs rounded-xl',
-    md: 'px-3 py-1.5 text-xs sm:text-sm rounded-xl',
+    xs: 'px-2 py-0.5 text-[10px] rounded-md font-mono',
+    sm: 'px-2.5 py-1 text-xs rounded-lg font-medium',
+    md: 'px-3 py-1.5 text-xs sm:text-sm rounded-lg font-medium',
   };
 
   const variantStyles: Record<BadgeVariant, string> = {
     primary:
-      'bg-cove-blue/10 dark:bg-cove-sky/15 text-cove-blue dark:text-cove-sky border border-cove-sky/30 dark:border-cove-sky/40',
+      'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border border-[#00639B]/20',
     secondary:
-      'bg-cove-sand/50 dark:bg-amber-950/40 text-cove-navy dark:text-amber-200 border border-cove-gold/60 dark:border-amber-800/60',
+      'bg-[#D8E3F8] dark:bg-[#3C4758] text-[#101C2B] dark:text-[#D8E3F8] border border-[#72787E]/20',
     success:
-      'bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-400/30',
+      'bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] border border-emerald-500/20',
     warning:
-      'bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-400/30',
+      'bg-[#FFDCC1] dark:bg-[#683D00] text-[#2E1500] dark:text-[#FFDCC1] border border-amber-500/20',
     danger:
-      'bg-red-500/10 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-400/30',
-    navy: 'bg-cove-navy text-white shadow-2xs font-mono',
+      'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] border border-rose-500/20',
+    navy: 'bg-[#001D32] text-white shadow-2xs font-mono border border-white/10',
     neutral:
-      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80',
+      'bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF] border border-[#C2C7CE]/40 dark:border-white/10',
   };
 
   const customStyle: React.CSSProperties = {

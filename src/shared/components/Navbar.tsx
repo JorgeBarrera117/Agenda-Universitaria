@@ -18,12 +18,6 @@ interface NavbarProps {
   subjectCount?: number;
 }
 
-const DESKTOP_TAB_THEMES: Record<TabType, string> = {
-  schedule: 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/30',
-  subjects: 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/30',
-  professors: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30',
-  notes: 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30',
-};
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
@@ -49,7 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const formattedDate = new Date().toLocaleDateString('es-ES', {
     weekday: 'long',
     day: 'numeric',
-    month: 'long',
+    month: 'short',
   });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
@@ -61,70 +55,86 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-cove-navy/80 backdrop-blur-xl border-b border-cove-deep/30 text-white shadow-md">
-      <div className="max-w-[1750px] mx-auto px-3 sm:px-6 lg:px-8 2xl:px-10">
-        <div className="flex items-center justify-between h-14 sm:h-16 lg:h-18 landscape:h-12">
-          {/* Identidad de Campus Universitario */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5">
-            <div className="relative group shrink-0">
+    <header className="sticky top-0 z-40 bg-[#F1F4FA]/95 dark:bg-[#1D2024]/95 backdrop-blur-md border-b border-[#C2C7CE]/35 dark:border-[#42474E]/35 text-[#191C20] dark:text-[#E2E2E6] shadow-xs transition-colors duration-200">
+      <div
+        className="max-w-[1750px] mx-auto px-3 sm:px-6 lg:px-8 2xl:px-10"
+        style={{
+          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+        }}
+      >
+        <div className="flex items-center justify-between h-14 sm:h-16 landscape:h-14">
+          {/* M3 Top App Bar Title & Campus Identity */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="relative shrink-0">
               <img
                 src="/app-icon-claro.svg"
                 alt="Logo Agenda Universitaria"
-                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 landscape:w-8 landscape:h-8 rounded-2xl shadow-lg shadow-cove-blue/20 ring-2 ring-cove-sky/40 object-contain bg-white"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 object-contain bg-white p-0.5"
               />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-cove-gold border-2 border-cove-navy flex items-center justify-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-cove-navy" />
+              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#FFB77C] border-2 border-[#F1F4FA] dark:border-[#1D2024] flex items-center justify-center">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#001D32]" />
               </div>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-white leading-none">
+                <h1 className="text-sm sm:text-base font-bold tracking-tight text-[#191C20] dark:text-[#E2E2E6] leading-tight truncate">
                   Agenda Universitaria
                 </h1>
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-cove-sky/20 text-cove-sand border border-cove-sky/30">
+                <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
                   Campus Digital
                 </span>
               </div>
-              <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 font-medium">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs text-[#41474D] dark:text-[#C2C7CF] font-medium truncate">
                 <span className="capitalize">{capitalizedDate}</span>
                 <span>•</span>
                 {isOnline ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-400 text-[11px] font-semibold">
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold shrink-0">
                     <Wifi className="w-3 h-3" />
                     En línea
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-cove-gold text-[11px] font-semibold">
+                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[11px] font-semibold shrink-0">
                     <WifiOff className="w-3 h-3" />
-                    Offline (Local-First)
+                    Offline
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Navegación Desktop con estilo de pestañas de campus */}
-          <nav className="hidden md:flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shadow-inner">
+          {/* M3 Primary Tabs (Desktop Navigation Dock) */}
+          <nav
+            aria-label="Pestañas de navegación de campus M3"
+            className="hidden md:flex items-center gap-1 bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full shrink-0 shadow-inner"
+          >
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+
               return (
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-200 cursor-pointer select-none ${
                     isActive
-                      ? DESKTOP_TAB_THEMES[item.id]
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                      ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-bold shadow-xs'
+                      : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#191C20]/5 dark:hover:bg-white/5 font-medium'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
+                  <Icon
+                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
+                      isActive ? 'stroke-[2.4]' : 'stroke-[1.8]'
+                    }`}
+                  />
+                  <span>{item.label}</span>
                   {item.id === 'subjects' && subjectCount > 0 && (
                     <span
-                      className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${
-                        isActive ? 'bg-cove-navy/80 text-cove-sand' : 'bg-slate-700 text-slate-300'
+                      className={`ml-1 px-1.5 min-w-[16px] h-4 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors ${
+                        isActive
+                          ? 'bg-[#001D32] dark:bg-[#D0E4FF] text-white dark:text-[#001D32]'
+                          : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
                       }`}
                     >
                       {subjectCount}
@@ -135,31 +145,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Botón de Configuración y Ajustes Mejorado */}
-          <div className="flex items-center gap-2">
+          {/* M3 Tonal Action Button (Ajustes) */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={onOpenSettings}
               title="Ajustes y Personalización de la Agenda"
               aria-label="Abrir Ajustes"
-              className="relative group overflow-hidden flex items-center gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-gradient-to-r from-slate-800/90 via-cove-navy/90 to-slate-800/90 hover:from-cove-blue/30 hover:via-indigo-950/50 hover:to-cove-sky/30 border border-slate-700/80 hover:border-cove-sky/60 shadow-md shadow-black/20 hover:shadow-cove-blue/20 transition-all duration-300 active:scale-95 cursor-pointer ring-1 ring-white/10"
+              className="flex items-center gap-2 px-3.5 h-10 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D8E3F8] dark:hover:bg-[#3C4758] text-[#191C20] dark:text-[#E2E2E6] transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs group"
             >
-              {/* Resplandor dinámico en hover */}
-              <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-cove-sky/20 via-transparent to-cove-blue/20 rounded-2xl blur-xs" />
-
-              {/* Contenedor del ícono con animación giratoria y badge */}
-              <div className="relative w-7 h-7 rounded-xl bg-cove-blue/20 border border-cove-sky/30 flex items-center justify-center text-cove-sky group-hover:bg-cove-blue group-hover:text-white group-hover:border-cove-sky group-hover:rotate-90 transition-all duration-300 shadow-xs shrink-0">
+              <div className="w-5 h-5 flex items-center justify-center text-[#00639B] dark:text-[#96CCFF] group-hover:rotate-90 transition-transform duration-300">
                 <Settings className="w-4 h-4" />
               </div>
-
-              {/* Texto de Ajustes con tipografía Campus */}
-              <div className="hidden sm:flex flex-col items-start text-left leading-none">
-                <span className="text-xs font-black tracking-wide text-slate-200 group-hover:text-white transition-colors">
-                  Ajustes
-                </span>
-                <span className="text-[9px] font-semibold text-slate-400 group-hover:text-cove-sand transition-colors mt-0.5">
-                  Campus & Tema
-                </span>
-              </div>
+              <span className="text-xs font-bold hidden sm:inline">
+                Ajustes
+              </span>
             </button>
           </div>
 

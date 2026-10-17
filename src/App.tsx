@@ -31,7 +31,17 @@ export function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
-  const [isNoteEditorActive, setIsNoteEditorActive] = useState(false);
+  const [activeEditorTab, setActiveEditorTab] = useState<TabType | null>(null);
+
+  const handleEditorActiveChange = (tab: TabType, isActive: boolean) => {
+    if (isActive) {
+      setActiveEditorTab(tab);
+    } else if (activeEditorTab === tab) {
+      setActiveEditorTab(null);
+    }
+  };
+
+  const isAnyEditorActive = activeEditorTab === activeTab;
 
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
@@ -39,14 +49,14 @@ export function App() {
   const { notes } = useNotes();
   const { settings } = useAppSettings();
 
-  // Sincronizar tema de apariencia (claro, oscuro o sistema)
+  // Sincronizar tema de apariencia (claro, oscuro o sistema) y paleta dinámica Material You
   useEffect(() => {
-    applyTheme(settings.theme);
-    const cleanup = setupSystemThemeListener(settings.theme, () => {
-      applyTheme('system');
+    applyTheme(settings.theme, settings.colorPalette);
+    const cleanup = setupSystemThemeListener(settings.theme, settings.colorPalette, () => {
+      applyTheme('system', settings.colorPalette);
     });
     return cleanup;
-  }, [settings.theme]);
+  }, [settings.theme, settings.colorPalette]);
 
 
   useEffect(() => {
@@ -118,8 +128,8 @@ export function App() {
   const handleTabChange = (tab: TabType) => {
     if (tab !== 'notes') {
       setSelectedSubjectForNotes(undefined);
-      setIsNoteEditorActive(false);
     }
+    setActiveEditorTab(null);
     setIsSettingsOpen(false);
     setActiveTab(tab);
   };
@@ -136,12 +146,12 @@ export function App() {
   return (
     <div
       className={`min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-cove-blue selection:text-white transition-colors duration-200 ${
-        isNoteEditorActive || isSettingsOpen ? 'pb-4' : 'pb-22 md:pb-10'
+        isAnyEditorActive || isSettingsOpen ? 'pb-4' : 'pb-22 md:pb-10'
       }`}
     >
 
-      {/* Barra de navegación superior de Campus (Oculta al crear apuntes o en Ajustes) */}
-      {!isNoteEditorActive && !isSettingsOpen && (
+      {/* Barra de navegación superior de Campus (Oculta al crear apuntes, formularios o en Ajustes) */}
+      {!isAnyEditorActive && !isSettingsOpen && (
         <Navbar
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -154,7 +164,7 @@ export function App() {
       {toastMessage && (
         <div
           className={`fixed right-6 z-50 bg-cove-navy text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-cove-sky/30 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2 ${
-            isNoteEditorActive || isSettingsOpen ? 'bottom-6' : 'bottom-24 md:bottom-8'
+            isAnyEditorActive || isSettingsOpen ? 'bottom-6' : 'bottom-24 md:bottom-8'
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-cove-gold" />
@@ -164,8 +174,12 @@ export function App() {
 
       {/* Contenedor Principal */}
       <main
+        style={{
+          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+        }}
         className={`flex-1 max-w-[1750px] w-full mx-auto ${
-          isNoteEditorActive || isSettingsOpen
+          isAnyEditorActive || isSettingsOpen
             ? 'px-3 sm:px-6 lg:px-8 pt-1 sm:pt-3'
             : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-24 sm:pb-28 md:pb-8'
         }`}
@@ -176,27 +190,45 @@ export function App() {
             onShowToast={showToast}
           />
         ) : (
-          <>
-            {activeTab === 'schedule' && (
-              <ScheduleView onNavigateToNotes={handleNavigateToNotesFromSchedule} />
-            )}
-            {activeTab === 'subjects' && (
-              <SubjectsView onNavigateToNotes={handleNavigateToNotesFromSchedule} />
-            )}
-            {activeTab === 'professors' && <ProfessorsView />}
-            {activeTab === 'notes' && (
+          <div className="w-full">
+            <div className={activeTab === 'schedule' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+              <ScheduleView
+                onNavigateToNotes={handleNavigateToNotesFromSchedule}
+                onEditorActiveChange={(active) => handleEditorActiveChange('schedule', active)}
+                isActive={activeTab === 'schedule'}
+              />
+            </div>
+            <div className={activeTab === 'subjects' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+              <SubjectsView
+                onNavigateToNotes={handleNavigateToNotesFromSchedule}
+                onEditorActiveChange={(active) => handleEditorActiveChange('subjects', active)}
+                isActive={activeTab === 'subjects'}
+              />
+            </div>
+            <div className={activeTab === 'professors' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+              <ProfessorsView
+                onEditorActiveChange={(active) => handleEditorActiveChange('professors', active)}
+                isActive={activeTab === 'professors'}
+              />
+            </div>
+            <div className={activeTab === 'notes' ? 'block animate-in fade-in duration-150' : 'hidden'}>
               <NotesView
                 initialSubjectFilterId={selectedSubjectForNotes}
-                onEditorActiveChange={setIsNoteEditorActive}
+                onEditorActiveChange={(active) => handleEditorActiveChange('notes', active)}
+                isActive={activeTab === 'notes'}
               />
-            )}
-          </>
+            </div>
+          </div>
         )}
       </main>
 
-      {/* Barra de navegación inferior ergonómica para teléfono (Oculta al crear apuntes o en Ajustes) */}
-      {!isNoteEditorActive && !isSettingsOpen && (
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+      {/* Barra de navegación inferior ergonómica para teléfono (Oculta al crear apuntes, formularios o en Ajustes) */}
+      {!isAnyEditorActive && !isSettingsOpen && (
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          subjectCount={subjects.length}
+        />
       )}
     </div>
   );

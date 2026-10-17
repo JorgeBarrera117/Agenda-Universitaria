@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Edit2,
@@ -14,7 +14,6 @@ import {
   Building2,
   CheckCircle2,
   Laptop,
-  Globe,
 } from 'lucide-react';
 import { useSchedule } from '../hooks/useSchedule';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -36,6 +35,8 @@ import {
 
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
+  onEditorActiveChange?: (isActive: boolean) => void;
+  isActive?: boolean;
 }
 
 const isSlotVirtual = (slot?: {
@@ -59,8 +60,12 @@ const isSlotVirtual = (slot?: {
   );
 };
 
-export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes }) => {
-  const { slots, isLoading, addSlot, updateSlot, removeSlot } = useSchedule();
+export const ScheduleView: React.FC<ScheduleViewProps> = ({
+  onNavigateToNotes,
+  onEditorActiveChange,
+  isActive: _isActive = true,
+}) => {
+  const { slots, addSlot, updateSlot, removeSlot } = useSchedule();
   const { getSubjectById } = useSubjects();
   const { getProfessorById } = useProfessors();
   const { settings } = useAppSettings();
@@ -78,6 +83,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<ScheduleSlot | undefined>(undefined);
   const [slotToDelete, setSlotToDelete] = useState<ScheduleSlot | null>(null);
+
+  useEffect(() => {
+    onEditorActiveChange?.(isModalOpen);
+    return () => {
+      onEditorActiveChange?.(false);
+    };
+  }, [isModalOpen, onEditorActiveChange]);
 
   // Hora actual en formato "HH:mm" para calcular el estado en vivo de las clases
   const now = new Date();
@@ -125,10 +137,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
     }
   };
 
-  if (isLoading) {
+  // Vista de Edición / Creación Dedicada a Pantalla Completa (Estilo Telegram)
+  if (isModalOpen) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="w-8 h-8 border-4 border-cove-blue border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-2xl mx-auto pb-12">
+        <ScheduleSlotForm
+          key={editingSlot?.id || 'new-slot'}
+          initialData={editingSlot}
+          defaultDay={selectedDay}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+        />
       </div>
     );
   }
@@ -150,114 +169,111 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
 
   return (
     <div className="space-y-4">
-      {/* 1. CENTRO DE CONTROL EN VIVO (UX PENSAMIENTO DE DISEÑO - ULTRA SLEEK Y COMPACTO) */}
+      {/* 1. CENTRO DE CONTROL EN VIVO (M3 HERO CARD • PRIMARY CONTAINER) */}
       {(activeClassNow || nextClassToday || todaySlots.length > 0) && (
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cove-navy via-cove-deep to-cove-blue text-white p-3 sm:py-3 sm:px-5 shadow-lg border border-cove-sky/30">
-          {/* Elementos decorativos de fondo sutiles */}
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-cove-sky/15 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 -mb-10 w-36 h-36 bg-cove-blue/20 rounded-full blur-xl pointer-events-none" />
-
+        <section className="relative overflow-hidden rounded-[28px] bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] p-4 sm:p-5 shadow-xs border border-[#00639B]/20 dark:border-white/10">
           {activeClassNow ? (
-            // A. ESTADO: EN CLASE AHORA
+            // A. ESTADO: EN CLASE AHORA (M3 Hero Card)
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="space-y-1 sm:space-y-1.5 min-w-0">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="space-y-1.5 min-w-0 flex-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] border border-emerald-500/20">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
                   EN CLASE AHORA MISMO
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 flex-wrap">
-                  <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#001D32] dark:text-[#D0E4FF]">
                     {getSubjectById(activeClassNow.subjectId)?.name || 'Clase Universitaria'}
-                    {getSubjectById(activeClassNow.subjectId)?.code && (
-                      <Badge variant="navy" size="xs">
-                        {getSubjectById(activeClassNow.subjectId)?.code}
-                      </Badge>
-                    )}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-200">
-                    <span className="flex items-center gap-1 font-mono text-cove-gold font-bold">
-                      <Clock className="w-3.5 h-3.5" />
-                      {activeClassNow.startTime} - {activeClassNow.endTime}
+                  {getSubjectById(activeClassNow.subjectId)?.code && (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#00639B] text-white dark:bg-[#96CCFF] dark:text-[#003353] tracking-wider shadow-2xs">
+                      {getSubjectById(activeClassNow.subjectId)?.code}
                     </span>
-                    {isSlotVirtual(activeClassNow) ? (
-                      <span className="flex items-center gap-1 text-white bg-indigo-500/30 border border-indigo-300/40 px-2 py-0.5 rounded-lg font-bold text-[11px]">
-                        <Laptop className="w-3.5 h-3.5 text-sky-300" />
-                        <span>Clase Virtual {activeClassNow.classroom && activeClassNow.classroom.toLowerCase() !== 'virtual' ? `• ${activeClassNow.classroom}` : ''}</span>
-                      </span>
-                    ) : (
-                      activeClassNow.classroom && (
-                        <span className="flex items-center gap-1 text-white bg-white/15 px-2 py-0.5 rounded-lg text-[11px]">
-                          <Building2 className="w-3.5 h-3.5 text-cove-sky" />
-                          <span>
-                            {activeClassNow.classroom}
-                            {activeClassNow.building && ` (${activeClassNow.building})`}
-                          </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs font-medium pt-0.5">
+                  <span className="inline-flex items-center gap-1 font-mono font-bold bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-xs">
+                    <Clock className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
+                    {activeClassNow.startTime} - {activeClassNow.endTime}
+                  </span>
+                  {isSlotVirtual(activeClassNow) ? (
+                    <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg font-bold text-[11px]">
+                      <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <span>Virtual {activeClassNow.classroom && activeClassNow.classroom.toLowerCase() !== 'virtual' ? `• ${activeClassNow.classroom}` : ''}</span>
+                    </span>
+                  ) : (
+                    activeClassNow.classroom && (
+                      <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-[11px] font-medium">
+                        <Building2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
+                        <span>
+                          {activeClassNow.classroom}
+                          {activeClassNow.building && ` (${activeClassNow.building})`}
                         </span>
-                      )
-                    )}
-                    {getProfessorById(activeClassNow.professorId) && (
-                      <span className="flex items-center gap-1 text-slate-200 text-xs">
-                        <ProfessorAvatar
-                          name={getProfessorById(activeClassNow.professorId)!.name}
-                          icon={getProfessorById(activeClassNow.professorId)?.icon}
-                          color={getProfessorById(activeClassNow.professorId)?.color}
-                          size="xs"
-                        />
-                        {getProfessorById(activeClassNow.professorId)?.name}
                       </span>
-                    )}
-                  </div>
+                    )
+                  )}
+                  {getProfessorById(activeClassNow.professorId) && (
+                    <span className="inline-flex items-center gap-1.5 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-xs">
+                      <ProfessorAvatar
+                        name={getProfessorById(activeClassNow.professorId)!.name}
+                        icon={getProfessorById(activeClassNow.professorId)?.icon}
+                        color={getProfessorById(activeClassNow.professorId)?.color}
+                        size="xs"
+                      />
+                      <span className="font-medium">{getProfessorById(activeClassNow.professorId)?.name}</span>
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Atajo 1-tap UX: Tomar apunte de la clase actual */}
               {onNavigateToNotes && (
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="sm"
                   onClick={() => onNavigateToNotes(activeClassNow.subjectId)}
-                  className="bg-gradient-to-r from-cove-gold to-amber-400 text-cove-navy font-black shadow-md shadow-cove-gold/25 hover:from-amber-300 hover:to-amber-400 shrink-0 self-start md:self-center"
-                  icon={<FileEdit className="w-3.5 h-3.5 text-cove-navy" />}
+                  icon={<FileEdit className="w-3.5 h-3.5" />}
+                  className="shrink-0 self-start md:self-center"
                 >
                   Tomar Apunte
                 </Button>
               )}
             </div>
           ) : nextClassToday ? (
-            // B. ESTADO: SIGUIENTE CLASE HOY (Línea compacta de alta densidad)
+            // B. ESTADO: SIGUIENTE CLASE HOY (M3 Tonal Banner)
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cove-gold/20 text-cove-gold border border-cove-gold/40 shrink-0">
-                  <Sparkles className="w-3 h-3" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FFDCC1] dark:bg-[#683D00] text-[#2E1500] dark:text-[#FFDCC1] border border-amber-500/20 shrink-0">
+                  <Sparkles className="w-3.5 h-3.5" />
                   PRÓXIMA CLASE HOY
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm sm:text-base font-extrabold text-white">
+                  <h3 className="text-sm sm:text-base font-bold text-[#001D32] dark:text-[#D0E4FF]">
                     {getSubjectById(nextClassToday.subjectId)?.name}
                   </h3>
                   {getSubjectById(nextClassToday.subjectId)?.code && (
-                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black bg-cove-navy/80 border border-cove-sky/35 text-white shadow-2xs">
+                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white/70 dark:bg-black/30">
                       {getSubjectById(nextClassToday.subjectId)?.code}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-300">
-                  <span className="font-mono text-cove-gold font-bold">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="font-mono font-bold">
                     Inicia a las {nextClassToday.startTime}
                   </span>
                   {nextClassToday.classroom && (
                     <span className="flex items-center gap-1 text-[11px]">
-                      <MapPin className="w-3 h-3 text-cove-sky" />
+                      <MapPin className="w-3 h-3" />
                       {nextClassToday.classroom}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="text-left sm:text-right text-xs text-slate-400 shrink-0">
+              <div className="text-left sm:text-right text-xs shrink-0 font-medium">
                 <span>Total hoy: </span>
-                <span className="font-mono font-bold text-cove-sand">
+                <span className="font-mono font-bold">
                   {todaySlots.length} {todaySlots.length === 1 ? 'clase' : 'clases'}
                 </span>
               </div>
@@ -266,12 +282,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             // C. ESTADO: CLASES COMPLETADAS HOY
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-400/30">
-                  <CheckCircle2 className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-full bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-white">¡Jornada de hoy completada!</h4>
-                  <p className="text-[11px] sm:text-xs text-slate-300 hidden sm:block">
+                  <h4 className="text-xs sm:text-sm font-bold">¡Jornada de hoy completada!</h4>
+                  <p className="text-[11px] sm:text-xs opacity-80 hidden sm:block">
                     Has terminado todas tus clases del día. Aprovecha para repasar tus apuntes.
                   </p>
                 </div>
@@ -298,14 +314,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Alternar vista diaria / semanal */}
-          <div className="hidden sm:flex items-center bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-300/60 dark:border-slate-700/60 shadow-xs">
+          {/* Alternar vista diaria / semanal (Material Design 3 Segmented Button Set) */}
+          <div className="hidden sm:flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full border border-[#C3C7D0]/50 dark:border-[#43474E]/50 shadow-2xs">
             <button
               onClick={() => setViewMode('weekly')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 viewMode === 'weekly'
-                  ? 'bg-white dark:bg-slate-700 text-cove-navy dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
+                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -313,10 +329,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             </button>
             <button
               onClick={() => setViewMode('daily')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 viewMode === 'daily'
-                  ? 'bg-white dark:bg-slate-700 text-cove-navy dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
+                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -327,7 +343,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
           <div className="hidden sm:block">
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               icon={<CalendarPlus className="w-4 h-4" />}
               onClick={() => handleOpenCreate(selectedDay)}
             >
@@ -337,10 +353,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         </div>
       </div>
 
-      {/* 3. SELECTOR DE DÍAS (Visible solo en vista diaria en desktop, o en móvil) */}
+      {/* 3. SELECTOR DE DÍAS (M3 Filter Chips - Visible solo en vista diaria en desktop, o en móvil) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
-        <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto custom-scrollbar p-1.5 sm:p-2">
+        <div className="bg-[#F1F4FA] dark:bg-[#1D2024] p-1.5 rounded-[28px] border border-[#C3C7D0]/50 dark:border-[#43474E]/50 shadow-2xs">
+          <div className="flex items-stretch gap-1.5 sm:gap-2.5 overflow-x-auto custom-scrollbar p-1">
             {displayedDays.map((day) => {
               const isSelected = selectedDay === day;
               const isToday = currentDayOfWeek === day;
@@ -353,19 +369,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     setSelectedDay(day as DayOfWeek);
                     if (window.innerWidth < 640) setViewMode('daily');
                   }}
-                  className={`relative flex-1 min-w-[50px] sm:min-w-[74px] py-2 sm:py-3 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer ${
+                  className={`relative flex-1 min-w-[52px] sm:min-w-[76px] py-2 sm:py-2.5 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer active:scale-95 ${
                     isSelected
-                      ? 'bg-cove-navy dark:bg-blue-600 text-white border-cove-navy dark:border-blue-500 shadow-md shadow-cove-navy/25 dark:shadow-blue-600/30 ring-2 ring-cove-sky/40 dark:ring-blue-400/40'
-                      : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs'
+                      ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#004B76]/30 dark:border-[#D0E4FF]/30 shadow-xs ring-1 ring-[#00639B]/20'
+                      : 'bg-white dark:bg-[#14171B] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] shadow-2xs'
                   }`}
                 >
-                  {/* Indicador de "Hoy": Micro-badge absoluto en esquina para no alterar el centrado geométrico del texto */}
+                  {/* Indicador de "Hoy": Micro-badge absoluto en esquina */}
                   {isToday && (
                     <span
                       className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full ${
                         isSelected
-                          ? 'bg-cove-gold ring-2 ring-cove-navy dark:ring-blue-600 animate-pulse'
-                          : 'bg-amber-500 ring-2 ring-white dark:ring-slate-800'
+                          ? 'bg-[#BA1A1A] dark:bg-[#FFB4AB] ring-2 ring-white dark:ring-[#004B76] animate-pulse'
+                          : 'bg-amber-500 ring-2 ring-white dark:ring-[#14171B]'
                       }`}
                       title="Hoy"
                     />
@@ -376,10 +392,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     {SHORT_DAY_NAMES[day as DayOfWeek]}
                   </span>
 
-                  {/* Conteo de bloques con contraste de alta legibilidad */}
+                  {/* Conteo de bloques con contraste M3 */}
                   <div
                     className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-semibold truncate ${
-                      isSelected ? 'text-cove-sky dark:text-sky-200' : 'text-slate-400 dark:text-slate-400'
+                      isSelected
+                        ? 'text-[#001D32] dark:text-[#D0E4FF] font-bold'
+                        : 'text-[#72777F] dark:text-[#8C9199]'
                     }`}
                   >
                     <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
@@ -392,16 +410,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         </div>
       </div>
 
-      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva Desktop / Laptop con Tarjetas Verticales de Ancho Completo) */}
+      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva con Tarjetas Anchas de Alta Legibilidad >= 260px por columna) */}
       {viewMode === 'weekly' && (
         <div className="overflow-x-auto pb-4 custom-scrollbar">
           <div
             className={`hidden sm:grid ${
               displayedDays.length === 7
-                ? 'grid-cols-7 min-w-[1260px] 2xl:min-w-0'
+                ? 'grid-cols-7 min-w-[1820px]'
                 : displayedDays.length === 6
-                ? 'grid-cols-6 min-w-[1080px] 2xl:min-w-0'
-                : 'grid-cols-5 min-w-[900px] xl:min-w-0'
+                ? 'grid-cols-6 min-w-[1560px]'
+                : 'grid-cols-5 min-w-[1300px] 2xl:min-w-0'
             } gap-3 bg-slate-200/60 dark:bg-slate-900/60 p-3 sm:p-3.5 rounded-3xl border border-slate-200 dark:border-slate-800`}
           >
             {displayedDays.map((day) => {
@@ -490,7 +508,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                               </div>
 
                               {/* Botones de Acción Superiores alineados a la derecha */}
-                              <div className="flex items-center gap-1 shrink-0">
+                              <div className="flex items-center gap-1.5 shrink-0">
                                 {onNavigateToNotes && (
                                   <Button
                                     variant="action-indigo"
@@ -498,7 +516,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                     onClick={() => onNavigateToNotes(slot.subjectId)}
                                     title="Tomar apunte"
                                     aria-label="Tomar apunte"
-                                    icon={<FileEdit className="w-3 h-3 text-white" />}
+                                    icon={<FileEdit className="w-3.5 h-3.5" />}
                                   />
                                 )}
                                 <Button
@@ -507,7 +525,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                   onClick={() => handleOpenEdit(slot)}
                                   title="Editar clase"
                                   aria-label="Editar clase"
-                                  icon={<Edit2 className="w-3 h-3 text-white" />}
+                                  icon={<Edit2 className="w-3.5 h-3.5" />}
                                 />
                                 <Button
                                   variant="action-rose"
@@ -515,7 +533,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                                   onClick={() => setSlotToDelete(slot)}
                                   title="Eliminar clase"
                                   aria-label="Eliminar clase"
-                                  icon={<Trash2 className="w-3 h-3 text-white" />}
+                                  icon={<Trash2 className="w-3.5 h-3.5" />}
                                 />
                               </div>
                             </div>
@@ -644,151 +662,135 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
                     padding="normal"
                     accentColor={isNow ? undefined : subject?.color}
                     interactive
-                    className={`flex flex-row items-stretch justify-between gap-3 group ${
+                    className={`flex flex-col justify-between gap-3 group ${
                       isNow
                         ? 'border-emerald-500 ring-2 ring-emerald-400/40 bg-emerald-50/10'
                         : ''
                     }`}
                   >
-                    {/* Contenido Principal (Izquierda) */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3">
-                      <div className="space-y-1.5">
-                        {/* Encabezado: Código, Estado en vivo y Modalidad */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-black text-white shadow-2xs"
-                            style={{ backgroundColor: subject?.color || '#006BBB' }}
-                          >
-                            <SubjectIcon icon={subject?.icon} className="w-3 h-3 shrink-0" />
-                            <span>{subject?.code || 'CLASE'}</span>
-                          </span>
-
-                          {/* Modalidad Badge */}
-                          {isSlotVirtual(slot) ? (
-                            <Badge variant="primary" size="xs" icon={<Laptop className="w-3 h-3 text-indigo-700 dark:text-indigo-400" />}>
-                              VIRTUAL
-                            </Badge>
-                          ) : (
-                            <Badge variant="neutral" size="xs" icon={<Building2 className="w-3 h-3 text-cove-blue dark:text-cove-sky" />}>
-                              PRESENCIAL
-                            </Badge>
-                          )}
-
-                          {isNow && (
-                            <Badge variant="success" size="xs" className="animate-pulse">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 mr-1" />
-                              EN CURSO AHORA
-                            </Badge>
-                          )}
+                    {/* 1. Cabecera Superior: Ícono + Código + Título (100% ancho) + Botones de Acción */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                        <div
+                          className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-2xs shrink-0 ring-1 ring-white/60"
+                          style={{ backgroundColor: subject?.color || '#2481cc' }}
+                          title={subject?.name}
+                        >
+                          <SubjectIcon icon={subject?.icon} className="w-5 h-5 text-white" />
                         </div>
 
-                        {/* Nombre Principal de la Materia */}
-                        <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors tracking-tight leading-snug line-clamp-1">
-                          {subject?.name || 'Materia'}
-                        </h4>
-                      </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-black text-white bg-slate-900 dark:bg-slate-800 border border-white/10 tracking-wider shadow-2xs">
+                              {subject?.code || 'CLASE'}
+                            </span>
 
-                      {/* Filas de Información del Campus / Modalidad */}
-                      <div className="space-y-1.5 text-xs">
-                        <div className="flex items-center gap-2 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2.5 py-1 rounded-xl text-xs">
-                          <Clock className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
-                          <span>{slot.startTime} - {slot.endTime}</span>
-                        </div>
-
-                        {isSlotVirtual(slot) ? (
-                          <>
-                            <div className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/80 px-2.5 py-1 rounded-xl truncate font-bold text-[11px]">
-                              <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                              <span className="truncate">
-                                {slot.classroom && slot.classroom.toLowerCase() !== 'virtual'
-                                  ? `Plataforma: ${slot.classroom}`
-                                  : 'Clase Virtual / En Línea'}
-                              </span>
-                            </div>
-
-                            {slot.building && (
-                              <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/60 px-2.5 py-1 rounded-xl truncate font-medium text-[11px]">
-                                <Globe className="w-3 h-3 text-indigo-500 dark:text-indigo-400 shrink-0" />
-                                <span className="truncate">{slot.building}</span>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {slot.classroom && (
-                              <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-2.5 py-1 rounded-xl truncate font-bold text-[11px]">
-                                <MapPin className="w-3.5 h-3.5 text-cove-blue dark:text-cove-sky shrink-0" />
-                                <span className="truncate">{slot.classroom}</span>
-                              </div>
+                            {isSlotVirtual(slot) ? (
+                              <Badge variant="primary" size="xs" icon={<Laptop className="w-3 h-3 text-indigo-700 dark:text-indigo-400" />}>
+                                VIRTUAL
+                              </Badge>
+                            ) : (
+                              <Badge variant="neutral" size="xs" icon={<Building2 className="w-3 h-3 text-cove-blue dark:text-cove-sky" />}>
+                                PRESENCIAL
+                              </Badge>
                             )}
 
-                            {slot.building && (
-                              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-2.5 py-1 rounded-xl truncate font-medium text-[11px]">
-                                <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
-                                <span className="truncate">{slot.building}</span>
-                              </div>
+                            {isNow && (
+                              <Badge variant="success" size="xs" className="animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 mr-1" />
+                                EN CURSO
+                              </Badge>
                             )}
-                          </>
-                        )}
-                      </div>
-
-                      {/* Credencial del Docente */}
-                      {professor && (
-                        <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <ProfessorAvatar
-                              name={professor.name}
-                              icon={professor.icon}
-                              color={professor.color}
-                              size="xs"
-                              className="ring-1 ring-cove-sky/30 shrink-0"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider leading-none">
-                                Docente
-                              </span>
-                              <span className="font-bold text-slate-800 dark:text-slate-200 truncate text-[11px] block">{professor.name}</span>
-                            </div>
                           </div>
+
+                          <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-[#2481cc] dark:group-hover:text-[#2AABEE] transition-colors tracking-tight leading-snug line-clamp-1 mt-0.5">
+                            {subject?.name || 'Materia'}
+                          </h4>
                         </div>
+                      </div>
+
+                      {/* Botones de Acción Superiores (Editar / Eliminar) */}
+                      <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                        <Button
+                          variant="action-blue"
+                          size="icon-xs"
+                          onClick={() => handleOpenEdit(slot)}
+                          title="Editar clase"
+                          aria-label="Editar clase"
+                          icon={<Edit2 className="w-3.5 h-3.5" />}
+                        />
+                        <Button
+                          variant="action-rose"
+                          size="icon-xs"
+                          onClick={() => setSlotToDelete(slot)}
+                          title="Eliminar clase"
+                          aria-label="Eliminar clase"
+                          icon={<Trash2 className="w-3.5 h-3.5" />}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 2. Fila de Horario y Ubicación / Modalidad (Material Design 3 Chips) */}
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
+                      <div className="flex items-center gap-1.5 font-mono font-bold text-[#001D32] dark:text-[#D0E4FF] bg-[#D0E4FF] dark:bg-[#004B76] border border-[#004B76]/20 dark:border-[#D0E4FF]/20 px-2.5 py-1 rounded-full text-xs shadow-2xs">
+                        <Clock className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] shrink-0" />
+                        <span>{slot.startTime} - {slot.endTime}</span>
+                      </div>
+
+                      {isSlotVirtual(slot) ? (
+                        <div className="flex items-center gap-1.5 text-[#2B1700] dark:text-[#FFDCC2] bg-[#FFDCC2] dark:bg-[#683D00] border border-[#8B5000]/20 dark:border-[#FFDCC2]/20 px-2.5 py-1 rounded-full truncate font-bold text-[11px]">
+                          <Laptop className="w-3.5 h-3.5 text-[#8B5000] dark:text-[#FFB77B] shrink-0" />
+                          <span className="truncate">
+                            {slot.classroom && slot.classroom.toLowerCase() !== 'virtual'
+                              ? `Plataforma: ${slot.classroom}`
+                              : 'Clase Virtual'}
+                          </span>
+                        </div>
+                      ) : (
+                        slot.classroom && (
+                          <div className="flex items-center gap-1.5 text-[#191C20] dark:text-[#E2E2E6] bg-[#E2E7EF] dark:bg-[#272A2F] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 px-2.5 py-1 rounded-full truncate font-semibold text-[11px]">
+                            <MapPin className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] shrink-0" />
+                            <span className="truncate">{slot.classroom}{slot.building ? ` (${slot.building})` : ''}</span>
+                          </div>
+                        )
                       )}
                     </div>
 
-                    {/* Columna Vertical de Acciones (Derecha) - Estandarizada con Átomo Button */}
-                    <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 sm:pl-2 py-0.5 gap-2 sm:gap-2.5">
-                      {/* Botón 1: Tomar apunte */}
-                      {onNavigateToNotes ? (
+                    {/* 3. Pie de Tarjeta: Docente a la izquierda y Botón "Tomar Apunte" a la derecha */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      {professor ? (
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ProfessorAvatar
+                            name={professor.name}
+                            icon={professor.icon}
+                            color={professor.color}
+                            size="xs"
+                            className="ring-1 ring-[#2481cc]/30 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <span className="font-bold text-slate-800 dark:text-slate-200 truncate text-[11px] block">
+                              {professor.name}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 italic">
+                          Sin docente asignado
+                        </span>
+                      )}
+
+                      {onNavigateToNotes && (
                         <Button
                           variant="action-indigo"
-                          size="icon-md"
+                          size="xs"
                           onClick={() => onNavigateToNotes(slot.subjectId)}
                           title="Tomar apunte de esta materia"
                           aria-label="Tomar apunte"
-                          icon={<FileEdit className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
-                        />
-                      ) : (
-                        <div className="w-10 h-10 sm:w-11 sm:h-11" />
+                          icon={<FileEdit className="w-3.5 h-3.5" />}
+                        >
+                          Tomar Apunte
+                        </Button>
                       )}
-
-                      {/* Botón 2: Editar clase */}
-                      <Button
-                        variant="action-blue"
-                        size="icon-md"
-                        onClick={() => handleOpenEdit(slot)}
-                        title="Editar clase"
-                        aria-label="Editar clase"
-                        icon={<Edit2 className="w-4 h-4 text-white" />}
-                      />
-
-                      {/* Botón 3: Eliminar clase */}
-                      <Button
-                        variant="action-rose"
-                        size="icon-md"
-                        onClick={() => setSlotToDelete(slot)}
-                        title="Eliminar clase"
-                        aria-label="Eliminar clase"
-                        icon={<Trash2 className="w-4 h-4 text-white" />}
-                      />
                     </div>
                   </Card>
                 );
@@ -796,21 +798,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
             </div>
           )}
         </div>
-
-      {/* Modal Crear / Editar */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingSlot ? 'Modificar Cátedra Universitaria' : 'Programar Cátedra en el Horario'}
-      >
-        <ScheduleSlotForm
-          key={editingSlot?.id || 'new-slot'}
-          initialData={editingSlot}
-          defaultDay={selectedDay}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsModalOpen(false)}
-        />
-      </Modal>
 
       {/* Modal Confirmar Eliminación */}
       <Modal
@@ -820,19 +807,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         maxWidth="sm"
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-700 dark:text-slate-300">
             ¿Deseas retirar esta cátedra de tu horario semanal? La materia y tus apuntes permanecerán guardados.
           </p>
           <div className="flex justify-end gap-3 pt-3">
             <button
               onClick={() => setSlotToDelete(null)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm cursor-pointer"
+              className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm cursor-pointer"
             >
               Retirar
             </button>
@@ -845,7 +832,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ onNavigateToNotes })
         colorScheme="schedule"
         onClick={() => handleOpenCreate(selectedDay)}
         label="Programar Nueva Cátedra"
-        icon={<CalendarPlus className="w-7 h-7 text-white stroke-[2.2]" />}
+        icon={<CalendarPlus className="w-6 h-6 text-white stroke-[2.2]" />}
       />
     </div>
   );

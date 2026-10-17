@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   Edit2,
@@ -9,7 +9,9 @@ import {
   Users,
   UserPlus,
   CalendarCheck,
-  ExternalLink,
+  Search,
+  X,
+  ChevronRight,
 } from 'lucide-react';
 import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -18,16 +20,33 @@ import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { Button, Card, Badge } from '../../../shared/components/atoms';
+import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 
-export const ProfessorsView: React.FC = () => {
-  const { professors, isLoading, addProfessor, updateProfessor, removeProfessor } = useProfessors();
+interface ProfessorsViewProps {
+  onEditorActiveChange?: (isActive: boolean) => void;
+  isActive?: boolean;
+}
+
+export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
+  onEditorActiveChange,
+  isActive: _isActive = true,
+}) => {
+  const { professors, addProfessor, updateProfessor, removeProfessor } = useProfessors();
   const { getSubjectById } = useSubjects();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProfessor, setEditingProfessor] = useState<Professor | undefined>(undefined);
   const [profToDelete, setProfToDelete] = useState<Professor | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isAdvisoriesModalOpen, setIsAdvisoriesModalOpen] = useState(false);
+
+  useEffect(() => {
+    onEditorActiveChange?.(isModalOpen);
+    return () => {
+      onEditorActiveChange?.(false);
+    };
+  }, [isModalOpen, onEditorActiveChange]);
 
   const handleOpenCreate = () => {
     setEditingProfessor(undefined);
@@ -55,30 +74,63 @@ export const ProfessorsView: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  // Filtrado y ordenamiento alfabético estilo Telegram
+  const filteredProfessors = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const sorted = [...professors].sort((a, b) =>
+      a.name.localeCompare(b.name, 'es', { sensitivity: 'base' })
+    );
+
+    if (!query) return sorted;
+
+    return sorted.filter((prof) => {
+      if (prof.name.toLowerCase().includes(query)) return true;
+      if (prof.email?.toLowerCase().includes(query)) return true;
+      if (prof.phone?.includes(query)) return true;
+      if (prof.office?.toLowerCase().includes(query)) return true;
+      if (prof.notes?.toLowerCase().includes(query)) return true;
+      // Buscar también por nombre de las materias asignadas
+      return prof.subjectIds.some((sid) => {
+        const sub = getSubjectById(sid);
+        return sub?.name.toLowerCase().includes(query);
+      });
+    });
+  }, [professors, searchQuery, getSubjectById]);
+
+  // Vista de Edición / Creación Dedicada a Pantalla Completa (Estilo Telegram)
+  if (isModalOpen) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="w-8 h-8 border-4 border-cove-blue border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-2xl mx-auto pb-12">
+        <ProfessorForm
+          initialData={editingProfessor}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {/* Encabezado */}
+    <div className="space-y-4 max-w-4xl mx-auto">
+      {/* Encabezado Principal */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Cuerpo Docente y Asesorías
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Directorio oficial de profesores, cubículos de consulta y medios de contacto.
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Contactos Docentes
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2481cc]/15 text-[#2481cc] dark:text-[#2AABEE] border border-[#2481cc]/30">
+              {professors.length}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Directorio oficial de catedráticos, cubículos y horarios de asesoría.
           </p>
         </div>
         <div className="hidden sm:block">
           <Button
             variant="primary"
-            size="md"
+            size="sm"
             icon={<UserPlus className="w-4 h-4" />}
             onClick={handleOpenCreate}
           >
@@ -87,203 +139,302 @@ export const ProfessorsView: React.FC = () => {
         </div>
       </div>
 
-      {professors.length === 0 ? (
-        <Card padding="relaxed" className="text-center py-14 border-dashed border-slate-300 dark:border-slate-800">
-          <div className="w-14 h-14 rounded-2xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-3">
-            <Users className="w-7 h-7" />
+      {/* Barra de Búsqueda (Material Design 3 Search Bar) */}
+      <div className="relative">
+        <div className="relative flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-12 sm:h-14 px-4 sm:px-5 shadow-xs transition-all">
+          <div className="pr-3 text-[#43474E] dark:text-[#C3C7D0]">
+            <Search className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
-            No hay profesores registrados
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por nombre, cubículo, materia o correo..."
+            className="w-full py-2 pr-9 text-xs sm:text-sm bg-transparent text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#43474E] dark:placeholder:text-[#8C9199] outline-none font-medium"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-4 p-1.5 rounded-full text-[#43474E] hover:text-[#191C20] dark:text-[#C3C7D0] dark:hover:text-[#E2E2E6] hover:bg-[#1D2024]/10 dark:hover:bg-[#E2E2E6]/10 transition-colors"
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Tarjeta de Acciones Rápidas (Material Design 3 Elevated Container) */}
+      <div className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] overflow-hidden divide-y divide-[#C3C7D0]/30 dark:divide-[#43474E]/30 shadow-xs">
+        {/* Acción 1: Registrar nuevo catedrático */}
+        <button
+          type="button"
+          onClick={handleOpenCreate}
+          className="w-full flex items-center justify-between p-3.5 sm:p-4 hover:bg-[#E2E7EF]/50 dark:hover:bg-[#272A2F]/50 transition-colors text-left cursor-pointer group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <UserPlus className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] block group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                Registrar nuevo catedrático
+              </span>
+              <span className="text-xs text-[#43474E] dark:text-[#8C9199] block mt-0.5">
+                Añadir datos personales, cubículo y asignaturas
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[#72777F] dark:text-[#8C9199] group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors shrink-0" />
+        </button>
+
+        {/* Acción 2: Consultar asesorías y cubículos */}
+        <button
+          type="button"
+          onClick={() => setIsAdvisoriesModalOpen(true)}
+          className="w-full flex items-center justify-between p-3.5 sm:p-4 hover:bg-[#E2E7EF]/50 dark:hover:bg-[#272A2F]/50 transition-colors text-left cursor-pointer group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <CalendarCheck className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] block group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors">
+                Consultar asesorías y cubículos
+              </span>
+              <span className="text-xs text-[#43474E] dark:text-[#8C9199] block mt-0.5">
+                Directorio rápido de horarios de atención y oficinas
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[#72777F] dark:text-[#8C9199] group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors shrink-0" />
+        </button>
+      </div>
+
+      {/* Encabezado de Sección Alfabética */}
+      <div className="flex items-center justify-between px-1.5 pt-1">
+        <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider">
+          Directorio Alfabético • {filteredProfessors.length}{' '}
+          {filteredProfessors.length === 1 ? 'Catedrático' : 'Catedráticos'}
+        </span>
+        {searchQuery && (
+          <span className="text-[11px] text-[#00639B] dark:text-[#92CCFF] font-semibold">
+            Filtrando resultados
+          </span>
+        )}
+      </div>
+
+      {/* Lista Agrupada Continua de Contactos (Material Design 3 Elevated List) */}
+      {filteredProfessors.length === 0 ? (
+        <Card padding="relaxed" className="text-center py-12 border-dashed border-[#C3C7D0] dark:border-[#43474E]">
+          <div className="w-12 h-12 rounded-full bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center mx-auto mb-3">
+            <Users className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1">
+            {searchQuery ? 'No se encontraron catedráticos' : 'No hay catedráticos registrados'}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
-            Guarda la información de tus catedráticos para consultar rápidamente horarios de asesoría y correos.
+          <p className="text-xs text-[#43474E] dark:text-[#8C9199] mb-4 max-w-sm mx-auto">
+            {searchQuery
+              ? `No hay coincidencias para "${searchQuery}". Intenta con otro nombre, cubículo o materia.`
+              : 'Registra a tus profesores para tener a mano sus contactos y horarios de asesoría.'}
           </p>
-          <Button
-            variant="primary"
-            size="md"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={handleOpenCreate}
-          >
-            Registrar primer catedrático
-          </Button>
+          {searchQuery ? (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="px-4 py-2 text-xs font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 rounded-full hover:bg-[#D0E4FF] transition-colors cursor-pointer"
+            >
+              Borrar filtro de búsqueda
+            </button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={handleOpenCreate}
+            >
+              Registrar primer catedrático
+            </Button>
+          )}
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {professors.map((prof) => {
-            const primarySubject = prof.subjectIds.length > 0 ? getSubjectById(prof.subjectIds[0]) : null;
-            const cardColor = primarySubject?.color || '#006BBB';
+        <div className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] sm:rounded-[32px] shadow-xs divide-y divide-[#C3C7D0]/30 dark:divide-[#43474E]/30 overflow-hidden">
+          {filteredProfessors.map((prof) => (
+            <div
+              key={prof.id}
+              className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 hover:bg-[#E2E7EF]/40 dark:hover:bg-[#272A2F]/40 transition-colors group"
+            >
+              {/* Avatar Circular M3 */}
+              <ProfessorAvatar
+                name={prof.name}
+                icon={prof.icon}
+                color={prof.color}
+                size="contact"
+                shape="circle"
+                className="shrink-0 ring-2 ring-white/60 dark:ring-white/10 shadow-2xs"
+              />
 
-            return (
-              <Card
-                key={prof.id}
-                padding="normal"
-                accentColor={cardColor}
-                interactive
-                className="flex flex-row items-stretch justify-between gap-3 group"
-              >
-                {/* Contenido Principal (Izquierda) */}
-                <div className="flex-1 min-w-0 flex flex-col justify-between space-y-3">
-                  <div>
-                    {/* Cabecera de la Ficha Docente */}
-                    <div className="flex items-center gap-3 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                      <ProfessorAvatar
-                        name={prof.name}
-                        icon={prof.icon}
-                        color={prof.color}
-                        size="md"
-                        className="border border-white/20 shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-cove-blue dark:group-hover:text-cove-sky transition-colors line-clamp-1 leading-snug">
-                          {prof.name}
-                        </h3>
-                        <Badge variant="primary" size="xs" className="mt-1">
-                          Catedrático Titular
-                        </Badge>
-                      </div>
+              {/* Información Central del Contacto */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-bold text-[#191C20] dark:text-[#E2E2E6] truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                    {prof.name}
+                  </h3>
+                </div>
+
+                {/* Línea de Estado / Subtítulo con M3 Assist Chips */}
+                <div className="flex items-center flex-wrap gap-x-2.5 gap-y-1 mt-1 text-xs text-[#43474E] dark:text-[#8C9199]">
+                  {/* Materias vinculadas como micro-pills */}
+                  {prof.subjectIds.length > 0 ? (
+                    <div className="flex items-center flex-wrap gap-1">
+                      {prof.subjectIds.map((sid) => {
+                        const sub = getSubjectById(sid);
+                        if (!sub) return null;
+                        return (
+                          <span
+                            key={sid}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-white shadow-2xs"
+                            style={{ backgroundColor: sub.color }}
+                          >
+                            <SubjectIcon icon={sub.icon} className="w-2.5 h-2.5 shrink-0" />
+                            <span className="truncate max-w-[120px]">{sub.name}</span>
+                          </span>
+                        );
+                      })}
                     </div>
-
-                    {/* Medios de Contacto y Ubicación en el Campus */}
-                    <div className="mt-2.5 space-y-1.5 text-xs">
-                      {prof.email && (
-                        <a
-                          href={`mailto:${prof.email}`}
-                          className="group/contact flex items-center gap-2 p-1.5 pr-2.5 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-sky-50/90 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-cove-sky/60 text-slate-700 dark:text-slate-300 hover:text-cove-blue dark:hover:text-cove-sky transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
-                          title={`Enviar correo electrónico a ${prof.email}`}
-                          aria-label={`Enviar correo a ${prof.name}`}
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cove-blue to-cove-sky text-white flex items-center justify-center shrink-0 shadow-2xs group-hover/contact:scale-105 transition-all">
-                            <Mail className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
-                              Correo
-                            </span>
-                            <span className="block truncate font-bold text-slate-800 dark:text-slate-200 group-hover/contact:text-cove-blue dark:group-hover/contact:text-cove-sky text-[11px]">
-                              {prof.email}
-                            </span>
-                          </div>
-                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover/contact:text-cove-blue shrink-0 opacity-0 group-hover/contact:opacity-100 transition-opacity" />
-                        </a>
-                      )}
-
-                      {prof.phone && (
-                        <a
-                          href={`tel:${prof.phone}`}
-                          className="group/contact flex items-center gap-2 p-1.5 pr-2.5 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-emerald-50/90 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 hover:border-emerald-300 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-all truncate shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer"
-                          title={`Llamar al ${prof.phone}`}
-                          aria-label={`Llamar a ${prof.name}`}
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-500 text-white flex items-center justify-center shrink-0 shadow-2xs group-hover/contact:scale-105 transition-all">
-                            <Phone className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
-                              Teléfono
-                            </span>
-                            <span className="block truncate font-bold text-slate-800 dark:text-slate-200 group-hover/contact:text-emerald-700 dark:group-hover/contact:text-emerald-400 text-[11px] font-mono">
-                              {prof.phone}
-                            </span>
-                          </div>
-                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover/contact:text-emerald-600 shrink-0 opacity-0 group-hover/contact:opacity-100 transition-opacity" />
-                        </a>
-                      )}
-
-                      {prof.office && (
-                        <div className="flex items-center gap-2 p-1.5 pr-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 shadow-2xs">
-                          <div className="w-7 h-7 rounded-lg bg-amber-100/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400 flex items-center justify-center shrink-0">
-                            <MapPin className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">
-                              Ubicación
-                            </span>
-                            <span className="block truncate font-medium text-slate-800 dark:text-slate-200 text-[11px]">
-                              {prof.office}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {prof.notes && (
-                        <div className="mt-2 p-2 bg-cove-sand/35 dark:bg-amber-950/30 border border-cove-gold/60 dark:border-amber-800/60 rounded-xl text-[11px] text-slate-900 dark:text-amber-100 leading-snug shadow-2xs">
-                          <div className="flex items-center gap-1 font-bold text-amber-900 dark:text-amber-300 mb-0.5">
-                            <CalendarCheck className="w-3 h-3 text-amber-700 dark:text-amber-400 shrink-0" />
-                            <span>Asesorías:</span>
-                          </div>
-                          <p className="font-medium text-slate-800 dark:text-slate-200 italic line-clamp-2">"{prof.notes}"</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Materias a Cargo */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                      Cátedras:
+                  ) : (
+                    <span className="text-[11px] text-[#72777F] dark:text-[#8C9199] italic">
+                      Sin materias
                     </span>
-                    {prof.subjectIds.length === 0 ? (
-                      <span className="text-[11px] text-slate-400 italic">Sin materias vinculadas</span>
-                    ) : (
-                      <div className="flex flex-wrap gap-1">
-                        {prof.subjectIds.map((sid) => {
-                          const sub = getSubjectById(sid);
-                          if (!sub) return null;
-                          return (
-                            <span
-                              key={sid}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold text-white shadow-2xs"
-                              style={{ backgroundColor: sub.color }}
-                            >
-                              <SubjectIcon icon={sub.icon} className="w-2.5 h-2.5 shrink-0" />
-                              {sub.name}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  )}
 
-                {/* Columna Vertical de Acciones (Derecha: Editar y Eliminar) */}
-                <div className="flex flex-col justify-center items-center shrink-0 pl-1.5 sm:pl-2 py-0.5 gap-2 sm:gap-2.5">
-                  {/* Botón 1: Editar profesor */}
-                  <Button
-                    variant="action-blue"
-                    size="icon-md"
-                    onClick={() => handleOpenEdit(prof)}
-                    title="Editar datos del catedrático"
-                    aria-label="Editar profesor"
-                    icon={<Edit2 className="w-4 h-4 text-white" />}
-                  />
+                  {/* Cubículo / Ubicación */}
+                  {prof.office && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#191C20] dark:text-[#E2E2E6] bg-[#E2E7EF] dark:bg-[#272A2F] px-2 py-0.5 rounded-md">
+                      <MapPin className="w-3 h-3 text-[#BA1A1A] dark:text-[#FFB4AB] shrink-0" />
+                      <span className="truncate max-w-[140px]">{prof.office}</span>
+                    </span>
+                  )}
 
-                  {/* Botón 2: Eliminar profesor */}
-                  <Button
-                    variant="action-rose"
-                    size="icon-md"
-                    onClick={() => setProfToDelete(prof)}
-                    title="Eliminar catedrático"
-                    aria-label="Eliminar profesor"
-                    icon={<Trash2 className="w-4 h-4 text-white" />}
-                  />
+                  {/* Asesorías */}
+                  {prof.notes && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0E2010] dark:text-[#D7E8CD] bg-[#D7E8CD] dark:bg-[#234E27] px-2 py-0.5 rounded-md">
+                      <CalendarCheck className="w-3 h-3 text-[#386A20] dark:text-[#B1F194] shrink-0" />
+                      <span className="truncate max-w-[160px]">{prof.notes}</span>
+                    </span>
+                  )}
                 </div>
-              </Card>
-            );
-          })}
+              </div>
+
+              {/* Botones de Acción Circulares (M3 Tonal Icon Buttons) */}
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                {prof.phone && (
+                  <a
+                    href={`tel:${prof.phone}`}
+                    className="w-9 h-9 rounded-full bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
+                    title={`Llamar a ${prof.name} (${prof.phone})`}
+                    aria-label="Llamar al profesor"
+                  >
+                    <Phone className="w-4 h-4" />
+                  </a>
+                )}
+
+                {prof.email && (
+                  <a
+                    href={`mailto:${prof.email}`}
+                    className="w-9 h-9 rounded-full bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
+                    title={`Enviar correo a ${prof.email}`}
+                    aria-label="Enviar correo al profesor"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </a>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(prof)}
+                  className="w-9 h-9 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] hover:text-[#001D32] dark:hover:text-[#D0E4FF] flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
+                  title="Editar datos del catedrático"
+                  aria-label="Editar profesor"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setProfToDelete(prof)}
+                  className="w-9 h-9 rounded-full bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
+                  title="Eliminar catedrático"
+                  aria-label="Eliminar profesor"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Modal Crear / Editar */}
+      {/* Modal Directorio de Asesorías y Cubículos */}
       <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingProfessor ? 'Editar Datos del Catedrático' : 'Registrar Nuevo Catedrático'}
+        isOpen={isAdvisoriesModalOpen}
+        onClose={() => setIsAdvisoriesModalOpen(false)}
+        title="Directorio de Asesorías y Cubículos"
+        maxWidth="md"
       >
-        <ProfessorForm
-          initialData={editingProfessor}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsModalOpen(false)}
-        />
+        <div className="space-y-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Horarios de atención fuera de clase y ubicación física de los docentes en el campus.
+          </p>
+          <div className="max-h-[60vh] overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100 dark:divide-white/5">
+            {professors.filter((p) => p.office || p.notes).length === 0 ? (
+              <div className="text-center py-6 text-slate-400 dark:text-slate-500 text-xs">
+                No hay catedráticos con información de cubículo o asesorías registrada.
+              </div>
+            ) : (
+              professors
+                .filter((p) => p.office || p.notes)
+                .map((p) => (
+                  <div key={p.id} className="pt-2.5 first:pt-0 flex items-start gap-3">
+                    <ProfessorAvatar
+                      name={p.name}
+                      icon={p.icon}
+                      color={p.color}
+                      size="sm"
+                      shape="circle"
+                      className="mt-0.5 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                        {p.name}
+                      </div>
+                      {p.office && (
+                        <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 font-medium">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          <span>Cubículo: {p.office}</span>
+                        </div>
+                      )}
+                      {p.notes && (
+                        <div className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">
+                          <CalendarCheck className="w-3 h-3 shrink-0" />
+                          <span>Asesorías: {p.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsAdvisoriesModalOpen(false)}
+              className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
       </Modal>
 
       {/* Modal Confirmar Eliminación */}
@@ -294,19 +445,19 @@ export const ProfessorsView: React.FC = () => {
         maxWidth="sm"
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            ¿Deseas desvincular a <strong>{profToDelete?.name}</strong>? Sus materias y apuntes no sufrirán cambios.
+          <p className="text-sm text-slate-700 dark:text-slate-300">
+            ¿Deseas desvincular a <strong className="text-slate-900 dark:text-white">{profToDelete?.name}</strong>? Sus materias y apuntes no sufrirán cambios.
           </p>
           <div className="flex justify-end gap-3 pt-3">
             <button
               onClick={() => setProfToDelete(null)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm cursor-pointer"
+              className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm cursor-pointer"
             >
               Confirmar
             </button>
@@ -314,12 +465,12 @@ export const ProfessorsView: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes - Estilo Telegram) */}
       <DraggableFAB
         colorScheme="professors"
         onClick={handleOpenCreate}
         label="Registrar Catedrático"
-        icon={<UserPlus className="w-7 h-7 text-white stroke-[2.2]" />}
+        icon={<UserPlus className="w-6 h-6 text-white stroke-[2.2]" />}
       />
     </div>
   );

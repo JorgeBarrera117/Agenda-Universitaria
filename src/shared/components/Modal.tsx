@@ -48,25 +48,24 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cove-navy/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className={`w-full ${maxWidthClass} bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] text-slate-900 dark:text-slate-100`}
+        className={`w-full ${maxWidthClass} bg-[#F1F4FA] dark:bg-[#272A2F] rounded-[28px] shadow-[0_8px_24px_4px_rgba(0,0,0,0.18)] border border-[#C2C7CE]/30 dark:border-white/5 overflow-hidden flex flex-col max-h-[90vh] text-[#191C20] dark:text-[#E2E2E6] animate-in zoom-in-95 duration-150`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white">{title}</h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#C2C7CE]/30 dark:border-white/5">
+          <h3 className="text-lg sm:text-xl font-bold text-[#191C20] dark:text-[#E2E2E6] tracking-tight">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-cove-blue dark:hover:text-cove-sky hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-            aria-label="Cerrar modal"
+            className="w-9 h-9 rounded-full bg-[#E2E7EF] dark:bg-white/10 hover:bg-[#D0E4FF] dark:hover:bg-white/20 text-[#41474D] dark:text-[#C2C7CF] hover:text-[#001D32] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            aria-label="Cerrar diálogo"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
-        <div className="p-6 overflow-y-auto">{children}</div>
+        <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar">{children}</div>
       </div>
     </div>
-
   );
 };

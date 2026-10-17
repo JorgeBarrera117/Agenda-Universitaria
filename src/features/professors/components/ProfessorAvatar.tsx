@@ -54,7 +54,8 @@ export interface ProfessorAvatarProps {
   name: string;
   icon?: string;
   color?: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'contact' | 'lg' | 'xl' | 'select';
+  shape?: 'squircle' | 'circle';
   className?: string;
 }
 
@@ -112,20 +113,25 @@ export const ProfessorAvatar: React.FC<ProfessorAvatarProps> = ({
   icon,
   color = '#081d33',
   size = 'md',
+  shape = 'squircle',
   className = '',
 }) => {
   const sizeStyles = {
-    xs: { box: 'w-4 h-4 rounded-md text-[8px]', icon: 'w-2.5 h-2.5' },
-    sm: { box: 'w-5 h-5 rounded-lg text-[9px]', icon: 'w-3 h-3' },
-    md: { box: 'w-7 h-7 rounded-xl text-xs', icon: 'w-4 h-4' },
-    lg: { box: 'w-13 h-13 rounded-2xl text-sm font-black', icon: 'w-6 h-6' },
-    xl: { box: 'w-14 h-14 rounded-2xl text-base font-black', icon: 'w-7 h-7' },
+    xs: { box: 'w-4 h-4 text-[8px]', shapeClass: 'rounded-md', icon: 'w-2.5 h-2.5' },
+    sm: { box: 'w-5 h-5 text-[9px]', shapeClass: 'rounded-lg', icon: 'w-3 h-3' },
+    select: { box: 'w-6 h-6 text-[10px]', shapeClass: 'rounded-lg', icon: 'w-3.5 h-3.5' },
+    md: { box: 'w-7 h-7 text-xs', shapeClass: 'rounded-xl', icon: 'w-4 h-4' },
+    contact: { box: 'w-11 h-11 sm:w-12 sm:h-12 text-sm sm:text-base font-bold', shapeClass: 'rounded-full', icon: 'w-5 h-5 sm:w-6 sm:h-6' },
+    lg: { box: 'w-13 h-13 text-sm font-black', shapeClass: 'rounded-2xl', icon: 'w-6 h-6' },
+    xl: { box: 'w-14 h-14 text-base font-black', shapeClass: 'rounded-2xl', icon: 'w-7 h-7' },
   }[size];
+
+  const effectiveShapeClass = shape === 'circle' ? 'rounded-full' : sizeStyles.shapeClass;
 
   return (
     <div
       style={{ backgroundColor: color }}
-      className={`${sizeStyles.box} text-white flex items-center justify-center shadow-md ring-2 ring-white/20 shrink-0 select-none overflow-hidden ${className}`}
+      className={`${sizeStyles.box} ${effectiveShapeClass} text-white flex items-center justify-center shadow-md ring-2 ring-white/20 shrink-0 select-none overflow-hidden ${className}`}
       title={name}
       aria-label={`Avatar de ${name}`}
     >

@@ -1,7 +1,9 @@
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type MaterialColorTheme = 'blue' | 'purple' | 'green' | 'amber' | 'rose' | 'teal';
 
 export interface AppSettings {
   theme: ThemeMode;
+  colorPalette: MaterialColorTheme;
   semesterName: string;
   defaultScheduleView: 'weekly' | 'daily';
   imageQuality: 'balanced' | 'high';
@@ -15,6 +17,7 @@ export interface AppSettings {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
+  colorPalette: 'blue',
   semesterName: 'Semestre 2026-I',
   defaultScheduleView: 'weekly',
   imageQuality: 'balanced',

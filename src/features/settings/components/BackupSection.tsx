@@ -185,9 +185,9 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
   };
 
   return (
-    <div className={`bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-4 transition-colors ${compact ? 'text-xs' : ''}`}>
+    <div className={`bg-[#FDFBFF] dark:bg-[#1D2024] rounded-[28px] p-4 sm:p-6 shadow-xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-5 transition-colors ${compact ? 'text-xs' : ''}`}>
       {/* Encabezado */}
-      <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
+      <div className="flex items-center gap-2.5 border-b border-[#C3C7D0]/30 dark:border-[#43474E]/30 pb-3">
         <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
           <HardDrive className="w-5 h-5" />
         </div>

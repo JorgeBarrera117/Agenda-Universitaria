@@ -6,6 +6,7 @@ import type { CreateProfessorDTO, UpdateProfessorDTO } from '../types';
 export function useProfessors() {
   const professors = useLiveQuery(
     () => db.professors.toArray(),
+    [],
     []
   );
 
@@ -28,7 +29,7 @@ export function useProfessors() {
 
   return {
     professors: professors ?? [],
-    isLoading: professors === undefined,
+    isLoading: false,
     addProfessor,
     updateProfessor,
     removeProfessor,

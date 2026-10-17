@@ -25,58 +25,58 @@ const FAB_THEMES: Record<
   FABColorScheme,
   {
     bg: string;
-    ring: string;
+    text: string;
     shadow: string;
     dragRing: string;
   }
 > = {
   schedule: {
-    bg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy',
-    ring: 'ring-2 ring-sky-300/40',
-    shadow: 'shadow-xl shadow-blue-950/50',
-    dragRing: 'ring-4 ring-sky-400/70',
+    bg: 'bg-[#00639B] dark:bg-[#004B76]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(0,99,155,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-[#00639B]/50',
   },
   blue: {
-    bg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-cove-navy',
-    ring: 'ring-2 ring-sky-300/40',
-    shadow: 'shadow-xl shadow-blue-950/50',
-    dragRing: 'ring-4 ring-sky-400/70',
+    bg: 'bg-[#00639B] dark:bg-[#004B76]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(0,99,155,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-[#00639B]/50',
   },
   subjects: {
-    bg: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900',
-    ring: 'ring-2 ring-teal-300/40',
-    shadow: 'shadow-xl shadow-emerald-950/50',
-    dragRing: 'ring-4 ring-teal-400/70',
+    bg: 'bg-emerald-600 dark:bg-[#0A532C]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(5,150,105,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-emerald-500/50',
   },
   emerald: {
-    bg: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900',
-    ring: 'ring-2 ring-teal-300/40',
-    shadow: 'shadow-xl shadow-emerald-950/50',
-    dragRing: 'ring-4 ring-teal-400/70',
+    bg: 'bg-emerald-600 dark:bg-[#0A532C]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(5,150,105,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-emerald-500/50',
   },
   professors: {
-    bg: 'bg-gradient-to-br from-amber-500 via-orange-600 to-slate-900',
-    ring: 'ring-2 ring-amber-300/40',
-    shadow: 'shadow-xl shadow-orange-950/50',
-    dragRing: 'ring-4 ring-amber-400/70',
+    bg: 'bg-amber-600 dark:bg-[#683D00]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(217,119,6,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-amber-500/50',
   },
   amber: {
-    bg: 'bg-gradient-to-br from-amber-500 via-orange-600 to-slate-900',
-    ring: 'ring-2 ring-amber-300/40',
-    shadow: 'shadow-xl shadow-orange-950/50',
-    dragRing: 'ring-4 ring-amber-400/70',
+    bg: 'bg-amber-600 dark:bg-[#683D00]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(217,119,6,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-amber-500/50',
   },
   notes: {
-    bg: 'bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900',
-    ring: 'ring-2 ring-violet-300/40',
-    shadow: 'shadow-xl shadow-indigo-950/50',
-    dragRing: 'ring-4 ring-violet-400/70',
+    bg: 'bg-violet-600 dark:bg-[#4A4458]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(124,58,237,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-violet-500/50',
   },
   purple: {
-    bg: 'bg-gradient-to-br from-indigo-500 via-violet-700 to-slate-900',
-    ring: 'ring-2 ring-violet-300/40',
-    shadow: 'shadow-xl shadow-indigo-950/50',
-    dragRing: 'ring-4 ring-violet-400/70',
+    bg: 'bg-violet-600 dark:bg-[#4A4458]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(124,58,237,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-violet-500/50',
   },
 };
 
@@ -288,13 +288,13 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
             currentCoords.y
           )}px, 0)`,
         }}
-        className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-white ${currentTheme.bg} ${currentTheme.shadow} ${currentTheme.ring} touch-none select-none cursor-grab active:cursor-grabbing ${
+        className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center ${currentTheme.bg} ${currentTheme.text} ${currentTheme.shadow} border border-white/20 dark:border-white/10 touch-none select-none cursor-grab active:cursor-grabbing ${
           isDragging
             ? `transition-none scale-110 shadow-2xl ${currentTheme.dragRing} opacity-95`
             : 'transition-transform duration-300 ease-out active:scale-95'
         } ${className}`}
       >
-        {icon || <Plus className="w-7 h-7 text-white stroke-[2.5]" />}
+        {icon || <Plus className="w-6 h-6 stroke-[2.4]" />}
       </button>
     </div>
   );
