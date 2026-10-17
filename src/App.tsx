@@ -13,9 +13,11 @@ import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { SubjectsView } from './features/subjects/components/SubjectsView';
 import { ProfessorsView } from './features/professors/components/ProfessorsView';
 import { NotesView } from './features/notes/components/NotesView';
+import { DocumentsView } from './features/documents/components/DocumentsView';
 import { SettingsView } from './features/settings/components/SettingsView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useSubjects } from './features/subjects/hooks/useSubjects';
+import { useSubjectDocuments } from './features/subjects/hooks/useSubjectDocuments';
 import { useSchedule } from './features/schedule/hooks/useSchedule';
 import { useProfessors } from './features/professors/hooks/useProfessors';
 import { useNotes } from './features/notes/hooks/useNotes';
@@ -47,6 +49,7 @@ export function App() {
   const { slots } = useSchedule();
   const { professors } = useProfessors();
   const { notes } = useNotes();
+  const { documents: allDocuments } = useSubjectDocuments();
   const { settings } = useAppSettings();
 
   // Sincronizar tema de apariencia (claro, oscuro o sistema) y paleta dinámica Material You
@@ -157,6 +160,7 @@ export function App() {
           onTabChange={handleTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
           subjectCount={subjects.length}
+          documentsCount={allDocuments.length}
         />
       )}
 
@@ -218,6 +222,9 @@ export function App() {
                 isActive={activeTab === 'notes'}
               />
             </div>
+            <div className={activeTab === 'documents' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+              <DocumentsView isActive={activeTab === 'documents'} />
+            </div>
           </div>
         )}
       </main>
@@ -228,6 +235,7 @@ export function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           subjectCount={subjects.length}
+          documentsCount={allDocuments.length}
         />
       )}
     </div>

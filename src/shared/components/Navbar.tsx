@@ -4,18 +4,20 @@ import {
   BookOpen,
   Users,
   FileText,
+  FolderKanban,
   Wifi,
   WifiOff,
   Settings,
 } from 'lucide-react';
 
-export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes';
+export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes' | 'documents';
 
 interface NavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   onOpenSettings: () => void;
   subjectCount?: number;
+  documentsCount?: number;
 }
 
 
@@ -24,6 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTabChange,
   onOpenSettings,
   subjectCount = 0,
+  documentsCount = 0,
 }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useEffect(() => {
@@ -52,6 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'subjects' as TabType, label: 'Materias', icon: BookOpen },
     { id: 'professors' as TabType, label: 'Profesores', icon: Users },
     { id: 'notes' as TabType, label: 'Apuntes', icon: FileText },
+    { id: 'documents' as TabType, label: 'Archivos', icon: FolderKanban },
   ];
 
   return (
@@ -138,6 +142,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }`}
                     >
                       {subjectCount}
+                    </span>
+                  )}
+                  {item.id === 'documents' && documentsCount > 0 && (
+                    <span
+                      className={`ml-1 px-1.5 min-w-[16px] h-4 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors ${
+                        isActive
+                          ? 'bg-[#001D32] dark:bg-[#D0E4FF] text-white dark:text-[#001D32]'
+                          : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
+                      }`}
+                    >
+                      {documentsCount}
                     </span>
                   )}
                 </button>

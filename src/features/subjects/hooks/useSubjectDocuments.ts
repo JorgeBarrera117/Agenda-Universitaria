@@ -232,6 +232,26 @@ export function useSubjectDocuments(subjectId?: string) {
     }
   };
 
+  // Reasignar documento a otra materia
+  const reassignSubject = async (docId: string, newSubjectId: string) => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const allDocs: SubjectDocumentItem[] = raw ? JSON.parse(raw) : [];
+    const updated = allDocs.map((d) => (d.id === docId ? { ...d, subjectId: newSubjectId } : d));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    loadDocuments();
+  };
+
+  // Obtener conteo total global de documentos
+  const getTotalDocumentsCount = (): number => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const allDocs: SubjectDocumentItem[] = raw ? JSON.parse(raw) : [];
+      return allDocs.length;
+    } catch {
+      return 0;
+    }
+  };
+
   return {
     documents,
     isLoading,
@@ -239,7 +259,9 @@ export function useSubjectDocuments(subjectId?: string) {
     addExternalLink,
     openDocument,
     deleteDocument,
+    reassignSubject,
     getDocumentCountForSubject,
+    getTotalDocumentsCount,
     reload: loadDocuments,
   };
 }
