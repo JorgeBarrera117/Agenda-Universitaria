@@ -298,7 +298,10 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
               return (
                 <div
                   key={doc.id}
-                  className="p-3 rounded-2xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs hover:border-[#00639B]/40 transition-all group"
+                  onClick={() => !isOpening && handleOpenDoc(doc)}
+                  className={`p-3 rounded-2xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs hover:border-[#00639B]/40 transition-all group cursor-pointer active:scale-[0.99] select-none ${
+                    isOpening ? 'opacity-70 ring-2 ring-[#00639B]/40' : ''
+                  }`}
                 >
                   {/* Lado Izquierdo: Ícono representativo y Metadatos */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -340,19 +343,25 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
                     <button
                       type="button"
                       disabled={isOpening}
-                      onClick={() => handleOpenDoc(doc)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDoc(doc);
+                      }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                       title="Abrir en la aplicación correspondiente"
                     >
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">
+                      <ArrowUpRight className={`w-3.5 h-3.5 ${isOpening ? 'animate-spin' : ''}`} />
+                      <span className="inline">
                         {isOpening ? 'Abriendo...' : 'Abrir'}
                       </span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => deleteDocument(doc.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteDocument(doc.id);
+                      }}
                       className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 transition-colors cursor-pointer"
                       title="Quitar acceso directo"
                       aria-label="Quitar acceso directo"

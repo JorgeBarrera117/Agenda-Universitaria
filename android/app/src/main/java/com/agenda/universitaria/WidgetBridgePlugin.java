@@ -5,10 +5,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.webkit.MimeTypeMap;
 import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
 
@@ -27,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @CapacitorPlugin(name = "WidgetBridge")
 public class WidgetBridgePlugin extends Plugin {
@@ -298,5 +302,143 @@ public class WidgetBridgePlugin extends Plugin {
         ret.put("success", false);
         ret.put("canceled", true);
         call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void openDocument(PluginCall call) {
+        String base64Data = call.getString("base64Data");
+        String fileName = call.getString("fileName", "document");
+        String mimeType = call.getString("mimeType");
+
+        if (base64Data == null || base64Data.isEmpty()) {
+            call.reject("El archivo no tiene contenido.");
+            return;
+        }
+
+        try {
+            Context context = getContext();
+            File docsDir = new File(context.getCacheDir(), "shared_docs");
+            if (!docsDir.exists()) {
+                docsDir.mkdirs();
+            }
+
+            // Sanitizar nombre de archivo para evitar caracteres no válidos en el sistema de archivos
+            String safeFileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+            File targetFile = new File(docsDir, safeFileName);
+
+            byte[] fileBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+            try (FileOutputStream fos = new FileOutputStream(targetFile)) {
+                fos.write(fileBytes);
+                fos.flush();
+            }
+
+            String resolvedMimeType = resolveMimeType(safeFileName, mimeType);
+
+            Uri fileUri = FileProvider.getUriForFile(
+                context,
+                context.getPackageName() + ".fileprovider",
+                targetFile
+            );
+
+            Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+            viewIntent.setDataAndType(fileUri, resolvedMimeType);
+            viewIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            viewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            Intent chooser = Intent.createChooser(viewIntent, "Abrir documento con");
+            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            // Conceder explícitamente permisos de lectura de URI a las aplicaciones receptoras
+            List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(viewIntent, PackageManager.MATCH_DEFAULT_ONLY);
+            for (ResolveInfo resolveInfo : resInfoList) {
+                String packageName = resolveInfo.activityInfo.packageName;
+                context.grantUriPermission(packageName, fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+
+            context.startActivity(chooser);
+
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            ret.put("mimeType", resolvedMimeType);
+            call.resolve(ret);
+        } catch (android.content.ActivityNotFoundException anfe) {
+            // Si la aplicación específica no está instalada, intentar abrir con selector genérico
+            try {
+                Context context = getContext();
+                String safeFileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+                File targetFile = new File(new File(context.getCacheDir(), "shared_docs"), safeFileName);
+                Uri fileUri = FileProvider.getUriForFile(
+                    context,
+                    context.getPackageName() + ".fileprovider",
+                    targetFile
+                );
+                Intent genericIntent = new Intent(Intent.ACTION_VIEW);
+                genericIntent.setDataAndType(fileUri, "*/*");
+                genericIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                genericIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                Intent chooser = Intent.createChooser(genericIntent, "Abrir documento con");
+                chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(chooser);
+
+                JSObject ret = new JSObject();
+                ret.put("success", true);
+                ret.put("mimeType", "*/*");
+                call.resolve(ret);
+            } catch (Exception e2) {
+                call.reject("No se encontró ninguna aplicación para abrir este archivo: " + e2.getMessage());
+            }
+        } catch (Exception e) {
+            call.reject("Error al abrir el documento: " + e.getMessage());
+        }
+    }
+
+    private String resolveMimeType(String fileName, String providedMime) {
+        if (providedMime != null && !providedMime.isEmpty() && !providedMime.equals("application/octet-stream") && !providedMime.equals("*/*")) {
+            return providedMime;
+        }
+
+        String ext = "";
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex >= 0 && dotIndex < fileName.length() - 1) {
+            ext = fileName.substring(dotIndex + 1).toLowerCase();
+        }
+
+        switch (ext) {
+            case "pdf":
+                return "application/pdf";
+            case "ppt":
+                return "application/vnd.ms-powerpoint";
+            case "pptx":
+                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            case "doc":
+                return "application/msword";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "xls":
+                return "application/vnd.ms-excel";
+            case "xlsx":
+                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "txt":
+                return "text/plain";
+            case "csv":
+                return "text/csv";
+            case "png":
+                return "image/png";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "mp4":
+                return "video/mp4";
+            case "mp3":
+                return "audio/mpeg";
+            case "zip":
+                return "application/zip";
+            default:
+                String fromMap = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+                return (fromMap != null) ? fromMap : "*/*";
+        }
     }
 }

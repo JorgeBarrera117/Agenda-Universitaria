@@ -1,4 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
+import { registerPlugin, Capacitor } from '@capacitor/core';
+
+interface WidgetBridgePlugin {
+  openDocument(options: {
+    fileName: string;
+    base64Data: string;
+    mimeType?: string;
+  }): Promise<{ success: boolean; mimeType?: string }>;
+}
+
+const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
+
+// Helper para convertir Blob a base64 puro (sin prefijo data:...)
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1] || '';
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
 export interface SubjectDocumentItem {
   id: string;
@@ -158,9 +183,19 @@ export function useSubjectDocuments(subjectId?: string) {
       throw new Error('El archivo no está disponible en la caché local.');
     }
 
-    const objectUrl = URL.createObjectURL(blob);
+    // En dispositivos móviles (Android nativo): usar Intent del SO para abrir el selector de apps
+    if (Capacitor.isNativePlatform()) {
+      const base64Data = await blobToBase64(blob);
+      await WidgetBridge.openDocument({
+        fileName: doc.name,
+        base64Data,
+        mimeType: doc.mimeType,
+      });
+      return;
+    }
 
-    // Intentar abrir con visor predeterminado del sistema operativo
+    // En navegador web de escritorio: fallback con enlace temporal
+    const objectUrl = URL.createObjectURL(blob);
     const tempLink = document.createElement('a');
     tempLink.href = objectUrl;
     tempLink.download = doc.name;
