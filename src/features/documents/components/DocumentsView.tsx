@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useSubjectDocuments, type SubjectDocumentItem } from '../../subjects/hooks/useSubjectDocuments';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
+import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select } from '../../../shared/components/M3Select';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
@@ -298,6 +299,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       label: s.name,
       sublabel: s.code || 'ASIGNATURA',
       color: s.color,
+      icon: <SubjectBadge icon={s.icon} color={s.color} size="select" />,
     }));
   }, [subjects]);
 
@@ -407,12 +409,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           <button
             type="button"
             onClick={() => setSelectedSubjectFilter('all')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               selectedSubjectFilter === 'all'
                 ? 'bg-[#00639B] text-white shadow-2xs'
                 : 'bg-[#E2E7EF]/80 dark:bg-[#272A2F]/80 text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#D0E4FF]/50'
             }`}
           >
+            <FolderKanban className="w-3.5 h-3.5 shrink-0" />
             <span>Todas las Asignaturas</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
               {documents.length}
@@ -434,9 +437,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                     : 'bg-[#E2E7EF]/80 dark:bg-[#272A2F]/80 text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#D0E4FF]/50'
                 }`}
               >
-                <span
-                  className="w-2.5 h-2.5 rounded-full ring-1 ring-white/30"
-                  style={{ backgroundColor: subj.color }}
+                <SubjectBadge
+                  icon={subj.icon}
+                  color={subj.color}
+                  size="sm"
+                  className="w-4.5 h-4.5 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
                 />
                 <span className="max-w-[130px] truncate">{subj.name}</span>
                 {count > 0 && (
@@ -569,10 +574,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                   {/* Chip de Materia */}
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     {subj ? (
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/30"
-                          style={{ backgroundColor: subj.color }}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <SubjectBadge
+                          icon={subj.icon}
+                          color={subj.color}
+                          size="sm"
+                          className="w-4.5 h-4.5 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
                         />
                         <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate">
                           {subj.name}
@@ -684,14 +691,22 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                         <span>Asignatura Asignada</span>
                       </div>
                       {subj ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <span
-                            className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: subj.color }}
+                        <div className="flex items-center gap-2.5 mt-1.5">
+                          <SubjectBadge
+                            icon={subj.icon}
+                            color={subj.color}
+                            size="md"
                           />
-                          <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate">
-                            {subj.name}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate block">
+                              {subj.name}
+                            </span>
+                            {subj.code && (
+                              <span className="font-mono text-[10px] text-[#72777F] dark:text-[#8C9199]">
+                                {subj.code}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       ) : (
                         <span className="text-slate-400">Sin asignar</span>
