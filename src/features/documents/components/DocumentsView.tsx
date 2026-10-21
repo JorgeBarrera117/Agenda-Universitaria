@@ -338,13 +338,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           </div>
         </div>
 
-        {/* Botón Primario M3 para Escritorio (en móvil se usa el FAB flotante) */}
+        {/* Botón Primario M3 para Escritorio con Accesibilidad Visual (en móvil se usa el FAB flotante) */}
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className="hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 transition-all shadow-xs cursor-pointer shrink-0"
+          className="hidden sm:inline-flex items-center justify-center gap-2.5 min-h-[48px] sm:min-h-[52px] px-6 sm:px-7 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-extrabold tracking-wide bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
           <span>Vincular Documento</span>
         </button>
       </div>
@@ -505,10 +505,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           {documents.length === 0 && (
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#00639B] text-white hover:bg-[#005282] transition-all cursor-pointer shadow-xs"
+              onClick={handleOpenAddModal}
+              className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] rounded-full text-sm sm:text-base font-extrabold tracking-wide bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] hover:scale-[1.02] transition-all cursor-pointer shadow-md"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
               <span>Vincular mi primer archivo</span>
             </button>
           )}

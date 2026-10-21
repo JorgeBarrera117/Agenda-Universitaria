@@ -779,10 +779,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
         <div className="hidden sm:block shrink-0">
           <Button
             variant="primary"
-            size="md"
-            icon={<Plus className="w-4 h-4" />}
+            size="lg"
+            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
             onClick={handleOpenCreate}
-            className="rounded-full h-12 sm:h-14 px-6 text-sm font-bold shadow-xs"
+            className="rounded-full h-12 sm:h-14 px-6 sm:px-7 text-sm sm:text-base font-extrabold shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
           >
             Nuevo Apunte
           </Button>
@@ -947,9 +947,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
           </p>
           <Button
             variant="primary"
-            size="sm"
-            icon={<Plus className="w-4 h-4" />}
+            size="lg"
+            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
             onClick={handleOpenCreate}
+            className="shadow-md"
           >
             Crear primer documento
           </Button>

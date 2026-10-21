@@ -130,9 +130,10 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         <div className="hidden sm:block">
           <Button
             variant="primary"
-            size="sm"
-            icon={<UserPlus className="w-4 h-4" />}
+            size="lg"
+            icon={<UserPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
             onClick={handleOpenCreate}
+            className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
           >
             Registrar Catedrático
           </Button>
@@ -249,9 +250,10 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           ) : (
             <Button
               variant="primary"
-              size="sm"
-              icon={<Plus className="w-4 h-4" />}
+              size="lg"
+              icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
               onClick={handleOpenCreate}
+              className="shadow-md"
             >
               Registrar primer catedrático
             </Button>

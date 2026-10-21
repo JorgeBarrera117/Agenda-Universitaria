@@ -231,10 +231,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               {onNavigateToNotes && (
                 <Button
                   variant="primary"
-                  size="sm"
+                  size="md"
                   onClick={() => onNavigateToNotes(activeClassNow.subjectId)}
-                  icon={<FileEdit className="w-3.5 h-3.5" />}
-                  className="shrink-0 self-start md:self-center"
+                  icon={<FileEdit className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.3]" />}
+                  className="shrink-0 self-start md:self-center sm:px-6 sm:py-3 sm:text-base font-extrabold shadow-md ring-2 ring-white/25 dark:ring-black/20 hover:scale-[1.02]"
                 >
                   Tomar Apunte
                 </Button>
@@ -313,29 +313,29 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Alternar vista diaria / semanal (Material Design 3 Segmented Button Set) */}
-          <div className="hidden sm:flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full border border-[#C3C7D0]/50 dark:border-[#43474E]/50 shadow-2xs">
+        <div className="flex items-center gap-3">
+          {/* Alternar vista diaria / semanal (Material Design 3 Segmented Button Set con Accesibilidad Visual) */}
+          <div className="hidden sm:flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1.5 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
             <button
               onClick={() => setViewMode('weekly')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
                 viewMode === 'weekly'
                   ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
                   : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4 stroke-[2.3]" />
               Semana
             </button>
             <button
               onClick={() => setViewMode('daily')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
                 viewMode === 'daily'
                   ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
                   : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
               }`}
             >
-              <List className="w-3.5 h-3.5" />
+              <List className="w-4 h-4 stroke-[2.3]" />
               Por Día
             </button>
           </div>
@@ -343,9 +343,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <div className="hidden sm:block">
             <Button
               variant="primary"
-              size="sm"
-              icon={<CalendarPlus className="w-4 h-4" />}
+              size="lg"
+              icon={<CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
               onClick={() => handleOpenCreate(selectedDay)}
+              className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
             >
               Nueva Clase
             </Button>
@@ -438,25 +439,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   }`}
                 >
                   {/* Encabezado del Día */}
-                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/90 dark:border-slate-800">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/90 dark:border-slate-800">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`text-xs font-black uppercase tracking-wider ${
+                        className={`text-xs sm:text-sm font-black uppercase tracking-wider ${
                           isToday ? 'text-cove-blue dark:text-cove-sky' : 'text-slate-800 dark:text-slate-200'
                         }`}
                       >
                         {DAY_NAMES[day]}
                       </span>
                       {isToday && (
-                        <span className="w-2 h-2 rounded-full bg-cove-gold ring-1 ring-white shrink-0" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-cove-gold ring-1 ring-white shrink-0" />
                       )}
                     </div>
                     <button
                       onClick={() => handleOpenCreate(day)}
-                      className="p-1 text-slate-400 hover:text-cove-blue dark:hover:text-cove-sky rounded-lg hover:bg-cove-blue/10 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 transition-all shadow-2xs cursor-pointer"
                       title={`Agregar clase el ${DAY_NAMES[day]}`}
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 stroke-[2.8]" />
+                      <span>Agregar</span>
                     </button>
                   </div>
 
@@ -638,13 +640,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
               Sin clases agendadas para el {DAY_NAMES[selectedDay]}
             </p>
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={() => handleOpenCreate(selectedDay)}
-              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky text-xs font-bold rounded-xl hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 transition-colors cursor-pointer"
+              icon={<Plus className="w-5 h-5 stroke-[2.5]" />}
+              className="mt-4 shadow-md"
             >
-              <Plus className="w-3.5 h-3.5" />
               Programar clase para este día
-            </button>
+            </Button>
           </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5">
@@ -782,11 +786,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       {onNavigateToNotes && (
                         <Button
                           variant="action-indigo"
-                          size="xs"
+                          size="sm"
                           onClick={() => onNavigateToNotes(slot.subjectId)}
                           title="Tomar apunte de esta materia"
                           aria-label="Tomar apunte"
-                          icon={<FileEdit className="w-3.5 h-3.5" />}
+                          icon={<FileEdit className="w-4 h-4 stroke-[2.3]" />}
+                          className="font-extrabold shadow-xs"
                         >
                           Tomar Apunte
                         </Button>

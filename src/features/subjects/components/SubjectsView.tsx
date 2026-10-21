@@ -163,9 +163,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         <div className="hidden sm:block">
           <Button
             variant="success"
-            size="sm"
-            icon={<BookPlus className="w-4 h-4" />}
+            size="lg"
+            icon={<BookPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
             onClick={handleOpenCreate}
+            className="shadow-md hover:shadow-lg ring-2 ring-[#006E1C]/25 dark:ring-[#78DC77]/35 hover:scale-[1.02]"
           >
             Inscribir Asignatura
           </Button>
@@ -185,9 +186,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </p>
           <Button
             variant="primary"
-            size="sm"
-            icon={<Plus className="w-4 h-4" />}
+            size="lg"
+            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
             onClick={handleOpenCreate}
+            className="shadow-md"
           >
             Inscribir primera asignatura
           </Button>
@@ -334,10 +336,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                     <button
                       type="button"
                       onClick={() => setSelectedSubjectForDocs(subject)}
-                      className="px-2.5 py-1 rounded-xl text-xs font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                      className="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs sm:text-[13px] font-extrabold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/70 dark:bg-[#004B76]/60 hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                       title="Abrir o vincular documentos de esta asignatura"
                     >
-                      <FolderOpen className="w-3.5 h-3.5" />
+                      <FolderOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
                       <span>Archivos</span>
                     </button>
 
@@ -348,7 +350,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                         onClick={() => onNavigateToNotes(subject.id)}
                         title="Ver o tomar apuntes de esta asignatura"
                         aria-label="Ver apuntes"
-                        icon={<BookOpen className="w-3.5 h-3.5" />}
+                        icon={<BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />}
+                        className="font-extrabold"
                       >
                         Apuntes
                       </Button>

@@ -67,15 +67,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:bg-[#FFB4AB] dark:hover:bg-[#BA1A1A] active:scale-90 transition-all shadow-2xs',
     };
 
-    // 3. Tamaños calibrados Material Design 3 (Pills y Icon Buttons circulares)
+    // 3. Tamaños calibrados Material Design 3 con Accesibilidad Visual (WCAG 2.1 AAA en Desktop)
     const sizeStyles: Record<ButtonSize, string> = {
-      xs: 'px-3 py-1 text-xs rounded-full gap-1.5',
-      sm: 'px-4 py-1.5 text-xs rounded-full gap-1.5 font-medium',
-      md: 'px-5 py-2.5 text-xs sm:text-sm rounded-full gap-2 font-medium',
-      lg: 'px-7 py-3 text-sm sm:text-base rounded-full gap-2.5 font-medium',
-      'icon-xs': 'w-8 h-8 rounded-full p-0 shrink-0',
-      'icon-sm': 'w-9 h-9 rounded-full p-0 shrink-0',
-      'icon-md': 'w-10 h-10 rounded-full p-0 shrink-0',
+      xs: 'px-3 py-1 sm:px-3.5 sm:py-1.5 text-xs sm:text-[13px] rounded-full gap-1.5 font-bold',
+      sm: 'px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm rounded-full gap-2 font-bold',
+      md: 'px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm rounded-full gap-2 font-bold',
+      lg: 'px-6 sm:px-7 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] text-sm sm:text-base rounded-full gap-2.5 font-extrabold tracking-wide',
+      'icon-xs': 'w-8 h-8 sm:w-9 sm:h-9 rounded-full p-0 shrink-0',
+      'icon-sm': 'w-9 h-9 sm:w-10 sm:h-10 rounded-full p-0 shrink-0',
+      'icon-md': 'w-10 h-10 sm:w-11 sm:h-11 rounded-full p-0 shrink-0',
     };
 
     const widthStyle = fullWidth ? 'w-full' : '';

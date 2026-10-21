@@ -188,14 +188,14 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
             Archivos Vinculados ({documents.length})
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {/* Botón Vincular Archivo Local */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] transition-all active:scale-95 shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] transition-all active:scale-95 shadow-sm cursor-pointer"
             >
-              <HardDrive className="w-3.5 h-3.5" />
+              <HardDrive className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.3]" />
               <span>Vincular Archivo</span>
             </button>
 
@@ -203,9 +203,9 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
             <button
               type="button"
               onClick={() => setIsAddingLink(!isAddingLink)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold bg-[#E2E7EF] dark:bg-[#272A2F] text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold bg-[#E2E7EF] dark:bg-[#272A2F] text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] transition-all active:scale-95 cursor-pointer"
             >
-              <LinkIcon className="w-3.5 h-3.5" />
+              <LinkIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.3]" />
               <span>Enlace</span>
             </button>
           </div>
@@ -283,9 +283,9 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-extrabold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] transition-all cursor-pointer shadow-sm"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
               <span>Vincular mi primer archivo</span>
             </button>
           </div>
