@@ -16,6 +16,7 @@ export type FABColorScheme =
   | 'subjects'
   | 'professors'
   | 'notes'
+  | 'documents'
   | 'blue'
   | 'emerald'
   | 'amber'
@@ -31,6 +32,12 @@ const FAB_THEMES: Record<
   }
 > = {
   schedule: {
+    bg: 'bg-[#00639B] dark:bg-[#004B76]',
+    text: 'text-white',
+    shadow: 'shadow-[0_4px_12px_rgba(0,99,155,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
+    dragRing: 'ring-4 ring-[#00639B]/50',
+  },
+  documents: {
     bg: 'bg-[#00639B] dark:bg-[#004B76]',
     text: 'text-white',
     shadow: 'shadow-[0_4px_12px_rgba(0,99,155,0.35),0_1px_3px_0_rgba(0,0,0,0.3)]',
