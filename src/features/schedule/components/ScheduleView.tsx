@@ -168,7 +168,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* 1. CENTRO DE CONTROL EN VIVO (M3 HERO CARD • PRIMARY CONTAINER) */}
       {(activeClassNow || nextClassToday || todaySlots.length > 0) && (
         <section className="relative overflow-hidden rounded-[28px] bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] p-4 sm:p-5 shadow-xs border border-[#00639B]/20 dark:border-white/10">
@@ -412,7 +412,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* 4. VISTA SEMANAL (Cuadrícula Responsiva con Tarjetas Anchas de Alta Legibilidad >= 260px por columna) */}
       {viewMode === 'weekly' && (
-        <div className="overflow-x-auto pb-4 custom-scrollbar">
+        <div className="hidden sm:block overflow-x-auto pb-4 custom-scrollbar">
           <div
             className={`hidden sm:grid ${
               displayedDays.length === 7
