@@ -692,9 +692,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             backgroundColor: tokenSet.surface,
                             borderColor: isSelected ? tokenSet.primary : tokenSet.outlineVariant,
                           }}
-                          className={`p-2.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-1.5 relative text-left select-none ${
+                          className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-2.5 relative text-left select-none ${
                             isSelected
-                              ? 'shadow-sm ring-1 ring-current/15'
+                              ? 'shadow-sm ring-2 ring-current/20'
                               : 'hover:opacity-95 shadow-2xs'
                           }`}
                         >
@@ -707,24 +707,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             className="sr-only"
                           />
 
-                          {/* Fila Superior: Muestra Circular + Nombre + Radio Button Canónico */}
-                          <div className="flex items-center justify-between gap-1.5 w-full">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span
-                                className="w-5 h-5 rounded-full shrink-0 shadow-2xs ring-1 ring-black/10 dark:ring-white/15"
-                                style={{ backgroundColor: tokenSet.primary }}
-                              />
-                              <span
-                                className="text-xs font-extrabold truncate leading-tight"
-                                style={{ color: tokenSet.onSurface }}
-                              >
-                                {pal.name}
-                              </span>
-                            </div>
+                          {/* Fila Superior: Muestra Circular Grande + Radio Button Canónico M3 */}
+                          <div className="flex items-center justify-between w-full">
+                            <span
+                              className="w-6 h-6 rounded-full shrink-0 shadow-xs ring-2 ring-white/60 dark:ring-black/40"
+                              style={{ backgroundColor: tokenSet.primary }}
+                            />
 
                             {/* Indicador Visual de Radio Button (Selección Única) */}
                             <span
-                              className="w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                              className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
                               style={{
                                 borderColor: isSelected ? tokenSet.primary : tokenSet.outline,
                               }}
@@ -738,36 +730,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             </span>
                           </div>
 
-                          {/* Fila Inferior Ultra-Compacta: Muestras de Superficie y Botones */}
-                          <div className="flex items-center gap-1 w-full pt-0.5">
+                          {/* Fila Central: Nombre Completo de la Paleta (sin cortes ni puntos suspensivos) */}
+                          <div className="min-w-0 flex-1">
                             <span
-                              className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold leading-none"
-                              style={{
-                                backgroundColor: tokenSet.primary,
-                                color: tokenSet.onPrimary,
-                              }}
+                              className="text-xs sm:text-sm font-extrabold leading-snug line-clamp-2 block"
+                              style={{ color: tokenSet.onSurface }}
                             >
-                              Aceptar
+                              {pal.name}
                             </span>
-                            <span
-                              className="px-1.5 py-0.5 rounded-full text-[9px] font-bold leading-none"
-                              style={{
-                                backgroundColor: tokenSet.primaryContainer,
-                                color: tokenSet.onPrimaryContainer,
-                              }}
-                            >
-                              Cancelar
-                            </span>
-                            <span
-                              className="px-1.5 py-0.5 rounded-md text-[9px] font-bold leading-none border ml-auto"
-                              style={{
-                                backgroundColor: tokenSet.cardBg,
-                                color: tokenSet.onSurface,
-                                borderColor: tokenSet.outlineVariant,
-                              }}
-                            >
-                              Tarjeta
-                            </span>
+                          </div>
+
+                          {/* Fila Inferior: Barra de Armonía Cromática M3 (4 tonos armónicos que se adaptan al 100% del ancho sin desbordar) */}
+                          <div className="flex items-center gap-1.5 w-full pt-0.5">
+                            <div
+                              title="Color Primario"
+                              className="h-2 flex-1 rounded-full shadow-2xs"
+                              style={{ backgroundColor: tokenSet.primary }}
+                            />
+                            <div
+                              title="Contenedor Primario"
+                              className="h-2 flex-1 rounded-full shadow-2xs"
+                              style={{ backgroundColor: tokenSet.primaryContainer }}
+                            />
+                            <div
+                              title="Superficie de Tarjeta"
+                              className="h-2 flex-1 rounded-full border border-black/10 dark:border-white/10"
+                              style={{ backgroundColor: tokenSet.cardBg }}
+                            />
+                            <div
+                              title="Contenedor Secundario"
+                              className="h-2 flex-1 rounded-full"
+                              style={{ backgroundColor: tokenSet.secondaryContainer }}
+                            />
                           </div>
                         </label>
                       );
