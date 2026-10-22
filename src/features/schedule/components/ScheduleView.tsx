@@ -169,7 +169,62 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 1. CENTRO DE CONTROL EN VIVO (M3 HERO CARD • PRIMARY CONTAINER) */}
+      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Horario Académico
+            </h2>
+            <Badge variant="primary" size="sm">
+              {settings.semesterName}
+            </Badge>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Planificación de bloques lectivos, aulas y cátedras universitarias.
+          </p>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
+          {/* Alternar vista diaria / semanal (Material Design 3 Segmented Button Set con Accesibilidad Visual) */}
+          <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1.5 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
+            <button
+              onClick={() => setViewMode('weekly')}
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
+                viewMode === 'weekly'
+                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
+                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4 stroke-[2.3]" />
+              Semana
+            </button>
+            <button
+              onClick={() => setViewMode('daily')}
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
+                viewMode === 'daily'
+                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
+                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
+              }`}
+            >
+              <List className="w-4 h-4 stroke-[2.3]" />
+              Por Día
+            </button>
+          </div>
+
+          <Button
+            variant="primary"
+            size="lg"
+            icon={<CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
+            onClick={() => handleOpenCreate(selectedDay)}
+            className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
+          >
+            Nueva Clase
+          </Button>
+        </div>
+      </div>
+
+      {/* 2. TARJETA INFORMATIVA DE EVENTOS DE HOY / CLASE EN CURSO (JERARQUÍA NIVEL 2) */}
       {(activeClassNow || nextClassToday || todaySlots.length > 0) && (
         <section className="relative overflow-hidden rounded-[28px] bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] p-4 sm:p-5 shadow-xs border border-[#00639B]/20 dark:border-white/10">
           {activeClassNow ? (
@@ -296,63 +351,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           )}
         </section>
       )}
-
-      {/* 2. ENCABEZADO Y SELECTOR DE VISTAS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Horario Académico
-            </h2>
-            <Badge variant="primary" size="sm">
-              {settings.semesterName}
-            </Badge>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 hidden sm:block">
-            Planificación de bloques lectivos, aulas y cátedras universitarias.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Alternar vista diaria / semanal (Material Design 3 Segmented Button Set con Accesibilidad Visual) */}
-          <div className="hidden sm:flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1.5 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
-            <button
-              onClick={() => setViewMode('weekly')}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
-                viewMode === 'weekly'
-                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
-                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4 stroke-[2.3]" />
-              Semana
-            </button>
-            <button
-              onClick={() => setViewMode('daily')}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
-                viewMode === 'daily'
-                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
-                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
-              }`}
-            >
-              <List className="w-4 h-4 stroke-[2.3]" />
-              Por Día
-            </button>
-          </div>
-
-          <div className="hidden sm:block">
-            <Button
-              variant="primary"
-              size="lg"
-              icon={<CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
-              onClick={() => handleOpenCreate(selectedDay)}
-              className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
-            >
-              Nueva Clase
-            </Button>
-          </div>
-        </div>
-      </div>
 
       {/* 3. SELECTOR DE DÍAS (M3 Filter Chips - Visible solo en vista diaria en desktop, o en móvil) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>

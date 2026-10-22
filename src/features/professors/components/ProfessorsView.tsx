@@ -112,14 +112,14 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Encabezado Principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Contactos Docentes
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2481cc]/15 text-[#2481cc] dark:text-[#2AABEE] border border-[#2481cc]/30">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
               {professors.length}
             </span>
           </div>
@@ -127,7 +127,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
             Directorio oficial de catedráticos, cubículos y horarios de asesoría.
           </p>
         </div>
-        <div className="hidden sm:block">
+        <div className="hidden sm:block shrink-0">
           <Button
             variant="primary"
             size="lg"
@@ -140,7 +140,31 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         </div>
       </div>
 
-      {/* Barra de Búsqueda (Material Design 3 Search Bar) */}
+      {/* 2. TARJETA INFORMATIVA DE ASESORÍAS Y CUBÍCULOS (JERARQUÍA NIVEL 2) */}
+      <div className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] overflow-hidden shadow-xs">
+        <button
+          type="button"
+          onClick={() => setIsAdvisoriesModalOpen(true)}
+          className="w-full flex items-center justify-between p-3.5 sm:p-4 hover:bg-[#E2E7EF]/50 dark:hover:bg-[#272A2F]/50 transition-colors text-left cursor-pointer group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <CalendarCheck className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] block group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors">
+                Consultar asesorías y cubículos
+              </span>
+              <span className="text-xs text-[#43474E] dark:text-[#8C9199] block mt-0.5">
+                Directorio rápido de horarios de atención y oficinas docentes
+              </span>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[#72777F] dark:text-[#8C9199] group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors shrink-0" />
+        </button>
+      </div>
+
+      {/* 3. BARRA DE BÚSQUEDA Y CONTENIDO DEL DIRECTORIO (JERARQUÍA NIVEL 3) */}
       <div className="relative">
         <div className="relative flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-12 sm:h-14 px-4 sm:px-5 shadow-xs transition-all">
           <div className="pr-3 text-[#43474E] dark:text-[#C3C7D0]">
@@ -164,53 +188,6 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
             </button>
           )}
         </div>
-      </div>
-
-      {/* Tarjeta de Acciones Rápidas (Material Design 3 Elevated Container) */}
-      <div className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] overflow-hidden divide-y divide-[#C3C7D0]/30 dark:divide-[#43474E]/30 shadow-xs">
-        {/* Acción 1: Registrar nuevo catedrático */}
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="w-full flex items-center justify-between p-3.5 sm:p-4 hover:bg-[#E2E7EF]/50 dark:hover:bg-[#272A2F]/50 transition-colors text-left cursor-pointer group"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <UserPlus className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div>
-              <span className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] block group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
-                Registrar nuevo catedrático
-              </span>
-              <span className="text-xs text-[#43474E] dark:text-[#8C9199] block mt-0.5">
-                Añadir datos personales, cubículo y asignaturas
-              </span>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[#72777F] dark:text-[#8C9199] group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors shrink-0" />
-        </button>
-
-        {/* Acción 2: Consultar asesorías y cubículos */}
-        <button
-          type="button"
-          onClick={() => setIsAdvisoriesModalOpen(true)}
-          className="w-full flex items-center justify-between p-3.5 sm:p-4 hover:bg-[#E2E7EF]/50 dark:hover:bg-[#272A2F]/50 transition-colors text-left cursor-pointer group"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <CalendarCheck className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div>
-              <span className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] block group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors">
-                Consultar asesorías y cubículos
-              </span>
-              <span className="text-xs text-[#43474E] dark:text-[#8C9199] block mt-0.5">
-                Directorio rápido de horarios de atención y oficinas
-              </span>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[#72777F] dark:text-[#8C9199] group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors shrink-0" />
-        </button>
       </div>
 
       {/* Encabezado de Sección Alfabética */}

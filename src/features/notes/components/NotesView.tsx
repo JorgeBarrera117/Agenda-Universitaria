@@ -755,9 +755,37 @@ export const NotesView: React.FC<NotesViewProps> = ({
         />
       )}
 
-      {/* Barra de Búsqueda y Botón Desktop (Material Design 3 Search Bar) */}
-      <div className="relative flex items-center gap-3">
-        <div className="flex-1 flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-12 sm:h-14 px-4 sm:px-5 shadow-xs transition-all">
+      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Cuaderno de Apuntes
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+              {notes.length}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Notas de cátedra, fotografías de pizarrón y fórmulas organizadas por asignatura.
+          </p>
+        </div>
+        <div className="hidden sm:block shrink-0">
+          <Button
+            variant="primary"
+            size="lg"
+            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
+            onClick={handleOpenCreate}
+            className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
+          >
+            Nuevo Apunte
+          </Button>
+        </div>
+      </div>
+
+      {/* 2. BARRA DE BÚSQUEDA (MATERIAL DESIGN 3 SEARCH BAR) */}
+      <div className="relative">
+        <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-12 sm:h-14 px-4 sm:px-5 shadow-xs transition-all">
           <Search className="w-5 h-5 text-[#43474E] dark:text-[#C3C7D0] mr-3 shrink-0" />
           <input
             type="text"
@@ -775,17 +803,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <X className="w-4 h-4" />
             </button>
           )}
-        </div>
-        <div className="hidden sm:block shrink-0">
-          <Button
-            variant="primary"
-            size="lg"
-            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
-            onClick={handleOpenCreate}
-            className="rounded-full h-12 sm:h-14 px-6 sm:px-7 text-sm sm:text-base font-extrabold shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
-          >
-            Nuevo Apunte
-          </Button>
         </div>
       </div>
 

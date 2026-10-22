@@ -316,26 +316,21 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   return (
     <div className="space-y-4 max-w-6xl mx-auto animate-in fade-in duration-200">
       {/* ======================================================== */}
-      {/* 1. CABECERA PRINCIPAL MATERIAL DESIGN 3 Y RESUMEN        */}
+      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
       {/* ======================================================== */}
-      <div className="flex items-center justify-between gap-3 p-4 sm:p-5 rounded-[28px] bg-[#F1F4FA] dark:bg-[#1D2024] border border-[#C2C7CE]/40 dark:border-[#42474E]/40 shadow-xs">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-12 h-12 rounded-2xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center shadow-xs shrink-0">
-            <FolderKanban className="w-6 h-6 stroke-[2.2]" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
-                REPOSITORIO DIGITAL
-              </span>
-              <span className="text-xs font-semibold text-[#72777F] dark:text-[#8C9199]">
-                {stats.totalCount} {stats.totalCount === 1 ? 'archivo' : 'archivos'} • {stats.totalBytesFormatted}
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#191C20] dark:text-[#E2E2E6] tracking-tight leading-tight mt-0.5 truncate">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Archivos y Documentos
             </h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+              {stats.totalCount} {stats.totalCount === 1 ? 'archivo' : 'archivos'} • {stats.totalBytesFormatted}
+            </span>
           </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Repositorio de presentaciones, guías PDF, documentos Word y enlaces por materia.
+          </p>
         </div>
 
         {/* Botón Primario M3 para Escritorio con Accesibilidad Visual (en móvil se usa el FAB flotante) */}

@@ -98,8 +98,36 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Resumen Métrico del Semestre (Distribuido Horizontalmente) */}
+    <div className="space-y-4">
+      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Plan de Asignaturas
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+              {subjects.length}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Catálogo curricular que estructura tus horarios, apuntes y docentes.
+          </p>
+        </div>
+        <div className="hidden sm:block shrink-0">
+          <Button
+            variant="success"
+            size="lg"
+            icon={<BookPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
+            onClick={handleOpenCreate}
+            className="shadow-md hover:shadow-lg ring-2 ring-[#006E1C]/25 dark:ring-[#78DC77]/35 hover:scale-[1.02]"
+          >
+            Inscribir Asignatura
+          </Button>
+        </div>
+      </div>
+
+      {/* 2. RESUMEN MÉTRICO DEL SEMESTRE (JERARQUÍA NIVEL 2) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
         {/* Métrica 1: Asignaturas */}
         <Card padding="compact" className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-3.5">
@@ -148,29 +176,6 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             </div>
           </div>
         </Card>
-      </div>
-
-      {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Plan de Asignaturas
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Catálogo curricular que estructura tus horarios, apuntes y docentes.
-          </p>
-        </div>
-        <div className="hidden sm:block">
-          <Button
-            variant="success"
-            size="lg"
-            icon={<BookPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
-            onClick={handleOpenCreate}
-            className="shadow-md hover:shadow-lg ring-2 ring-[#006E1C]/25 dark:ring-[#78DC77]/35 hover:scale-[1.02]"
-          >
-            Inscribir Asignatura
-          </Button>
-        </div>
       </div>
 
       {subjects.length === 0 ? (
