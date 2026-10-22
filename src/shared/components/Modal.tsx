@@ -49,7 +49,11 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   const modalElement = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+    >
       <div
         className={`w-full ${maxWidthClass} bg-[#F1F4FA] dark:bg-[#272A2F] rounded-[28px] shadow-[0_8px_24px_4px_rgba(0,0,0,0.18)] border border-[#C2C7CE]/30 dark:border-white/5 overflow-hidden flex flex-col max-h-[90vh] text-[#191C20] dark:text-[#E2E2E6] animate-in zoom-in-95 duration-150`}
         onClick={(e) => e.stopPropagation()}

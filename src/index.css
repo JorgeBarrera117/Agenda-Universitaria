@@ -450,7 +450,7 @@
 @keyframes m3-shared-axis-x-right {
   0% {
     opacity: 0;
-    transform: translate3d(16px, 0, 0) scale(0.992);
+    transform: translate3d(28px, 0, 0) scale(0.992);
   }
   100% {
     opacity: 1;
@@ -461,7 +461,7 @@
 @keyframes m3-shared-axis-x-left {
   0% {
     opacity: 0;
-    transform: translate3d(-16px, 0, 0) scale(0.992);
+    transform: translate3d(-28px, 0, 0) scale(0.992);
   }
   100% {
     opacity: 1;

@@ -26,6 +26,7 @@ import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { NotificationService } from './shared/services/notificationService';
 import { applyTheme, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
+import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { WidgetSyncService } from './shared/services/widgetSyncService';
 
@@ -164,6 +165,14 @@ export function App() {
 
   const tabEnterClass = tabDirection === 'right' ? 'block m3-tab-enter-right' : 'block m3-tab-enter-left';
 
+  // Navegación por deslizamiento táctil horizontal estilo WhatsApp (ViewPager2)
+  const swipeContainerRef = useSwipeNavigation({
+    activeTab,
+    tabOrder: TAB_ORDER,
+    onTabChange: handleTabChange,
+    enabled: !isAnyEditorActive && !isSettingsOpen,
+  });
+
   return (
     <div
       className={`min-h-screen bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] flex flex-col selection:bg-[var(--color-md-primary-container)] selection:text-[var(--color-md-on-primary-container)] transition-colors duration-200 ${
@@ -219,7 +228,7 @@ export function App() {
             />
           </div>
         ) : (
-          <div className="w-full">
+          <div ref={swipeContainerRef} className="w-full touch-pan-y">
             <div className={activeTab === 'schedule' ? tabEnterClass : 'hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}

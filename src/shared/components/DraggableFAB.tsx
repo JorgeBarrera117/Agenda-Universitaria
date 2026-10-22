@@ -330,6 +330,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
       <button
         ref={btnRef}
         type="button"
+        data-draggable-fab="true"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
