@@ -772,10 +772,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
         <div className="hidden sm:block shrink-0">
           <Button
             variant="primary"
-            size="lg"
-            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
+            size="md"
+            icon={<Plus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.5]" />}
             onClick={handleOpenCreate}
-            className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
+            className="lg:min-h-[48px] lg:px-6 lg:py-3 lg:text-sm shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02] whitespace-nowrap"
           >
             Nuevo Apunte
           </Button>
@@ -926,8 +926,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
           </Button>
         </Card>
       ) : galleryLayout === 'grid' ? (
-        /* Cuadrícula Responsiva que aprovecha el 100% del ancho en PC */
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+        /* Cuadrícula Responsiva que se adapta en horizontal móvil y aprovecha el 100% del ancho en PC */
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
           {sortedNotes.map((note) => {
             const subject = getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;

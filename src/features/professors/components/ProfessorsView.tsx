@@ -130,10 +130,10 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         <div className="hidden sm:block shrink-0">
           <Button
             variant="primary"
-            size="lg"
-            icon={<UserPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
+            size="md"
+            icon={<UserPlus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.4]" />}
             onClick={handleOpenCreate}
-            className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
+            className="lg:min-h-[48px] lg:px-6 lg:py-3 lg:text-sm shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02] whitespace-nowrap"
           >
             Registrar Catedrático
           </Button>
@@ -314,7 +314,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
               {/* Fila Inferior: Cubículo, Horario de Asesoría y Botones de Contacto Directo (Llamar / Correo) */}
               {(prof.office || prof.notes || prof.phone || prof.email) && (
-                <div className="flex items-center justify-between flex-wrap gap-2 pl-0 sm:pl-14 pt-1">
+                <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-[#C3C7D0]/30 dark:border-white/5">
                   {/* Chips de Ubicación y Asesoría */}
                   <div className="flex items-center flex-wrap gap-1.5 min-w-0">
                     {prof.office && (

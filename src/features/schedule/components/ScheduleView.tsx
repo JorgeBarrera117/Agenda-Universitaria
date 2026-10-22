@@ -185,39 +185,39 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           </p>
         </div>
 
-        <div className="hidden sm:flex items-center gap-3 shrink-0">
+        <div className="hidden sm:flex items-center gap-2 lg:gap-3 shrink-0">
           {/* Alternar vista diaria / semanal (Material Design 3 Segmented Button Set con Accesibilidad Visual) */}
-          <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1.5 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
+          <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1 lg:p-1.5 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
             <button
               onClick={() => setViewMode('weekly')}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 lg:gap-2 px-3.5 lg:px-5 py-1.5 lg:py-2.5 text-xs lg:text-sm font-extrabold rounded-full transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'weekly'
                   ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
                   : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
               }`}
             >
-              <LayoutGrid className="w-4 h-4 stroke-[2.3]" />
+              <LayoutGrid className="w-3.5 h-3.5 lg:w-4 lg:h-4 stroke-[2.3]" />
               Semana
             </button>
             <button
               onClick={() => setViewMode('daily')}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-extrabold rounded-full transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 lg:gap-2 px-3.5 lg:px-5 py-1.5 lg:py-2.5 text-xs lg:text-sm font-extrabold rounded-full transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'daily'
                   ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
                   : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
               }`}
             >
-              <List className="w-4 h-4 stroke-[2.3]" />
+              <List className="w-3.5 h-3.5 lg:w-4 lg:h-4 stroke-[2.3]" />
               Por Día
             </button>
           </div>
 
           <Button
             variant="primary"
-            size="lg"
-            icon={<CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.4]" />}
+            size="md"
+            icon={<CalendarPlus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.4]" />}
             onClick={() => handleOpenCreate(selectedDay)}
-            className="shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02]"
+            className="lg:min-h-[48px] lg:px-6 lg:py-3 lg:text-sm shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02] whitespace-nowrap"
           >
             Nueva Clase
           </Button>
@@ -413,16 +413,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva ocupando el 100% del ancho en PC) */}
+      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva: >=245px por columna en móvil horizontal y 100% ancho en PC) */}
       {viewMode === 'weekly' && (
         <div className="hidden sm:block overflow-x-auto pb-4 custom-scrollbar w-full">
           <div
             className={`hidden sm:grid w-full ${
               displayedDays.length === 7
-                ? 'grid-cols-7 min-w-[1260px] xl:min-w-0'
+                ? 'grid-cols-[repeat(7,minmax(240px,1fr))]'
                 : displayedDays.length === 6
-                ? 'grid-cols-6 min-w-[1080px] lg:min-w-0'
-                : 'grid-cols-5 min-w-[900px] lg:min-w-0'
+                ? 'grid-cols-[repeat(6,minmax(240px,1fr))]'
+                : 'grid-cols-[repeat(5,minmax(245px,1fr))]'
             } gap-3 bg-[var(--color-md-surface-container)] p-3 sm:p-3.5 rounded-3xl border border-[var(--color-md-outline-variant)]`}
           >
             {displayedDays.map((day) => {
@@ -434,17 +434,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               return (
                 <div
                   key={day}
-                  className={`flex flex-col gap-2.5 rounded-2xl p-2.5 sm:p-3 transition-colors ${
+                  className={`flex flex-col gap-2.5 rounded-2xl p-2.5 sm:p-3 min-w-0 transition-colors ${
                     isToday
                       ? 'bg-[var(--color-md-card-bg)] border-2 border-[var(--color-md-primary)] shadow-sm'
                       : 'bg-[var(--color-md-card-bg)]/80 border border-[var(--color-md-outline-variant)]'
                   }`}
                 >
                   {/* Encabezado del Día */}
-                  <div className="flex items-center justify-between pb-2 border-b border-[var(--color-md-outline-variant)]">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-[var(--color-md-outline-variant)]">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <span
-                        className={`text-xs sm:text-sm font-black uppercase tracking-wider ${
+                        className={`text-xs sm:text-sm font-black uppercase tracking-wider whitespace-nowrap ${
                           isToday ? 'text-[var(--color-md-primary)]' : 'text-[var(--color-md-on-surface)]'
                         }`}
                       >
@@ -456,10 +456,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     </div>
                     <button
                       onClick={() => handleOpenCreate(day)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 transition-all shadow-2xs cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
                       title={`Agregar clase el ${DAY_NAMES[day]}`}
                     >
-                      <Plus className="w-4 h-4 stroke-[2.8]" />
+                      <Plus className="w-3.5 h-3.5 stroke-[2.8] shrink-0" />
                       <span>Agregar</span>
                     </button>
                   </div>

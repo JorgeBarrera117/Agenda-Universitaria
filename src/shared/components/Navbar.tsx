@@ -67,40 +67,40 @@ export const Navbar: React.FC<NavbarProps> = ({
           paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
         }}
       >
-        <div className="flex items-center justify-between h-14 sm:h-16 landscape:h-14">
+        <div className="flex items-center justify-between gap-2 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center h-14 sm:h-16 lg:h-[76px] xl:h-20 landscape:max-lg:h-14">
           {/* M3 Top App Bar Title & Campus Identity */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-3.5 min-w-0 shrink-0">
             <div className="relative shrink-0">
               <img
                 src="/app-icon-claro.svg"
                 alt="Logo Agenda Universitaria"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 object-contain bg-white p-0.5"
+                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 object-contain bg-white p-0.5"
               />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#FFB77C] border-2 border-[#F1F4FA] dark:border-[#1D2024] flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-full bg-[#FFB77C] border-2 border-[#F1F4FA] dark:border-[#1D2024] flex items-center justify-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#001D32]" />
               </div>
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold tracking-tight text-[#191C20] dark:text-[#E2E2E6] leading-tight truncate">
+                <h1 className="text-sm sm:text-[15px] lg:text-lg xl:text-xl font-extrabold tracking-tight text-[#191C20] dark:text-[#E2E2E6] leading-tight whitespace-nowrap">
                   Agenda Universitaria
                 </h1>
-                <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
+                <span className="hidden xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
                   Campus Digital
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs text-[#41474D] dark:text-[#C2C7CF] font-medium truncate">
+              <div className="flex md:max-lg:hidden landscape:max-lg:hidden items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs lg:text-[13px] text-[#41474D] dark:text-[#C2C7CF] font-medium whitespace-nowrap">
                 <span className="capitalize">{capitalizedDate}</span>
                 <span>•</span>
                 {isOnline ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold shrink-0">
-                    <Wifi className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px] lg:text-xs font-semibold shrink-0">
+                    <Wifi className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
                     En línea
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[11px] font-semibold shrink-0">
-                    <WifiOff className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[11px] lg:text-xs font-semibold shrink-0">
+                    <WifiOff className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
                     Offline
                   </span>
                 )}
@@ -108,10 +108,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* M3 Primary Tabs (Desktop Navigation Dock) */}
+          {/* M3 Primary Tabs (Desktop & Landscape Navigation Dock) */}
           <nav
             aria-label="Pestañas de navegación de campus M3"
-            className="hidden md:flex items-center gap-1 bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full shrink-0 shadow-inner"
+            className="hidden md:flex items-center justify-center gap-1 lg:gap-1.5 xl:gap-2 bg-[#E2E7EF] dark:bg-[#272A2F] p-1 lg:p-1.5 rounded-full shrink-0 shadow-inner lg:justify-self-center"
           >
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -124,21 +124,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => onTabChange(item.id)}
-                  className={`group flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-250 ease-[cubic-bezier(0.2,0,0,1)] active:scale-94 cursor-pointer select-none ${
+                  className={`group flex items-center gap-1.5 lg:gap-2.5 md:px-2.5 md:py-1.5 lg:px-5 lg:py-2.5 xl:px-6 xl:py-2.5 rounded-full text-xs lg:text-sm xl:text-[15px] whitespace-nowrap transition-all duration-250 ease-[cubic-bezier(0.2,0,0,1)] active:scale-94 cursor-pointer select-none ${
                     isActive
                       ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-bold shadow-xs'
                       : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#191C20]/5 dark:hover:bg-white/5 font-medium'
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                      isActive ? 'stroke-[2.4] scale-110' : 'stroke-[1.8] group-hover:scale-105 group-active:scale-90'
+                    className={`w-4 h-4 lg:w-4.5 lg:h-4.5 xl:w-5 xl:h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                      isActive ? 'stroke-[2.4] scale-110' : 'stroke-[1.9] group-hover:scale-105 group-active:scale-90'
                     }`}
                   />
                   <span>{item.label}</span>
                   {item.id === 'subjects' && subjectCount > 0 && (
                     <span
-                      className={`ml-1 px-1.5 min-w-[16px] h-4 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors ${
+                      className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
                         isActive
                           ? 'bg-[#001D32] dark:bg-[#D0E4FF] text-white dark:text-[#001D32]'
                           : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
                   {item.id === 'documents' && documentsCount > 0 && (
                     <span
-                      className={`ml-1 px-1.5 min-w-[16px] h-4 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors ${
+                      className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
                         isActive
                           ? 'bg-[#001D32] dark:bg-[#D0E4FF] text-white dark:text-[#001D32]'
                           : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
@@ -164,17 +164,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* M3 Tonal Action Button (Ajustes) */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-end gap-2 shrink-0 lg:justify-self-end">
             <button
               onClick={onOpenSettings}
               title="Ajustes y Personalización de la Agenda"
               aria-label="Abrir Ajustes"
-              className="flex items-center gap-2 px-3.5 h-10 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D8E3F8] dark:hover:bg-[#3C4758] text-[#191C20] dark:text-[#E2E2E6] transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs group"
+              className="flex items-center justify-center gap-2 w-10 h-10 lg:w-auto lg:px-5 lg:h-11 xl:h-12 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D8E3F8] dark:hover:bg-[#3C4758] text-[#191C20] dark:text-[#E2E2E6] transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs group"
             >
               <div className="w-5 h-5 flex items-center justify-center text-[#00639B] dark:text-[#96CCFF] group-hover:rotate-90 transition-transform duration-300">
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
-              <span className="text-xs font-bold hidden sm:inline">
+              <span className="text-xs lg:text-sm font-bold hidden lg:inline">
                 Ajustes
               </span>
             </button>
