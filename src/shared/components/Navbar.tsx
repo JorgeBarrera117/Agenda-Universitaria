@@ -72,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-3.5 min-w-0 shrink-0">
             <div className="relative shrink-0">
               <img
-                src="/app-icon-claro.svg"
+                src="./app-icon-claro.svg"
                 alt="Logo Agenda Universitaria"
                 className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 object-contain bg-white p-0.5"
               />

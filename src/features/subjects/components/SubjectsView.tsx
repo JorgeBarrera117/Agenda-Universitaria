@@ -17,6 +17,7 @@ import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useNotes } from '../../notes/hooks/useNotes';
 import { SubjectForm } from './SubjectForm';
 import { SubjectIcon } from './SubjectIcon';
+import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { SubjectDocumentsModal } from './SubjectDocumentsModal';
 import { useSubjectDocuments } from '../hooks/useSubjectDocuments';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
@@ -90,11 +91,16 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   if (isModalOpen) {
     return (
       <div className="w-full pb-12">
-        <SubjectForm
-          initialData={editingSubject}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsModalOpen(false)}
-        />
+        <ErrorBoundary
+          fallbackTitle="Error al abrir el formulario de asignatura"
+          onReset={() => setIsModalOpen(false)}
+        >
+          <SubjectForm
+            initialData={editingSubject}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+          />
+        </ErrorBoundary>
       </div>
     );
   }
@@ -211,7 +217,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;
             const docCount = getDocumentCountForSubject(subject.id);
-            const prof = professors.find((p) => p.id === subject.professorId || p.subjectIds.includes(subject.id));
+            const prof = professors.find((p) => p.id === subject.professorId || (p.subjectIds || []).includes(subject.id));
 
             return (
               <Card

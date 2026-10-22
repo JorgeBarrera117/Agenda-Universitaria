@@ -288,7 +288,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
                   <img
-                    src="/app-icon-claro.svg"
+                    src="./app-icon-claro.svg"
                     alt="Logo Agenda Universitaria"
                     className="w-11 h-11 rounded-xl shadow-xs ring-2 ring-[var(--color-md-primary)]/40 object-contain bg-white p-0.5"
                   />
@@ -1466,7 +1466,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-[28px] p-5 sm:p-6 shadow-xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-4">
                 <div className="flex items-center gap-3.5 pb-4 border-b border-[#C3C7D0]/30 dark:border-[#43474E]/30">
                   <img
-                    src="/app-icon-claro.svg"
+                    src="./app-icon-claro.svg"
                     alt="Logo Agenda Universitaria"
                     className="w-14 h-14 rounded-2xl shadow-xs ring-2 ring-[#00639B]/30 object-contain bg-white p-1"
                   />

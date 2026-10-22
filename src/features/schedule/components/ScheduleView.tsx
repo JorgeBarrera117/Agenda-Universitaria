@@ -23,6 +23,7 @@ import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
+import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -145,13 +146,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   if (isModalOpen) {
     return (
       <div className="w-full pb-12">
-        <ScheduleSlotForm
-          key={editingSlot?.id || 'new-slot'}
-          initialData={editingSlot}
-          defaultDay={selectedDay}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsModalOpen(false)}
-        />
+        <ErrorBoundary
+          fallbackTitle="Error al abrir el formulario de cátedra"
+          onReset={() => setIsModalOpen(false)}
+        >
+          <ScheduleSlotForm
+            key={editingSlot?.id || 'new-slot'}
+            initialData={editingSlot}
+            defaultDay={selectedDay}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+          />
+        </ErrorBoundary>
       </div>
     );
   }

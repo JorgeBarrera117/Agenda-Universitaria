@@ -201,7 +201,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* 4. INFORMACIÓN DEL SISTEMA Y ARQUITECTURA */}
         <div className="p-3.5 bg-cove-sand/30 border border-cove-gold/50 rounded-2xl flex items-center gap-3.5 text-xs text-slate-700">
           <img
-            src="/app-icon-claro.svg"
+            src="./app-icon-claro.svg"
             alt="Logo Agenda Universitaria"
             className="w-12 h-12 rounded-2xl shadow-xs ring-1 ring-cove-gold/60 shrink-0 bg-white p-0.5 object-contain"
           />

@@ -31,9 +31,9 @@ export class DexieSubjectRepository implements ISubjectRepository {
       // Sincronización bidireccional: si se asignó un docente, vincular esta materia a su lista
       if (subject.professorId) {
         const prof = await db.professors.get(subject.professorId);
-        if (prof && !prof.subjectIds.includes(subject.id)) {
+        if (prof && !(prof.subjectIds || []).includes(subject.id)) {
           await db.professors.update(prof.id, {
-            subjectIds: [...prof.subjectIds, subject.id],
+            subjectIds: [...(prof.subjectIds || []), subject.id],
           });
         }
       }
@@ -57,18 +57,18 @@ export class DexieSubjectRepository implements ISubjectRepository {
         // Desvincular del docente previo
         if (oldProfessorId) {
           const oldProf = await db.professors.get(oldProfessorId);
-          if (oldProf && oldProf.subjectIds.includes(id)) {
+          if (oldProf && (oldProf.subjectIds || []).includes(id)) {
             await db.professors.update(oldProf.id, {
-              subjectIds: oldProf.subjectIds.filter((sid) => sid !== id),
+              subjectIds: (oldProf.subjectIds || []).filter((sid) => sid !== id),
             });
           }
         }
         // Vincular al nuevo docente
         if (newProfessorId) {
           const newProf = await db.professors.get(newProfessorId);
-          if (newProf && !newProf.subjectIds.includes(id)) {
+          if (newProf && !(newProf.subjectIds || []).includes(id)) {
             await db.professors.update(newProf.id, {
-              subjectIds: [...newProf.subjectIds, id],
+              subjectIds: [...(newProf.subjectIds || []), id],
             });
           }
         }
@@ -85,9 +85,9 @@ export class DexieSubjectRepository implements ISubjectRepository {
       // Actualizar referencias en profesores
       const profs = await db.professors.toArray();
       for (const p of profs) {
-        if (p.subjectIds.includes(id)) {
+        if ((p.subjectIds || []).includes(id)) {
           await db.professors.update(p.id, {
-            subjectIds: p.subjectIds.filter((sid) => sid !== id),
+            subjectIds: (p.subjectIds || []).filter((sid) => sid !== id),
           });
         }
       }

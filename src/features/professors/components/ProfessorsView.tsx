@@ -18,6 +18,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
+import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -92,7 +93,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       if (prof.office?.toLowerCase().includes(query)) return true;
       if (prof.notes?.toLowerCase().includes(query)) return true;
       // Buscar también por nombre de las materias asignadas
-      return prof.subjectIds.some((sid) => {
+      return (prof.subjectIds || []).some((sid) => {
         const sub = getSubjectById(sid);
         return sub?.name.toLowerCase().includes(query);
       });
@@ -103,11 +104,16 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   if (isModalOpen) {
     return (
       <div className="w-full pb-12">
-        <ProfessorForm
-          initialData={editingProfessor}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsModalOpen(false)}
-        />
+        <ErrorBoundary
+          fallbackTitle="Error al abrir el formulario de docente"
+          onReset={() => setIsModalOpen(false)}
+        >
+          <ProfessorForm
+            initialData={editingProfessor}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+          />
+        </ErrorBoundary>
       </div>
     );
   }
@@ -270,8 +276,8 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
                     {/* Materias vinculadas como micro-pills */}
                     <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
-                      {prof.subjectIds.length > 0 ? (
-                        prof.subjectIds.map((sid) => {
+                      {(prof.subjectIds || []).length > 0 ? (
+                        (prof.subjectIds || []).map((sid) => {
                           const sub = getSubjectById(sid);
                           if (!sub) return null;
                           return (

@@ -194,6 +194,20 @@ export function useSubjectDocuments(subjectId?: string) {
       return;
     }
 
+    // En Electron nativo (Windows PC): abrir directamente con la app predeterminada del sistema (Acrobat, Word, Excel, etc.)
+    if (typeof window !== 'undefined' && window.electronAPI?.openDocument) {
+      const base64Data = await blobToBase64(blob);
+      const res = await window.electronAPI.openDocument({
+        fileName: doc.name,
+        base64Data,
+        mimeType: doc.mimeType,
+      });
+      if (res && res.success === false && res.error) {
+        throw new Error(res.error);
+      }
+      return;
+    }
+
     // En navegador web de escritorio: fallback con enlace temporal
     const objectUrl = URL.createObjectURL(blob);
     const tempLink = document.createElement('a');

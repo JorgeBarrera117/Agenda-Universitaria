@@ -115,7 +115,7 @@ export class NotificationService {
       } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         new Notification('🎓 Notificaciones Activas • Agenda Universitaria', {
           body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
-          icon: '/app-icon-claro.svg',
+          icon: './app-icon-claro.svg',
         });
         return true;
       }

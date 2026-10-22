@@ -63,7 +63,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
   // Campos presenciales
   const [classroom, setClassroom] = useState(
-    initialData && initialData.modality !== 'virtual' && !initialData.classroom?.toLowerCase().includes('virtual')
+    initialData && initialData.modality !== 'virtual' && !(initialData.classroom || '').toLowerCase().includes('virtual')
       ? initialData.classroom || ''
       : ''
   );
@@ -73,7 +73,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
 
   // Campos virtuales
   const [virtualPlatform, setVirtualPlatform] = useState(
-    initialData?.modality === 'virtual' || initialData?.classroom?.toLowerCase().includes('virtual')
+    initialData?.modality === 'virtual' || (initialData?.classroom || '').toLowerCase().includes('virtual')
       ? initialData?.classroom || ''
       : ''
   );
@@ -99,7 +99,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
     // 1. Auto-asignar profesor vinculado a la materia
     const profForSub = sub.professorId
       ? professors.find((p) => p.id === sub.professorId)
-      : professors.find((p) => p.subjectIds.includes(newSubjectId));
+      : professors.find((p) => (p.subjectIds || []).includes(newSubjectId));
 
     if (profForSub) {
       setProfessorId(profForSub.id);
@@ -359,7 +359,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({
               options={subjects.map((s) => {
                 const prof = s.professorId
                   ? professors.find((p) => p.id === s.professorId)
-                  : professors.find((p) => p.subjectIds.includes(s.id));
+                  : professors.find((p) => (p.subjectIds || []).includes(s.id));
                 return {
                   value: s.id,
                   label: s.name,
