@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft,
   ChevronRight,
@@ -19,6 +19,11 @@ import {
   Heart,
   Palette,
   ShieldCheck,
+  Sparkles,
+  Image as ImageIcon,
+  Sliders,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -26,9 +31,14 @@ import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { NotificationService } from '../../../shared/services/notificationService';
 import { BackupSection } from './BackupSection';
 import { applyTheme, MATERIAL_COLOR_PALETTES } from '../../../shared/utils/theme';
+import {
+  getCustomWallpaperDataUrl,
+  saveCustomWallpaperDataUrl,
+  getPatternMaskDataUri,
+} from '../../../shared/components/AppWallpaper';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
-import type { AppSettings, MaterialColorTheme } from '../types';
+import type { AppSettings, MaterialColorTheme, WallpaperStyle } from '../types';
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -55,6 +65,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isTestingNotification, setIsTestingNotification] = useState(false);
   const [semesterInput, setSemesterInput] = useState(settings.semesterName);
+  const [customWallpaperPreview, setCustomWallpaperPreview] = useState<string | null>(() =>
+    getCustomWallpaperDataUrl()
+  );
+  const wallpaperInputRef = useRef<HTMLInputElement>(null);
+
+  // Procesar y comprimir foto de papel tapiz seleccionada por el usuario
+  const handleCustomWallpaperUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const srcData = ev.target?.result as string;
+      if (!srcData) return;
+
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 1280;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          saveCustomWallpaperDataUrl(compressedDataUrl);
+          setCustomWallpaperPreview(compressedDataUrl);
+          updateSettings({
+            ...settings,
+            wallpaperStyle: 'custom',
+            wallpaperOpacity: Math.max(25, settings.wallpaperOpacity ?? 35),
+          });
+          onShowToast('Foto de papel tapiz aplicada con éxito');
+        }
+        canvas.width = 0;
+        canvas.height = 0;
+      };
+      img.src = srcData;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveCustomWallpaper = () => {
+    saveCustomWallpaperDataUrl(null);
+    setCustomWallpaperPreview(null);
+    updateSettings({ ...settings, wallpaperStyle: 'campus', wallpaperOpacity: 16 });
+    onShowToast('Foto eliminada. Papel tapiz universitario restaurado.');
+  };
 
   // Sincronizar permisos y almacenamiento
   useEffect(() => {
@@ -710,8 +775,424 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 </div>
 
+                {/* 3. Estudio de Papel Tapiz Adaptativo (Wallpaper Studio) */}
+                <div className="pt-4 border-t border-[var(--color-md-outline-variant)] space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[var(--color-md-primary)]" />
+                      <span className="text-xs font-bold text-[var(--color-md-on-surface)]">
+                        Papel Tapiz del Fondo (Adaptativo al Tema)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSettings({
+                          ...settings,
+                          wallpaperStyle: 'campus',
+                          wallpaperOpacity: 16,
+                          wallpaperScale: 100,
+                          wallpaperBlur: 0,
+                          wallpaperTintWithTheme: true,
+                        });
+                        onShowToast('Papel tapiz restablecido a valores por defecto');
+                      }}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-md-primary)] hover:underline cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Restaurar por defecto</span>
+                    </button>
+                  </div>
+
+                  <p className="text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug">
+                    Elige un diseño vectorial (se tiñe automáticamente con el color del tema elegido) o sube tu propia fotografía de fondo:
+                  </p>
+
+                  {/* Input oculto para subir foto */}
+                  <input
+                    ref={wallpaperInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCustomWallpaperUpload}
+                    className="hidden"
+                  />
+
+                  {/* Galería de Estilos de Papel Tapiz */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {(
+                      [
+                        { id: 'campus', label: 'Campus (Por defecto)', desc: 'Doodles de estudio' },
+                        { id: 'blueprint', label: 'Plano Ingeniería', desc: 'Cuadrícula técnica' },
+                        { id: 'constellation', label: 'Red de Nodos', desc: 'Constelación / Grafo' },
+                        { id: 'topographic', label: 'Topográfico', desc: 'Ondas orgánicas' },
+                        { id: 'dots', label: 'Puntos Minimal', desc: 'Bullet Journal' },
+                        { id: 'custom', label: 'Mi Fotografía', desc: customWallpaperPreview ? 'Imagen cargada' : 'Subir imagen...' },
+                        { id: 'none', label: 'Fondo Liso', desc: 'Sin papel tapiz' },
+                      ] as { id: WallpaperStyle; label: string; desc: string }[]
+                    ).map((item) => {
+                      const currentStyle = settings.wallpaperStyle || 'campus';
+                      const isSelected = currentStyle === item.id;
+                      const previewPattern =
+                        item.id !== 'custom' && item.id !== 'none'
+                          ? getPatternMaskDataUri(item.id)
+                          : null;
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            if (item.id === 'custom' && !customWallpaperPreview) {
+                              wallpaperInputRef.current?.click();
+                              return;
+                            }
+                            updateSettings({ ...settings, wallpaperStyle: item.id });
+                          }}
+                          className={`p-2.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-2 text-left relative overflow-hidden group ${
+                            isSelected
+                              ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]/35 shadow-sm'
+                              : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] hover:border-[var(--color-md-outline)]'
+                          }`}
+                        >
+                          {/* Miniatura del patrón o foto */}
+                          <div className="w-full h-14 rounded-xl bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)]/60 relative overflow-hidden flex items-center justify-center">
+                            {item.id === 'none' && (
+                              <span className="text-[10px] font-bold text-[var(--color-md-on-surface-variant)]">
+                                Color Sólido
+                              </span>
+                            )}
+                            {item.id === 'custom' && (
+                              customWallpaperPreview ? (
+                                <img
+                                  src={customWallpaperPreview}
+                                  alt="Miniatura fondo"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center gap-1 text-[var(--color-md-primary)]">
+                                  <ImageIcon className="w-5 h-5" />
+                                  <span className="text-[10px] font-bold">Elegir foto</span>
+                                </div>
+                              )
+                            )}
+                            {previewPattern && (
+                              <div
+                                style={{
+                                  backgroundColor: 'var(--color-md-primary)',
+                                  WebkitMaskImage: previewPattern.dataUri,
+                                  maskImage: previewPattern.dataUri,
+                                  WebkitMaskRepeat: 'repeat',
+                                  maskRepeat: 'repeat',
+                                  WebkitMaskSize: `${Math.round(previewPattern.baseSize * 0.45)}px`,
+                                  maskSize: `${Math.round(previewPattern.baseSize * 0.45)}px`,
+                                  opacity: 0.55,
+                                }}
+                                className="w-full h-full"
+                              />
+                            )}
+                            {isSelected && (
+                              <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center shadow-xs">
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <span className="text-xs font-extrabold text-[var(--color-md-on-surface)] block truncate">
+                              {item.label}
+                            </span>
+                            <span className="text-[10px] text-[var(--color-md-on-surface-variant)] block truncate">
+                              {item.desc}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Acciones de Fotografía Personalizada */}
+                  {(settings.wallpaperStyle === 'custom' || customWallpaperPreview) && (
+                    <div className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-[var(--color-md-surface-container)] border border-[var(--color-md-outline-variant)] flex-wrap">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <ImageIcon className="w-4 h-4 text-[var(--color-md-primary)] shrink-0" />
+                        <span className="text-xs font-bold text-[var(--color-md-on-surface)] truncate">
+                          Fotografía personalizada de fondo
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => wallpaperInputRef.current?.click()}
+                          className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-2xs active:scale-95 transition-all cursor-pointer"
+                        >
+                          Cambiar foto
+                        </button>
+                        {customWallpaperPreview && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveCustomWallpaper}
+                            className="p-1.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Eliminar foto personalizada"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Controles de Opacidad, Tamaño y Desenfoque (visibles si el estilo no es 'none') */}
+                  {(settings.wallpaperStyle || 'campus') !== 'none' && (
+                    <div
+                      data-no-swipe="true"
+                      className="p-3.5 sm:p-4 rounded-2xl bg-[var(--color-md-surface-container)] border border-[var(--color-md-outline-variant)] space-y-4"
+                    >
+                      <div className="flex items-center gap-2 text-xs font-bold text-[var(--color-md-on-surface)]">
+                        <Sliders className="w-4 h-4 text-[var(--color-md-primary)]" />
+                        <span>Ajustes de Intensidad, Tamaño y Efectos</span>
+                      </div>
+
+                      {/* 1. Control de Opacidad */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-[var(--color-md-on-surface-variant)]">
+                            Opacidad / Visibilidad
+                          </span>
+                          <span className="font-mono font-extrabold text-[var(--color-md-primary)]">
+                            {settings.wallpaperOpacity ?? 16}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={4}
+                          max={90}
+                          step={2}
+                          value={settings.wallpaperOpacity ?? 16}
+                          onChange={(e) =>
+                            updateSettings({
+                              ...settings,
+                              wallpaperOpacity: Number(e.target.value),
+                            })
+                          }
+                          className="w-full accent-[var(--color-md-primary)] cursor-pointer h-2 rounded-lg"
+                        />
+                        <div className="flex items-center justify-between text-[10px] text-[var(--color-md-on-surface-variant)]">
+                          <button
+                            type="button"
+                            onClick={() => updateSettings({ ...settings, wallpaperOpacity: 14 })}
+                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
+                          >
+                            Sutil (14%)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateSettings({ ...settings, wallpaperOpacity: 32 })}
+                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
+                          >
+                            Medio (32%)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateSettings({ ...settings, wallpaperOpacity: 60 })}
+                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
+                          >
+                            Intenso (60%)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. Control de Tamaño / Escala */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-[var(--color-md-on-surface-variant)]">
+                            Tamaño / Escala del Tapiz
+                          </span>
+                          <span className="font-mono font-extrabold text-[var(--color-md-primary)]">
+                            {settings.wallpaperScale ?? 100}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={50}
+                          max={200}
+                          step={5}
+                          value={settings.wallpaperScale ?? 100}
+                          onChange={(e) =>
+                            updateSettings({
+                              ...settings,
+                              wallpaperScale: Number(e.target.value),
+                            })
+                          }
+                          className="w-full accent-[var(--color-md-primary)] cursor-pointer h-2 rounded-lg"
+                        />
+                        <div className="flex items-center justify-between text-[10px] text-[var(--color-md-on-surface-variant)]">
+                          <button
+                            type="button"
+                            onClick={() => updateSettings({ ...settings, wallpaperScale: 70 })}
+                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
+                          >
+                            Pequeño (70%)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateSettings({ ...settings, wallpaperScale: 100 })}
+                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
+                          >
+                            Estándar (100%)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateSettings({ ...settings, wallpaperScale: 150 })}
+                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
+                          >
+                            Grande (150%)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 3. Control de Desenfoque (Blur) */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-[var(--color-md-on-surface-variant)]">
+                            Desenfoque Suave (Blur)
+                          </span>
+                          <span className="font-mono font-extrabold text-[var(--color-md-primary)]">
+                            {settings.wallpaperBlur ?? 0} px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={16}
+                          step={1}
+                          value={settings.wallpaperBlur ?? 0}
+                          onChange={(e) =>
+                            updateSettings({
+                              ...settings,
+                              wallpaperBlur: Number(e.target.value),
+                            })
+                          }
+                          className="w-full accent-[var(--color-md-primary)] cursor-pointer h-2 rounded-lg"
+                        />
+                      </div>
+
+                      {/* 4. Tinte Adaptativo (Solo para Foto Personalizada) */}
+                      {settings.wallpaperStyle === 'custom' && (
+                        <div className="flex items-center justify-between pt-2 border-t border-[var(--color-md-outline-variant)]/60">
+                          <div>
+                            <span className="text-xs font-bold text-[var(--color-md-on-surface)] block">
+                              Fusionar foto con el color del tema
+                            </span>
+                            <span className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+                              Aplica un matiz cromático adaptativo sobre tu imagen
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateSettings({
+                                ...settings,
+                                wallpaperTintWithTheme: !(settings.wallpaperTintWithTheme ?? true),
+                              })
+                            }
+                            className={`w-12 h-7 rounded-full transition-colors p-1 cursor-pointer ${
+                              (settings.wallpaperTintWithTheme ?? true)
+                                ? 'bg-[var(--color-md-primary)]'
+                                : 'bg-slate-300 dark:bg-slate-700'
+                            }`}
+                          >
+                            <div
+                              className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
+                                (settings.wallpaperTintWithTheme ?? true)
+                                  ? 'translate-x-5'
+                                  : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* 5. Ventana de Previsualización en Vivo */}
+                      <div className="pt-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)] block mb-1.5">
+                          Vista previa en tiempo real
+                        </span>
+                        <div className="relative h-28 rounded-2xl bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)] overflow-hidden flex items-center justify-center p-3 shadow-inner">
+                          {/* Fondo simulado en vivo */}
+                          {settings.wallpaperStyle === 'custom' && customWallpaperPreview ? (
+                            <div
+                              style={{
+                                backgroundImage: `url("${customWallpaperPreview}")`,
+                                backgroundSize:
+                                  (settings.wallpaperScale ?? 100) <= 102
+                                    ? 'cover'
+                                    : `${settings.wallpaperScale ?? 100}%`,
+                                backgroundPosition: 'center',
+                                opacity: (settings.wallpaperOpacity ?? 16) / 100,
+                                filter:
+                                  (settings.wallpaperBlur ?? 0) > 0
+                                    ? `blur(${settings.wallpaperBlur}px)`
+                                    : undefined,
+                              }}
+                              className="absolute inset-0"
+                            />
+                          ) : (
+                            settings.wallpaperStyle !== 'custom' &&
+                            (() => {
+                              const p = getPatternMaskDataUri(
+                                (settings.wallpaperStyle || 'campus') as Exclude<
+                                  WallpaperStyle,
+                                  'custom' | 'none'
+                                >
+                              );
+                              const sz = Math.max(
+                                16,
+                                Math.round(p.baseSize * ((settings.wallpaperScale ?? 100) / 100) * 0.65)
+                              );
+                              return (
+                                <div
+                                  style={{
+                                    backgroundColor: 'var(--color-md-primary)',
+                                    WebkitMaskImage: p.dataUri,
+                                    maskImage: p.dataUri,
+                                    WebkitMaskRepeat: 'repeat',
+                                    maskRepeat: 'repeat',
+                                    WebkitMaskSize: `${sz}px ${sz}px`,
+                                    maskSize: `${sz}px ${sz}px`,
+                                    opacity: (settings.wallpaperOpacity ?? 16) / 100,
+                                    filter:
+                                      (settings.wallpaperBlur ?? 0) > 0
+                                        ? `blur(${settings.wallpaperBlur}px)`
+                                        : undefined,
+                                  }}
+                                  className="absolute inset-0"
+                                />
+                              );
+                            })()
+                          )}
+
+                          {/* Mini-tarjeta de ejemplo flotando sobre el papel tapiz */}
+                          <div className="relative z-10 bg-[var(--color-md-card-bg)]/92 backdrop-blur-xs border border-[var(--color-md-outline-variant)] rounded-xl px-3.5 py-2 shadow-xs flex items-center gap-3 max-w-xs w-full">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center font-black text-xs shrink-0">
+                              AU
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs font-extrabold text-[var(--color-md-on-surface)] block truncate">
+                                Ingeniería de Software
+                              </span>
+                              <span className="text-[10px] text-[var(--color-md-on-surface-variant)] block truncate">
+                                Así lucen tus tarjetas sobre el tapiz
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <p className="text-xs text-[var(--color-md-on-surface-variant)] leading-relaxed pt-1">
-                  El tema y la paleta seleccionados se guardan automáticamente en tu dispositivo y se aplican en tiempo real.
+                  El tema, la paleta y el papel tapiz se guardan automáticamente en tu dispositivo y se aplican en tiempo real.
                 </p>
               </div>
             )}

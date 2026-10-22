@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
+import { AppWallpaper } from './shared/components/AppWallpaper';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { SubjectsView } from './features/subjects/components/SubjectsView';
 import { ProfessorsView } from './features/professors/components/ProfessorsView';
@@ -195,7 +196,7 @@ export function App() {
 
   return (
     <div
-      className={`min-h-screen bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] flex flex-col selection:bg-[var(--color-md-primary-container)] selection:text-[var(--color-md-on-primary-container)] transition-colors duration-200 ${
+      className={`relative min-h-screen bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] flex flex-col selection:bg-[var(--color-md-primary-container)] selection:text-[var(--color-md-on-primary-container)] transition-colors duration-200 ${
         isAnyEditorActive && activeTab === 'notes'
           ? 'pb-0'
           : isAnyEditorActive || isSettingsOpen
@@ -203,6 +204,8 @@ export function App() {
             : 'pb-22 md:pb-10'
       }`}
     >
+      {/* Papel Tapiz Adaptativo al Tema (Fijo en GPU, z-0) */}
+      <AppWallpaper />
 
       {/* Barra de navegación superior de Campus (Oculta al crear apuntes, formularios o en Ajustes) */}
       {!isAnyEditorActive && !isSettingsOpen && (
@@ -233,7 +236,7 @@ export function App() {
                 paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
               }
         }
-        className={`flex-1 flex flex-col w-full mx-auto overflow-x-hidden touch-pan-y ${
+        className={`relative z-10 flex-1 flex flex-col w-full mx-auto overflow-x-hidden touch-pan-y ${
           isAnyEditorActive && activeTab === 'notes'
             ? 'p-0'
             : isAnyEditorActive || isSettingsOpen
