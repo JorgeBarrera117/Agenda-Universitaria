@@ -386,21 +386,22 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
             )}
           </div>
 
-          {/* Selector de Orden M3 */}
+          {/* Selector de Orden Canónico M3Select (Unificado en toda la app) */}
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-auto">
-            <div className="flex items-center gap-1.5 px-3 h-12 rounded-full bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 border border-[#C2C7CE]/40 dark:border-[#42474E]/40 text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF] w-full sm:w-auto">
-              <ArrowUpDown className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortByType)}
-                className="bg-transparent border-none outline-none font-bold text-xs text-[#191C20] dark:text-[#E2E2E6] cursor-pointer w-full sm:w-auto pr-2"
-              >
-                <option value="newest" className="dark:bg-[#1D2024]">Más recientes</option>
-                <option value="oldest" className="dark:bg-[#1D2024]">Más antiguos</option>
-                <option value="largest" className="dark:bg-[#1D2024]">Mayor tamaño</option>
-                <option value="name" className="dark:bg-[#1D2024]">Nombre (A-Z)</option>
-              </select>
-            </div>
+            <M3Select<SortByType>
+              variant="pill"
+              menuAlign="right"
+              value={sortBy}
+              onChange={setSortBy}
+              leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
+              options={[
+                { value: 'newest', label: 'Más recientes' },
+                { value: 'oldest', label: 'Más antiguos' },
+                { value: 'largest', label: 'Mayor tamaño' },
+                { value: 'name', label: 'Nombre (A-Z)' },
+              ]}
+              className="w-full sm:w-auto min-w-[175px]"
+            />
           </div>
         </div>
 

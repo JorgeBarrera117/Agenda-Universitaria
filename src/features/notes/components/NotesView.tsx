@@ -13,7 +13,7 @@ import {
   MoreVertical,
   LayoutGrid,
   List as ListIcon,
-  ChevronDown,
+  ArrowUpDown,
   X,
   Tag,
   Copy,
@@ -27,6 +27,7 @@ import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
+import { M3Select } from '../../../shared/components/M3Select';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { db } from '../../../shared/db/AppDatabase';
@@ -56,7 +57,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // Ordenamiento de documentos
   const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'title'>('updatedAt');
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
 
   // Menú de tres puntos activo por apunte
   const [activeMenuNoteId, setActiveMenuNoteId] = useState<string | null>(null);
@@ -841,65 +841,19 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
       {/* Barra de Ordenamiento y Alternador de Vista (Cuadrícula / Lista) estilo Google Docs */}
       <div className="flex items-center justify-between px-1 text-xs text-slate-500 dark:text-slate-400">
-        {/* Selector de Orden M3 Dropdown */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-            className="flex items-center gap-2 py-1.5 px-3 rounded-full bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C3C7D0]/50 dark:border-[#43474E]/50 hover:bg-[#D0E4FF]/40 text-[#191C20] dark:text-[#E2E2E6] transition-all cursor-pointer text-xs font-bold shadow-2xs"
-          >
-            <span>
-              {sortBy === 'updatedAt'
-                ? 'Última modificación'
-                : sortBy === 'createdAt'
-                ? 'Fecha de creación'
-                : 'Alfabético (A-Z)'}
-            </span>
-            <ChevronDown
-              className={`w-3.5 h-3.5 text-[#72777F] dark:text-[#8C9199] transition-transform duration-200 ${
-                isSortMenuOpen ? 'rotate-180 text-[#00639B] dark:text-[#92CCFF]' : ''
-              }`}
-            />
-          </button>
-
-          {isSortMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-30"
-                onClick={() => setIsSortMenuOpen(false)}
-              />
-              <div className="absolute left-0 top-9 w-48 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/70 dark:border-[#43474E]/70 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 z-40 animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
-                {[
-                  { id: 'updatedAt', label: 'Última modificación' },
-                  { id: 'createdAt', label: 'Fecha de creación' },
-                  { id: 'title', label: 'Alfabético (A-Z)' },
-                ].map((item) => {
-                  const isSelected = sortBy === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        setSortBy(item.id as typeof sortBy);
-                        setIsSortMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-left ${
-                        isSelected
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76]/50 text-[#001D32] dark:text-[#D0E4FF]'
-                          : 'text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] stroke-[2.8]" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
+        {/* Selector de Orden Canónico M3Select (Unificado en toda la app) */}
+        <M3Select<'updatedAt' | 'createdAt' | 'title'>
+          variant="pill"
+          menuAlign="left"
+          value={sortBy}
+          onChange={setSortBy}
+          leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
+          options={[
+            { value: 'updatedAt', label: 'Última modificación' },
+            { value: 'createdAt', label: 'Fecha de creación' },
+            { value: 'title', label: 'Alfabético (A-Z)' },
+          ]}
+        />
 
         {/* Alternador Cuadrícula / Lista */}
         <div className="flex items-center bg-slate-100 dark:bg-[#17212b] p-0.5 rounded-xl border border-slate-200/80 dark:border-white/10">

@@ -264,114 +264,127 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           {filteredProfessors.map((prof) => (
             <div
               key={prof.id}
-              className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 hover:bg-[#E2E7EF]/40 dark:hover:bg-[#272A2F]/40 transition-colors group"
+              className="flex flex-col gap-2.5 p-3.5 sm:p-4 hover:bg-[#E2E7EF]/40 dark:hover:bg-[#272A2F]/40 transition-colors group"
             >
-              {/* Avatar Circular M3 */}
-              <ProfessorAvatar
-                name={prof.name}
-                icon={prof.icon}
-                color={prof.color}
-                size="contact"
-                shape="circle"
-                className="shrink-0 ring-2 ring-white/60 dark:ring-white/10 shadow-2xs"
-              />
+              {/* Fila Superior: Avatar + Nombre Completo y Materias + Botones de Edición/Borrado */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  {/* Avatar Circular M3 */}
+                  <ProfessorAvatar
+                    name={prof.name}
+                    icon={prof.icon}
+                    color={prof.color}
+                    size="contact"
+                    shape="circle"
+                    className="shrink-0 ring-2 ring-white/60 dark:ring-white/10 shadow-2xs mt-0.5"
+                  />
 
-              {/* Información Central del Contacto */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm sm:text-base font-bold text-[#191C20] dark:text-[#E2E2E6] truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
-                    {prof.name}
-                  </h3>
-                </div>
+                  {/* Nombre y Materias Vinculadas con 100% de ancho libre */}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm sm:text-base font-bold text-[#191C20] dark:text-[#E2E2E6] leading-snug break-words group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                      {prof.name}
+                    </h3>
 
-                {/* Línea de Estado / Subtítulo con M3 Assist Chips */}
-                <div className="flex items-center flex-wrap gap-x-2.5 gap-y-1 mt-1 text-xs text-[#43474E] dark:text-[#8C9199]">
-                  {/* Materias vinculadas como micro-pills */}
-                  {prof.subjectIds.length > 0 ? (
-                    <div className="flex items-center flex-wrap gap-1">
-                      {prof.subjectIds.map((sid) => {
-                        const sub = getSubjectById(sid);
-                        if (!sub) return null;
-                        return (
-                          <span
-                            key={sid}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-white shadow-2xs"
-                            style={{ backgroundColor: sub.color }}
-                          >
-                            <SubjectIcon icon={sub.icon} className="w-2.5 h-2.5 shrink-0" />
-                            <span className="truncate max-w-[120px]">{sub.name}</span>
-                          </span>
-                        );
-                      })}
+                    {/* Materias vinculadas como micro-pills */}
+                    <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                      {prof.subjectIds.length > 0 ? (
+                        prof.subjectIds.map((sid) => {
+                          const sub = getSubjectById(sid);
+                          if (!sub) return null;
+                          return (
+                            <span
+                              key={sid}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-white shadow-2xs max-w-full"
+                              style={{ backgroundColor: sub.color }}
+                            >
+                              <SubjectIcon icon={sub.icon} className="w-2.5 h-2.5 shrink-0" />
+                              <span className="truncate max-w-[160px] sm:max-w-[220px]">{sub.name}</span>
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span className="text-[11px] text-[#72777F] dark:text-[#8C9199] italic">
+                          Sin materias asignadas
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-[11px] text-[#72777F] dark:text-[#8C9199] italic">
-                      Sin materias
-                    </span>
-                  )}
+                  </div>
+                </div>
 
-                  {/* Cubículo / Ubicación */}
-                  {prof.office && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#191C20] dark:text-[#E2E2E6] bg-[#E2E7EF] dark:bg-[#272A2F] px-2 py-0.5 rounded-md">
-                      <MapPin className="w-3 h-3 text-[#BA1A1A] dark:text-[#FFB4AB] shrink-0" />
-                      <span className="truncate max-w-[140px]">{prof.office}</span>
-                    </span>
-                  )}
+                {/* Acciones de Gestión (Editar / Eliminar) en Esquina Superior Derecha sin colisionar */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(prof)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] hover:text-[#001D32] dark:hover:text-[#D0E4FF] flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
+                    title="Editar datos del catedrático"
+                    aria-label="Editar profesor"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
 
-                  {/* Asesorías */}
-                  {prof.notes && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0E2010] dark:text-[#D7E8CD] bg-[#D7E8CD] dark:bg-[#234E27] px-2 py-0.5 rounded-md">
-                      <CalendarCheck className="w-3 h-3 text-[#386A20] dark:text-[#B1F194] shrink-0" />
-                      <span className="truncate max-w-[160px]">{prof.notes}</span>
-                    </span>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setProfToDelete(prof)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
+                    title="Eliminar catedrático"
+                    aria-label="Eliminar profesor"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Botones de Acción Circulares (M3 Tonal Icon Buttons) */}
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                {prof.phone && (
-                  <a
-                    href={`tel:${prof.phone}`}
-                    className="w-9 h-9 rounded-full bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
-                    title={`Llamar a ${prof.name} (${prof.phone})`}
-                    aria-label="Llamar al profesor"
-                  >
-                    <Phone className="w-4 h-4" />
-                  </a>
-                )}
+              {/* Fila Inferior: Cubículo, Horario de Asesoría y Botones de Contacto Directo (Llamar / Correo) */}
+              {(prof.office || prof.notes || prof.phone || prof.email) && (
+                <div className="flex items-center justify-between flex-wrap gap-2 pl-0 sm:pl-14 pt-1">
+                  {/* Chips de Ubicación y Asesoría */}
+                  <div className="flex items-center flex-wrap gap-1.5 min-w-0">
+                    {prof.office && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#191C20] dark:text-[#E2E2E6] bg-[#E2E7EF] dark:bg-[#272A2F] px-2.5 py-1 rounded-lg max-w-full">
+                        <MapPin className="w-3 h-3 text-[#BA1A1A] dark:text-[#FFB4AB] shrink-0" />
+                        <span className="truncate max-w-[180px] sm:max-w-[240px]">{prof.office}</span>
+                      </span>
+                    )}
 
-                {prof.email && (
-                  <a
-                    href={`mailto:${prof.email}`}
-                    className="w-9 h-9 rounded-full bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 shadow-2xs"
-                    title={`Enviar correo a ${prof.email}`}
-                    aria-label="Enviar correo al profesor"
-                  >
-                    <Mail className="w-4 h-4" />
-                  </a>
-                )}
+                    {prof.notes && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0E2010] dark:text-[#D7E8CD] bg-[#D7E8CD] dark:bg-[#234E27] px-2.5 py-1 rounded-lg max-w-full">
+                        <CalendarCheck className="w-3 h-3 text-[#386A20] dark:text-[#B1F194] shrink-0" />
+                        <span className="truncate max-w-[200px] sm:max-w-[280px]">{prof.notes}</span>
+                      </span>
+                    )}
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleOpenEdit(prof)}
-                  className="w-9 h-9 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] hover:text-[#001D32] dark:hover:text-[#D0E4FF] flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
-                  title="Editar datos del catedrático"
-                  aria-label="Editar profesor"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
+                  {/* Botones de Contacto Rápido (Teléfono y Correo) */}
+                  {(prof.phone || prof.email) && (
+                    <div className="flex items-center gap-1.5 ml-auto shrink-0">
+                      {prof.phone && (
+                        <a
+                          href={`tel:${prof.phone}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] hover:opacity-90 transition-all active:scale-95 shadow-2xs"
+                          title={`Llamar a ${prof.name} (${prof.phone})`}
+                          aria-label="Llamar al profesor"
+                        >
+                          <Phone className="w-3.5 h-3.5 shrink-0" />
+                          <span>Llamar</span>
+                        </a>
+                      )}
 
-                <button
-                  type="button"
-                  onClick={() => setProfToDelete(prof)}
-                  className="w-9 h-9 rounded-full bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
-                  title="Eliminar catedrático"
-                  aria-label="Eliminar profesor"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+                      {prof.email && (
+                        <a
+                          href={`mailto:${prof.email}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:opacity-90 transition-all active:scale-95 shadow-2xs"
+                          title={`Enviar correo a ${prof.email}`}
+                          aria-label="Enviar correo al profesor"
+                        >
+                          <Mail className="w-3.5 h-3.5 shrink-0" />
+                          <span>Correo</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

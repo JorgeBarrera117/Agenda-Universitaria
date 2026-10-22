@@ -185,7 +185,7 @@ export function App() {
         className={`flex-1 max-w-[1750px] w-full mx-auto ${
           isAnyEditorActive || isSettingsOpen
             ? 'px-3 sm:px-6 lg:px-8 pt-1 sm:pt-3'
-            : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-24 sm:pb-28 md:pb-8'
+            : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-36 sm:pb-32 md:pb-8'
         }`}
       >
         {isSettingsOpen ? (

@@ -20,14 +20,21 @@ export interface M3SelectProps<T extends string | number = string> {
   className?: string;
   error?: string | null;
   required?: boolean;
+  /** Variante visual: 'field' para formularios y 'pill' para barras de herramientas/ordenamiento */
+  variant?: 'field' | 'pill';
+  /** Ícono opcional fijo a la izquierda del disparador (ej. ArrowUpDown en ordenamiento) */
+  leadingIcon?: React.ReactNode;
+  /** Alineación del menú desplegable cuando es variante 'pill' */
+  menuAlign?: 'left' | 'right';
 }
 
 /**
- * M3Select - Componente de Selección Desplegable Canónico Material Design 3
+ * M3Select - Componente Universal de Selección Desplegable Canónico Material Design 3
  * 
- * Reemplaza los elementos <select> nativos del sistema operativo por un menú flotante
- * con elevación M3, esquinas orgánicas (rounded-2xl), indicador de color por materia,
- * tipografía jerárquica y retroalimentación activa con checkmarks.
+ * Estándar único para TODOS los selectores (antiguos y futuros) de la aplicación.
+ * Reemplaza por completo los elementos <select> nativos del sistema operativo por un menú flotante
+ * con elevación M3, esquinas orgánicas (rounded-[22px]), adaptación automática a la paleta
+ * Material You activa y retroalimentación con checkmarks.
  */
 export const M3Select = <T extends string | number = string>({
   value,
@@ -39,6 +46,9 @@ export const M3Select = <T extends string | number = string>({
   className = '',
   error,
   required = false,
+  variant = 'field',
+  leadingIcon,
+  menuAlign = 'left',
 }: M3SelectProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,32 +80,42 @@ export const M3Select = <T extends string | number = string>({
     setIsOpen(false);
   };
 
+  const isPill = variant === 'pill';
+
   return (
-    <div className={`relative w-full ${className}`} ref={containerRef}>
+    <div className={`relative ${isPill ? 'inline-block' : 'w-full'} ${className}`} ref={containerRef}>
       {label && (
         <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider mb-1.5 select-none">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
-      {/* Botón Disparador del Menú (Field) */}
+      {/* Botón Disparador del Menú (Field o Pill) */}
       <button
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-2xl border transition-all text-left cursor-pointer select-none ${
+        className={`w-full flex items-center justify-between transition-all text-left cursor-pointer select-none border ${
+          isPill
+            ? 'gap-2 px-3.5 h-10 sm:h-11 rounded-full text-xs font-bold shadow-2xs'
+            : 'gap-2.5 px-3.5 py-2.5 rounded-2xl'
+        } ${
           isOpen
-            ? 'bg-white dark:bg-[#1D2024] border-[#00639B] dark:border-[#92CCFF] ring-2 ring-[#00639B]/20 dark:ring-[#92CCFF]/20 shadow-xs'
+            ? 'bg-[#FDFBFF] dark:bg-[#1D2024] border-[#00639B] dark:border-[#92CCFF] ring-2 ring-[#00639B]/20 dark:ring-[#92CCFF]/20 shadow-xs'
             : error
             ? 'bg-red-50/50 dark:bg-red-950/20 border-red-500/60 dark:border-red-500/60'
-            : 'bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF]/80 dark:hover:bg-[#272A2F]/80'
+            : 'bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#D0E4FF]/50 dark:hover:bg-[#004B76]/40'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          {/* Indicador de Color / Ícono */}
-          {selectedOption ? (
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {/* Ícono Fijo Izquierdo (ej. Ordenar) o Indicador de Opción Seleccionada */}
+          {leadingIcon ? (
+            <span className="shrink-0 flex items-center justify-center text-[#00639B] dark:text-[#92CCFF]">
+              {leadingIcon}
+            </span>
+          ) : selectedOption ? (
             selectedOption.icon ? (
               <span className="shrink-0 flex items-center justify-center">
                 {selectedOption.icon}
@@ -106,15 +126,15 @@ export const M3Select = <T extends string | number = string>({
                 style={{ backgroundColor: selectedOption.color }}
               />
             ) : null
-          ) : (
+          ) : !isPill ? (
             <span className="w-6 h-6 rounded-lg shrink-0 bg-[#C3C7D0]/30 dark:bg-[#43474E]/30 border border-dashed border-[#C3C7D0]/60 dark:border-[#43474E]/60 flex items-center justify-center" />
-          )}
+          ) : null}
 
           {/* Texto Principal y Secundario */}
           <div className="min-w-0 flex-1 truncate">
             {selectedOption ? (
               <div className="flex items-center gap-1.5 truncate">
-                <span className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate">
+                <span className={`${isPill ? 'text-xs' : 'text-sm'} font-bold text-[#191C20] dark:text-[#E2E2E6] truncate`}>
                   {selectedOption.label}
                 </span>
                 {selectedOption.sublabel && (
@@ -124,7 +144,7 @@ export const M3Select = <T extends string | number = string>({
                 )}
               </div>
             ) : (
-              <span className="text-sm font-medium text-[#72777F] dark:text-[#8C9199] truncate">
+              <span className={`${isPill ? 'text-xs' : 'text-sm'} font-medium text-[#72777F] dark:text-[#8C9199] truncate`}>
                 {placeholder}
               </span>
             )}
@@ -143,7 +163,11 @@ export const M3Select = <T extends string | number = string>({
       {isOpen && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/70 dark:border-[#43474E]/70 rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150"
+          className={`absolute top-[calc(100%+6px)] z-50 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/70 dark:border-[#43474E]/70 rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ${
+            isPill
+              ? `min-w-[210px] ${menuAlign === 'right' ? 'right-0' : 'left-0'}`
+              : 'left-0 right-0'
+          }`}
         >
           {options.length === 0 ? (
             <div className="px-4 py-3 text-xs text-center text-[#72777F] dark:text-[#8C9199]">

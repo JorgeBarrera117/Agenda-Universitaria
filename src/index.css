@@ -10,22 +10,22 @@
   --color-cove-deep: #00385C;
   --color-cove-navy: #001D32;
 
-  /* Material Design 3 (Material You) Dynamic System Tokens */
-  --color-md-primary: #004A77;
-  --color-md-primary-hover: #00385C;
+  /* Material Design 3 (Material You) Dynamic System Tokens (Default: Clásico Pastel) */
+  --color-md-primary: #00639B;
+  --color-md-primary-hover: #005282;
   --color-md-on-primary: #FFFFFF;
-  --color-md-primary-container: #C6E0FF;
+  --color-md-primary-container: #D0E4FF;
   --color-md-on-primary-container: #001D32;
-  --color-md-secondary-container: #D3E6F8;
-  --color-md-on-secondary-container: #072138;
-  --color-md-surface: #E4F1FC;
-  --color-md-card-bg: #F6FAFF;
-  --color-md-surface-container: #D5E8FA;
-  --color-md-surface-container-high: #C3DDF6;
-  --color-md-on-surface: #071E33;
-  --color-md-on-surface-variant: #1E4668;
-  --color-md-outline: #4A7499;
-  --color-md-outline-variant: #A8C8E6;
+  --color-md-secondary-container: #E2E7EF;
+  --color-md-on-secondary-container: #191C20;
+  --color-md-surface: #F8FAFC;
+  --color-md-card-bg: #FDFBFF;
+  --color-md-surface-container: #F1F4FA;
+  --color-md-surface-container-high: #E2E7EF;
+  --color-md-on-surface: #191C20;
+  --color-md-on-surface-variant: #43474E;
+  --color-md-outline: #72777F;
+  --color-md-outline-variant: #C3C7D0;
 }
 
 :root {

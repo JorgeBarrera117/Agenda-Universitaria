@@ -51,6 +51,46 @@ export interface ColorThemeDefinition {
  * Toda la aplicación y el selector de Ajustes se adaptarán automáticamente.
  */
 export const MATERIAL_COLOR_PALETTES: Record<MaterialColorTheme, ColorThemeDefinition> = {
+  default: {
+    id: 'default',
+    name: 'Clásico Pastel',
+    subtitle: 'Predeterminado Original',
+    seed: '#00639B',
+    light: {
+      primary: '#00639B',
+      primaryHover: '#005282',
+      onPrimary: '#FFFFFF',
+      primaryContainer: '#D0E4FF',
+      onPrimaryContainer: '#001D32',
+      secondaryContainer: '#E2E7EF',
+      onSecondaryContainer: '#191C20',
+      surface: '#F8FAFC',
+      cardBg: '#FDFBFF',
+      surfaceContainer: '#F1F4FA',
+      surfaceContainerHigh: '#E2E7EF',
+      onSurface: '#191C20',
+      onSurfaceVariant: '#43474E',
+      outline: '#72777F',
+      outlineVariant: '#C3C7D0',
+    },
+    dark: {
+      primary: '#92CCFF',
+      primaryHover: '#72BAF5',
+      onPrimary: '#003353',
+      primaryContainer: '#004B76',
+      onPrimaryContainer: '#D0E4FF',
+      secondaryContainer: '#272A2F',
+      onSecondaryContainer: '#E2E2E6',
+      surface: '#101418',
+      cardBg: '#1D2024',
+      surfaceContainer: '#1D2024',
+      surfaceContainerHigh: '#272A2F',
+      onSurface: '#E2E2E6',
+      onSurfaceVariant: '#C3C7D0',
+      outline: '#8C9199',
+      outlineVariant: '#43474E',
+    },
+  },
   blue: {
     id: 'blue',
     name: 'Azul Océano',
@@ -211,6 +251,46 @@ export const MATERIAL_COLOR_PALETTES: Record<MaterialColorTheme, ColorThemeDefin
       outlineVariant: '#4D3620',
     },
   },
+  pink: {
+    id: 'pink',
+    name: 'Rosa Pastel',
+    subtitle: 'Rosa Floral y Delicado',
+    seed: '#B91C6B',
+    light: {
+      primary: '#B91C6B',
+      primaryHover: '#9B1458',
+      onPrimary: '#FFFFFF',
+      primaryContainer: '#FFD8E8',
+      onPrimaryContainer: '#3E001E',
+      secondaryContainer: '#FAD0E3',
+      onSecondaryContainer: '#3B0721',
+      surface: '#FFF5F9',
+      cardBg: '#FCE8F1',
+      surfaceContainer: '#F8D8E7',
+      surfaceContainerHigh: '#F2C4DA',
+      onSurface: '#2B0718',
+      onSurfaceVariant: '#662444',
+      outline: '#994D72',
+      outlineVariant: '#E4ADC7',
+    },
+    dark: {
+      primary: '#FFAFD2',
+      primaryHover: '#FFC8E0',
+      onPrimary: '#5E0031',
+      primaryContainer: '#890049',
+      onPrimaryContainer: '#FFD8E8',
+      secondaryContainer: '#4B1F35',
+      onSecondaryContainer: '#FAD0E3',
+      surface: '#190A12',
+      cardBg: '#25101B',
+      surfaceContainer: '#301624',
+      surfaceContainerHigh: '#3F1D30',
+      onSurface: '#FCE8F1',
+      onSurfaceVariant: '#DFB5C9',
+      outline: '#9E6E85',
+      outlineVariant: '#53263B',
+    },
+  },
   rose: {
     id: 'rose',
     name: 'Cereza Carmesí',
@@ -295,7 +375,7 @@ export const MATERIAL_COLOR_PALETTES: Record<MaterialColorTheme, ColorThemeDefin
 
 export function applyTheme(
   theme: ThemeMode = 'light',
-  colorPalette: MaterialColorTheme = 'blue'
+  colorPalette: MaterialColorTheme = 'default'
 ): void {
   if (typeof window === 'undefined') return;
 
@@ -314,8 +394,8 @@ export function applyTheme(
     root.style.colorScheme = 'light';
   }
 
-  // Obtener definición de la paleta seleccionada (con fallback seguro a 'blue')
-  const paletteDef = MATERIAL_COLOR_PALETTES[colorPalette] || MATERIAL_COLOR_PALETTES.blue;
+  // Obtener definición de la paleta seleccionada (con fallback seguro a 'default')
+  const paletteDef = MATERIAL_COLOR_PALETTES[colorPalette] || MATERIAL_COLOR_PALETTES.default;
   const tokens = isDark ? paletteDef.dark : paletteDef.light;
 
   // Inyectar tokens semánticos Material You en :root
@@ -352,7 +432,7 @@ export function applyTheme(
  */
 export function setupSystemThemeListener(
   currentTheme: ThemeMode,
-  colorPalette: MaterialColorTheme = 'blue',
+  colorPalette: MaterialColorTheme = 'default',
   onThemeChange?: () => void
 ): () => void {
   if (typeof window === 'undefined' || currentTheme !== 'system') {

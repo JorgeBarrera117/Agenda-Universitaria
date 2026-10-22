@@ -280,7 +280,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         Apariencia y Tema
                       </span>
                       <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        {themeLabel} • Color {MATERIAL_COLOR_PALETTES[settings.colorPalette || 'blue'].name}
+                        {themeLabel} • {(MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).name}
                       </span>
                     </div>
                   </div>
@@ -288,7 +288,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl">
                       <span
                         className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-                        style={{ backgroundColor: MATERIAL_COLOR_PALETTES[settings.colorPalette || 'blue'].light.primary }}
+                        style={{ backgroundColor: (MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).light.primary }}
                       />
                       <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                         {themeLabel}
@@ -586,8 +586,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Paleta de Color Dinámica (Material You) */}
-                <div className="pt-4 border-t border-[var(--color-md-outline-variant)] space-y-3">
+                {/* 2. Paleta de Color Dinámica (Material You) con Radio Buttons Compactos */}
+                <div className="pt-3.5 border-t border-[var(--color-md-outline-variant)] space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Palette className="w-4 h-4 text-[var(--color-md-primary)]" />
@@ -596,18 +596,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       </span>
                     </div>
                     <span className="text-[11px] font-bold text-[var(--color-md-primary)]">
-                      {MATERIAL_COLOR_PALETTES[settings.colorPalette || 'blue'].name}
+                      {(MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).name}
                     </span>
                   </div>
 
-                  <p className="text-xs text-[var(--color-md-on-surface-variant)] leading-relaxed">
-                    Personaliza la paleta de toda la aplicación (fondos, tarjetas, botones, barras e indicadores) garantizando legibilidad total.
+                  <p className="text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug">
+                    Selecciona una paleta cromática para adaptar toda la interfaz manteniendo textos legibles:
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div
+                    role="radiogroup"
+                    aria-label="Paletas de color del tema"
+                    className="grid grid-cols-2 gap-2 pt-0.5"
+                  >
                     {(Object.keys(MATERIAL_COLOR_PALETTES) as MaterialColorTheme[]).map((paletteKey) => {
                       const pal = MATERIAL_COLOR_PALETTES[paletteKey];
-                      const isSelected = (settings.colorPalette || 'blue') === paletteKey;
+                      const currentPalette = settings.colorPalette || 'default';
+                      const isSelected = currentPalette === paletteKey;
                       const isDark =
                         settings.theme === 'dark' ||
                         (settings.theme === 'system' &&
@@ -616,85 +621,80 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       const tokenSet = isDark ? pal.dark : pal.light;
 
                       return (
-                        <button
+                        <label
                           key={paletteKey}
-                          type="button"
-                          onClick={() => handleColorPaletteChange(paletteKey)}
                           style={{
                             backgroundColor: tokenSet.surface,
                             borderColor: isSelected ? tokenSet.primary : tokenSet.outlineVariant,
                           }}
-                          className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-3 relative text-left ${
+                          className={`p-2.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-1.5 relative text-left select-none ${
                             isSelected
-                              ? 'shadow-md scale-[1.01] ring-2 ring-offset-1 ring-current/20'
-                              : 'hover:scale-[1.005] shadow-2xs'
+                              ? 'shadow-sm ring-1 ring-current/15'
+                              : 'hover:opacity-95 shadow-2xs'
                           }`}
                         >
-                          {/* Fila Superior: Círculo Primario + Título de la Paleta */}
-                          <div className="flex items-center justify-between gap-2.5 w-full">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div
-                                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-xs"
-                                style={{
-                                  backgroundColor: tokenSet.primary,
-                                  color: tokenSet.onPrimary,
-                                }}
+                          <input
+                            type="radio"
+                            name="colorPalette"
+                            value={paletteKey}
+                            checked={isSelected}
+                            onChange={() => handleColorPaletteChange(paletteKey)}
+                            className="sr-only"
+                          />
+
+                          {/* Fila Superior: Muestra Circular + Nombre + Radio Button Canónico */}
+                          <div className="flex items-center justify-between gap-1.5 w-full">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className="w-5 h-5 rounded-full shrink-0 shadow-2xs ring-1 ring-black/10 dark:ring-white/15"
+                                style={{ backgroundColor: tokenSet.primary }}
+                              />
+                              <span
+                                className="text-xs font-extrabold truncate leading-tight"
+                                style={{ color: tokenSet.onSurface }}
                               >
-                                {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
-                              </div>
-                              <div className="min-w-0">
-                                <span
-                                  className="text-xs sm:text-sm font-black block truncate leading-tight"
-                                  style={{ color: tokenSet.onSurface }}
-                                >
-                                  {pal.name}
-                                </span>
-                                <span
-                                  className="text-[10px] font-bold block truncate mt-0.5"
-                                  style={{ color: tokenSet.onSurfaceVariant }}
-                                >
-                                  {pal.subtitle}
-                                </span>
-                              </div>
+                                {pal.name}
+                              </span>
                             </div>
 
-                            {/* Mini Switch Preview de la Paleta */}
-                            <div
-                              className="w-8 h-4.5 rounded-full p-0.5 flex items-center justify-end shrink-0"
-                              style={{ backgroundColor: tokenSet.primary }}
+                            {/* Indicador Visual de Radio Button (Selección Única) */}
+                            <span
+                              className="w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                              style={{
+                                borderColor: isSelected ? tokenSet.primary : tokenSet.outline,
+                              }}
                             >
-                              <div
-                                className="w-3.5 h-3.5 rounded-full"
-                                style={{ backgroundColor: tokenSet.primaryContainer }}
-                              />
-                            </div>
+                              {isSelected && (
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full animate-in zoom-in-75 duration-150"
+                                  style={{ backgroundColor: tokenSet.primary }}
+                                />
+                              )}
+                            </span>
                           </div>
 
-                          {/* Fila Inferior: Mini Kit de Muestras (Aceptar / Cancelar / Tarjeta) */}
-                          <div className="flex items-center justify-between gap-1.5 w-full pt-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <span
-                                className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold shadow-2xs"
-                                style={{
-                                  backgroundColor: tokenSet.primary,
-                                  color: tokenSet.onPrimary,
-                                }}
-                              >
-                                Aceptar
-                              </span>
-                              <span
-                                className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
-                                style={{
-                                  backgroundColor: tokenSet.primaryContainer,
-                                  color: tokenSet.onPrimaryContainer,
-                                }}
-                              >
-                                Cancelar
-                              </span>
-                            </div>
-
+                          {/* Fila Inferior Ultra-Compacta: Muestras de Superficie y Botones */}
+                          <div className="flex items-center gap-1 w-full pt-0.5">
                             <span
-                              className="px-2.5 py-0.5 rounded-lg text-[10px] font-bold border"
+                              className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold leading-none"
+                              style={{
+                                backgroundColor: tokenSet.primary,
+                                color: tokenSet.onPrimary,
+                              }}
+                            >
+                              Aceptar
+                            </span>
+                            <span
+                              className="px-1.5 py-0.5 rounded-full text-[9px] font-bold leading-none"
+                              style={{
+                                backgroundColor: tokenSet.primaryContainer,
+                                color: tokenSet.onPrimaryContainer,
+                              }}
+                            >
+                              Cancelar
+                            </span>
+                            <span
+                              className="px-1.5 py-0.5 rounded-md text-[9px] font-bold leading-none border ml-auto"
                               style={{
                                 backgroundColor: tokenSet.cardBg,
                                 color: tokenSet.onSurface,
@@ -704,7 +704,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               Tarjeta
                             </span>
                           </div>
-                        </button>
+                        </label>
                       );
                     })}
                   </div>
