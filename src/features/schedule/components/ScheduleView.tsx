@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Plus,
   Edit2,
@@ -14,6 +14,8 @@ import {
   Building2,
   CheckCircle2,
   Laptop,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useSchedule } from '../hooks/useSchedule';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -169,6 +171,42 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     .filter((s) => s.dayOfWeek === selectedDay)
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+  // Detección y control de scroll horizontal para la vista semanal en pantallas intermedias
+  const weeklyScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = weeklyScrollRef.current;
+    if (!el) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+    const hasScroll = el.scrollWidth > el.clientWidth + 6;
+    setCanScrollLeft(hasScroll && el.scrollLeft > 10);
+    setCanScrollRight(hasScroll && el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  }, []);
+
+  useEffect(() => {
+    const el = weeklyScrollRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [checkScroll, displayedDays, viewMode]);
+
+  const scrollWeekly = (direction: 'left' | 'right') => {
+    const el = weeklyScrollRef.current;
+    if (!el) return;
+    const scrollAmount = direction === 'left' ? -250 : 250;
+    el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
@@ -213,6 +251,38 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               Por Día
             </button>
           </div>
+
+          {/* Controles de desplazamiento horizontal cuando la cuadrícula semanal sobrepasa el ancho de pantalla */}
+          {viewMode === 'weekly' && (canScrollLeft || canScrollRight) && (
+            <div className="flex items-center gap-1 bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
+              <button
+                onClick={() => scrollWeekly('left')}
+                disabled={!canScrollLeft}
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                  canScrollLeft
+                    ? 'hover:bg-white dark:hover:bg-[#1D2024] text-[#00639B] dark:text-[#96CCFF] cursor-pointer active:scale-90'
+                    : 'opacity-25 cursor-not-allowed text-slate-400'
+                }`}
+                title="Desplazar días a la izquierda"
+                aria-label="Desplazar días a la izquierda"
+              >
+                <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+              </button>
+              <button
+                onClick={() => scrollWeekly('right')}
+                disabled={!canScrollRight}
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                  canScrollRight
+                    ? 'hover:bg-white dark:hover:bg-[#1D2024] text-[#00639B] dark:text-[#96CCFF] cursor-pointer active:scale-90'
+                    : 'opacity-25 cursor-not-allowed text-slate-400'
+                }`}
+                title="Desplazar días a la derecha"
+                aria-label="Desplazar días a la derecha"
+              >
+                <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
+          )}
 
           <Button
             variant="primary"
@@ -417,17 +487,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* 4. VISTA SEMANAL (Contenedor Redondeado Fijo con Scroll Horizontal Exclusivamente Interno) */}
+      {/* 4. VISTA SEMANAL (Contenedor Redondeado Fijo con Adaptabilidad 100% en Laptops y Escritorio) */}
       {viewMode === 'weekly' && (
         <div className="hidden sm:block w-full bg-[var(--color-md-surface-container)] rounded-3xl border border-[var(--color-md-outline-variant)] shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto p-3 sm:p-3.5 custom-scrollbar w-full">
+          <div ref={weeklyScrollRef} className="overflow-x-auto p-2.5 sm:p-3 xl:p-3.5 custom-scrollbar w-full">
             <div
-              className={`grid w-full gap-3 ${
+              className={`grid w-full gap-2.5 sm:gap-3 ${
                 displayedDays.length === 7
-                  ? 'min-w-[1752px] grid-cols-7'
+                  ? 'min-w-[1260px] xl:min-w-0 grid-cols-7'
                   : displayedDays.length === 6
-                  ? 'min-w-[1500px] grid-cols-6'
-                  : 'min-w-[1270px] grid-cols-5'
+                  ? 'min-w-[1140px] xl:min-w-0 grid-cols-6'
+                  : 'min-w-[950px] lg:min-w-0 grid-cols-5'
               }`}
             >
             {displayedDays.map((day) => {
@@ -439,14 +509,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               return (
                 <div
                   key={day}
-                  className={`flex flex-col gap-2.5 rounded-2xl p-2.5 sm:p-3 min-w-0 transition-colors ${
+                  className={`flex flex-col gap-2 xl:gap-2.5 rounded-2xl p-2 sm:p-2.5 xl:p-3 min-w-0 transition-colors ${
                     isToday
                       ? 'bg-[var(--color-md-card-bg)] border-2 border-[var(--color-md-primary)] shadow-sm'
                       : 'bg-[var(--color-md-card-bg)]/80 border border-[var(--color-md-outline-variant)]'
                   }`}
                 >
                   {/* Encabezado del Día */}
-                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-[var(--color-md-outline-variant)]">
+                  <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-[var(--color-md-outline-variant)]">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span
                         className={`text-xs sm:text-sm font-black uppercase tracking-wider whitespace-nowrap ${
@@ -461,16 +531,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     </div>
                     <button
                       onClick={() => handleOpenCreate(day)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+                      className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl text-xs font-extrabold bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
                       title={`Agregar clase el ${DAY_NAMES[day]}`}
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[2.8] shrink-0" />
-                      <span>Agregar</span>
+                      <span className={displayedDays.length >= 7 ? 'hidden 2xl:inline' : 'inline'}>Agregar</span>
                     </button>
                   </div>
 
                   {/* Lista de Bloques del Día */}
-                  <div className="space-y-2.5 min-h-[300px]">
+                  <div className="space-y-2 xl:space-y-2.5 min-h-[220px]">
                     {daySlotsList.length === 0 ? (
                       <div className="h-full flex items-center justify-center py-12 text-center text-xs text-slate-400 dark:text-slate-500 font-medium italic">
                         Día libre de clases
@@ -493,7 +563,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 : `linear-gradient(155deg, ${subject?.color || '#006BBB'}18 0%, ${subject?.color || '#006BBB'}06 100%), var(--card-bg, #ffffff)`,
                               borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}45`,
                             }}
-                            className={`rounded-2xl p-2.5 sm:p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between gap-2 ${
+                            className={`rounded-2xl p-2 sm:p-2.5 xl:p-3 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between gap-1.5 xl:gap-2 ${
                               isNow
                                 ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/20'
                                 : 'hover:border-cove-sky/80'
@@ -551,7 +621,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             <div className="space-y-1">
                               {subject?.code && (
                                 <div className="flex items-center">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[10.5px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] sm:text-[10.5px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                                     {subject.code}
                                   </span>
                                 </div>
@@ -564,7 +634,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             </div>
 
                             {/* 3. Cuerpo de Información Completo */}
-                            <div className="space-y-1 text-[11px] pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <div className="space-y-1 text-[11px] pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 min-w-0">
                               {/* Rango Horario Completo */}
                               <div className="flex items-center gap-1.5 font-mono font-bold text-cove-navy dark:text-cove-sand bg-cove-blue/10 dark:bg-cove-blue/20 border border-cove-sky/25 px-2 py-0.5 rounded-lg">
                                 <Clock className="w-3 h-3 text-cove-blue dark:text-cove-sky shrink-0" />
@@ -592,14 +662,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                               {/* Catedrático Asignado */}
                               {professor && (
-                                <div className="flex items-center gap-1.5 pt-0.5 text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                                <div className="flex items-center gap-1.5 pt-0.5 text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 font-medium min-w-0">
                                   <ProfessorAvatar
                                     name={professor.name}
                                     icon={professor.icon}
                                     color={professor.color}
                                     size="xs"
+                                    className="shrink-0"
                                   />
-                                  <span className="truncate leading-tight font-semibold">{professor.name}</span>
+                                  <span className="truncate leading-tight font-semibold min-w-0">{professor.name}</span>
                                 </div>
                               )}
                             </div>

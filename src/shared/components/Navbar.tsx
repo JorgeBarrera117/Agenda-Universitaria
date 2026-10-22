@@ -86,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <h1 className="text-sm sm:text-[15px] lg:text-lg xl:text-xl font-extrabold tracking-tight text-[#191C20] dark:text-[#E2E2E6] leading-tight whitespace-nowrap">
                   Agenda Universitaria
                 </h1>
-                <span className="hidden xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
+                <span className="hidden 2xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
                   Campus Digital
                 </span>
               </div>
@@ -124,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => onTabChange(item.id)}
-                  className={`group flex items-center gap-1.5 lg:gap-2.5 md:px-2.5 md:py-1.5 lg:px-5 lg:py-2.5 xl:px-6 xl:py-2.5 rounded-full text-xs lg:text-sm xl:text-[15px] whitespace-nowrap transition-all duration-250 ease-[cubic-bezier(0.2,0,0,1)] active:scale-94 cursor-pointer select-none ${
+                  className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-[15px] whitespace-nowrap transition-all duration-250 ease-[cubic-bezier(0.2,0,0,1)] active:scale-94 cursor-pointer select-none ${
                     isActive
                       ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-bold shadow-xs'
                       : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#191C20]/5 dark:hover:bg-white/5 font-medium'
