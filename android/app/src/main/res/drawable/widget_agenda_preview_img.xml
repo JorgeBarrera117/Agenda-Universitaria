@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+
+    <!-- Outer Widget Background Card (#0f172a) -->
+    <path
+        android:fillColor="#0F172A"
+        android:strokeColor="#1E293B"
+        android:strokeWidth="2"
+        android:pathData="M20,4 L220,4 A16,16 0 0,1 236,20 L236,220 A16,16 0 0,1 220,236 L20,236 A16,16 0 0,1 4,220 L4,20 A16,16 0 0,1 20,4 Z" />
+
+    <!-- Header Title Line ("Agenda Universitaria") -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M20,18 L128,18 A4,4 0 0,1 132,22 L132,24 A4,4 0 0,1 128,28 L20,28 A4,4 0 0,1 16,24 L16,22 A4,4 0 0,1 20,18 Z" />
+
+    <!-- Header Subtitle Line ("Campus Digital • Hoy") -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M19,33 L95,33 A3,3 0 0,1 98,36 L98,37 A3,3 0 0,1 95,40 L19,40 A3,3 0 0,1 16,37 L16,36 A3,3 0 0,1 19,33 Z" />
+
+    <!-- Header Refresh Button -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M212,29 m-11,0 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M212,24 A5,5 0 1,1 207,29 L209,29 A3,3 0 1,0 212,26 Z" />
+
+    <!-- 2-Tab Selector Container (Horario / Apuntes) -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,48 L218,48 A8,8 0 0,1 226,56 L226,72 A8,8 0 0,1 218,80 L22,80 A8,8 0 0,1 14,72 L14,56 A8,8 0 0,1 22,48 Z" />
+
+    <!-- Active Tab: Horario (#0284c7) -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M23,51 L114,51 A6,6 0 0,1 120,57 L120,71 A6,6 0 0,1 114,77 L23,77 A6,6 0 0,1 17,71 L17,57 A6,6 0 0,1 23,51 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,61 L88,61 A3,3 0 0,1 91,64 L91,65 A3,3 0 0,1 88,68 L48,68 A3,3 0 0,1 45,65 L45,64 A3,3 0 0,1 48,61 Z" />
+
+    <!-- Inactive Tab: Apuntes -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M152,61 L192,61 A3,3 0 0,1 195,64 L195,65 A3,3 0 0,1 192,68 L152,68 A3,3 0 0,1 149,65 L149,64 A3,3 0 0,1 152,61 Z" />
+
+    <!-- Class Card 1 -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,88 L218,88 A8,8 0 0,1 226,96 L226,128 A8,8 0 0,1 218,136 L22,136 A8,8 0 0,1 14,128 L14,96 A8,8 0 0,1 22,88 Z" />
+    <!-- Cyan Color Bar -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M23,95 L25,95 A2,2 0 0,1 27,97 L27,127 A2,2 0 0,1 25,129 L23,129 A2,2 0 0,1 21,127 L21,97 A2,2 0 0,1 23,95 Z" />
+    <!-- Class 1 Title & Subtitle -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M36,98 L138,98 A3.5,3.5 0 0,1 141.5,101.5 L141.5,103.5 A3.5,3.5 0 0,1 138,107 L36,107 A3.5,3.5 0 0,1 32.5,103.5 L32.5,101.5 A3.5,3.5 0 0,1 36,98 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M36,114 L112,114 A3,3 0 0,1 115,117 L115,118 A3,3 0 0,1 112,121 L36,121 A3,3 0 0,1 33,118 L33,117 A3,3 0 0,1 36,114 Z" />
+    <!-- Class 1 Time Badge -->
+    <path
+        android:fillColor="#0C4A6E"
+        android:pathData="M168,96 L212,96 A5,5 0 0,1 217,101 L217,109 A5,5 0 0,1 212,114 L168,114 A5,5 0 0,1 163,109 L163,101 A5,5 0 0,1 168,96 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M173,103 L207,103 A2,2 0 0,1 209,105 L209,106 A2,2 0 0,1 207,108 L173,108 A2,2 0 0,1 171,106 L171,105 A2,2 0 0,1 173,103 Z" />
+
+    <!-- Class Card 2 -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,142 L218,142 A8,8 0 0,1 226,150 L226,182 A8,8 0 0,1 218,190 L22,190 A8,8 0 0,1 14,182 L14,150 A8,8 0 0,1 22,142 Z" />
+    <!-- Emerald Color Bar -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M23,149 L25,149 A2,2 0 0,1 27,151 L27,181 A2,2 0 0,1 25,183 L23,183 A2,2 0 0,1 21,181 L21,151 A2,2 0 0,1 23,149 Z" />
+    <!-- Class 2 Title & Subtitle -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M36,152 L146,152 A3.5,3.5 0 0,1 149.5,155.5 L149.5,157.5 A3.5,3.5 0 0,1 146,161 L36,161 A3.5,3.5 0 0,1 32.5,157.5 L32.5,155.5 A3.5,3.5 0 0,1 36,152 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M36,168 L124,168 A3,3 0 0,1 127,171 L127,172 A3,3 0 0,1 124,175 L36,175 A3,3 0 0,1 33,172 L33,171 A3,3 0 0,1 36,168 Z" />
+    <!-- Class 2 Time Badge -->
+    <path
+        android:fillColor="#0C4A6E"
+        android:pathData="M168,150 L212,150 A5,5 0 0,1 217,155 L217,163 A5,5 0 0,1 212,168 L168,168 A5,5 0 0,1 163,163 L163,155 A5,5 0 0,1 168,150 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M173,157 L207,157 A2,2 0 0,1 209,159 L209,160 A2,2 0 0,1 207,162 L173,162 A2,2 0 0,1 171,160 L171,159 A2,2 0 0,1 173,157 Z" />
+
+    <!-- Class Card 3 (Bottom Preview) -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,196 L218,196 A8,8 0 0,1 226,204 L226,222 A8,8 0 0,1 218,230 L22,230 A8,8 0 0,1 14,222 L14,204 A8,8 0 0,1 22,196 Z" />
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M23,202 L25,202 A2,2 0 0,1 27,204 L27,222 A2,2 0 0,1 25,224 L23,224 A2,2 0 0,1 21,222 L21,204 A2,2 0 0,1 23,202 Z" />
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M36,204 L126,204 A3.5,3.5 0 0,1 129.5,207.5 L129.5,209.5 A3.5,3.5 0 0,1 126,213 L36,213 A3.5,3.5 0 0,1 32.5,209.5 L32.5,207.5 A3.5,3.5 0 0,1 36,204 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M36,217 L98,217 A2.5,2.5 0 0,1 100.5,219.5 L100.5,220.5 A2.5,2.5 0 0,1 98,223 L36,223 A2.5,2.5 0 0,1 33.5,220.5 L33.5,219.5 A2.5,2.5 0 0,1 36,217 Z" />
+</vector>

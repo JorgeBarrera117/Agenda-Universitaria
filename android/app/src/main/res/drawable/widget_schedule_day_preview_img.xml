@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+
+    <!-- Outer Widget Background Card (#0f172a) -->
+    <path
+        android:fillColor="#0F172A"
+        android:strokeColor="#1E293B"
+        android:strokeWidth="2"
+        android:pathData="M20,4 L220,4 A16,16 0 0,1 236,20 L236,220 A16,16 0 0,1 220,236 L20,236 A16,16 0 0,1 4,220 L4,20 A16,16 0 0,1 20,4 Z" />
+
+    <!-- Header Title Line ("Horario • Miércoles") -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M20,18 L118,18 A4,4 0 0,1 122,22 L122,24 A4,4 0 0,1 118,28 L20,28 A4,4 0 0,1 16,24 L16,22 A4,4 0 0,1 20,18 Z" />
+
+    <!-- Header Subtitle Line ("3 clases programadas") -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M19,33 L90,33 A3,3 0 0,1 93,36 L93,37 A3,3 0 0,1 90,40 L19,40 A3,3 0 0,1 16,37 L16,36 A3,3 0 0,1 19,33 Z" />
+
+    <!-- Header "Hoy" Pill Button -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M164,19 L190,19 A6,6 0 0,1 196,25 L196,33 A6,6 0 0,1 190,39 L164,39 A6,6 0 0,1 158,33 L158,25 A6,6 0 0,1 164,19 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M169,27 L185,27 A2,2 0 0,1 187,29 L187,30 A2,2 0 0,1 185,32 L169,32 A2,2 0 0,1 167,30 L167,29 A2,2 0 0,1 169,27 Z" />
+
+    <!-- Header Refresh Button -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M214,29 m-10,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M214,24 A5,5 0 1,1 209,29 L211,29 A3,3 0 1,0 214,26 Z" />
+
+    <!-- 7-Day Selector Bar Container (Lun, Mar, Mié, Jue, Vie, Sáb, Dom) -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,48 L218,48 A8,8 0 0,1 226,56 L226,72 A8,8 0 0,1 218,80 L22,80 A8,8 0 0,1 14,72 L14,56 A8,8 0 0,1 22,48 Z" />
+
+    <!-- Day 1: Lun (Inactive) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M24,62 L38,62 A2.5,2.5 0 0,1 40.5,64.5 L40.5,65.5 A2.5,2.5 0 0,1 38,68 L24,68 A2.5,2.5 0 0,1 21.5,65.5 L21.5,64.5 A2.5,2.5 0 0,1 24,62 Z" />
+
+    <!-- Day 2: Mar (Inactive) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M53,62 L67,62 A2.5,2.5 0 0,1 69.5,64.5 L69.5,65.5 A2.5,2.5 0 0,1 67,68 L53,68 A2.5,2.5 0 0,1 50.5,65.5 L50.5,64.5 A2.5,2.5 0 0,1 53,62 Z" />
+
+    <!-- Day 3: Mié (ACTIVE Pill #0284C7) -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M80,52 L100,52 A6,6 0 0,1 106,58 L106,70 A6,6 0 0,1 100,76 L80,76 A6,6 0 0,1 74,70 L74,58 A6,6 0 0,1 80,52 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M83,62 L97,62 A2.5,2.5 0 0,1 99.5,64.5 L99.5,65.5 A2.5,2.5 0 0,1 97,68 L83,68 A2.5,2.5 0 0,1 80.5,65.5 L80.5,64.5 A2.5,2.5 0 0,1 83,62 Z" />
+
+    <!-- Day 4: Jue (Inactive) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M113,62 L127,62 A2.5,2.5 0 0,1 129.5,64.5 L129.5,65.5 A2.5,2.5 0 0,1 127,68 L113,68 A2.5,2.5 0 0,1 110.5,65.5 L110.5,64.5 A2.5,2.5 0 0,1 113,62 Z" />
+
+    <!-- Day 5: Vie (Inactive) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M142,62 L156,62 A2.5,2.5 0 0,1 158.5,64.5 L158.5,65.5 A2.5,2.5 0 0,1 156,68 L142,68 A2.5,2.5 0 0,1 139.5,65.5 L139.5,64.5 A2.5,2.5 0 0,1 142,62 Z" />
+
+    <!-- Day 6: Sáb (Inactive) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M171,62 L185,62 A2.5,2.5 0 0,1 187.5,64.5 L187.5,65.5 A2.5,2.5 0 0,1 185,68 L171,68 A2.5,2.5 0 0,1 168.5,65.5 L168.5,64.5 A2.5,2.5 0 0,1 171,62 Z" />
+
+    <!-- Day 7: Dom (Inactive) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M200,62 L214,62 A2.5,2.5 0 0,1 216.5,64.5 L216.5,65.5 A2.5,2.5 0 0,1 214,68 L200,68 A2.5,2.5 0 0,1 197.5,65.5 L197.5,64.5 A2.5,2.5 0 0,1 200,62 Z" />
+
+    <!-- Class Card 1 -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,88 L218,88 A8,8 0 0,1 226,96 L226,128 A8,8 0 0,1 218,136 L22,136 A8,8 0 0,1 14,128 L14,96 A8,8 0 0,1 22,88 Z" />
+    <!-- Purple Color Bar -->
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M23,95 L25,95 A2,2 0 0,1 27,97 L27,127 A2,2 0 0,1 25,129 L23,129 A2,2 0 0,1 21,127 L21,97 A2,2 0 0,1 23,95 Z" />
+    <!-- Class 1 Title & Subtitle -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M36,98 L144,98 A3.5,3.5 0 0,1 147.5,101.5 L147.5,103.5 A3.5,3.5 0 0,1 144,107 L36,107 A3.5,3.5 0 0,1 32.5,103.5 L32.5,101.5 A3.5,3.5 0 0,1 36,98 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M36,114 L120,114 A3,3 0 0,1 123,117 L123,118 A3,3 0 0,1 120,121 L36,121 A3,3 0 0,1 33,118 L33,117 A3,3 0 0,1 36,114 Z" />
+    <!-- Class 1 Time Badge -->
+    <path
+        android:fillColor="#0C4A6E"
+        android:pathData="M168,96 L212,96 A5,5 0 0,1 217,101 L217,109 A5,5 0 0,1 212,114 L168,114 A5,5 0 0,1 163,109 L163,101 A5,5 0 0,1 168,96 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M173,103 L207,103 A2,2 0 0,1 209,105 L209,106 A2,2 0 0,1 207,108 L173,108 A2,2 0 0,1 171,106 L171,105 A2,2 0 0,1 173,103 Z" />
+
+    <!-- Class Card 2 -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,142 L218,142 A8,8 0 0,1 226,150 L226,182 A8,8 0 0,1 218,190 L22,190 A8,8 0 0,1 14,182 L14,150 A8,8 0 0,1 22,142 Z" />
+    <!-- Amber Color Bar -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M23,149 L25,149 A2,2 0 0,1 27,151 L27,181 A2,2 0 0,1 25,183 L23,183 A2,2 0 0,1 21,181 L21,151 A2,2 0 0,1 23,149 Z" />
+    <!-- Class 2 Title & Subtitle -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M36,152 L134,152 A3.5,3.5 0 0,1 137.5,155.5 L137.5,157.5 A3.5,3.5 0 0,1 134,161 L36,161 A3.5,3.5 0 0,1 32.5,157.5 L32.5,155.5 A3.5,3.5 0 0,1 36,152 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M36,168 L110,168 A3,3 0 0,1 113,171 L113,172 A3,3 0 0,1 110,175 L36,175 A3,3 0 0,1 33,172 L33,171 A3,3 0 0,1 36,168 Z" />
+    <!-- Class 2 Time Badge -->
+    <path
+        android:fillColor="#0C4A6E"
+        android:pathData="M168,150 L212,150 A5,5 0 0,1 217,155 L217,163 A5,5 0 0,1 212,168 L168,168 A5,5 0 0,1 163,163 L163,155 A5,5 0 0,1 168,150 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M173,157 L207,157 A2,2 0 0,1 209,159 L209,160 A2,2 0 0,1 207,162 L173,162 A2,2 0 0,1 171,160 L171,159 A2,2 0 0,1 173,157 Z" />
+
+    <!-- Class Card 3 (Bottom Preview) -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M22,196 L218,196 A8,8 0 0,1 226,204 L226,222 A8,8 0 0,1 218,230 L22,230 A8,8 0 0,1 14,222 L14,204 A8,8 0 0,1 22,196 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M23,202 L25,202 A2,2 0 0,1 27,204 L27,222 A2,2 0 0,1 25,224 L23,224 A2,2 0 0,1 21,222 L21,204 A2,2 0 0,1 23,202 Z" />
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M36,204 L126,204 A3.5,3.5 0 0,1 129.5,207.5 L129.5,209.5 A3.5,3.5 0 0,1 126,213 L36,213 A3.5,3.5 0 0,1 32.5,209.5 L32.5,207.5 A3.5,3.5 0 0,1 36,204 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M36,217 L98,217 A2.5,2.5 0 0,1 100.5,219.5 L100.5,220.5 A2.5,2.5 0 0,1 98,223 L36,223 A2.5,2.5 0 0,1 33.5,220.5 L33.5,219.5 A2.5,2.5 0 0,1 36,217 Z" />
+</vector>
