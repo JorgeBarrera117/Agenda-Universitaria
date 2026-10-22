@@ -1,0 +1,52 @@
+name: 🐛 Reporte de Error (Bug)
+description: Notifica un problema o comportamiento inesperado en la aplicación.
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por reportar un error en Agenda Universitaria! Completa la siguiente información para reproducir y resolver el fallo.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma afectada
+      description: Selecciona el entorno donde se produjo el error.
+      options:
+        - "Navegador Web (PWA en Chrome / Firefox / Safari / Edge)"
+        - "Android APK (Capacitor)"
+        - "Windows Desktop (Electron .exe)"
+        - "Todas las plataformas"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión de la Agenda
+      description: Ejemplo: v1.7.9.12 (ver en Ajustes > Acerca de).
+      placeholder: "v1.7.9.12"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción del problema
+      description: Describe de forma clara qué ocurrió y qué esperabas que sucediera.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      description: Pasos ordenados para reproducir el fallo.
+      value: |
+        1. Ir a la pestaña '...'
+        2. Hacer clic en '...'
+        3. Observar el error...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Captura de pantalla o registro de consola
+      description: Adjunta imágenes o mensajes del ErrorBoundary / consola de desarrollador.

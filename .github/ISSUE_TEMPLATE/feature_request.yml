@@ -1,0 +1,28 @@
+name: 💡 Propuesta de Mejora (Feature Request)
+description: Sugiere una nueva funcionalidad o mejora ergonómica para los estudiantes.
+title: "[FEATURE]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agenda Universitaria se construye **"POR Y PARA LOS ESTUDIANTES"**. Comparte tus ideas para enriquecer la experiencia universitaria.
+  - type: textarea
+    id: problem
+    attributes:
+      label: ¿Qué problema o necesidad resuelve esta propuesta?
+      description: Explica qué situación académica enfrentas que la app podría optimizar.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Descripción de la solución sugerida
+      description: Detalla cómo imaginas la funcionalidad y su comportamiento en pantalla.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: ¿Existen otras formas o herramientas con las que actualmente resuelves esto?
