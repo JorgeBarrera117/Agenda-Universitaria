@@ -142,26 +142,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     }
   };
 
-  // Vista de Edición / Creación Dedicada a Pantalla Completa (Aprovechando todo el espacio en PC)
-  if (isModalOpen) {
-    return (
-      <div className="w-full pb-12">
-        <ErrorBoundary
-          fallbackTitle="Error al abrir el formulario de cátedra"
-          onReset={() => setIsModalOpen(false)}
-        >
-          <ScheduleSlotForm
-            key={editingSlot?.id || 'new-slot'}
-            initialData={editingSlot}
-            defaultDay={selectedDay}
-            onSubmit={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
-          />
-        </ErrorBoundary>
-      </div>
-    );
-  }
-
   // Días a mostrar según configuración y asignaturas existentes
   const hasSaturday =
     slots.some((s) => s.dayOfWeek === 6) ||
@@ -178,6 +158,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   // Detección y control de scroll horizontal para la vista semanal en pantallas intermedias
+  // IMPORTANTE (Reglas de Hooks): Declarar SIEMPRE antes de cualquier retorno condicional
   const weeklyScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -212,6 +193,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     const scrollAmount = direction === 'left' ? -250 : 250;
     el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
+
+  // Vista de Edición / Creación Dedicada a Pantalla Completa (Aprovechando todo el espacio en PC)
+  if (isModalOpen) {
+    return (
+      <div className="w-full pb-12">
+        <ErrorBoundary
+          fallbackTitle="Error al abrir el formulario de cátedra"
+          onReset={() => setIsModalOpen(false)}
+        >
+          <ScheduleSlotForm
+            key={editingSlot?.id || 'new-slot'}
+            initialData={editingSlot}
+            defaultDay={selectedDay}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+          />
+        </ErrorBoundary>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
