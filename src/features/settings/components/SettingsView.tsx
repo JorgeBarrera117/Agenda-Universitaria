@@ -194,7 +194,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             VISTA 1: MENÚ PRINCIPAL COMPACTO DE AJUSTES (ESTILO TELEGRAM / WHATSAPP)
            ========================================================================= */}
         {activeSubView === null ? (
-          <>
+          <div className="space-y-4 m3-tab-enter-left">
             {/* Cabecera Principal */}
             <div className="flex items-center justify-between pb-1">
               <div className="flex items-center gap-3">
@@ -456,12 +456,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           /* =========================================================================
              VISTA 2: SUB-PÁGINAS DEDICADAS (FOCALIZADAS, LIMPIAS Y COMPACTAS)
              ========================================================================= */
-          <div className="space-y-4 animate-in fade-in slide-in-from-right-3 duration-200">
+          <div className="space-y-4 m3-tab-enter-right">
             {/* Cabecera de la Sub-Página */}
             <div className="flex items-center justify-between pb-1">
               <div className="flex items-center gap-3">

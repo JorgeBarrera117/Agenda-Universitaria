@@ -120,16 +120,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               return (
                 <button
                   key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
                   onClick={() => onTabChange(item.id)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-200 cursor-pointer select-none ${
+                  className={`group flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-250 ease-[cubic-bezier(0.2,0,0,1)] active:scale-94 cursor-pointer select-none ${
                     isActive
                       ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-bold shadow-xs'
                       : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#191C20]/5 dark:hover:bg-white/5 font-medium'
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-                      isActive ? 'stroke-[2.4]' : 'stroke-[1.8]'
+                    className={`w-4 h-4 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                      isActive ? 'stroke-[2.4] scale-110' : 'stroke-[1.8] group-hover:scale-105 group-active:scale-90'
                     }`}
                   />
                   <span>{item.label}</span>

@@ -28,8 +28,11 @@ import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { WidgetSyncService } from './shared/services/widgetSyncService';
 
+const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
+
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
+  const [tabDirection, setTabDirection] = useState<'right' | 'left'>('right');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
@@ -90,6 +93,7 @@ export function App() {
   // presionar "Atrás" regresa al Horario principal en lugar de cerrar la app.
   useBackButton(() => {
     if (activeTab !== 'schedule') {
+      setTabDirection('left');
       setActiveTab('schedule');
       return true;
     }
@@ -132,6 +136,9 @@ export function App() {
     if (tab !== 'notes') {
       setSelectedSubjectForNotes(undefined);
     }
+    const prevIndex = TAB_ORDER.indexOf(activeTab);
+    const nextIndex = TAB_ORDER.indexOf(tab);
+    setTabDirection(nextIndex >= prevIndex ? 'right' : 'left');
     setActiveEditorTab(null);
     setIsSettingsOpen(false);
     setActiveTab(tab);
@@ -142,9 +149,14 @@ export function App() {
     if (subjectId) {
       setSelectedSubjectForNotes(subjectId);
     }
+    const prevIndex = TAB_ORDER.indexOf(activeTab);
+    const nextIndex = TAB_ORDER.indexOf('notes');
+    setTabDirection(nextIndex >= prevIndex ? 'right' : 'left');
     setIsSettingsOpen(false);
     setActiveTab('notes');
   };
+
+  const tabEnterClass = tabDirection === 'right' ? 'block m3-tab-enter-right' : 'block m3-tab-enter-left';
 
   return (
     <div
@@ -189,40 +201,42 @@ export function App() {
         }`}
       >
         {isSettingsOpen ? (
-          <SettingsView
-            onBack={() => setIsSettingsOpen(false)}
-            onShowToast={showToast}
-          />
+          <div className="m3-view-enter">
+            <SettingsView
+              onBack={() => setIsSettingsOpen(false)}
+              onShowToast={showToast}
+            />
+          </div>
         ) : (
-          <div className="w-full">
-            <div className={activeTab === 'schedule' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+          <div className="w-full overflow-x-clip">
+            <div className={activeTab === 'schedule' ? tabEnterClass : 'hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
                 onEditorActiveChange={(active) => handleEditorActiveChange('schedule', active)}
                 isActive={activeTab === 'schedule'}
               />
             </div>
-            <div className={activeTab === 'subjects' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+            <div className={activeTab === 'subjects' ? tabEnterClass : 'hidden'}>
               <SubjectsView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
                 onEditorActiveChange={(active) => handleEditorActiveChange('subjects', active)}
                 isActive={activeTab === 'subjects'}
               />
             </div>
-            <div className={activeTab === 'professors' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+            <div className={activeTab === 'professors' ? tabEnterClass : 'hidden'}>
               <ProfessorsView
                 onEditorActiveChange={(active) => handleEditorActiveChange('professors', active)}
                 isActive={activeTab === 'professors'}
               />
             </div>
-            <div className={activeTab === 'notes' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+            <div className={activeTab === 'notes' ? tabEnterClass : 'hidden'}>
               <NotesView
                 initialSubjectFilterId={selectedSubjectForNotes}
                 onEditorActiveChange={(active) => handleEditorActiveChange('notes', active)}
                 isActive={activeTab === 'notes'}
               />
             </div>
-            <div className={activeTab === 'documents' ? 'block animate-in fade-in duration-150' : 'hidden'}>
+            <div className={activeTab === 'documents' ? tabEnterClass : 'hidden'}>
               <DocumentsView isActive={activeTab === 'documents'} />
             </div>
           </div>
