@@ -1201,12 +1201,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
       </Modal>
 
       {/* Botón Flotante Circular Google Docs (FAB) */}
-      <DraggableFAB
-        colorScheme="notes"
-        onClick={handleOpenCreate}
-        label="Nuevo Apunte"
-        icon={<Plus className="w-6 h-6 text-white stroke-[2.2]" />}
-      />
+      {isActive && (
+        <DraggableFAB
+          colorScheme="notes"
+          onClick={handleOpenCreate}
+          label="Nuevo Apunte"
+          icon={<Plus className="w-6 h-6 text-white stroke-[2.2]" />}
+        />
+      )}
     </div>
   );
 };

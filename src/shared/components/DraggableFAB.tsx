@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus } from 'lucide-react';
 
 export interface DockPosition {
@@ -127,11 +128,30 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     return { side: 'right', yRatio: 0.78 };
   });
 
-  // Estado de arrastre activo
+  // Estado de arrastre activo (solo cambia al iniciar y terminar el arrastre para máximo rendimiento a 120FPS)
   const [isDragging, setIsDragging] = useState(false);
-  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
 
-  // Referencias para capturar coordenadas del puntero
+  // Límite inferior seguro (sobre la barra de navegación móvil)
+  const getSafeBottom = useCallback((vh: number) => {
+    return Math.max(SAFE_TOP + BUTTON_SIZE, vh - 144);
+  }, []);
+
+  // Cálculo de posición docked en reposo
+  const getDockedPosition = useCallback(
+    (d: DockPosition, vw = viewport.width, vh = viewport.height) => {
+      const sBottom = getSafeBottom(vh);
+      const x = d.side === 'left' ? EDGE_OFFSET : Math.max(EDGE_OFFSET, vw - BUTTON_SIZE - EDGE_OFFSET);
+      const targetY = d.yRatio * vh;
+      const y = Math.min(Math.max(targetY, SAFE_TOP), sBottom);
+      return { x, y };
+    },
+    [viewport.width, viewport.height, getSafeBottom]
+  );
+
+  const livePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Referencias para capturar coordenadas del puntero con seguimiento 1:1
   const pointerStartRef = useRef<{
     pointerX: number;
     pointerY: number;
@@ -140,21 +160,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     hasDragged: boolean;
   } | null>(null);
 
-  // Límite inferior seguro (sobre la barra de navegación móvil)
-  const safeBottom = Math.max(SAFE_TOP + BUTTON_SIZE, viewport.height - 148);
-
-  // Cálculo de posición docked en reposo
-  const getDockedPosition = useCallback(
-    (d: DockPosition) => {
-      const x = d.side === 'left' ? EDGE_OFFSET : viewport.width - BUTTON_SIZE - EDGE_OFFSET;
-      const targetY = d.yRatio * viewport.height;
-      const y = Math.min(Math.max(targetY, SAFE_TOP), safeBottom);
-      return { x, y };
-    },
-    [viewport.width, viewport.height, safeBottom]
-  );
-
-  // Escuchar redimensionamiento de pantalla
+  // Escuchar redimensionamiento de pantalla y sincronización entre pestañas
   useEffect(() => {
     const handleResize = () => {
       setViewport({
@@ -170,6 +176,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
       }
     };
 
+    handleResize();
     window.addEventListener('resize', handleResize);
     window.addEventListener('agenda_fab_dock_updated', handleSync);
     return () => {
@@ -178,9 +185,11 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     };
   }, []);
 
-  // Coordenadas actuales para renderizar
+  // Coordenadas en reposo sincronizadas con el viewport actual
   const dockedCoords = getDockedPosition(dock);
-  const currentCoords = dragPos || dockedCoords;
+  if (!isDragging) {
+    livePosRef.current = dockedCoords;
+  }
 
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     // Aceptar solo clic principal o touch
@@ -190,11 +199,16 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {}
 
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const startCoords = getDockedPosition(dock, vw, vh);
+    livePosRef.current = startCoords;
+
     pointerStartRef.current = {
       pointerX: e.clientX,
       pointerY: e.clientY,
-      initialBtnX: currentCoords.x,
-      initialBtnY: currentCoords.y,
+      initialBtnX: startCoords.x,
+      initialBtnY: startCoords.y,
       hasDragged: false,
     };
   };
@@ -206,23 +220,34 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     const deltaY = e.clientY - pointerStartRef.current.pointerY;
     const distance = Math.hypot(deltaX, deltaY);
 
-    // Umbral de discriminación: si se mueve más de 6px se considera arrastre, no tap
-    if (distance > 6) {
-      pointerStartRef.current.hasDragged = true;
-      if (!isDragging) setIsDragging(true);
+    // Umbral de discriminación: si se mueve más de 4px se considera arrastre, no tap
+    if (distance > 4 || pointerStartRef.current.hasDragged) {
+      if (!pointerStartRef.current.hasDragged) {
+        pointerStartRef.current.hasDragged = true;
+        setIsDragging(true);
+      }
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const sBottom = getSafeBottom(vh);
 
       const targetX = pointerStartRef.current.initialBtnX + deltaX;
       const targetY = pointerStartRef.current.initialBtnY + deltaY;
 
-      // Restricción vertical dentro de los márgenes seguros (arriba/abajo/en medio)
-      const clampedY = Math.min(Math.max(targetY, SAFE_TOP), safeBottom);
-      // Restricción horizontal dentro de la pantalla
+      // Restricción vertical y horizontal dentro de la pantalla real
+      const clampedY = Math.min(Math.max(targetY, SAFE_TOP), sBottom);
       const clampedX = Math.min(
         Math.max(targetX, EDGE_OFFSET),
-        viewport.width - BUTTON_SIZE - EDGE_OFFSET
+        Math.max(EDGE_OFFSET, vw - BUTTON_SIZE - EDGE_OFFSET)
       );
 
-      setDragPos({ x: clampedX, y: clampedY });
+      livePosRef.current = { x: clampedX, y: clampedY };
+
+      // Actualización directa en el DOM (0ms latencia, 60/120 FPS reales siguiendo el dedo/mouse)
+      if (btnRef.current) {
+        btnRef.current.style.transition = 'none';
+        btnRef.current.style.transform = `translate3d(${Math.round(clampedX)}px, ${Math.round(clampedY)}px, 0)`;
+      }
     }
   };
 
@@ -239,50 +264,62 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     if (!hasDragged) {
       // Tap limpio sin arrastre -> ejecutar acción
       setIsDragging(false);
-      setDragPos(null);
       onClick();
       return;
     }
 
-    // Si hubo arrastre, encajar inmediatamente contra el borde izquierdo o derecho más cercano
-    if (dragPos) {
-      const btnCenterX = dragPos.x + BUTTON_SIZE / 2;
-      const screenMidX = viewport.width / 2;
-      const newSide: 'left' | 'right' = btnCenterX < screenMidX ? 'left' : 'right';
+    // Si hubo arrastre, encajar suavemente contra el borde izquierdo o derecho más cercano
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const sBottom = getSafeBottom(vh);
+    const finalPos = livePosRef.current;
 
-      const clampedY = Math.min(Math.max(dragPos.y, SAFE_TOP), safeBottom);
-      const newYRatio = clampedY / viewport.height;
+    const btnCenterX = finalPos.x + BUTTON_SIZE / 2;
+    const screenMidX = vw / 2;
+    const newSide: 'left' | 'right' = btnCenterX < screenMidX ? 'left' : 'right';
 
-      const newDock: DockPosition = {
-        side: newSide,
-        yRatio: Number(newYRatio.toFixed(3)),
-      };
+    const clampedY = Math.min(Math.max(finalPos.y, SAFE_TOP), sBottom);
+    const newYRatio = clampedY / vh;
 
-      setDock(newDock);
-      setDragPos(null);
-      setIsDragging(false);
+    const newDock: DockPosition = {
+      side: newSide,
+      yRatio: Number(newYRatio.toFixed(3)),
+    };
 
-      try {
-        localStorage.setItem(FAB_STORAGE_KEY, JSON.stringify(newDock));
-        window.dispatchEvent(
-          new CustomEvent('agenda_fab_dock_updated', { detail: newDock })
-        );
-      } catch {}
-    } else {
-      setIsDragging(false);
-      setDragPos(null);
+    const snapCoords = getDockedPosition(newDock, vw, vh);
+    livePosRef.current = snapCoords;
+
+    if (btnRef.current) {
+      btnRef.current.style.transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
+      btnRef.current.style.transform = `translate3d(${Math.round(snapCoords.x)}px, ${Math.round(snapCoords.y)}px, 0)`;
     }
+
+    setViewport({ width: vw, height: vh });
+    setDock(newDock);
+    setIsDragging(false);
+
+    try {
+      localStorage.setItem(FAB_STORAGE_KEY, JSON.stringify(newDock));
+      window.dispatchEvent(
+        new CustomEvent('agenda_fab_dock_updated', { detail: newDock })
+      );
+    } catch {}
   };
 
   const handlePointerCancel = () => {
     pointerStartRef.current = null;
     setIsDragging(false);
-    setDragPos(null);
+    if (btnRef.current) {
+      const resetCoords = getDockedPosition(dock, window.innerWidth, window.innerHeight);
+      btnRef.current.style.transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
+      btnRef.current.style.transform = `translate3d(${Math.round(resetCoords.x)}px, ${Math.round(resetCoords.y)}px, 0)`;
+    }
   };
 
-  return (
+  const fabElement = (
     <div className="sm:hidden">
       <button
+        ref={btnRef}
         type="button"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -291,18 +328,34 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
         aria-label={label}
         title={label}
         style={{
-          transform: `translate3d(${Math.round(currentCoords.x)}px, ${Math.round(
-            currentCoords.y
+          transform: `translate3d(${Math.round(livePosRef.current.x)}px, ${Math.round(
+            livePosRef.current.y
           )}px, 0)`,
+          transition: isDragging
+            ? 'none'
+            : 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+          touchAction: 'none',
         }}
         className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center ${currentTheme.bg} ${currentTheme.text} ${currentTheme.shadow} border border-white/20 dark:border-white/10 touch-none select-none cursor-grab active:cursor-grabbing ${
           isDragging
-            ? `transition-none scale-110 shadow-2xl ${currentTheme.dragRing} opacity-95`
-            : 'transition-transform duration-300 ease-out active:scale-95'
+            ? `shadow-2xl ${currentTheme.dragRing} opacity-95`
+            : ''
         } ${className}`}
       >
-        {icon || <Plus className="w-6 h-6 stroke-[2.4]" />}
+        <span
+          className={`flex items-center justify-center transition-transform duration-150 ${
+            isDragging ? 'scale-110' : 'group-active:scale-90'
+          }`}
+        >
+          {icon || <Plus className="w-6 h-6 stroke-[2.4]" />}
+        </span>
       </button>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(fabElement, document.body);
+  }
+
+  return fabElement;
 };

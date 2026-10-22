@@ -208,7 +208,7 @@ export function App() {
             />
           </div>
         ) : (
-          <div className="w-full overflow-x-clip">
+          <div className="w-full">
             <div className={activeTab === 'schedule' ? tabEnterClass : 'hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}

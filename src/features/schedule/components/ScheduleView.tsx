@@ -63,7 +63,7 @@ const isSlotVirtual = (slot?: {
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onNavigateToNotes,
   onEditorActiveChange,
-  isActive: _isActive = true,
+  isActive = true,
 }) => {
   const { slots, addSlot, updateSlot, removeSlot } = useSchedule();
   const { getSubjectById } = useSubjects();
@@ -835,12 +835,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       </Modal>
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
-      <DraggableFAB
-        colorScheme="schedule"
-        onClick={() => handleOpenCreate(selectedDay)}
-        label="Programar Nueva Cátedra"
-        icon={<CalendarPlus className="w-6 h-6 text-white stroke-[2.2]" />}
-      />
+      {isActive && (
+        <DraggableFAB
+          colorScheme="schedule"
+          onClick={() => handleOpenCreate(selectedDay)}
+          label="Programar Nueva Cátedra"
+          icon={<CalendarPlus className="w-6 h-6 text-white stroke-[2.2]" />}
+        />
+      )}
     </div>
   );
 };

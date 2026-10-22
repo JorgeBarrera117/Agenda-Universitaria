@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../hooks/useBackButton';
 
@@ -47,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
     '2xl': 'max-w-2xl',
   }[maxWidth];
 
-  return (
+  const modalElement = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
       <div
         className={`w-full ${maxWidthClass} bg-[#F1F4FA] dark:bg-[#272A2F] rounded-[28px] shadow-[0_8px_24px_4px_rgba(0,0,0,0.18)] border border-[#C2C7CE]/30 dark:border-white/5 overflow-hidden flex flex-col max-h-[90vh] text-[#191C20] dark:text-[#E2E2E6] animate-in zoom-in-95 duration-150`}
@@ -68,4 +69,10 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalElement, document.body);
+  }
+
+  return modalElement;
 };

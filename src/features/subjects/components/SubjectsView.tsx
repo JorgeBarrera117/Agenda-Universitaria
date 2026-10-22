@@ -34,7 +34,7 @@ interface SubjectsViewProps {
 export const SubjectsView: React.FC<SubjectsViewProps> = ({
   onNavigateToNotes,
   onEditorActiveChange,
-  isActive: _isActive = true,
+  isActive = true,
 }) => {
   const { subjects, addSubject, updateSubject, removeSubject } = useSubjects();
   const { professors } = useProfessors();
@@ -405,12 +405,14 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
       />
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
-      <DraggableFAB
-        colorScheme="subjects"
-        onClick={handleOpenCreate}
-        label="Inscribir Asignatura"
-        icon={<BookPlus className="w-6 h-6 text-white stroke-[2.2]" />}
-      />
+      {isActive && (
+        <DraggableFAB
+          colorScheme="subjects"
+          onClick={handleOpenCreate}
+          label="Inscribir Asignatura"
+          icon={<BookPlus className="w-6 h-6 text-white stroke-[2.2]" />}
+        />
+      )}
     </div>
   );
 };

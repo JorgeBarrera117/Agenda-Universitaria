@@ -30,7 +30,7 @@ interface ProfessorsViewProps {
 
 export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   onEditorActiveChange,
-  isActive: _isActive = true,
+  isActive = true,
 }) => {
   const { professors, addProfessor, updateProfessor, removeProfessor } = useProfessors();
   const { getSubjectById } = useSubjects();
@@ -458,12 +458,14 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       </Modal>
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes - Estilo Telegram) */}
-      <DraggableFAB
-        colorScheme="professors"
-        onClick={handleOpenCreate}
-        label="Registrar Catedrático"
-        icon={<UserPlus className="w-6 h-6 text-white stroke-[2.2]" />}
-      />
+      {isActive && (
+        <DraggableFAB
+          colorScheme="professors"
+          onClick={handleOpenCreate}
+          label="Registrar Catedrático"
+          icon={<UserPlus className="w-6 h-6 text-white stroke-[2.2]" />}
+        />
+      )}
     </div>
   );
 };
