@@ -30,3 +30,9 @@ android/app/build
 android/local.properties
 android/capacitor-cordova-android-plugins/build
 *.apk
+
+# Desktop / Electron build outputs
+release
+dist-electron
+*.exe
+*.blockmap
