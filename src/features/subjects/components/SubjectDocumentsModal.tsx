@@ -161,7 +161,7 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
           <SubjectBadge icon={subject.icon} color={subject.color} size="md" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] tracking-wider shadow-2xs">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                 {subject.code || 'ASIGNATURA'}
               </span>
               <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199]">

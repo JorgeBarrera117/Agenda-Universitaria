@@ -699,7 +699,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                               {subj.name}
                             </span>
                             {subj.code && (
-                              <span className="font-mono text-[10px] text-[#72777F] dark:text-[#8C9199]">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[10px] font-black bg-black text-white dark:bg-white dark:text-black tracking-wider mt-0.5">
                                 {subj.code}
                               </span>
                             )}

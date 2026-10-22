@@ -241,7 +241,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     {getSubjectById(activeClassNow.subjectId)?.name || 'Clase Universitaria'}
                   </h3>
                   {getSubjectById(activeClassNow.subjectId)?.code && (
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#00639B] text-white dark:bg-[#96CCFF] dark:text-[#003353] tracking-wider shadow-2xs">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                       {getSubjectById(activeClassNow.subjectId)?.code}
                     </span>
                   )}
@@ -308,7 +308,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     {getSubjectById(nextClassToday.subjectId)?.name}
                   </h3>
                   {getSubjectById(nextClassToday.subjectId)?.code && (
-                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white/70 dark:bg-black/30">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                       {getSubjectById(nextClassToday.subjectId)?.code}
                     </span>
                   )}
@@ -546,7 +546,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             <div className="space-y-1">
                               {subject?.code && (
                                 <div className="flex items-center">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-[10.5px] font-mono font-black text-white bg-cove-navy dark:bg-slate-800 border border-cove-sky/35 tracking-wider shadow-2xs">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[10.5px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                                     {subject.code}
                                   </span>
                                 </div>
@@ -687,7 +687,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-black text-white bg-slate-900 dark:bg-slate-800 border border-white/10 tracking-wider shadow-2xs">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                               {subject?.code || 'CLASE'}
                             </span>
 

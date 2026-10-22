@@ -165,7 +165,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-[#191C20] dark:bg-[#E2E2E6] text-[#FDFBFF] dark:text-[#191C20] shadow-2xs tracking-wider border border-[#C3C7D0]/40">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black shadow-2xs tracking-wider">
                 {code.trim() || 'ASIGNATURA'}
               </span>
               {credits !== undefined && credits > 0 && (
