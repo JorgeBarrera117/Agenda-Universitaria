@@ -8,6 +8,7 @@ import {
   PROFESSOR_PRESET_COLORS,
 } from './ProfessorAvatar';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
 
 interface ProfessorFormProps {
   initialData?: Professor;
@@ -120,12 +121,12 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({
         </div>
       </div>
 
-      {error && (
-        <div className="p-3.5 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-2xl flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      <ContextualToast
+        message={error}
+        variant="error"
+        bottomOffset="compact"
+        onClose={() => setError(null)}
+      />
 
       {/* Tarjeta 1: Avatar y Muñequito del Docente */}
       <div className="p-4 sm:p-5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] shadow-xs space-y-4">

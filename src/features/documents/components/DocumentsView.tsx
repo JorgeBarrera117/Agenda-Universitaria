@@ -31,6 +31,7 @@ import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select } from '../../../shared/components/M3Select';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 
 interface DocumentsViewProps {
@@ -68,6 +69,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const [isOpeningId, setIsOpeningId] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [docToast, setDocToast] = useState<string | null>(null);
+
+  const showDocToast = (msg: string) => {
+    setDocToast(msg);
+    setTimeout(() => setDocToast(null), 3200);
+  };
 
   // Botón físico Atrás en Android
   useBackButton(
@@ -241,6 +248,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const handleCopyText = (text: string, fieldKey: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldKey);
+    showDocToast('Información copiada al portapapeles');
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -253,6 +261,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       setActionError(null);
       await addLocalDocument(targetSubjectId, file);
       setIsAddModalOpen(false);
+      showDocToast('Archivo vinculado correctamente');
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: unknown) {
       if (err instanceof Error) setActionError(err.message);
@@ -274,6 +283,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       setLinkName('');
       setLinkUrl('');
       setIsAddModalOpen(false);
+      showDocToast('Enlace externo guardado correctamente');
     } catch (err: unknown) {
       if (err instanceof Error) setActionError(err.message);
       else setActionError('Error al guardar el enlace.');
@@ -287,6 +297,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       await reassignSubject(docToReassign.id, newReassignedSubjectId);
       setDocToReassign(null);
       setNewReassignedSubjectId('');
+      showDocToast('Asignatura actualizada correctamente');
     } catch (err: unknown) {
       if (err instanceof Error) setActionError(err.message);
     }
@@ -343,16 +354,6 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           <span>Vincular Documento</span>
         </button>
       </div>
-
-      {/* Alerta de Error si ocurre */}
-      {actionError && (
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-semibold border border-red-200 dark:border-red-900/40">
-          <span>{actionError}</span>
-          <button type="button" onClick={() => setActionError(null)} className="p-1 hover:bg-red-100 rounded-full">
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
 
       {/* ======================================================== */}
       {/* 2. BARRA DE BÚSQUEDA Y HERRAMIENTAS DE FILTRADO M3       */}
@@ -997,6 +998,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           </div>
         </Modal>
       )}
+
+      {/* Notificación Contextual Centrada y Translúcida */}
+      <ContextualToast
+        message={docToast || actionError}
+        bottomOffset="nav"
+        onClose={() => {
+          setDocToast(null);
+          setActionError(null);
+        }}
+      />
 
       {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
       {isActive && (

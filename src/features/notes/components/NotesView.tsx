@@ -18,7 +18,6 @@ import {
   Tag,
   Copy,
   Clock,
-  Check,
   Info,
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
@@ -30,6 +29,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { M3Select } from '../../../shared/components/M3Select';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card } from '../../../shared/components/atoms';
@@ -211,7 +211,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         await addImageToReadingNote(files[i]);
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error al adjuntar imagen.');
+      showReaderToast(err instanceof Error ? err.message : 'Error al adjuntar imagen.');
     } finally {
       setIsUploadingInReader(false);
       if (e.target) e.target.value = '';
@@ -604,13 +604,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
 
 
-        {/* Toast Notificación de Copiado */}
-        {readerToast && (
-          <div className="fixed bottom-22 sm:bottom-8 right-6 z-50 bg-[#17212b] text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-bold border border-white/10 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150">
-            <Check className="w-3.5 h-3.5 text-emerald-400" />
-            {readerToast}
-          </div>
-        )}
+        {/* Toast Notificación Contextual Centrado y Translúcido */}
+        <ContextualToast
+          message={readerToast}
+          bottomOffset="compact"
+          onClose={() => setReaderToast(null)}
+        />
 
         {/* Modal Detalles del Documento */}
         <Modal

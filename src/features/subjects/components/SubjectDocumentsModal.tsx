@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { Modal } from '../../../shared/components/Modal';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { SubjectBadge } from './SubjectIcon';
 import { useSubjectDocuments, type SubjectDocumentItem } from '../hooks/useSubjectDocuments';
 import type { Subject } from '../types';
@@ -261,12 +262,13 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
           </form>
         )}
 
-        {/* Mensaje de error si ocurre */}
-        {error && (
-          <div className="p-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-medium border border-red-200 dark:border-red-900/40">
-            {error}
-          </div>
-        )}
+        {/* Mensaje de error contextual centrado y translúcido */}
+        <ContextualToast
+          message={error}
+          variant="error"
+          bottomOffset="compact"
+          onClose={() => setError(null)}
+        />
 
         {/* Lista de Documentos Vinculados */}
         {documents.length === 0 ? (

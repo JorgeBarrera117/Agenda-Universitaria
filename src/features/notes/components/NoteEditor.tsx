@@ -18,6 +18,7 @@ import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { RichTextEditor } from './RichTextEditor';
 import { Modal } from '../../../shared/components/Modal';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
 import type { Editor } from '@tiptap/react';
 import type { Note, CreateNoteDTO } from '../types';
 
@@ -266,22 +267,13 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         </div>
       </header>
 
-      {/* Banner de error discreto si existe */}
-      {error && (
-        <div className="w-full px-4 pt-3">
-          <div className="p-3 text-xs sm:text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-xl flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-            <span className="flex-1">{error}</span>
-            <button
-              type="button"
-              onClick={() => setError(null)}
-              className="text-xs font-bold underline cursor-pointer"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Aviso Contextual Centrado y Translúcido si existe error de validación */}
+      <ContextualToast
+        message={error}
+        variant="error"
+        bottomOffset="nav"
+        onClose={() => setError(null)}
+      />
 
       {/* 2. Lienzo de Edición Abierto (100% del ancho y alto disponibles estilo Google Docs) */}
       <div

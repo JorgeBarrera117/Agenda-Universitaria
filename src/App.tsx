@@ -6,9 +6,10 @@
  * Eslogan: "POR Y PARA LOS ESTUDIANTES"
  * ==============================================================================
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
+import { ContextualToast } from './shared/components/ContextualToast';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { SubjectsView } from './features/subjects/components/SubjectsView';
 import { ProfessorsView } from './features/professors/components/ProfessorsView';
@@ -34,6 +35,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
   const [tabDirection, setTabDirection] = useState<'right' | 'left'>('right');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
   const [activeEditorTab, setActiveEditorTab] = useState<TabType | null>(null);
@@ -126,9 +128,13 @@ export function App() {
   }, [slots, subjects, professors, notes]);
 
   const showToast = (message: string) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
     setToastMessage(message);
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setToastMessage(null);
+      toastTimerRef.current = null;
     }, 3500);
   };
 
@@ -180,17 +186,12 @@ export function App() {
         />
       )}
 
-      {/* Notificación Toast Flotante */}
-      {toastMessage && (
-        <div
-          className={`fixed right-6 z-50 bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-[var(--color-md-outline-variant)] animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2 ${
-            isAnyEditorActive || isSettingsOpen ? 'bottom-6' : 'bottom-24 md:bottom-8'
-          }`}
-        >
-          <span className="w-2 h-2 rounded-full bg-cove-gold" />
-          {toastMessage}
-        </div>
-      )}
+      {/* Notificación Toast Contextual Centrada y Translúcida */}
+      <ContextualToast
+        message={toastMessage}
+        bottomOffset={isAnyEditorActive || isSettingsOpen ? 'compact' : 'nav'}
+        onClose={() => setToastMessage(null)}
+      />
 
       {/* Contenedor Principal (100% del ancho disponible en PC y Móvil) */}
       <main
