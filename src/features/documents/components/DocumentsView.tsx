@@ -33,6 +33,7 @@ import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 
 interface DocumentsViewProps {
   isActive?: boolean;
@@ -45,6 +46,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const { documents, addLocalDocument, addExternalLink, openDocument, deleteDocument, reassignSubject } =
     useSubjectDocuments();
   const { subjects } = useSubjects();
+  const isScrolled = useScrollCollapse(48);
 
   // Estados de Búsqueda, Filtros y Ordenamiento
   const [searchQuery, setSearchQuery] = useState('');
@@ -344,11 +346,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           </p>
         </div>
 
-        {/* Botón Primario M3 para Escritorio y Horizontal con Accesibilidad Visual (en móvil vertical se usa el FAB flotante) */}
+        {/* Botón Primario M3 para Escritorio y Horizontal con Accesibilidad Visual (Al hacer scroll se encoge en el FAB flotante) */}
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className="hidden sm:inline-flex items-center justify-center gap-2 lg:gap-2.5 min-h-[40px] lg:min-h-[48px] px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-extrabold tracking-wide bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 hover:scale-[1.02] transition-all shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap"
+          className={`hidden sm:inline-flex items-center justify-center gap-2 lg:gap-2.5 min-h-[40px] lg:min-h-[48px] px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-extrabold tracking-wide bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 hover:scale-[1.02] transition-all duration-300 ease-out origin-right shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap ${
+            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+          }`}
         >
           <Plus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.5]" />
           <span>Vincular Documento</span>
@@ -1009,13 +1013,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         }}
       />
 
-      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      {/* Botón Flotante Compacto Reubicable (Móvil permanente + Scroll en horizontal/escritorio) */}
       {isActive && (
         <DraggableFAB
           colorScheme="documents"
           onClick={handleOpenAddModal}
           label="Vincular Documento"
-          icon={<FolderPlus className="w-6 h-6 text-white stroke-[2.2]" />}
+          icon={<FolderPlus className="w-6 h-6 stroke-[2.2]" />}
         />
       )}
     </div>

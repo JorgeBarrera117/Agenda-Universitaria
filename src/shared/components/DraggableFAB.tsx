@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus } from 'lucide-react';
+import { useScrollCollapse } from '../hooks/useScrollCollapse';
 
 export interface DockPosition {
   side: 'left' | 'right';
@@ -130,17 +131,19 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
 
   // Estado de arrastre activo (solo cambia al iniciar y terminar el arrastre para máximo rendimiento a 120FPS)
   const [isDragging, setIsDragging] = useState(false);
+  const isScrolled = useScrollCollapse(48);
   const btnRef = useRef<HTMLButtonElement | null>(null);
 
-  // Límite inferior seguro (sobre la barra de navegación móvil)
-  const getSafeBottom = useCallback((vh: number) => {
-    return Math.max(SAFE_TOP + BUTTON_SIZE, vh - 144);
-  }, []);
+  // Límite inferior seguro (sobre la barra de navegación móvil cuando vw < 768px, o cerca del borde inferior en horizontal/PC)
+  const getSafeBottom = useCallback((vh: number, vw = viewport.width) => {
+    const bottomMargin = vw >= 768 ? BUTTON_SIZE + 24 : 144;
+    return Math.max(SAFE_TOP + BUTTON_SIZE, vh - bottomMargin);
+  }, [viewport.width]);
 
   // Cálculo de posición docked en reposo
   const getDockedPosition = useCallback(
     (d: DockPosition, vw = viewport.width, vh = viewport.height) => {
-      const sBottom = getSafeBottom(vh);
+      const sBottom = getSafeBottom(vh, vw);
       const x = d.side === 'left' ? EDGE_OFFSET : Math.max(EDGE_OFFSET, vw - BUTTON_SIZE - EDGE_OFFSET);
       const targetY = d.yRatio * vh;
       const y = Math.min(Math.max(targetY, SAFE_TOP), sBottom);
@@ -229,7 +232,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const sBottom = getSafeBottom(vh);
+      const sBottom = getSafeBottom(vh, vw);
 
       const targetX = pointerStartRef.current.initialBtnX + deltaX;
       const targetY = pointerStartRef.current.initialBtnY + deltaY;
@@ -271,7 +274,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     // Si hubo arrastre, encajar suavemente contra el borde izquierdo o derecho más cercano
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const sBottom = getSafeBottom(vh);
+    const sBottom = getSafeBottom(vh, vw);
     const finalPos = livePosRef.current;
 
     const btnCenterX = finalPos.x + BUTTON_SIZE / 2;
@@ -317,7 +320,13 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   };
 
   const fabElement = (
-    <div className="sm:hidden">
+    <div
+      className={
+        isScrolled || isDragging
+          ? 'block'
+          : 'block sm:pointer-events-none'
+      }
+    >
       <button
         ref={btnRef}
         type="button"
@@ -333,18 +342,24 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
           )}px, 0)`,
           transition: isDragging
             ? 'none'
-            : 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+            : 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease',
           touchAction: 'none',
         }}
         className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center ${currentTheme.bg} ${currentTheme.text} ${currentTheme.shadow} border border-white/20 dark:border-white/10 touch-none select-none cursor-grab active:cursor-grabbing ${
           isDragging
             ? `shadow-2xl ${currentTheme.dragRing} opacity-95`
-            : ''
+            : isScrolled
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-100 sm:opacity-0 sm:pointer-events-none'
         } ${className}`}
       >
         <span
-          className={`flex items-center justify-center transition-transform duration-150 ${
-            isDragging ? 'scale-110' : 'group-active:scale-90'
+          className={`flex items-center justify-center transition-transform duration-200 ${
+            isDragging
+              ? 'scale-110'
+              : isScrolled
+                ? 'scale-100 group-active:scale-90'
+                : 'scale-100 sm:scale-50 group-active:scale-90'
           }`}
         >
           {icon || <Plus className="w-6 h-6 stroke-[2.4]" />}

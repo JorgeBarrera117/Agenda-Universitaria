@@ -23,6 +23,7 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { Button, Card, Badge } from '../../../shared/components/atoms';
 import {
@@ -69,6 +70,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const { getSubjectById } = useSubjects();
   const { getProfessorById } = useProfessors();
   const { settings } = useAppSettings();
+  const isScrolled = useScrollCollapse(48);
 
   // Día actual del sistema (1 = Lunes, ..., 7 = Domingo)
   const currentDayOfWeek = (() => {
@@ -217,7 +219,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             size="md"
             icon={<CalendarPlus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.4]" />}
             onClick={() => handleOpenCreate(selectedDay)}
-            className="lg:min-h-[48px] lg:px-6 lg:py-3 lg:text-sm shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02] whitespace-nowrap"
+            className={`lg:min-h-[48px] lg:px-6 lg:py-3 lg:text-sm shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02] whitespace-nowrap origin-right transition-all duration-200 ${
+              isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+            }`}
           >
             Nueva Clase
           </Button>
@@ -834,13 +838,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </Modal>
 
-      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      {/* Botón Flotante Reubicable (FAB con Snap a Bordes y seguimiento en scroll) */}
       {isActive && (
         <DraggableFAB
           colorScheme="schedule"
           onClick={() => handleOpenCreate(selectedDay)}
           label="Programar Nueva Cátedra"
-          icon={<CalendarPlus className="w-6 h-6 text-white stroke-[2.2]" />}
+          icon={<CalendarPlus className="w-6 h-6 stroke-[2.2]" />}
         />
       )}
     </div>

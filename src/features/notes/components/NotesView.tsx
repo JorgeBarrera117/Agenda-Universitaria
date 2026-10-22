@@ -34,6 +34,7 @@ import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card } from '../../../shared/components/atoms';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 
 interface NotesViewProps {
@@ -66,6 +67,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     searchQuery
   );
   const { subjects, getSubjectById } = useSubjects();
+  const isScrolled = useScrollCollapse(48);
 
   // Optimización de Memoria: Conteo de fotos por apunte mediante claves de índice
   const imageCounts = useLiveQuery(async () => {
@@ -769,7 +771,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
             Notas de cátedra, fotografías de pizarrón y fórmulas organizadas por asignatura.
           </p>
         </div>
-        <div className="hidden sm:block shrink-0">
+        <div
+          className={`hidden sm:block shrink-0 transition-all duration-300 ease-out origin-right ${
+            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+          }`}
+        >
           <Button
             variant="primary"
             size="md"
@@ -1199,13 +1205,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
       </Modal>
 
-      {/* Botón Flotante Circular Google Docs (FAB) */}
+      {/* Botón Flotante Compacto Reubicable (Móvil permanente + Scroll en horizontal/escritorio) */}
       {isActive && (
         <DraggableFAB
           colorScheme="notes"
           onClick={handleOpenCreate}
           label="Nuevo Apunte"
-          icon={<Plus className="w-6 h-6 text-white stroke-[2.2]" />}
+          icon={<Plus className="w-6 h-6 stroke-[2.2]" />}
         />
       )}
     </div>

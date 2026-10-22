@@ -22,6 +22,7 @@ import { useSubjectDocuments } from '../hooks/useSubjectDocuments';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
 
@@ -40,6 +41,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   const { professors } = useProfessors();
   const { slots } = useSchedule();
   const { notes } = useNotes();
+  const isScrolled = useScrollCollapse(48);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>(undefined);
@@ -114,7 +116,11 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             Catálogo curricular que estructura tus horarios, apuntes y docentes.
           </p>
         </div>
-        <div className="hidden sm:block shrink-0">
+        <div
+          className={`hidden sm:block shrink-0 origin-right transition-all duration-200 ${
+            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+          }`}
+        >
           <Button
             variant="success"
             size="md"
@@ -390,13 +396,13 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         onClose={() => setSelectedSubjectForDocs(null)}
       />
 
-      {/* Botón Flotante Móvil Reubicable (FAB con Snap a Bordes) */}
+      {/* Botón Flotante Reubicable (FAB con Snap a Bordes y seguimiento en scroll) */}
       {isActive && (
         <DraggableFAB
           colorScheme="subjects"
           onClick={handleOpenCreate}
           label="Inscribir Asignatura"
-          icon={<BookPlus className="w-6 h-6 text-white stroke-[2.2]" />}
+          icon={<BookPlus className="w-6 h-6 stroke-[2.2]" />}
         />
       )}
     </div>
