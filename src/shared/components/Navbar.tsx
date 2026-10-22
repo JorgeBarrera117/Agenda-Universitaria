@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#F1F4FA]/95 dark:bg-[#1D2024]/95 backdrop-blur-md border-b border-[#C2C7CE]/35 dark:border-[#42474E]/35 text-[#191C20] dark:text-[#E2E2E6] shadow-xs transition-colors duration-200">
       <div
-        className="max-w-[1750px] mx-auto px-3 sm:px-6 lg:px-8 2xl:px-10"
+        className="w-full mx-auto px-3 sm:px-6 lg:px-8 2xl:px-10"
         style={{
           paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',

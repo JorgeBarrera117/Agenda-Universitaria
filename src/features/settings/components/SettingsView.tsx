@@ -188,7 +188,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="relative min-h-screen text-slate-800 dark:text-slate-100 pb-16 animate-in fade-in duration-200">
-      <div className="max-w-2xl mx-auto pt-2 sm:pt-4 px-2 sm:px-4 space-y-4">
+      <div className="w-full mx-auto pt-2 sm:pt-4 space-y-4">
 
         {/* =========================================================================
             VISTA 1: MENÚ PRINCIPAL COMPACTO DE AJUSTES (ESTILO TELEGRAM / WHATSAPP)
@@ -607,7 +607,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <div
                     role="radiogroup"
                     aria-label="Paletas de color del tema"
-                    className="grid grid-cols-2 gap-2 pt-0.5"
+                    className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 pt-0.5"
                   >
                     {(Object.keys(MATERIAL_COLOR_PALETTES) as MaterialColorTheme[]).map((paletteKey) => {
                       const pal = MATERIAL_COLOR_PALETTES[paletteKey];

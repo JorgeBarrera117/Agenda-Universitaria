@@ -176,15 +176,15 @@ export function App() {
         </div>
       )}
 
-      {/* Contenedor Principal */}
+      {/* Contenedor Principal (100% del ancho disponible en PC y Móvil) */}
       <main
         style={{
           paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
         }}
-        className={`flex-1 max-w-[1750px] w-full mx-auto ${
+        className={`flex-1 w-full mx-auto ${
           isAnyEditorActive || isSettingsOpen
-            ? 'px-3 sm:px-6 lg:px-8 pt-1 sm:pt-3'
+            ? 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-1 sm:pt-3'
             : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-36 sm:pb-32 md:pb-8'
         }`}
       >

@@ -464,8 +464,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
           className="hidden"
         />
 
-        {/* Lienzo del Folio estilo Google Docs / Telegram Instant View */}
-        <div className="max-w-3xl w-full mx-auto py-3 sm:py-6 space-y-6">
+        {/* Lienzo del Folio estilo Google Docs / Telegram Instant View (100% del ancho en PC) */}
+        <div className="w-full py-3 sm:py-6 space-y-6">
           <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-[28px] sm:rounded-[32px] p-5 sm:p-10 shadow-xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-5 text-[#191C20] dark:text-[#E2E2E6] transition-colors">
             {/* Metadatos y Badges */}
             <div className="space-y-3">
@@ -744,9 +744,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
     );
   }
 
-  // 3. Vista de Galería de Documentos (Google Docs Mobile Style)
+  // 3. Vista de Galería de Documentos (Google Docs Mobile Style • 100% ancho en PC)
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div className="space-y-4 w-full">
       {/* Overlay transparente para cerrar menú contextual de tres puntos */}
       {activeMenuNoteId && (
         <div
@@ -807,7 +807,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
       </div>
 
       {/* Píldoras de Materias (Material Design 3 Filter Chips con Íconos Personalizados) */}
-      <div className="flex items-center gap-2 overflow-x-auto py-1 px-1 scrollbar-none select-none">
+      <div className="flex items-center sm:flex-wrap gap-2 overflow-x-auto sm:overflow-visible py-1 px-1 scrollbar-none select-none">
         <button
           type="button"
           onClick={() => setSelectedSubjectId('all')}
@@ -850,7 +850,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               >
                 <SubjectIcon icon={sub.icon} className="w-3 h-3 text-white" />
               </div>
-              <span className="truncate max-w-[180px]">{sub.name}</span>
+              <span className="truncate max-w-[180px] sm:max-w-none">{sub.name}</span>
             </button>
           );
         })}
@@ -927,8 +927,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
           </Button>
         </Card>
       ) : galleryLayout === 'grid' ? (
-        /* Cuadrícula de 2 Columnas Móvil estilo Google Docs (Imagen de referencia) */
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        /* Cuadrícula Responsiva que aprovecha el 100% del ancho en PC */
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
           {sortedNotes.map((note) => {
             const subject = getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;

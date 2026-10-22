@@ -262,7 +262,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
 
       {/* Banner de error discreto si existe */}
       {error && (
-        <div className="max-w-4xl mx-auto w-full px-4 pt-3">
+        <div className="w-full px-4 pt-3">
           <div className="p-3 text-xs sm:text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-xl flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
             <span className="flex-1">{error}</span>
@@ -278,7 +278,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
       )}
 
       {/* 2. Lienzo de Edición Abierto (Todo el espacio disponible estilo Google Docs) */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-8 pt-4 pb-28 flex flex-col">
+      <main className="flex-1 w-full px-4 sm:px-8 pt-4 pb-28 flex flex-col">
         {/* Título integrado directamente en el folio de redacción */}
         <input
           type="text"

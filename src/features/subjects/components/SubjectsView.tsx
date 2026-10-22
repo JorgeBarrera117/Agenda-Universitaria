@@ -84,10 +84,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
     }
   };
 
-  // Vista de Edición / Creación Dedicada a Pantalla Completa (Estilo Telegram)
+  // Vista de Edición / Creación Dedicada a Pantalla Completa (Aprovechando todo el espacio en PC)
   if (isModalOpen) {
     return (
-      <div className="max-w-2xl mx-auto pb-12">
+      <div className="w-full pb-12">
         <SubjectForm
           initialData={editingSubject}
           onSubmit={handleSubmit}
@@ -200,7 +200,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {subjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;

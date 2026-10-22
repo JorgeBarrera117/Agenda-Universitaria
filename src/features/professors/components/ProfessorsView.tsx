@@ -97,10 +97,10 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
     });
   }, [professors, searchQuery, getSubjectById]);
 
-  // Vista de Edición / Creación Dedicada a Pantalla Completa (Estilo Telegram)
+  // Vista de Edición / Creación Dedicada a Pantalla Completa (Aprovechando todo el espacio en PC)
   if (isModalOpen) {
     return (
-      <div className="max-w-2xl mx-auto pb-12">
+      <div className="w-full pb-12">
         <ProfessorForm
           initialData={editingProfessor}
           onSubmit={handleSubmit}
@@ -111,7 +111,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   }
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
+    <div className="space-y-4 w-full">
       {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
@@ -237,11 +237,11 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           )}
         </Card>
       ) : (
-        <div className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[28px] sm:rounded-[32px] shadow-xs divide-y divide-[#C3C7D0]/30 dark:divide-[#43474E]/30 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-3.5">
           {filteredProfessors.map((prof) => (
             <div
               key={prof.id}
-              className="flex flex-col gap-2.5 p-3.5 sm:p-4 hover:bg-[#E2E7EF]/40 dark:hover:bg-[#272A2F]/40 transition-colors group"
+              className="flex flex-col justify-between gap-2.5 p-3.5 sm:p-4 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[24px] sm:rounded-[28px] shadow-xs hover:bg-[#E2E7EF]/40 dark:hover:bg-[#272A2F]/40 hover:border-[#00639B]/40 transition-all group"
             >
               {/* Fila Superior: Avatar + Nombre Completo y Materias + Botones de Edición/Borrado */}
               <div className="flex items-start justify-between gap-3">

@@ -314,7 +314,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   };
 
   return (
-    <div className="space-y-4 max-w-6xl mx-auto animate-in fade-in duration-200">
+    <div className="space-y-4 w-full animate-in fade-in duration-200">
       {/* ======================================================== */}
       {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
       {/* ======================================================== */}
@@ -400,8 +400,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           </div>
         </div>
 
-        {/* Chips Deslizables de Asignatura (Filtro Horizontal) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-0.5 custom-scrollbar select-none">
+        {/* Chips Deslizables de Asignatura (Filtro Horizontal en móvil, Wrap completo en PC) */}
+        <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-1.5 pt-0.5 custom-scrollbar select-none">
           <button
             type="button"
             onClick={() => setSelectedSubjectFilter('all')}
@@ -439,7 +439,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                   size="sm"
                   className="w-4.5 h-4.5 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
                 />
-                <span className="max-w-[130px] truncate">{subj.name}</span>
+                <span className="max-w-[130px] sm:max-w-none truncate">{subj.name}</span>
                 {count > 0 && (
                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
                     {count}
@@ -510,7 +510,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
           {filteredAndSortedDocs.map((doc) => {
             const visuals = getFormatVisuals(doc.fileExtension, doc.isExternalLink);
             const subj = subjectsMap.get(doc.subjectId);

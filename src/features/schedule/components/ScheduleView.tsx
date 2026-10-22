@@ -137,10 +137,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     }
   };
 
-  // Vista de Edición / Creación Dedicada a Pantalla Completa (Estilo Telegram)
+  // Vista de Edición / Creación Dedicada a Pantalla Completa (Aprovechando todo el espacio en PC)
   if (isModalOpen) {
     return (
-      <div className="max-w-2xl mx-auto pb-12">
+      <div className="w-full pb-12">
         <ScheduleSlotForm
           key={editingSlot?.id || 'new-slot'}
           initialData={editingSlot}
@@ -413,16 +413,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva con Tarjetas Anchas de Alta Legibilidad >= 260px por columna) */}
+      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva ocupando el 100% del ancho en PC) */}
       {viewMode === 'weekly' && (
-        <div className="hidden sm:block overflow-x-auto pb-4 custom-scrollbar">
+        <div className="hidden sm:block overflow-x-auto pb-4 custom-scrollbar w-full">
           <div
-            className={`hidden sm:grid ${
+            className={`hidden sm:grid w-full ${
               displayedDays.length === 7
-                ? 'grid-cols-7 min-w-[1820px]'
+                ? 'grid-cols-7 min-w-[1260px] xl:min-w-0'
                 : displayedDays.length === 6
-                ? 'grid-cols-6 min-w-[1560px]'
-                : 'grid-cols-5 min-w-[1300px] 2xl:min-w-0'
+                ? 'grid-cols-6 min-w-[1080px] lg:min-w-0'
+                : 'grid-cols-5 min-w-[900px] lg:min-w-0'
             } gap-3 bg-[var(--color-md-surface-container)] p-3 sm:p-3.5 rounded-3xl border border-[var(--color-md-outline-variant)]`}
           >
             {displayedDays.map((day) => {
