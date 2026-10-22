@@ -80,7 +80,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-[calc(100vh-230px)] py-3 px-1 sm:px-3 focus:outline-none text-slate-800 dark:text-slate-100 text-base sm:text-lg leading-relaxed prose dark:prose-invert max-w-none pb-32',
+          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-base sm:text-lg leading-relaxed prose dark:prose-invert max-w-none pb-24',
       },
       handleDOMEvents: {
         click: (_view, event) => {
@@ -132,7 +132,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full flex-1 flex flex-col">
       {/* Inputs ocultos para Cámara directa y Galería */}
       <input
         ref={cameraInputRef}
@@ -150,12 +150,30 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         className="hidden"
       />
 
-      {/* Todo el espacio dedicado al lienzo editable estilo Google Docs */}
-      <EditorContent editor={editor} />
+      {/* Todo el espacio dedicado al lienzo editable estilo Google Docs (clic en cualquier área vacía enfoca el editor) */}
+      <div
+        onClick={() => {
+          if (!editor.isFocused) {
+            editor.chain().focus().run();
+          }
+        }}
+        className="flex-1 w-full flex flex-col cursor-text"
+      >
+        <EditorContent
+          editor={editor}
+          className="flex-1 w-full flex flex-col [&>.ProseMirror]:flex-1 [&>.ProseMirror]:w-full"
+        />
+      </div>
 
-      {/* Barra de Herramientas Inferior estilo Google Docs Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#17212b]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-white/10 shadow-2xl px-2 sm:px-6 py-2">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-1 overflow-x-auto scrollbar-none py-0.5">
+      {/* Barra de Herramientas Inferior estilo Google Docs Mobile (100% borde a borde) */}
+      <div
+        style={{
+          paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
+        }}
+        className="fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-md-surface-container)] border-t border-[var(--color-md-outline-variant)] shadow-lg sm:px-6 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      >
+        <div className="w-full flex items-center justify-between md:justify-start md:gap-2 overflow-x-auto scrollbar-none py-0.5">
           {/* Bloque Formato Tipográfico: B, I, U, S */}
           <div className="flex items-center gap-0.5 shrink-0">
             {/* Bold */}

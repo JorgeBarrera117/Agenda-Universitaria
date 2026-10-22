@@ -161,7 +161,11 @@ export function App() {
   return (
     <div
       className={`min-h-screen bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] flex flex-col selection:bg-[var(--color-md-primary-container)] selection:text-[var(--color-md-on-primary-container)] transition-colors duration-200 ${
-        isAnyEditorActive || isSettingsOpen ? 'pb-4' : 'pb-22 md:pb-10'
+        isAnyEditorActive && activeTab === 'notes'
+          ? 'pb-0'
+          : isAnyEditorActive || isSettingsOpen
+            ? 'pb-4'
+            : 'pb-22 md:pb-10'
       }`}
     >
 
@@ -190,14 +194,20 @@ export function App() {
 
       {/* Contenedor Principal (100% del ancho disponible en PC y Móvil) */}
       <main
-        style={{
-          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
-        }}
+        style={
+          isAnyEditorActive && activeTab === 'notes'
+            ? undefined
+            : {
+                paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+                paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+              }
+        }
         className={`flex-1 w-full mx-auto ${
-          isAnyEditorActive || isSettingsOpen
-            ? 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-1 sm:pt-3'
-            : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-36 sm:pb-32 md:pb-8'
+          isAnyEditorActive && activeTab === 'notes'
+            ? 'p-0'
+            : isAnyEditorActive || isSettingsOpen
+              ? 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-1 sm:pt-3'
+              : 'px-3 sm:px-6 lg:px-8 2xl:px-10 pt-3 sm:pt-5 pb-36 sm:pb-32 md:pb-8'
         }`}
       >
         {isSettingsOpen ? (

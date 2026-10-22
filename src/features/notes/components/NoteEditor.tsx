@@ -117,9 +117,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FDFBFF] dark:bg-[#101418] text-[#191C20] dark:text-[#E2E2E6] flex flex-col">
-      {/* 1. Barra Superior Estilo Google Docs / Material Design 3 */}
-      <header className="sticky top-0 z-40 bg-[#FDFBFF]/95 dark:bg-[#14171B]/95 backdrop-blur-xl border-b border-[#C3C7D0]/40 dark:border-[#43474E]/40 px-3 sm:px-6 py-2.5 flex items-center justify-between shadow-2xs">
+    <div className="relative w-full min-h-[100dvh] flex-1 bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface)] flex flex-col">
+      {/* 1. Barra Superior Estilo Google Docs / Material Design 3 (100% ancho borde a borde) */}
+      <header
+        style={{
+          paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+        }}
+        className="sticky top-0 shrink-0 w-full z-40 bg-[var(--color-md-surface-container)] border-b border-[var(--color-md-outline-variant)] sm:px-6 py-2.5 flex items-center justify-between shadow-2xs"
+      >
         {/* Lado Izquierdo: Botón Checkmark azul circular y Volver */}
         <div className="flex items-center gap-2">
           {/* Botón Guardar / Finalizar Edición (Checkmark ✓ M3 Primary Container) */}
@@ -277,8 +283,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         </div>
       )}
 
-      {/* 2. Lienzo de Edición Abierto (Todo el espacio disponible estilo Google Docs) */}
-      <main className="flex-1 w-full px-4 sm:px-8 pt-4 pb-28 flex flex-col">
+      {/* 2. Lienzo de Edición Abierto (100% del ancho y alto disponibles estilo Google Docs) */}
+      <div
+        style={{
+          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+        }}
+        className="flex-1 w-full sm:px-8 lg:px-12 pt-4 pb-20 flex flex-col"
+      >
         {/* Título integrado directamente en el folio de redacción */}
         <input
           type="text"
@@ -288,12 +300,12 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             setError(null);
           }}
           placeholder="Documento sin título..."
-          className="w-full text-2xl sm:text-4xl font-black text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 border-none outline-none focus:ring-0 p-0 tracking-tight leading-tight bg-transparent mb-2"
+          className="w-full text-2xl sm:text-4xl font-black text-[var(--color-md-on-surface)] placeholder:text-[var(--color-md-on-surface-variant)] placeholder:opacity-55 border-none outline-none focus:ring-0 p-0 tracking-tight leading-tight bg-transparent mb-2.5 shrink-0"
           required
         />
 
         {/* Píldora interactiva de asignatura y metadatos */}
-        <div className="flex items-center flex-wrap gap-2 mb-4 select-none">
+        <div className="flex items-center flex-wrap gap-2 mb-3 select-none shrink-0">
           <button
             type="button"
             onClick={() => setIsOptionsModalOpen(true)}
@@ -314,19 +326,19 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             <ChevronDown className="w-3 h-3 opacity-80" />
           </button>
 
-          <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+          <span className="text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">
             {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
           </span>
 
           {tagInput && (
-            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 truncate max-w-[200px]">
+            <span className="text-[11px] font-medium text-[var(--color-md-on-surface-variant)] truncate max-w-[240px]">
               • #{tagInput.split(',').map((t) => t.trim()).filter(Boolean).join(' #')}
             </span>
           )}
         </div>
 
-        {/* Editor enriquecido TipTap ocupando el 100% del espacio */}
-        <div className="flex-1 w-full">
+        {/* Editor enriquecido TipTap ocupando el 100% del ancho y alto restante */}
+        <div className="flex-1 w-full flex flex-col min-h-0">
           <RichTextEditor
             content={content}
             onChange={setContent}
@@ -336,7 +348,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             placeholder="Comienza a redactar tu apunte aquí..."
           />
         </div>
-      </main>
+      </div>
 
       {/* 3. Modal de Opciones del Documento ("Los puntitos para más opciones") */}
       <Modal

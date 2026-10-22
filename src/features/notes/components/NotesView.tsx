@@ -312,9 +312,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
     const stats = getNoteStats(readingNote);
 
     return (
-      <div className="relative min-h-[calc(100vh-100px)] flex flex-col pb-20 animate-in fade-in duration-150">
+      <div className="relative min-h-[100dvh] w-full flex flex-col pb-20">
         {/* Barra Superior Fija estilo Telegram / Google Docs */}
-        <header className="sticky top-0 z-40 bg-[#FDFBFF]/95 dark:bg-[#14171B]/95 backdrop-blur-xl border-b border-[#C3C7D0]/40 dark:border-[#43474E]/40 px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 -mx-3 sm:-mx-6 lg:-mx-8 shadow-xs">
+        <header className="sticky top-0 z-40 bg-[var(--color-md-surface-container)] border-b border-[var(--color-md-outline-variant)] px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs">
           {/* Izquierda: Botón Volver y Contexto de la Nota */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <button
@@ -465,7 +465,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         />
 
         {/* Lienzo del Folio estilo Google Docs / Telegram Instant View (100% del ancho en PC) */}
-        <div className="w-full py-3 sm:py-6 space-y-6">
+        <div className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-6">
           <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-[28px] sm:rounded-[32px] p-5 sm:p-10 shadow-xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-5 text-[#191C20] dark:text-[#E2E2E6] transition-colors">
             {/* Metadatos y Badges */}
             <div className="space-y-3">
