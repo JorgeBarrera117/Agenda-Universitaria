@@ -103,6 +103,9 @@ export class NotificationService {
               title: '🎓 Notificaciones Activas • Agenda Universitaria',
               body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
               channelId: CHANNEL_ID,
+              smallIcon: 'ic_stat_agenda',
+              largeIcon: 'ic_notification_large',
+              iconColor: '#00639B',
               schedule: { at: new Date(Date.now() + 1000) }, // 1 segundo en el futuro
               sound: 'default',
             },
@@ -135,7 +138,7 @@ export class NotificationService {
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}`).join(',')}`;
+    const currentHash = `v2_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
@@ -199,6 +202,9 @@ export class NotificationService {
           title: `⏳ En 15 min: ${subjectName}`,
           body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}`,
           channelId: CHANNEL_ID,
+          smallIcon: 'ic_stat_agenda',
+          largeIcon: 'ic_notification_large',
+          iconColor: subject?.color || '#00639B',
           schedule: {
             on: {
               weekday: priorWeekday,
@@ -219,6 +225,9 @@ export class NotificationService {
           title: `🔔 ¡Comienza la clase de ${subjectName}!`,
           body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}`,
           channelId: CHANNEL_ID,
+          smallIcon: 'ic_stat_agenda',
+          largeIcon: 'ic_notification_large',
+          iconColor: subject?.color || '#00639B',
           schedule: {
             on: {
               weekday: capacitorWeekday,
