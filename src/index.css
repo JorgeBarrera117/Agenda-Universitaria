@@ -449,23 +449,23 @@
 
 @keyframes m3-shared-axis-x-right {
   0% {
-    opacity: 0;
-    transform: translate3d(28px, 0, 0) scale(0.992);
+    opacity: 0.25;
+    transform: translate3d(38px, 0, 0);
   }
   100% {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes m3-shared-axis-x-left {
   0% {
-    opacity: 0;
-    transform: translate3d(-28px, 0, 0) scale(0.992);
+    opacity: 0.25;
+    transform: translate3d(-38px, 0, 0);
   }
   100% {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -492,11 +492,13 @@
 }
 
 .m3-tab-enter-right {
-  animation: m3-shared-axis-x-right 250ms var(--m3-easing-emphasized-decelerate) backwards;
+  animation: m3-shared-axis-x-right 310ms cubic-bezier(0.22, 0.88, 0.32, 1) backwards;
+  will-change: transform, opacity;
 }
 
 .m3-tab-enter-left {
-  animation: m3-shared-axis-x-left 250ms var(--m3-easing-emphasized-decelerate) backwards;
+  animation: m3-shared-axis-x-left 310ms cubic-bezier(0.22, 0.88, 0.32, 1) backwards;
+  will-change: transform, opacity;
 }
 
 .m3-view-enter {

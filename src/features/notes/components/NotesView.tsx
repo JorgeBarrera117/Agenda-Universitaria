@@ -255,6 +255,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
     return cleaned || 'Documento sin contenido escrito aún.';
   };
 
+  // Pre-calcular y memoizar los extractos limpios de cada nota para evitar ejecutar RegEx en cada render o swipe
+  const snippetsById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const note of notes) {
+      map[note.id] = cleanSnippetPreview(note.content);
+    }
+    return map;
+  }, [notes]);
+
   // Ordenar notas según criterio
   const sortedNotes = useMemo(() => {
     const list = [...notes];
@@ -937,7 +946,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           {sortedNotes.map((note) => {
             const subject = getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;
-            const snippet = cleanSnippetPreview(note.content);
+            const snippet = snippetsById[note.id] ?? '';
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
               month: 'short',

@@ -6,7 +6,7 @@
  * Eslogan: "POR Y PARA LOS ESTUDIANTES"
  * ==============================================================================
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
@@ -41,13 +41,29 @@ export function App() {
   const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
   const [activeEditorTab, setActiveEditorTab] = useState<TabType | null>(null);
 
-  const handleEditorActiveChange = (tab: TabType, isActive: boolean) => {
-    if (isActive) {
-      setActiveEditorTab(tab);
-    } else if (activeEditorTab === tab) {
-      setActiveEditorTab(null);
-    }
-  };
+  const handleEditorActiveChange = useCallback((tab: TabType, isActive: boolean) => {
+    setActiveEditorTab((prev) => {
+      if (isActive) return tab;
+      return prev === tab ? null : prev;
+    });
+  }, []);
+
+  const handleScheduleEditorChange = useCallback(
+    (active: boolean) => handleEditorActiveChange('schedule', active),
+    [handleEditorActiveChange]
+  );
+  const handleSubjectsEditorChange = useCallback(
+    (active: boolean) => handleEditorActiveChange('subjects', active),
+    [handleEditorActiveChange]
+  );
+  const handleProfessorsEditorChange = useCallback(
+    (active: boolean) => handleEditorActiveChange('professors', active),
+    [handleEditorActiveChange]
+  );
+  const handleNotesEditorChange = useCallback(
+    (active: boolean) => handleEditorActiveChange('notes', active),
+    [handleEditorActiveChange]
+  );
 
   const isAnyEditorActive = activeEditorTab === activeTab;
 
@@ -139,29 +155,33 @@ export function App() {
     }, 3500);
   };
 
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = useCallback((tab: TabType) => {
     if (tab !== 'notes') {
       setSelectedSubjectForNotes(undefined);
     }
-    const prevIndex = TAB_ORDER.indexOf(activeTab);
-    const nextIndex = TAB_ORDER.indexOf(tab);
-    setTabDirection(nextIndex >= prevIndex ? 'right' : 'left');
+    setActiveTab((prevTab) => {
+      const prevIndex = TAB_ORDER.indexOf(prevTab);
+      const nextIndex = TAB_ORDER.indexOf(tab);
+      setTabDirection(nextIndex >= prevIndex ? 'right' : 'left');
+      return tab;
+    });
     setActiveEditorTab(null);
     setIsSettingsOpen(false);
-    setActiveTab(tab);
-  };
+  }, []);
 
   // Atajo contextual UX: Tomar apunte de la clase activa en el horario
-  const handleNavigateToNotesFromSchedule = (subjectId?: string) => {
+  const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string) => {
     if (subjectId) {
       setSelectedSubjectForNotes(subjectId);
     }
-    const prevIndex = TAB_ORDER.indexOf(activeTab);
-    const nextIndex = TAB_ORDER.indexOf('notes');
-    setTabDirection(nextIndex >= prevIndex ? 'right' : 'left');
+    setActiveTab((prevTab) => {
+      const prevIndex = TAB_ORDER.indexOf(prevTab);
+      const nextIndex = TAB_ORDER.indexOf('notes');
+      setTabDirection(nextIndex >= prevIndex ? 'right' : 'left');
+      return 'notes';
+    });
     setIsSettingsOpen(false);
-    setActiveTab('notes');
-  };
+  }, []);
 
   const tabEnterClass = tabDirection === 'right' ? 'block m3-tab-enter-right' : 'block m3-tab-enter-left';
 
@@ -202,8 +222,9 @@ export function App() {
         onClose={() => setToastMessage(null)}
       />
 
-      {/* Contenedor Principal (100% del ancho disponible en PC y Móvil) */}
+      {/* Contenedor Principal (100% del ancho y alto útil disponible en PC y Móvil) */}
       <main
+        ref={swipeContainerRef}
         style={
           isAnyEditorActive && activeTab === 'notes'
             ? undefined
@@ -212,7 +233,7 @@ export function App() {
                 paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
               }
         }
-        className={`flex-1 w-full mx-auto ${
+        className={`flex-1 flex flex-col w-full mx-auto overflow-x-hidden touch-pan-y ${
           isAnyEditorActive && activeTab === 'notes'
             ? 'p-0'
             : isAnyEditorActive || isSettingsOpen
@@ -221,38 +242,38 @@ export function App() {
         }`}
       >
         {isSettingsOpen ? (
-          <div className="m3-view-enter">
+          <div className="m3-view-enter flex-1">
             <SettingsView
               onBack={() => setIsSettingsOpen(false)}
               onShowToast={showToast}
             />
           </div>
         ) : (
-          <div ref={swipeContainerRef} className="w-full touch-pan-y">
+          <div className="flex-1 w-full min-w-0">
             <div className={activeTab === 'schedule' ? tabEnterClass : 'hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
-                onEditorActiveChange={(active) => handleEditorActiveChange('schedule', active)}
+                onEditorActiveChange={handleScheduleEditorChange}
                 isActive={activeTab === 'schedule'}
               />
             </div>
             <div className={activeTab === 'subjects' ? tabEnterClass : 'hidden'}>
               <SubjectsView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
-                onEditorActiveChange={(active) => handleEditorActiveChange('subjects', active)}
+                onEditorActiveChange={handleSubjectsEditorChange}
                 isActive={activeTab === 'subjects'}
               />
             </div>
             <div className={activeTab === 'professors' ? tabEnterClass : 'hidden'}>
               <ProfessorsView
-                onEditorActiveChange={(active) => handleEditorActiveChange('professors', active)}
+                onEditorActiveChange={handleProfessorsEditorChange}
                 isActive={activeTab === 'professors'}
               />
             </div>
             <div className={activeTab === 'notes' ? tabEnterClass : 'hidden'}>
               <NotesView
                 initialSubjectFilterId={selectedSubjectForNotes}
-                onEditorActiveChange={(active) => handleEditorActiveChange('notes', active)}
+                onEditorActiveChange={handleNotesEditorChange}
                 isActive={activeTab === 'notes'}
               />
             </div>
