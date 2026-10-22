@@ -129,10 +129,31 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     return { side: 'right', yRatio: 0.78 };
   });
 
-  // Estado de arrastre activo (solo cambia al iniciar y terminar el arrastre para máximo rendimiento a 120FPS)
+  // Estado de arrastre activo y estado de espera de activación segura (previene clics fantasma o por error)
   const [isDragging, setIsDragging] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const isScrolled = useScrollCollapse(48);
   const btnRef = useRef<HTMLButtonElement | null>(null);
+  const actionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blockGhostClickUntilRef = useRef<number>(0);
+
+  // Interceptor en fase de captura para bloquear cualquier "Ghost Click" sobre elementos debajo del botón flotante
+  useEffect(() => {
+    const swallowGhostClick = (e: MouseEvent) => {
+      if (performance.now() < blockGhostClickUntilRef.current) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('click', swallowGhostClick, true);
+    return () => {
+      window.removeEventListener('click', swallowGhostClick, true);
+      if (actionTimerRef.current) {
+        clearTimeout(actionTimerRef.current);
+      }
+    };
+  }, []);
 
   // Límite inferior seguro (sobre la barra de navegación móvil cuando vw < 768px, o cerca del borde inferior en horizontal/PC)
   const getSafeBottom = useCallback((vh: number, vw = viewport.width) => {
@@ -154,12 +175,13 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
 
   const livePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Referencias para capturar coordenadas del puntero con seguimiento 1:1
+  // Referencias para capturar coordenadas y tiempo del puntero con seguimiento 1:1
   const pointerStartRef = useRef<{
     pointerX: number;
     pointerY: number;
     initialBtnX: number;
     initialBtnY: number;
+    startTime: number;
     hasDragged: boolean;
   } | null>(null);
 
@@ -197,6 +219,9 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     // Aceptar solo clic principal o touch
     if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (isActivating) return;
+
+    e.stopPropagation();
 
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -212,6 +237,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
       pointerY: e.clientY,
       initialBtnX: startCoords.x,
       initialBtnY: startCoords.y,
+      startTime: performance.now(),
       hasDragged: false,
     };
   };
@@ -219,12 +245,14 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!pointerStartRef.current) return;
 
+    e.stopPropagation();
+
     const deltaX = e.clientX - pointerStartRef.current.pointerX;
     const deltaY = e.clientY - pointerStartRef.current.pointerY;
     const distance = Math.hypot(deltaX, deltaY);
 
-    // Umbral de discriminación: si se mueve más de 4px se considera arrastre, no tap
-    if (distance > 4 || pointerStartRef.current.hasDragged) {
+    // Umbral de discriminación: si se mueve más de 8px se considera arrastre, no tap
+    if (distance > 8 || pointerStartRef.current.hasDragged) {
       if (!pointerStartRef.current.hasDragged) {
         pointerStartRef.current.hasDragged = true;
         setIsDragging(true);
@@ -257,17 +285,39 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!pointerStartRef.current) return;
 
+    e.stopPropagation();
+    e.preventDefault();
+
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {}
 
-    const hasDragged = pointerStartRef.current.hasDragged;
+    const { hasDragged, startTime } = pointerStartRef.current;
+    const pressDuration = performance.now() - startTime;
     pointerStartRef.current = null;
 
+    // Activar escudo contra clics fantasma durante 400ms para que ningún elemento debajo se presione por error
+    blockGhostClickUntilRef.current = performance.now() + 400;
+
     if (!hasDragged) {
-      // Tap limpio sin arrastre -> ejecutar acción
       setIsDragging(false);
-      onClick();
+
+      // Si mantuvo presionado más de 420ms sin moverse (intento de agarre cancelado), no disparar acción por error
+      if (pressDuration > 420) {
+        return;
+      }
+
+      // Tiempo de espera de seguridad (220ms) antes de ejecutar la acción para absorber el toque
+      // y evitar que elementos de la vista siguiente o inferior se presionen accidentalmente
+      setIsActivating(true);
+      if (actionTimerRef.current) {
+        clearTimeout(actionTimerRef.current);
+      }
+      actionTimerRef.current = setTimeout(() => {
+        setIsActivating(false);
+        actionTimerRef.current = null;
+        onClick();
+      }, 220);
       return;
     }
 
@@ -335,15 +385,19 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         aria-label={label}
         title={label}
         style={{
           transform: `translate3d(${Math.round(livePosRef.current.x)}px, ${Math.round(
             livePosRef.current.y
-          )}px, 0)`,
+          )}px, 0) ${isActivating ? 'scale(0.9)' : 'scale(1)'}`,
           transition: isDragging
             ? 'none'
-            : 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease',
+            : 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease',
           touchAction: 'none',
         }}
         className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center ${currentTheme.bg} ${currentTheme.text} ${currentTheme.shadow} border border-white/20 dark:border-white/10 touch-none select-none cursor-grab active:cursor-grabbing ${
