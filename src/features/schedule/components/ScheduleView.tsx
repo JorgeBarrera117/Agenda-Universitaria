@@ -417,18 +417,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* 4. VISTA SEMANAL (Cuadrícula Responsiva: >=245px por columna en móvil horizontal y 100% ancho en PC) */}
+      {/* 4. VISTA SEMANAL (Contenedor Redondeado Fijo con Scroll Horizontal Exclusivamente Interno) */}
       {viewMode === 'weekly' && (
-        <div className="hidden sm:block overflow-x-auto pb-4 custom-scrollbar w-full">
-          <div
-            className={`hidden sm:grid w-full ${
-              displayedDays.length === 7
-                ? 'grid-cols-[repeat(7,minmax(240px,1fr))]'
-                : displayedDays.length === 6
-                ? 'grid-cols-[repeat(6,minmax(240px,1fr))]'
-                : 'grid-cols-[repeat(5,minmax(245px,1fr))]'
-            } gap-3 bg-[var(--color-md-surface-container)] p-3 sm:p-3.5 rounded-3xl border border-[var(--color-md-outline-variant)]`}
-          >
+        <div className="hidden sm:block w-full bg-[var(--color-md-surface-container)] rounded-3xl border border-[var(--color-md-outline-variant)] shadow-2xs overflow-hidden">
+          <div className="overflow-x-auto p-3 sm:p-3.5 custom-scrollbar w-full">
+            <div
+              className={`grid w-full gap-3 ${
+                displayedDays.length === 7
+                  ? 'min-w-[1752px] grid-cols-7'
+                  : displayedDays.length === 6
+                  ? 'min-w-[1500px] grid-cols-6'
+                  : 'min-w-[1270px] grid-cols-5'
+              }`}
+            >
             {displayedDays.map((day) => {
               const daySlotsList = slots
                 .filter((s) => s.dayOfWeek === day)
@@ -620,6 +621,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
       )}
