@@ -4,26 +4,22 @@ on:
   push:
     branches:
       - main
-      - master
-      - feature/subject-documents-prototype
   workflow_dispatch:
 
-# Permisos requeridos para desplegar en GitHub Pages de forma segura
+# Permisos requeridos para desplegar en GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Permite un solo despliegue concurrente, descartando ejecuciones intermedias
+# Permite un solo despliegue concurrente a la vez
 concurrency:
   group: 'pages'
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
+    name: Compilar PWA
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositorio
@@ -35,7 +31,7 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias limpias
         run: npm ci
 
       - name: Verificar tipado y compilar producción PWA
@@ -49,6 +45,14 @@ jobs:
         with:
           path: './dist'
 
+  deploy:
+    name: Publicar en GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Desplegar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
