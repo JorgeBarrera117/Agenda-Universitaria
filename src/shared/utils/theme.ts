@@ -1,180 +1,294 @@
 import type { ThemeMode, MaterialColorTheme } from '../../features/settings/types';
 
+export interface ThemeTokenSet {
+  /** Color principal (Botones "Aceptar", Switches activos, FABs, Íconos primarios) */
+  primary: string;
+  /** Estado hover del color principal */
+  primaryHover: string;
+  /** Texto/ícono sobre el color principal (alto contraste WCAG AAA) */
+  onPrimary: string;
+  /** Contenedor primario (Botones secundarios "Cancelar", Píldoras activas, Hero Card) */
+  primaryContainer: string;
+  /** Texto/ícono sobre contenedor primario */
+  onPrimaryContainer: string;
+  /** Contenedor secundario (Acentos, Barras de menú, Badges tonales) */
+  secondaryContainer: string;
+  /** Texto/ícono sobre contenedor secundario */
+  onSecondaryContainer: string;
+  /** Fondo general de la aplicación */
+  surface: string;
+  /** Fondo de tarjetas ("Tarjeta") */
+  cardBg: string;
+  /** Fondo de barras de navegación, paneles y contenedores agrupados */
+  surfaceContainer: string;
+  /** Fondo de buscadores, inputs, selectores y chips inactivos */
+  surfaceContainerHigh: string;
+  /** Color de texto principal (Títulos y cuerpo de lectura de máxima legibilidad) */
+  onSurface: string;
+  /** Color de texto secundario (Subtítulos, etiquetas, metadatos legibles) */
+  onSurfaceVariant: string;
+  /** Bordes definidos y controles */
+  outline: string;
+  /** Bordes sutiles de tarjetas y divisores */
+  outlineVariant: string;
+}
+
 export interface ColorThemeDefinition {
   id: MaterialColorTheme;
   name: string;
+  subtitle: string;
   seed: string;
-  light: {
-    primary: string;
-    onPrimary: string;
-    primaryContainer: string;
-    onPrimaryContainer: string;
-    secondaryContainer: string;
-    onSecondaryContainer: string;
-    outline: string;
-    surfaceContainer: string;
-  };
-  dark: {
-    primary: string;
-    onPrimary: string;
-    primaryContainer: string;
-    onPrimaryContainer: string;
-    secondaryContainer: string;
-    onSecondaryContainer: string;
-    outline: string;
-    surfaceContainer: string;
-  };
+  light: ThemeTokenSet;
+  dark: ThemeTokenSet;
 }
 
+/**
+ * REGISTRO CENTRAL DE PALETAS DE COLOR (MATERIAL YOU)
+ * ============================================================================
+ * Para agregar nuevas paletas en el futuro:
+ * 1. Añade el identificador al tipo `MaterialColorTheme` en `src/features/settings/types.ts`
+ * 2. Registra aquí su definición `light` y `dark`.
+ * Toda la aplicación y el selector de Ajustes se adaptarán automáticamente.
+ */
 export const MATERIAL_COLOR_PALETTES: Record<MaterialColorTheme, ColorThemeDefinition> = {
   blue: {
     id: 'blue',
-    name: 'Azul Océano (Google M3)',
-    seed: '#00639B',
+    name: 'Azul Océano',
+    subtitle: 'Clásico Marino Profundo',
+    seed: '#004A77',
     light: {
-      primary: '#00639B',
+      primary: '#004A77',
+      primaryHover: '#00385C',
       onPrimary: '#FFFFFF',
-      primaryContainer: '#D0E4FF',
+      primaryContainer: '#C6E0FF',
       onPrimaryContainer: '#001D32',
-      secondaryContainer: '#D8E3F8',
-      onSecondaryContainer: '#101C2B',
-      outline: '#72777F',
-      surfaceContainer: '#F1F4FA',
+      secondaryContainer: '#D3E6F8',
+      onSecondaryContainer: '#072138',
+      surface: '#E4F1FC',
+      cardBg: '#F6FAFF',
+      surfaceContainer: '#D5E8FA',
+      surfaceContainerHigh: '#C3DDF6',
+      onSurface: '#071E33',
+      onSurfaceVariant: '#1E4668',
+      outline: '#4A7499',
+      outlineVariant: '#A8C8E6',
     },
     dark: {
-      primary: '#92CCFF',
-      onPrimary: '#003353',
-      primaryContainer: '#004B76',
-      onPrimaryContainer: '#D0E4FF',
-      secondaryContainer: '#3C4758',
-      onSecondaryContainer: '#D8E3F8',
-      outline: '#8C9199',
-      surfaceContainer: '#1D2024',
+      primary: '#85C8FF',
+      primaryHover: '#A6D8FF',
+      onPrimary: '#002744',
+      primaryContainer: '#004A77',
+      onPrimaryContainer: '#D4EAFF',
+      secondaryContainer: '#1D364F',
+      onSecondaryContainer: '#D0E4FF',
+      surface: '#0A1520',
+      cardBg: '#112030',
+      surfaceContainer: '#15273B',
+      surfaceContainerHigh: '#1E354F',
+      onSurface: '#E5F1FC',
+      onSurfaceVariant: '#9EBCD8',
+      outline: '#5C7D9C',
+      outlineVariant: '#26425E',
     },
   },
   purple: {
     id: 'purple',
-    name: 'Lavanda Iris (Material You)',
-    seed: '#6750A4',
+    name: 'Lavanda Iris',
+    subtitle: 'Violeta Suave Material You',
+    seed: '#654EA3',
     light: {
-      primary: '#6750A4',
+      primary: '#654EA3',
+      primaryHover: '#513B8C',
       onPrimary: '#FFFFFF',
-      primaryContainer: '#EADDFF',
-      onPrimaryContainer: '#21005D',
-      secondaryContainer: '#E8DEF8',
-      onSecondaryContainer: '#1D192B',
-      outline: '#79747E',
-      surfaceContainer: '#F7F2FA',
+      primaryContainer: '#C8B5F2',
+      onPrimaryContainer: '#20084E',
+      secondaryContainer: '#BBA5EC',
+      onSecondaryContainer: '#1E074B',
+      surface: '#F2ECF9',
+      cardBg: '#E6DCF5',
+      surfaceContainer: '#DDD0F2',
+      surfaceContainerHigh: '#CEBDEA',
+      onSurface: '#1B0C38',
+      onSurfaceVariant: '#463466',
+      outline: '#76629B',
+      outlineVariant: '#BCA8E0',
     },
     dark: {
       primary: '#D0BCFF',
-      onPrimary: '#381E72',
+      primaryHover: '#E2D4FF',
+      onPrimary: '#321663',
       primaryContainer: '#4F378B',
-      onPrimaryContainer: '#EADDFF',
-      secondaryContainer: '#4A4458',
+      onPrimaryContainer: '#EFE6FF',
+      secondaryContainer: '#362850',
       onSecondaryContainer: '#E8DEF8',
-      outline: '#938F99',
-      surfaceContainer: '#211F26',
+      surface: '#120D1D',
+      cardBg: '#1B1429',
+      surfaceContainer: '#231A34',
+      surfaceContainerHigh: '#2F2345',
+      onSurface: '#F2ECFA',
+      onSurfaceVariant: '#C2B4D9',
+      outline: '#8475A1',
+      outlineVariant: '#3D2F59',
     },
   },
   green: {
     id: 'green',
-    name: 'Bosque Esmeralda (Naturaleza)',
-    seed: '#006E1C',
+    name: 'Bosque Esmeralda',
+    subtitle: 'Verde Salvia y Naturaleza',
+    seed: '#0D5624',
     light: {
-      primary: '#006E1C',
+      primary: '#0D5624',
+      primaryHover: '#084019',
       onPrimary: '#FFFFFF',
-      primaryContainer: '#B6F397',
-      onPrimaryContainer: '#002203',
-      secondaryContainer: '#D8E7CB',
-      onSecondaryContainer: '#131F0E',
-      outline: '#72796F',
-      surfaceContainer: '#F1F5ED',
+      primaryContainer: '#BEEBC6',
+      onPrimaryContainer: '#04260E',
+      secondaryContainer: '#C5DEC8',
+      onSecondaryContainer: '#0A3016',
+      surface: '#ECF4EE',
+      cardBg: '#E1EFE4',
+      surfaceContainer: '#D1E3D5',
+      surfaceContainerHigh: '#BDD4C2',
+      onSurface: '#07220F',
+      onSurfaceVariant: '#295035',
+      outline: '#4C7759',
+      outlineVariant: '#A9C6B0',
     },
     dark: {
-      primary: '#9BD67E',
-      onPrimary: '#003A08',
-      primaryContainer: '#005312',
-      onPrimaryContainer: '#B6F397',
-      secondaryContainer: '#3D4B36',
-      onSecondaryContainer: '#D8E7CB',
-      outline: '#8C9388',
-      surfaceContainer: '#1B2118',
+      primary: '#8CE39F',
+      primaryHover: '#A9EEB8',
+      onPrimary: '#003312',
+      primaryContainer: '#0D5624',
+      onPrimaryContainer: '#C8F5D1',
+      secondaryContainer: '#214029',
+      onSecondaryContainer: '#C6DEC9',
+      surface: '#0A160D',
+      cardBg: '#112215',
+      surfaceContainer: '#172D1C',
+      surfaceContainerHigh: '#203C27',
+      onSurface: '#E3F3E7',
+      onSurfaceVariant: '#A5C4AD',
+      outline: '#63876D',
+      outlineVariant: '#2A4B33',
     },
   },
   amber: {
     id: 'amber',
-    name: 'Melocotón Cálido (Atardecer)',
-    seed: '#8B5000',
+    name: 'Melocotón Cálido',
+    subtitle: 'Arena Dorada y Terracota',
+    seed: '#88460C',
     light: {
-      primary: '#8B5000',
+      primary: '#88460C',
+      primaryHover: '#6E3707',
       onPrimary: '#FFFFFF',
-      primaryContainer: '#FFDCC2',
-      onPrimaryContainer: '#2D1600',
-      secondaryContainer: '#F5DFD1',
-      onSecondaryContainer: '#251A12',
-      outline: '#85746B',
-      surfaceContainer: '#F8F2EE',
+      primaryContainer: '#DDA46B',
+      onPrimaryContainer: '#281100',
+      secondaryContainer: '#E5CAA6',
+      onSecondaryContainer: '#2E1500',
+      surface: '#FCEEE0',
+      cardBg: '#F1E1CB',
+      surfaceContainer: '#E8D4B7',
+      surfaceContainerHigh: '#DEC39E',
+      onSurface: '#241000',
+      onSurfaceVariant: '#573312',
+      outline: '#8A5A2E',
+      outlineVariant: '#CFAF86',
     },
     dark: {
       primary: '#FFB77B',
-      onPrimary: '#4A2800',
-      primaryContainer: '#683D00',
-      onPrimaryContainer: '#FFDCC2',
-      secondaryContainer: '#504137',
-      onSecondaryContainer: '#F5DFD1',
-      outline: '#9F8D84',
-      surfaceContainer: '#251F1B',
+      primaryHover: '#FFCA9E',
+      onPrimary: '#452200',
+      primaryContainer: '#88460C',
+      onPrimaryContainer: '#FFE3C8',
+      secondaryContainer: '#45301C',
+      onSecondaryContainer: '#F5DFC6',
+      surface: '#181008',
+      cardBg: '#24180D',
+      surfaceContainer: '#2E2012',
+      surfaceContainerHigh: '#3D2A18',
+      onSurface: '#F9ECE0',
+      onSurfaceVariant: '#D8BA9E',
+      outline: '#967454',
+      outlineVariant: '#4D3620',
     },
   },
   rose: {
     id: 'rose',
-    name: 'Cereza Carmesí (Coral)',
-    seed: '#984061',
+    name: 'Cereza Carmesí',
+    subtitle: 'Rosa Empolvado y Vino',
+    seed: '#7D1D38',
     light: {
-      primary: '#984061',
+      primary: '#7D1D38',
+      primaryHover: '#62142A',
       onPrimary: '#FFFFFF',
-      primaryContainer: '#FFD9E2',
-      onPrimaryContainer: '#3E001D',
-      secondaryContainer: '#F2DDE2',
-      onSecondaryContainer: '#25171B',
-      outline: '#837377',
-      surfaceContainer: '#FAF1F3',
+      primaryContainer: '#DC95A0',
+      onPrimaryContainer: '#330310',
+      secondaryContainer: '#E5B6BE',
+      onSecondaryContainer: '#360412',
+      surface: '#FCECEE',
+      cardBg: '#F3D9DD',
+      surfaceContainer: '#EAC8CE',
+      surfaceContainerHigh: '#DFB3BC',
+      onSurface: '#2B0510',
+      onSurfaceVariant: '#632436',
+      outline: '#965063',
+      outlineVariant: '#D5A3AE',
     },
     dark: {
-      primary: '#FFB0C8',
-      onPrimary: '#5E1133',
-      primaryContainer: '#7B2949',
-      onPrimaryContainer: '#FFD9E2',
-      secondaryContainer: '#544046',
-      onSecondaryContainer: '#F2DDE2',
-      outline: '#9D8C91',
-      surfaceContainer: '#261E21',
+      primary: '#FFB1C5',
+      primaryHover: '#FFC8D6',
+      onPrimary: '#4E071E',
+      primaryContainer: '#7D1D38',
+      onPrimaryContainer: '#FFDCE4',
+      secondaryContainer: '#4A212E',
+      onSecondaryContainer: '#FADAE0',
+      surface: '#1A0A0F',
+      cardBg: '#261017',
+      surfaceContainer: '#32161F',
+      surfaceContainerHigh: '#421D29',
+      onSurface: '#FCE8EC',
+      onSurfaceVariant: '#DCB4BE',
+      outline: '#9E6B78',
+      outlineVariant: '#522533',
     },
   },
   teal: {
     id: 'teal',
     name: 'Aqua Turquesa (Cian)',
-    seed: '#006A6A',
+    subtitle: 'Agua Marina Refrescante',
+    seed: '#004E52',
     light: {
-      primary: '#006A6A',
+      primary: '#004E52',
+      primaryHover: '#003A3D',
       onPrimary: '#FFFFFF',
-      primaryContainer: '#70F5F5',
-      onPrimaryContainer: '#002020',
-      secondaryContainer: '#CCE8E7',
-      onSecondaryContainer: '#052020',
-      outline: '#6F7979',
-      surfaceContainer: '#EDF5F5',
+      primaryContainer: '#33D4C6',
+      onPrimaryContainer: '#002022',
+      secondaryContainer: '#8CEAE0',
+      onSecondaryContainer: '#002426',
+      surface: '#E6FAF7',
+      cardBg: '#C8F5EE',
+      surfaceContainer: '#AEEDE4',
+      surfaceContainerHigh: '#8BE3D8',
+      onSurface: '#002022',
+      onSurfaceVariant: '#004A4D',
+      outline: '#147A7E',
+      outlineVariant: '#6AD1C7',
     },
     dark: {
-      primary: '#4ED8D8',
-      onPrimary: '#003737',
-      primaryContainer: '#004F4F',
-      onPrimaryContainer: '#70F5F5',
-      secondaryContainer: '#334B4B',
-      onSecondaryContainer: '#CCE8E7',
-      outline: '#899393',
-      surfaceContainer: '#172121',
+      primary: '#45E3D6',
+      primaryHover: '#74EFE5',
+      onPrimary: '#002E30',
+      primaryContainer: '#004E52',
+      onPrimaryContainer: '#A6FAF2',
+      secondaryContainer: '#17474B',
+      onSecondaryContainer: '#BCEFEB',
+      surface: '#061819',
+      cardBg: '#0C2527',
+      surfaceContainer: '#113134',
+      surfaceContainerHigh: '#184246',
+      onSurface: '#E0F7F5',
+      onSurfaceVariant: '#96CECA',
+      outline: '#4B8B88',
+      outlineVariant: '#1E5255',
     },
   },
 };
@@ -200,17 +314,36 @@ export function applyTheme(
     root.style.colorScheme = 'light';
   }
 
-  // Aplicar paleta de color Material You dinámica
+  // Obtener definición de la paleta seleccionada (con fallback seguro a 'blue')
   const paletteDef = MATERIAL_COLOR_PALETTES[colorPalette] || MATERIAL_COLOR_PALETTES.blue;
   const tokens = isDark ? paletteDef.dark : paletteDef.light;
 
+  // Inyectar tokens semánticos Material You en :root
   root.style.setProperty('--color-md-primary', tokens.primary);
+  root.style.setProperty('--color-md-primary-hover', tokens.primaryHover);
   root.style.setProperty('--color-md-on-primary', tokens.onPrimary);
   root.style.setProperty('--color-md-primary-container', tokens.primaryContainer);
   root.style.setProperty('--color-md-on-primary-container', tokens.onPrimaryContainer);
   root.style.setProperty('--color-md-secondary-container', tokens.secondaryContainer);
   root.style.setProperty('--color-md-on-secondary-container', tokens.onSecondaryContainer);
+  root.style.setProperty('--color-md-surface', tokens.surface);
+  root.style.setProperty('--color-md-card-bg', tokens.cardBg);
+  root.style.setProperty('--color-md-surface-container', tokens.surfaceContainer);
+  root.style.setProperty('--color-md-surface-container-high', tokens.surfaceContainerHigh);
+  root.style.setProperty('--color-md-on-surface', tokens.onSurface);
+  root.style.setProperty('--color-md-on-surface-variant', tokens.onSurfaceVariant);
+  root.style.setProperty('--color-md-outline', tokens.outline);
+  root.style.setProperty('--color-md-outline-variant', tokens.outlineVariant);
+
+  // Sincronizar alias legacy del proyecto (cove-* y card-*) para adaptación total
+  root.style.setProperty('--color-cove-blue', tokens.primary);
+  root.style.setProperty('--color-cove-sky', isDark ? tokens.primary : tokens.primaryContainer);
+  root.style.setProperty('--color-cove-deep', tokens.primaryHover);
+  root.style.setProperty('--color-cove-navy', tokens.onPrimaryContainer);
+  root.style.setProperty('--card-bg', tokens.cardBg);
+  root.style.setProperty('--card-border', tokens.outlineVariant);
   root.style.setProperty('--md-theme-seed', paletteDef.seed);
+
   root.setAttribute('data-color-palette', colorPalette);
 }
 

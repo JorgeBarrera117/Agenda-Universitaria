@@ -39,18 +39,18 @@ export const Badge: React.FC<BadgeProps> = ({
 
   const variantStyles: Record<BadgeVariant, string> = {
     primary:
-      'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border border-[#00639B]/20',
+      'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] border border-[var(--color-md-outline-variant)]',
     secondary:
-      'bg-[#D8E3F8] dark:bg-[#3C4758] text-[#101C2B] dark:text-[#D8E3F8] border border-[#72787E]/20',
+      'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] border border-[var(--color-md-outline-variant)]',
     success:
       'bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] border border-emerald-500/20',
     warning:
       'bg-[#FFDCC1] dark:bg-[#683D00] text-[#2E1500] dark:text-[#FFDCC1] border border-amber-500/20',
     danger:
       'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] border border-rose-500/20',
-    navy: 'bg-[#001D32] text-white shadow-2xs font-mono border border-white/10',
+    navy: 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-2xs font-mono border border-white/10',
     neutral:
-      'bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF] border border-[#C2C7CE]/40 dark:border-white/10',
+      'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] border border-[var(--color-md-outline-variant)]',
   };
 
   const customStyle: React.CSSProperties = {

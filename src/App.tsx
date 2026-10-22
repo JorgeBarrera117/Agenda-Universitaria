@@ -148,7 +148,7 @@ export function App() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-cove-blue selection:text-white transition-colors duration-200 ${
+      className={`min-h-screen bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] flex flex-col selection:bg-[var(--color-md-primary-container)] selection:text-[var(--color-md-on-primary-container)] transition-colors duration-200 ${
         isAnyEditorActive || isSettingsOpen ? 'pb-4' : 'pb-22 md:pb-10'
       }`}
     >
@@ -167,7 +167,7 @@ export function App() {
       {/* Notificación Toast Flotante */}
       {toastMessage && (
         <div
-          className={`fixed right-6 z-50 bg-cove-navy text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-cove-sky/30 animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2 ${
+          className={`fixed right-6 z-50 bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border border-[var(--color-md-outline-variant)] animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2 ${
             isAnyEditorActive || isSettingsOpen ? 'bottom-6' : 'bottom-24 md:bottom-8'
           }`}
         >

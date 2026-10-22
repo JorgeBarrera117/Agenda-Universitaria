@@ -43,26 +43,26 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isHidden ? '' : 'inline-flex'
     } items-center justify-center font-bold transition-all duration-200 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cove-sky/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed`;
 
-    // 2. Variantes visuales semánticas Material Design 3 (Material Web M3)
+    // 2. Variantes visuales semánticas Material Design 3 (Adaptativas a la paleta Material You activa)
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:shadow-xs hover:bg-[#005282] dark:hover:bg-[#B3D9FF] active:scale-95 shadow-xs',
+        'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:shadow-sm hover:bg-[var(--color-md-primary-hover)] active:scale-95 shadow-xs',
       secondary:
-        'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#B3D3FF] dark:hover:bg-[#005B8F] active:scale-95 shadow-2xs',
+        'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:bg-[var(--color-md-secondary-container)] active:scale-95 shadow-2xs',
       outline:
-        'border border-[#72787E] dark:border-[#8C9199] text-[#00639B] dark:text-[#96CCFF] bg-transparent hover:bg-[#00639B]/8 dark:hover:bg-white/8 active:scale-95',
+        'border-2 border-[var(--color-md-outline)] text-[var(--color-md-primary)] bg-transparent hover:bg-[var(--color-md-primary-container)]/30 active:scale-95',
       ghost:
-        'bg-transparent text-[#00639B] dark:text-[#96CCFF] hover:bg-[#00639B]/8 dark:hover:bg-white/8 active:scale-95',
+        'bg-transparent text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)]/30 active:scale-95',
       danger:
         'bg-[#BA1A1A] dark:bg-[#FFB4AB] text-white dark:text-[#690005] hover:bg-[#93000A] dark:hover:bg-[#FFDAD6] active:scale-95 shadow-xs',
       success:
-        'bg-[#006E1C] dark:bg-[#78DC77] text-white dark:text-[#003A0B] hover:bg-[#005313] dark:hover:bg-[#98F096] active:scale-95 shadow-xs',
+        'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] active:scale-95 shadow-xs',
       'action-blue':
-        'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#B3D3FF] dark:hover:bg-[#005B8F] active:scale-90 transition-all shadow-2xs',
+        'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:bg-[var(--color-md-secondary-container)] active:scale-90 transition-all shadow-2xs',
       'action-emerald':
         'bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] hover:bg-[#A6E6B8] dark:hover:bg-[#0E6838] active:scale-90 transition-all shadow-2xs',
       'action-indigo':
-        'bg-[#E8DEF8] dark:bg-[#4A4458] text-[#1D192B] dark:text-[#E8DEF8] hover:bg-[#DBCDEE] dark:hover:bg-[#585168] active:scale-90 transition-all shadow-2xs',
+        'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:bg-[var(--color-md-primary-container)] active:scale-90 transition-all shadow-2xs',
       'action-rose':
         'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:bg-[#FFB4AB] dark:hover:bg-[#BA1A1A] active:scale-90 transition-all shadow-2xs',
     };

@@ -3,44 +3,221 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-cove-blue: #00639B;
-  --color-cove-sky: #96CCFF;
+  --color-cove-blue: #004A77;
+  --color-cove-sky: #C6E0FF;
   --color-cove-gold: #FFB77C;
   --color-cove-sand: #FFDCC1;
-  --color-cove-deep: #004B76;
+  --color-cove-deep: #00385C;
   --color-cove-navy: #001D32;
 
-  /* Material Design 3 (Material Web) System Tokens */
-  --color-md-primary: #00639B;
-  --color-md-primary-container: #D0E4FF;
+  /* Material Design 3 (Material You) Dynamic System Tokens */
+  --color-md-primary: #004A77;
+  --color-md-primary-hover: #00385C;
+  --color-md-on-primary: #FFFFFF;
+  --color-md-primary-container: #C6E0FF;
   --color-md-on-primary-container: #001D32;
-  --color-md-secondary-container: #D8E3F8;
-  --color-md-on-secondary-container: #101C2B;
-  --color-md-surface: #FDFBFF;
-  --color-md-surface-container: #F1F4FA;
-  --color-md-surface-container-high: #EBEFF5;
-  --color-md-surface-container-highest: #E2E7EF;
-  --color-md-on-surface: #191C20;
-  --color-md-on-surface-variant: #41474D;
-  --color-md-outline: #72787E;
-  --color-md-outline-variant: #C2C7CE;
+  --color-md-secondary-container: #D3E6F8;
+  --color-md-on-secondary-container: #072138;
+  --color-md-surface: #E4F1FC;
+  --color-md-card-bg: #F6FAFF;
+  --color-md-surface-container: #D5E8FA;
+  --color-md-surface-container-high: #C3DDF6;
+  --color-md-on-surface: #071E33;
+  --color-md-on-surface-variant: #1E4668;
+  --color-md-outline: #4A7499;
+  --color-md-outline-variant: #A8C8E6;
 }
 
 :root {
-  --card-bg: #FAF8FD;
-  --card-border: #C2C7CE;
+  --card-bg: var(--color-md-card-bg);
+  --card-border: var(--color-md-outline-variant);
 }
 
 .dark {
-  --card-bg: #1D2024;
-  --card-border: #42474E;
+  --card-bg: var(--color-md-card-bg);
+  --card-border: var(--color-md-outline-variant);
 }
 
 @layer base {
   body {
-    @apply bg-[#FDFBFF] text-[#191C20] dark:bg-[#101418] dark:text-[#E2E2E6] antialiased selection:bg-[#D0E4FF] selection:text-[#001D32] dark:selection:bg-[#004B76] dark:selection:text-[#D0E4FF] min-h-screen transition-colors duration-200;
+    background-color: var(--color-md-surface);
+    color: var(--color-md-on-surface);
+    @apply antialiased min-h-screen transition-colors duration-200;
     font-family: Roboto, 'Google Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, sans-serif;
   }
+
+  ::selection {
+    background-color: var(--color-md-primary-container);
+    color: var(--color-md-on-primary-container);
+  }
+}
+
+/* ============================================================================
+   PUENTE DE ADAPTACIÓN UNIVERSAL MATERIAL YOU (DYNAMIC PALETTE ENGINE)
+   ============================================================================
+   Asegura que absolutamente todos los apartados, tarjetas, buscadores, chips,
+   botones, interruptores y textos hereden en tiempo real la paleta activa
+   (y cualquier paleta futura) manteniendo contraste legible WCAG AA/AAA.
+   ============================================================================ */
+
+/* 1. Botones Primarios, Switches Activos e Indicadores de Énfasis */
+.bg-\[\#00639B\],
+.bg-\[\#00639A\],
+.bg-\[\#2481cc\],
+.dark .dark\:bg-\[\#92CCFF\],
+.dark .dark\:bg-\[\#96CCFF\],
+.dark .dark\:bg-\[\#97CBFF\] {
+  background-color: var(--color-md-primary) !important;
+  color: var(--color-md-on-primary) !important;
+}
+
+.hover\:bg-\[\#005282\]:hover,
+.dark .dark\:hover\:bg-\[\#72BAF5\]:hover,
+.dark .dark\:hover\:bg-\[\#B3D9FF\]:hover {
+  background-color: var(--color-md-primary-hover) !important;
+}
+
+/* 2. Contenedores Primarios (Píldoras Activas, Botones "Cancelar"/Secundarios, Hero Banner) */
+.bg-\[\#D0E4FF\],
+.bg-\[\#D8E3F8\],
+.dark .dark\:bg-\[\#004B76\],
+.dark .dark\:bg-\[\#3C4758\] {
+  background-color: var(--color-md-primary-container) !important;
+  color: var(--color-md-on-primary-container) !important;
+}
+
+.bg-\[\#D0E4FF\]\/40,
+.bg-\[\#D0E4FF\]\/50,
+.bg-\[\#D0E4FF\]\/60,
+.bg-\[\#D0E4FF\]\/70,
+.dark .dark\:bg-\[\#004B76\]\/40,
+.dark .dark\:bg-\[\#004B76\]\/50,
+.dark .dark\:bg-\[\#004B76\]\/60 {
+  background-color: color-mix(in srgb, var(--color-md-primary-container) 75%, transparent) !important;
+}
+
+.hover\:bg-\[\#D0E4FF\]:hover,
+.hover\:bg-\[\#B3D3FF\]:hover,
+.hover\:bg-\[\#b8d6ff\]:hover,
+.hover\:bg-\[\#b9d7ff\]:hover,
+.hover\:bg-\[\#D8E3F8\]:hover,
+.dark .dark\:hover\:bg-\[\#004B76\]:hover,
+.dark .dark\:hover\:bg-\[\#005B8F\]:hover,
+.dark .dark\:hover\:bg-\[\#3C4758\]:hover {
+  background-color: var(--color-md-primary-container) !important;
+  color: var(--color-md-on-primary-container) !important;
+}
+
+/* 3. Superficies de Tarjetas, Paneles y Contenedores Agrupados */
+.bg-\[\#FDFBFF\],
+.bg-\[\#FAF8FD\],
+.dark .dark\:bg-\[\#1D2024\],
+.dark .dark\:bg-\[\#1E1A22\],
+.dark .dark\:bg-\[\#17212b\] {
+  background-color: var(--color-md-card-bg) !important;
+}
+
+.bg-\[\#F1F4FA\],
+.bg-\[\#F1F4FA\]\/95,
+.dark .dark\:bg-\[\#1D2024\]\/95 {
+  background-color: var(--color-md-surface-container) !important;
+}
+
+.bg-\[\#E2E7EF\],
+.bg-\[\#E2E7EF\]\/70,
+.bg-\[\#E2E7EF\]\/60,
+.bg-\[\#E2E7EF\]\/50,
+.dark .dark\:bg-\[\#272A2F\],
+.dark .dark\:bg-\[\#272A2F\]\/70,
+.dark .dark\:bg-\[\#272A2F\]\/50,
+.dark .dark\:bg-\[\#14171B\] {
+  background-color: var(--color-md-surface-container-high) !important;
+}
+
+.hover\:bg-\[\#E2E7EF\]:hover,
+.hover\:bg-\[\#E2E7EF\]\/50:hover,
+.hover\:bg-\[\#E2E7EF\]\/70:hover,
+.hover\:bg-\[\#E2E7EF\]\/80:hover,
+.dark .dark\:hover\:bg-\[\#272A2F\]:hover,
+.dark .dark\:hover\:bg-\[\#272A2F\]\/50:hover,
+.dark .dark\:hover\:bg-\[\#272A2F\]\/70:hover,
+.dark .dark\:hover\:bg-\[\#272A2F\]\/80:hover {
+  background-color: var(--color-md-secondary-container) !important;
+}
+
+/* 4. Tipografía e Íconos con Contraste Garantizado (Legibilidad Total) */
+.text-\[\#191C20\],
+.text-slate-900,
+.text-slate-800,
+.dark .dark\:text-\[\#E2E2E6\],
+.dark .dark\:text-white,
+.dark .dark\:text-slate-100,
+.dark .dark\:text-slate-200 {
+  color: var(--color-md-on-surface);
+}
+
+.text-\[\#41474D\],
+.text-\[\#43474E\],
+.text-\[\#72777F\],
+.text-slate-600,
+.text-slate-500,
+.text-slate-400,
+.dark .dark\:text-\[\#C2C7CF\],
+.dark .dark\:text-\[\#C3C7D0\],
+.dark .dark\:text-\[\#8C9199\],
+.dark .dark\:text-slate-400,
+.dark .dark\:text-slate-500 {
+  color: var(--color-md-on-surface-variant) !important;
+}
+
+.text-\[\#00639B\],
+.text-\[\#00639A\],
+.text-\[\#2481cc\],
+.dark .dark\:text-\[\#92CCFF\],
+.dark .dark\:text-\[\#96CCFF\],
+.dark .dark\:text-\[\#97CBFF\],
+.dark .dark\:text-\[\#2AABEE\] {
+  color: var(--color-md-primary) !important;
+}
+
+.text-\[\#001D32\],
+.dark .dark\:text-\[\#D0E4FF\] {
+  color: var(--color-md-on-primary-container) !important;
+}
+
+/* 5. Bordes y Anillos de Foco Dinámicos */
+.border-\[\#00639B\],
+.border-\[\#004B76\]\/30,
+.focus\:border-\[\#00639B\]:focus,
+.focus-within\:border-\[\#00639B\]:focus-within,
+.dark .dark\:border-\[\#92CCFF\],
+.dark .dark\:border-\[\#D0E4FF\]\/30,
+.dark .dark\:focus\:border-\[\#92CCFF\]:focus,
+.dark .dark\:focus-within\:border-\[\#92CCFF\]:focus-within {
+  border-color: var(--color-md-primary) !important;
+}
+
+.border-\[\#C2C7CE\],
+.border-\[\#C2C7CE\]\/30,
+.border-\[\#C2C7CE\]\/35,
+.border-\[\#C2C7CE\]\/40,
+.border-\[\#C2C7CE\]\/60,
+.border-\[\#C3C7D0\],
+.border-\[\#C3C7D0\]\/30,
+.border-\[\#C3C7D0\]\/40,
+.border-\[\#C3C7D0\]\/50,
+.border-\[\#C3C7D0\]\/60,
+.border-\[\#C3C7D0\]\/70,
+.dark .dark\:border-\[\#42474E\]\/35,
+.dark .dark\:border-\[\#42474E\]\/40,
+.dark .dark\:border-\[\#42474E\]\/60,
+.dark .dark\:border-\[\#43474E\],
+.dark .dark\:border-\[\#43474E\]\/30,
+.dark .dark\:border-\[\#43474E\]\/40,
+.dark .dark\:border-\[\#43474E\]\/50,
+.dark .dark\:border-\[\#43474E\]\/60,
+.dark .dark\:border-\[\#43474E\]\/70 {
+  border-color: var(--color-md-outline-variant) !important;
 }
 
 /* Estilos de tipografía y visualización para el Editor Tiptap / Word Móvil */
@@ -55,7 +232,7 @@
 .ProseMirror h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-md-on-surface);
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
@@ -63,7 +240,7 @@
 .ProseMirror h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-md-on-surface);
   margin-top: 0.85rem;
   margin-bottom: 0.4rem;
 }
@@ -85,12 +262,12 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid #006BBB;
+  border-left: 3px solid var(--color-md-primary);
   padding-left: 0.85rem;
-  color: #475569;
+  color: var(--color-md-on-surface-variant);
   font-style: italic;
   margin: 0.75rem 0;
-  background-color: #f8fafc;
+  background-color: var(--color-md-surface-container);
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   border-radius: 0 0.5rem 0.5rem 0;
@@ -102,12 +279,12 @@
   height: auto;
   margin: 0.75rem auto;
   box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-md-outline-variant);
 }
 
 .ProseMirror hr {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-md-outline-variant);
   margin: 1rem 0;
 }
 
@@ -115,31 +292,10 @@
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: #94a3b8;
+  color: var(--color-md-on-surface-variant);
+  opacity: 0.7;
   pointer-events: none;
   height: 0;
-}
-
-/* Modo Oscuro para ProseMirror */
-.dark .ProseMirror h1 {
-  color: #f8fafc;
-}
-.dark .ProseMirror h2 {
-  color: #f1f5f9;
-}
-.dark .ProseMirror blockquote {
-  color: #cbd5e1;
-  background-color: #0f172a;
-  border-left-color: #30A0E0;
-}
-.dark .ProseMirror hr {
-  border-top-color: #334155;
-}
-.dark .ProseMirror img {
-  border-color: #334155;
-}
-.dark .ProseMirror p.is-editor-empty:first-child::before {
-  color: #64748b;
 }
 
 /* Scrollbar elegante para contenedores horizontales y vistas de calendario */
@@ -151,15 +307,9 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.4);
+  background-color: color-mix(in srgb, var(--color-md-outline) 45%, transparent);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(148, 163, 184, 0.7);
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 116, 139, 0.4);
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 116, 139, 0.7);
+  background-color: color-mix(in srgb, var(--color-md-outline) 75%, transparent);
 }

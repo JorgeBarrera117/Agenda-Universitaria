@@ -372,8 +372,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   }}
                   className={`relative flex-1 min-w-[52px] sm:min-w-[76px] py-2 sm:py-2.5 px-2 rounded-2xl text-center border transition-all duration-200 cursor-pointer active:scale-95 ${
                     isSelected
-                      ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#004B76]/30 dark:border-[#D0E4FF]/30 shadow-xs ring-1 ring-[#00639B]/20'
-                      : 'bg-white dark:bg-[#14171B] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] shadow-2xs'
+                      ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] border-[var(--color-md-primary)] shadow-xs ring-2 ring-[var(--color-md-primary)]/25'
+                      : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)] border-[var(--color-md-outline-variant)] hover:bg-[var(--color-md-surface-container-high)] shadow-2xs'
                   }`}
                 >
                   {/* Indicador de "Hoy": Micro-badge absoluto en esquina */}
@@ -381,24 +381,28 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     <span
                       className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full ${
                         isSelected
-                          ? 'bg-[#BA1A1A] dark:bg-[#FFB4AB] ring-2 ring-white dark:ring-[#004B76] animate-pulse'
-                          : 'bg-amber-500 ring-2 ring-white dark:ring-[#14171B]'
+                          ? 'bg-cove-gold ring-2 ring-white animate-pulse'
+                          : 'bg-amber-500 ring-2 ring-[var(--color-md-card-bg)]'
                       }`}
                       title="Hoy"
                     />
                   )}
 
                   {/* Día de la semana perfectamente centrado */}
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider block leading-tight text-center">
+                  <span
+                    className={`text-xs sm:text-sm font-black uppercase tracking-wider block leading-tight text-center ${
+                      isSelected ? 'text-[var(--color-md-on-primary)]' : 'text-[var(--color-md-on-surface)]'
+                    }`}
+                  >
                     {SHORT_DAY_NAMES[day as DayOfWeek]}
                   </span>
 
                   {/* Conteo de bloques con contraste M3 */}
                   <div
-                    className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-semibold truncate ${
+                    className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 truncate ${
                       isSelected
-                        ? 'text-[#001D32] dark:text-[#D0E4FF] font-bold'
-                        : 'text-[#72777F] dark:text-[#8C9199]'
+                        ? 'text-[var(--color-md-on-primary)] opacity-95 font-extrabold'
+                        : 'text-[var(--color-md-on-surface-variant)] font-semibold'
                     }`}
                   >
                     <span className="sm:hidden">{count} {count === 1 ? 'blq' : 'blqs'}</span>
@@ -421,7 +425,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 : displayedDays.length === 6
                 ? 'grid-cols-6 min-w-[1560px]'
                 : 'grid-cols-5 min-w-[1300px] 2xl:min-w-0'
-            } gap-3 bg-slate-200/60 dark:bg-slate-900/60 p-3 sm:p-3.5 rounded-3xl border border-slate-200 dark:border-slate-800`}
+            } gap-3 bg-[var(--color-md-surface-container)] p-3 sm:p-3.5 rounded-3xl border border-[var(--color-md-outline-variant)]`}
           >
             {displayedDays.map((day) => {
               const daySlotsList = slots
@@ -434,16 +438,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   key={day}
                   className={`flex flex-col gap-2.5 rounded-2xl p-2.5 sm:p-3 transition-colors ${
                     isToday
-                      ? 'bg-white dark:bg-slate-900 border-2 border-cove-sky/80 shadow-sm'
-                      : 'bg-slate-100/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80'
+                      ? 'bg-[var(--color-md-card-bg)] border-2 border-[var(--color-md-primary)] shadow-sm'
+                      : 'bg-[var(--color-md-card-bg)]/80 border border-[var(--color-md-outline-variant)]'
                   }`}
                 >
                   {/* Encabezado del Día */}
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/90 dark:border-slate-800">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--color-md-outline-variant)]">
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`text-xs sm:text-sm font-black uppercase tracking-wider ${
-                          isToday ? 'text-cove-blue dark:text-cove-sky' : 'text-slate-800 dark:text-slate-200'
+                          isToday ? 'text-[var(--color-md-primary)]' : 'text-[var(--color-md-on-surface)]'
                         }`}
                       >
                         {DAY_NAMES[day]}
@@ -620,24 +624,24 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* 5. VISTA DIARIA (Móvil / Pases de Aula Detallados) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden space-y-3.5' : 'space-y-3.5'}>
-        <div className="flex items-center justify-between bg-white dark:bg-slate-900 px-5 py-3.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+        <div className="flex items-center justify-between bg-[var(--color-md-card-bg)] px-5 py-3.5 rounded-2xl border border-[var(--color-md-outline-variant)] shadow-2xs">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)]">
               Horario para el día
             </span>
-            <h3 className="text-base font-black text-slate-900 dark:text-white">
+            <h3 className="text-base font-black text-[var(--color-md-on-surface)]">
               {DAY_NAMES[selectedDay]}
             </h3>
           </div>
-          <span className="px-3 py-1 rounded-full text-xs font-bold bg-cove-blue/10 dark:bg-cove-sky/15 text-cove-blue dark:text-cove-sky border border-cove-sky/30 dark:border-cove-sky/40">
+          <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] border border-[var(--color-md-outline-variant)]">
             {daySlots.length} {daySlots.length === 1 ? 'materia' : 'materias'}
           </span>
         </div>
 
         {daySlots.length === 0 ? (
-          <div className="text-center py-14 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 shadow-xs">
-            <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+          <div className="text-center py-14 bg-[var(--color-md-card-bg)] rounded-3xl border border-dashed border-[var(--color-md-outline-variant)] p-8 shadow-xs">
+            <Calendar className="w-12 h-12 text-[var(--color-md-outline)] mx-auto mb-2 opacity-60" />
+            <p className="text-sm font-bold text-[var(--color-md-on-surface)]">
               Sin clases agendadas para el {DAY_NAMES[selectedDay]}
             </p>
             <Button

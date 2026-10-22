@@ -203,15 +203,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={onBack}
                   title="Volver a la Agenda"
                   aria-label="Volver a la Agenda"
-                  className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
+                  className="w-10 h-10 flex items-center justify-center text-[var(--color-md-on-surface)] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
                 >
-                  <ArrowLeft className="w-5 h-5 text-cove-blue dark:text-cove-sky" />
+                  <ArrowLeft className="w-5 h-5 text-[var(--color-md-primary)]" />
                 </button>
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-black text-[var(--color-md-on-surface)] tracking-tight">
                     Ajustes
                   </h1>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <p className="text-xs text-[var(--color-md-on-surface-variant)] font-medium">
                     Preferencias globales de la aplicación
                   </p>
                 </div>
@@ -219,27 +219,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Ficha de Identidad del Campus (Perfil Universitario) */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-xs border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="bg-[var(--color-md-card-bg)] rounded-2xl p-3.5 shadow-xs border border-[var(--color-md-outline-variant)] flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
                   <img
                     src="/app-icon-claro.svg"
                     alt="Logo Agenda Universitaria"
-                    className="w-11 h-11 rounded-xl shadow-xs ring-2 ring-cove-sky/40 object-contain bg-white p-0.5"
+                    className="w-11 h-11 rounded-xl shadow-xs ring-2 ring-[var(--color-md-primary)]/40 object-contain bg-white p-0.5"
                   />
-                  <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-cove-gold border-2 border-white dark:border-slate-900 flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-cove-gold border-2 border-[var(--color-md-card-bg)] flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-cove-navy" />
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                  <h2 className="text-sm font-black text-[var(--color-md-on-surface)] truncate">
                     {APP_INFO.name}
                   </h2>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-cove-blue/10 dark:bg-cove-sky/15 text-cove-blue dark:text-cove-sky">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
                       {settings.semesterName || 'Ciclo Académico'}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-medium">
+                    <span className="text-[11px] text-[var(--color-md-on-surface-variant)] font-medium">
                       v{APP_INFO.version}
                     </span>
                   </div>
@@ -470,12 +470,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => setActiveSubView(null)}
                   title="Regresar a Ajustes"
                   aria-label="Regresar a Ajustes"
-                  className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
+                  className="w-10 h-10 flex items-center justify-center text-[var(--color-md-on-surface)] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
                 >
-                  <ArrowLeft className="w-5 h-5 text-cove-blue dark:text-cove-sky" />
+                  <ArrowLeft className="w-5 h-5 text-[var(--color-md-primary)]" />
                 </button>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  <h2 className="text-xl font-black text-[var(--color-md-on-surface)] tracking-tight">
                     {activeSubView === 'appearance' && 'Apariencia y Tema'}
                     {activeSubView === 'schedule' && 'Semestre y Horario'}
                     {activeSubView === 'notifications' && 'Notificaciones y Avisos'}
@@ -483,7 +483,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     {activeSubView === 'backup' && 'Datos y Copias de Seguridad'}
                     {activeSubView === 'about' && 'Acerca de la Agenda'}
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <p className="text-xs text-[var(--color-md-on-surface-variant)] font-medium">
                     Ajustes • Configuración específica
                   </p>
                 </div>
@@ -492,12 +492,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
             {activeSubView === 'appearance' && (
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-[28px] p-4 sm:p-6 shadow-xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-5">
+              <div className="bg-[var(--color-md-card-bg)] rounded-[28px] p-4 sm:p-6 shadow-xs border border-[var(--color-md-outline-variant)] space-y-5">
                 {/* 1. Modo de Luminosidad (Claro / Oscuro / Sistema) */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 pb-2 border-b border-[#C3C7D0]/30 dark:border-[#43474E]/30">
-                    <Sun className="w-4 h-4 text-[#00639A] dark:text-[#97CBFF]" />
-                    <span className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6]">
+                  <div className="flex items-center gap-2 pb-2 border-b border-[var(--color-md-outline-variant)]">
+                    <Sun className="w-4 h-4 text-[var(--color-md-primary)]" />
+                    <span className="text-xs font-bold text-[var(--color-md-on-surface)]">
                       Modo de Luminosidad de la Interfaz
                     </span>
                   </div>
@@ -509,22 +509,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onClick={() => handleThemeChange('light')}
                       className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 relative ${
                         settings.theme === 'light'
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0] hover:border-[#72777F]'
+                          ? 'bg-[var(--color-md-primary-container)] border-[var(--color-md-primary)] text-[var(--color-md-on-primary-container)] shadow-xs'
+                          : 'bg-[var(--color-md-surface-container)] border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
                       }`}
                     >
                       <div
                         className={`w-9 h-9 rounded-xl flex items-center justify-center transition-transform ${
                           settings.theme === 'light'
-                            ? 'bg-[#00639B] text-white shadow-xs scale-105'
-                            : 'bg-white dark:bg-[#14171B] text-[#72777F]'
+                            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs scale-105'
+                            : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)]'
                         }`}
                       >
                         <Sun className="w-5 h-5" />
                       </div>
                       <span className="font-extrabold text-xs sm:text-sm">Claro</span>
                       {settings.theme === 'light' && (
-                        <div className="w-4 h-4 rounded-full bg-[#00639B] text-white flex items-center justify-center text-[10px]">
+                        <div className="w-4 h-4 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center text-[10px]">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
                       )}
@@ -536,22 +536,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onClick={() => handleThemeChange('dark')}
                       className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 relative ${
                         settings.theme === 'dark'
-                          ? 'bg-[#004B76] dark:bg-[#004B76] border-[#92CCFF] text-[#D0E4FF] shadow-xs'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0] hover:border-[#72777F]'
+                          ? 'bg-[var(--color-md-primary-container)] border-[var(--color-md-primary)] text-[var(--color-md-on-primary-container)] shadow-xs'
+                          : 'bg-[var(--color-md-surface-container)] border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
                       }`}
                     >
                       <div
                         className={`w-9 h-9 rounded-xl flex items-center justify-center transition-transform ${
                           settings.theme === 'dark'
-                            ? 'bg-[#92CCFF] text-[#003353] shadow-xs scale-105'
-                            : 'bg-white dark:bg-[#14171B] text-[#72777F]'
+                            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs scale-105'
+                            : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)]'
                         }`}
                       >
                         <Moon className="w-5 h-5" />
                       </div>
                       <span className="font-extrabold text-xs sm:text-sm">Oscuro</span>
                       {settings.theme === 'dark' && (
-                        <div className="w-4 h-4 rounded-full bg-[#92CCFF] text-[#003353] flex items-center justify-center text-[10px]">
+                        <div className="w-4 h-4 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center text-[10px]">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
                       )}
@@ -563,22 +563,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onClick={() => handleThemeChange('system')}
                       className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 relative ${
                         settings.theme === 'system'
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0] hover:border-[#72777F]'
+                          ? 'bg-[var(--color-md-primary-container)] border-[var(--color-md-primary)] text-[var(--color-md-on-primary-container)] shadow-xs'
+                          : 'bg-[var(--color-md-surface-container)] border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
                       }`}
                     >
                       <div
                         className={`w-9 h-9 rounded-xl flex items-center justify-center transition-transform ${
                           settings.theme === 'system'
-                            ? 'bg-[#00639B] text-white shadow-xs scale-105'
-                            : 'bg-white dark:bg-[#14171B] text-[#72777F]'
+                            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs scale-105'
+                            : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)]'
                         }`}
                       >
                         <Monitor className="w-5 h-5" />
                       </div>
                       <span className="font-extrabold text-xs sm:text-sm">Auto</span>
                       {settings.theme === 'system' && (
-                        <div className="w-4 h-4 rounded-full bg-[#00639B] text-white flex items-center justify-center text-[10px]">
+                        <div className="w-4 h-4 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center text-[10px]">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
                       )}
@@ -587,28 +587,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
 
                 {/* 2. Paleta de Color Dinámica (Material You) */}
-                <div className="pt-4 border-t border-[#C3C7D0]/30 dark:border-[#43474E]/30 space-y-3">
+                <div className="pt-4 border-t border-[var(--color-md-outline-variant)] space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Palette className="w-4 h-4 text-[#00639A] dark:text-[#97CBFF]" />
-                      <span className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6]">
+                      <Palette className="w-4 h-4 text-[var(--color-md-primary)]" />
+                      <span className="text-xs font-bold text-[var(--color-md-on-surface)]">
                         Color del Tema (Material You)
                       </span>
                     </div>
-                    <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199]">
+                    <span className="text-[11px] font-bold text-[var(--color-md-primary)]">
                       {MATERIAL_COLOR_PALETTES[settings.colorPalette || 'blue'].name}
                     </span>
                   </div>
 
-                  <p className="text-xs text-[#72777F] dark:text-[#8C9199] leading-relaxed">
-                    Personaliza el color de acento principal de los botones, barras y elementos interactivos de la aplicación.
+                  <p className="text-xs text-[var(--color-md-on-surface-variant)] leading-relaxed">
+                    Personaliza la paleta de toda la aplicación (fondos, tarjetas, botones, barras e indicadores) garantizando legibilidad total.
                   </p>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     {(Object.keys(MATERIAL_COLOR_PALETTES) as MaterialColorTheme[]).map((paletteKey) => {
                       const pal = MATERIAL_COLOR_PALETTES[paletteKey];
                       const isSelected = (settings.colorPalette || 'blue') === paletteKey;
-                      const isDark = settings.theme === 'dark' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                      const isDark =
+                        settings.theme === 'dark' ||
+                        (settings.theme === 'system' &&
+                          typeof window !== 'undefined' &&
+                          window.matchMedia('(prefers-color-scheme: dark)').matches);
                       const tokenSet = isDark ? pal.dark : pal.light;
 
                       return (
@@ -616,24 +620,88 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           key={paletteKey}
                           type="button"
                           onClick={() => handleColorPaletteChange(paletteKey)}
-                          className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 relative ${
+                          style={{
+                            backgroundColor: tokenSet.surface,
+                            borderColor: isSelected ? tokenSet.primary : tokenSet.outlineVariant,
+                          }}
+                          className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-3 relative text-left ${
                             isSelected
-                              ? 'border-[#00639B] dark:border-[#92CCFF] bg-[#D0E4FF]/40 dark:bg-[#004B76]/40 shadow-xs ring-1 ring-[#00639B]/30'
-                              : 'border-[#C3C7D0]/40 dark:border-[#43474E]/40 bg-[#F1F4FA] dark:bg-[#272A2F] hover:border-[#72777F]'
+                              ? 'shadow-md scale-[1.01] ring-2 ring-offset-1 ring-current/20'
+                              : 'hover:scale-[1.005] shadow-2xs'
                           }`}
                         >
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-xs"
-                            style={{ backgroundColor: tokenSet.primary }}
-                          >
-                            {isSelected && <Check className="w-4 h-4 text-white stroke-[3]" />}
+                          {/* Fila Superior: Círculo Primario + Título de la Paleta */}
+                          <div className="flex items-center justify-between gap-2.5 w-full">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-xs"
+                                style={{
+                                  backgroundColor: tokenSet.primary,
+                                  color: tokenSet.onPrimary,
+                                }}
+                              >
+                                {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                              </div>
+                              <div className="min-w-0">
+                                <span
+                                  className="text-xs sm:text-sm font-black block truncate leading-tight"
+                                  style={{ color: tokenSet.onSurface }}
+                                >
+                                  {pal.name}
+                                </span>
+                                <span
+                                  className="text-[10px] font-bold block truncate mt-0.5"
+                                  style={{ color: tokenSet.onSurfaceVariant }}
+                                >
+                                  {pal.subtitle}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Mini Switch Preview de la Paleta */}
+                            <div
+                              className="w-8 h-4.5 rounded-full p-0.5 flex items-center justify-end shrink-0"
+                              style={{ backgroundColor: tokenSet.primary }}
+                            >
+                              <div
+                                className="w-3.5 h-3.5 rounded-full"
+                                style={{ backgroundColor: tokenSet.primaryContainer }}
+                              />
+                            </div>
                           </div>
-                          <div className="text-left min-w-0">
-                            <span className="text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] block truncate">
-                              {pal.name}
-                            </span>
-                            <span className="text-[10px] text-[#72777F] dark:text-[#8C9199] block truncate">
-                              Material You
+
+                          {/* Fila Inferior: Mini Kit de Muestras (Aceptar / Cancelar / Tarjeta) */}
+                          <div className="flex items-center justify-between gap-1.5 w-full pt-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold shadow-2xs"
+                                style={{
+                                  backgroundColor: tokenSet.primary,
+                                  color: tokenSet.onPrimary,
+                                }}
+                              >
+                                Aceptar
+                              </span>
+                              <span
+                                className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
+                                style={{
+                                  backgroundColor: tokenSet.primaryContainer,
+                                  color: tokenSet.onPrimaryContainer,
+                                }}
+                              >
+                                Cancelar
+                              </span>
+                            </div>
+
+                            <span
+                              className="px-2.5 py-0.5 rounded-lg text-[10px] font-bold border"
+                              style={{
+                                backgroundColor: tokenSet.cardBg,
+                                color: tokenSet.onSurface,
+                                borderColor: tokenSet.outlineVariant,
+                              }}
+                            >
+                              Tarjeta
                             </span>
                           </div>
                         </button>
@@ -642,7 +710,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 </div>
 
-                <p className="text-xs text-[#72777F] dark:text-[#8C9199] leading-relaxed pt-1">
+                <p className="text-xs text-[var(--color-md-on-surface-variant)] leading-relaxed pt-1">
                   El tema y la paleta seleccionados se guardan automáticamente en tu dispositivo y se aplican en tiempo real.
                 </p>
               </div>
