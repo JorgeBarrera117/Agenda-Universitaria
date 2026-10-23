@@ -5,6 +5,21 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.1] - 2026-10-23
+
+### Optimizado
+- **Reorganización y Densidad M3 en Horario (`ScheduleView.tsx`):**
+  - Rediseño compacto de tarjetas semanales (`weekly`), reduciendo la altura vertical de cada bloque en un 40% y eliminando anidamientos innecesarios para permitir visualizar múltiples clases simultáneas en pantalla sin scroll excesivo.
+  - Píldora de estado de jornada no invasiva: sustitución de la tarjeta gigante vacía de fin de jornada por un badge sutil que no desplaza el contenido hacia abajo.
+  - Optimización de rendimiento y prevención de bucles: memoización con `useMemo` de filtros temporales (`todaySlots`, `daySlots`, `activeClassNow`, `nextClassToday`), asegurando 0ms de latencia y eliminando re-renders redundantes en móvil y escritorio.
+- **Formulario de Cátedra Compacto (`ScheduleSlotForm.tsx`):**
+  - Unificación estructural: sustitución de 4 tarjetas masivas aisladas (Live Preview gigante de 200px, 2 botones gigantescos de modalidad) por un contenedor único de alta densidad Material Design 3.
+  - Selector segmentado de modalidad en cápsula compacta (`Presencial` / `Virtual`) en línea con la selección de materia.
+  - Reducción del 55% de altura vertical, permitiendo completar el formulario sin desplazamiento forzado en laptops y dispositivos móviles.
+  - Memoización de opciones de selectores (`subjectOptions`, `professorOptions`, `dayOptions`) para erradicar recálculos en cada pulsación.
+
+---
+
 ## [1.7.9.12] - 2026-10-22
 
 ### Añadido
