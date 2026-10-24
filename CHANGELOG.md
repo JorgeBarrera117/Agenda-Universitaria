@@ -5,6 +5,22 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.3] - 2026-10-23
+
+### Optimizado
+- **Reorganización y Densidad M3 en Profesores (`ProfessorsView.tsx`):**
+  - Banner de asesorías y cubículos descongestionado: sustitución de tarjeta pesada aislada por píldora compacta `rounded-2xl` de 38px que reduce drásticamente el espacio vertical superior.
+  - Barra de búsqueda M3 compactada a `h-10 sm:h-11` con botones de borrado atómico.
+  - Tarjetas de catedrático de alta densidad: avatar de contacto (`size="contact"`), micro-pills de materias asignadas y micro-acciones discretas de edición y eliminación (`w-7 h-7 sm:w-8 sm:h-8`).
+  - Optimización de rendimiento: creación de mapa de materias `subjectMap` memoizado con `useMemo` para búsquedas en tiempo $O(1)$ erradicando barridos repetitivos de arrays en el renderizado de la lista y en el filtro de búsqueda.
+- **Formulario de Catedrático Compacto (`ProfessorForm.tsx`):**
+  - Unificación estructural: sustitución de 3 tarjetas masivas separadas por un contenedor único M3 de alta densidad.
+  - Sustitución de vista previa gigante de 140px por una tira fina viva de 38px con avatar e indicador de estado en tiempo real.
+  - Sección de identidad visual compacta: micro-swatches circulares de color de 28px (`w-7 h-7`) y chips horizontales de selección de muñequito/ícono.
+  - Distribución eficiente en cuadrícula para datos personales (correo, teléfono, cubículo, materias y notas de asesoría) reduciendo el desplazamiento vertical en un 55%.
+
+---
+
 ## [1.7.10.2] - 2026-10-23
 
 ### Optimizado
