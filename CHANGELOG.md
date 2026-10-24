@@ -5,6 +5,23 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.2] - 2026-10-23
+
+### Optimizado
+- **Reorganización y Densidad M3 en Materias (`SubjectsView.tsx`):**
+  - Condensación de métricas superiores (*Materias*, *Créditos*, *Bloques*): reducción de padding de `p-3.5 sm:p-5` a `p-2 sm:p-2.5 rounded-2xl` y tipografía optimizada, liberando espacio superior en pantallas móviles.
+  - Tarjetas de asignatura de alta densidad: avatar de materia optimizado (`w-9 h-9 sm:w-10 sm:h-10`), erradicación de cajas vacías punteadas y renderizado estrictamente condicional de metadatos (docente, aula y créditos).
+  - Micro-acciones agrupadas y ergonómicas: botones de acceso directo a *Archivos* y *Apuntes* compactados sin saltos de línea forzados.
+  - Prevención de recálculos: memoización estricta de `totalCredits` con `useMemo` evitando recomputaciones innecesarias durante la navegación o apertura de modales.
+- **Formulario de Registro y Edición de Asignatura Compacto (`SubjectForm.tsx`):**
+  - Unificación estructural: fusión de 3 tarjetas masivas separadas (`rounded-[28px]`, `p-5`) en un único contenedor ergonómico M3 con distribución en rejilla fluida.
+  - Reducción del Live Preview de 160px a una píldora viva de estado de solo 38px, ahorrando más de 120px de espacio vertical.
+  - Selector de color e icono de ultra baja huella: micro-swatches circulares de 28px (`w-7 h-7`) y chips de icono horizontales compactos con auto-scroll.
+  - Desplegable M3Select de docente titular con panel colapsable de creación rápida de profesor inline y memoización con `useMemo` de `professorOptions`.
+  - Reducción del 50% de altura vertical total en pantallas táctiles y escritorio.
+
+---
+
 ## [1.7.10.1] - 2026-10-23
 
 ### Optimizado
