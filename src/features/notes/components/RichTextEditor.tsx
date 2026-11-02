@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
@@ -59,7 +58,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           levels: [1, 2],
         },
       }),
-      Underline,
       Image.configure({
         inline: false,
         allowBase64: true,
@@ -100,8 +98,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   });
 
   useEffect(() => {
-    if (editor) {
-      onEditorReady?.(editor);
+    if (editor && onEditorReady) {
+      onEditorReady(editor);
     }
   }, [editor, onEditorReady]);
 

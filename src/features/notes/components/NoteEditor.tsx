@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   Check,
   ArrowLeft,
@@ -55,9 +55,21 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
 
-  // Disparadores de cámara y galería
-  const [triggerCamera, setTriggerCamera] = useState<(() => void) | null>(null);
-  const [triggerGallery, setTriggerGallery] = useState<(() => void) | null>(null);
+  // Disparadores de cámara y galería (usamos refs para desacoplarlos del ciclo de renders y erradicar bucles infinitos)
+  const triggerCameraRef = useRef<(() => void) | null>(null);
+  const triggerGalleryRef = useRef<(() => void) | null>(null);
+
+  const handleTriggerCameraReady = useCallback((fn: () => void) => {
+    triggerCameraRef.current = fn;
+  }, []);
+
+  const handleTriggerGalleryReady = useCallback((fn: () => void) => {
+    triggerGalleryRef.current = fn;
+  }, []);
+
+  const handleEditorReady = useCallback((editor: Editor) => {
+    setEditorInstance(editor);
+  }, []);
 
   const selectedSubject = useMemo(
     () => subjects.find((s) => s.id === subjectId),
@@ -207,7 +219,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                     type="button"
                     onClick={() => {
                       setIsInsertMenuOpen(false);
-                      triggerCamera?.();
+                      triggerCameraRef.current?.();
                     }}
                     className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                   >
@@ -218,7 +230,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                     type="button"
                     onClick={() => {
                       setIsInsertMenuOpen(false);
-                      triggerGallery?.();
+                      triggerGalleryRef.current?.();
                     }}
                     className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                   >
@@ -332,9 +344,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
           <RichTextEditor
             content={content}
             onChange={setContent}
-            onEditorReady={setEditorInstance}
-            onTriggerCameraReady={(fn) => setTriggerCamera(() => fn)}
-            onTriggerGalleryReady={(fn) => setTriggerGallery(() => fn)}
+            onEditorReady={handleEditorReady}
+            onTriggerCameraReady={handleTriggerCameraReady}
+            onTriggerGalleryReady={handleTriggerGalleryReady}
             placeholder="Comienza a redactar tu apunte aquí..."
           />
         </div>

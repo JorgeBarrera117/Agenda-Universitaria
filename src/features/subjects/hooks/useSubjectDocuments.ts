@@ -1,15 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { registerPlugin, Capacitor } from '@capacitor/core';
-
-interface WidgetBridgePlugin {
-  openDocument(options: {
-    fileName: string;
-    base64Data: string;
-    mimeType?: string;
-  }): Promise<{ success: boolean; mimeType?: string }>;
-}
-
-const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
+import { Capacitor } from '@capacitor/core';
+import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
 
 // Helper para convertir Blob a base64 puro (sin prefijo data:...)
 function blobToBase64(blob: Blob): Promise<string> {

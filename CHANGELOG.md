@@ -5,6 +5,20 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.7] - 2026-11-02
+
+### Corregido
+- **Erradicación de bucle infinito de renders en editor de notas (`NoteEditor.tsx` & `RichTextEditor.tsx`):**
+  - Desacoplamiento de disparadores imperativos de inserción multimedia: reemplazo del estado reactivo `useState` por referencias mutables `useRef<(() => void) | null>(null)` y callbacks estables `useCallback` para los hooks `onTriggerCameraReady`, `onTriggerGalleryReady` y `onEditorReady`.
+  - Eliminación del error en consola `Maximum update depth exceeded` (+2160 ciclos repetitivos) al invocar la cámara o galería desde el menú superior de la barra de redacción.
+- **Eliminación de advertencia de extensión duplicada en TipTap (`RichTextEditor.tsx`):**
+  - Remoción de la importación redundante `@tiptap/extension-underline`: `@tiptap/starter-kit` v3+ ya incluye y gestiona de forma nativa la extensión de subrayado, eliminando la advertencia `[tiptap warn]: Duplicate extension names found: ['underline']` preservando todas las funcionalidades del formateador de texto.
+- **Centralización Singleton de plugin nativo Capacitor (`src/shared/plugins/widgetBridge.ts`):**
+  - Creación del módulo centralizado `widgetBridge.ts` con interfaz unificada `WidgetBridgePlugin` y registro único mediante `registerPlugin('WidgetBridge')`.
+  - Refactorización de `backup.ts`, `widgetSyncService.ts` y `useSubjectDocuments.ts` para importar la instancia singleton, eliminando por completo los errores reiterados `Capacitor plugin "WidgetBridge" already registered. Cannot register plugins twice.`
+
+---
+
 ## [1.7.10.6] - 2026-11-02
 
 ### Optimizado

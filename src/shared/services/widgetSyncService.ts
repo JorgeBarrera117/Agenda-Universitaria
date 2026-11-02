@@ -1,15 +1,10 @@
-import { registerPlugin, Capacitor } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import type { ScheduleSlot } from '../../features/schedule/types';
 import { DAY_NAMES, SHORT_DAY_NAMES } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { Note } from '../../features/notes/types';
-
-interface WidgetBridgePlugin {
-  updateWidgetData(options: { dataJson: string }): Promise<{ success: boolean }>;
-}
-
-const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
+import { WidgetBridge } from '../plugins/widgetBridge';
 
 export class WidgetSyncService {
   private static lastWidgetHash = '';

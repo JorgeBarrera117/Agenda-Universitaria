@@ -1,16 +1,7 @@
-import { registerPlugin, Capacitor } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import { db } from '../db/AppDatabase';
 import type { NoteImage } from '../../features/notes/types';
-
-interface WidgetBridgePlugin {
-  updateWidgetData(options: { dataJson: string }): Promise<{ success: boolean }>;
-  exportJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean; canceled?: boolean }>;
-  saveToDownloads(options: { content: string; fileName: string }): Promise<{ success: boolean; fileName: string }>;
-  shareJsonFile(options: { content: string; fileName: string }): Promise<{ success: boolean }>;
-  pickAndReadJsonFile(): Promise<{ success: boolean; content?: string; canceled?: boolean }>;
-}
-
-const WidgetBridge = registerPlugin<WidgetBridgePlugin>('WidgetBridge');
+import { WidgetBridge } from '../plugins/widgetBridge';
 
 // Convertir Blob a DataURL base64 para exportar en JSON
 function blobToDataUrl(blob: Blob): Promise<string> {
