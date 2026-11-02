@@ -5,6 +5,19 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.5] - 2026-11-02
+
+### Optimizado
+- **Reorganización y Densidad M3 en Documentos (`DocumentsView.tsx`):**
+  - Descongestión de Tarjetas de Documentos: Reducción de padding general de `p-3.5 rounded-[24px]` a `p-3 rounded-2xl sm:rounded-3xl`, squircle de formato compacto (`w-9 h-9 sm:w-10 sm:h-10`) y acciones ergonómicas integradas sin saltos forzados de línea.
+  - Barra de búsqueda y selector M3: Reducción de altura a `h-10 sm:h-11` con borrado atómico y selector de ordenamiento `M3Select` en píldora compacta.
+  - Micro-chips de asignaturas y formatos: Reducción de padding de filtros a píldoras de baja huella vertical (`px-2.5 py-1` y `px-2 py-0.5`).
+  - Optimización de rendimiento $O(1)$: Creación de mapa memoizado `subjectDocCounts` erradicando el filtrado redundante de arrays en cada píldora de materia durante el renderizado.
+  - Prevención de fugas de memoria: Control y limpieza estricta de temporizadores (`clearTimeout`) en notificaciones y copiado al portapapeles.
+  - Modales compactos: Descongestión de la ficha técnica del archivo, del diálogo de vinculación de archivos/enlaces y del modal de reasignación de materia.
+
+---
+
 ## [1.7.10.4] - 2026-11-02
 
 ### Optimizado

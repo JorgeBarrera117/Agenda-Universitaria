@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search,
   X,
@@ -72,10 +72,21 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [docToast, setDocToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Limpiar temporizadores para evitar fugas de memoria
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const showDocToast = (msg: string) => {
     setDocToast(msg);
-    setTimeout(() => setDocToast(null), 3200);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setDocToast(null), 3000);
   };
 
   // Botón físico Atrás en Android
@@ -103,8 +114,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const getFormatVisuals = (ext: string, isLink?: boolean) => {
     if (isLink) {
       return {
-        bg: '#2563EB',
-        icon: <LinkIcon className="w-5 h-5 text-white" />,
+        bg: '#00639B',
+        icon: <LinkIcon className="w-4.5 h-4.5 text-white" />,
         label: 'ENLACE',
         category: 'links' as FormatFilterType,
       };
@@ -115,7 +126,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       case 'pdf':
         return {
           bg: '#D9381E',
-          icon: <FileText className="w-5 h-5 text-white" />,
+          icon: <FileText className="w-4.5 h-4.5 text-white" />,
           label: 'PDF',
           category: 'pdf' as FormatFilterType,
         };
@@ -123,7 +134,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       case 'pptx':
         return {
           bg: '#D04423',
-          icon: <Presentation className="w-5 h-5 text-white" />,
+          icon: <Presentation className="w-4.5 h-4.5 text-white" />,
           label: 'SLIDES',
           category: 'slides' as FormatFilterType,
         };
@@ -131,7 +142,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       case 'docx':
         return {
           bg: '#185ABD',
-          icon: <FileText className="w-5 h-5 text-white" />,
+          icon: <FileText className="w-4.5 h-4.5 text-white" />,
           label: 'WORD',
           category: 'docs' as FormatFilterType,
         };
@@ -139,21 +150,21 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       case 'xlsx':
         return {
           bg: '#107C41',
-          icon: <Table className="w-5 h-5 text-white" />,
+          icon: <Table className="w-4.5 h-4.5 text-white" />,
           label: 'EXCEL',
           category: 'sheets' as FormatFilterType,
         };
       default:
         return {
           bg: '#5E6B7A',
-          icon: <File className="w-5 h-5 text-white" />,
+          icon: <File className="w-4.5 h-4.5 text-white" />,
           label: clean.toUpperCase(),
           category: 'other' as FormatFilterType,
         };
     }
   };
 
-  // Helper para formatear peso de bytes a legible
+  // Helper para formatear peso de bytes
   const formatFileSize = (bytes?: number): string => {
     if (!bytes) return '0 B';
     if (bytes < 1024) return `${bytes} B`;
@@ -161,12 +172,23 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  // Mapeo rápido de materias por ID
+  // Mapeo memoizado de materias por ID (Búsqueda O(1))
   const subjectsMap = useMemo(() => {
     const map = new Map<string, (typeof subjects)[0]>();
     subjects.forEach((s) => map.set(s.id, s));
     return map;
   }, [subjects]);
+
+  // Conteo memoizado de documentos por materia (Búsqueda O(1) en las píldoras de filtro)
+  const subjectDocCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of documents) {
+      if (d.subjectId) {
+        counts.set(d.subjectId, (counts.get(d.subjectId) || 0) + 1);
+      }
+    }
+    return counts;
+  }, [documents]);
 
   // Cálculos de estadísticas globales
   const stats = useMemo(() => {
@@ -195,7 +217,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           const q = searchQuery.toLowerCase().trim();
           const matchName = doc.name.toLowerCase().includes(q);
           const subj = subjectsMap.get(doc.subjectId);
-          const matchSubj = subj ? subj.name.toLowerCase().includes(q) || (subj.code && subj.code.toLowerCase().includes(q)) : false;
+          const matchSubj = subj
+            ? subj.name.toLowerCase().includes(q) || (subj.code && subj.code.toLowerCase().includes(q))
+            : false;
           if (!matchName && !matchSubj) return false;
         }
 
@@ -251,7 +275,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
     navigator.clipboard.writeText(text);
     setCopiedField(fieldKey);
     showDocToast('Información copiada al portapapeles');
-    setTimeout(() => setCopiedField(null), 2000);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopiedField(null), 2000);
   };
 
   // Vincular Archivo Local desde Input
@@ -285,7 +310,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
       setLinkName('');
       setLinkUrl('');
       setIsAddModalOpen(false);
-      showDocToast('Enlace externo guardado correctamente');
+      showDocToast('Enlace guardado correctamente');
     } catch (err: unknown) {
       if (err instanceof Error) setActionError(err.message);
       else setActionError('Error al guardar el enlace.');
@@ -327,66 +352,62 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   };
 
   return (
-    <div className="space-y-4 w-full animate-in fade-in duration-200">
-      {/* ======================================================== */}
-      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
-      {/* ======================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+    <div className="space-y-3.5 w-full animate-in fade-in duration-200">
+      {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
               Archivos y Documentos
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
               {stats.totalCount} {stats.totalCount === 1 ? 'archivo' : 'archivos'} • {stats.totalBytesFormatted}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Repositorio de presentaciones, guías PDF, documentos Word y enlaces por materia.
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Presentaciones, guías PDF, documentos Word y enlaces por materia.
           </p>
         </div>
 
-        {/* Botón Primario M3 para Escritorio y Horizontal con Accesibilidad Visual (Al hacer scroll se encoge en el FAB flotante) */}
+        {/* Botón Primario M3 */}
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className={`hidden sm:inline-flex items-center justify-center gap-2 lg:gap-2.5 min-h-[40px] lg:min-h-[48px] px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-extrabold tracking-wide bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 hover:scale-[1.02] transition-all duration-300 ease-out origin-right shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap ${
+          className={`hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 transition-all duration-300 ease-out origin-right shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap ${
             isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
           }`}
         >
-          <Plus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.5]" />
+          <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>Vincular Documento</span>
         </button>
       </div>
 
-      {/* ======================================================== */}
-      {/* 2. BARRA DE BÚSQUEDA Y HERRAMIENTAS DE FILTRADO M3       */}
-      {/* ======================================================== */}
-      <div className="space-y-3">
+      {/* 2. Barra de Búsqueda y Herramientas de Filtrado M3 */}
+      <div className="space-y-2.5">
         {/* Barra de Búsqueda y Ordenamiento */}
         <div className="flex items-center gap-2 flex-col sm:flex-row">
           {/* M3 Search Bar */}
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#72777F] dark:text-[#8C9199]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#72777F] dark:text-[#8C9199]" />
             <input
               type="text"
               placeholder="Buscar por nombre de archivo o asignatura..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 pl-11 pr-10 rounded-full bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 text-[#191C20] dark:text-[#E2E2E6] text-xs sm:text-sm placeholder:text-[#72777F] dark:placeholder:text-[#8C9199] border border-transparent focus:border-[#00639B] dark:focus:border-[#92CCFF] focus:outline-none transition-all shadow-2xs"
+              className="w-full h-10 sm:h-11 pl-10 pr-9 rounded-full bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 text-[#191C20] dark:text-[#E2E2E6] text-xs sm:text-sm placeholder:text-[#72777F] dark:placeholder:text-[#8C9199] border border-transparent focus:border-[#00639B] dark:focus:border-[#92CCFF] focus:outline-none transition-all shadow-2xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#191C20] dark:hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#191C20] dark:hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Selector de Orden Canónico M3Select (Unificado en toda la app) */}
+          {/* Selector de Orden M3Select */}
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-auto">
             <M3Select<SortByType>
               variant="pill"
@@ -400,31 +421,31 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                 { value: 'largest', label: 'Mayor tamaño' },
                 { value: 'name', label: 'Nombre (A-Z)' },
               ]}
-              className="w-full sm:w-auto min-w-[175px]"
+              className="w-full sm:w-auto min-w-[160px]"
             />
           </div>
         </div>
 
-        {/* Chips Deslizables de Asignatura (Filtro Horizontal en móvil, Wrap completo en PC) */}
-        <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-1.5 pt-0.5 custom-scrollbar select-none">
+        {/* Chips Deslizables de Asignatura */}
+        <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-0.5 pt-0.5 custom-scrollbar select-none">
           <button
             type="button"
             onClick={() => setSelectedSubjectFilter('all')}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               selectedSubjectFilter === 'all'
                 ? 'bg-[#00639B] text-white shadow-2xs'
                 : 'bg-[#E2E7EF]/80 dark:bg-[#272A2F]/80 text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#D0E4FF]/50'
             }`}
           >
             <FolderKanban className="w-3.5 h-3.5 shrink-0" />
-            <span>Todas las Asignaturas</span>
+            <span>Todas</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
               {documents.length}
             </span>
           </button>
 
           {subjects.map((subj) => {
-            const count = documents.filter((d) => d.subjectId === subj.id).length;
+            const count = subjectDocCounts.get(subj.id) || 0;
             const isSelected = selectedSubjectFilter === subj.id;
 
             return (
@@ -432,7 +453,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                 key={subj.id}
                 type="button"
                 onClick={() => setSelectedSubjectFilter(subj.id)}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   isSelected
                     ? 'bg-[#00639B] text-white shadow-2xs'
                     : 'bg-[#E2E7EF]/80 dark:bg-[#272A2F]/80 text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#D0E4FF]/50'
@@ -442,9 +463,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                   icon={subj.icon}
                   color={subj.color}
                   size="sm"
-                  className="w-4.5 h-4.5 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
+                  className="w-4 h-4 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
                 />
-                <span className="max-w-[130px] sm:max-w-none truncate">{subj.name}</span>
+                <span className="max-w-[120px] sm:max-w-none truncate">{subj.name}</span>
                 {count > 0 && (
                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
                     {count}
@@ -456,8 +477,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </div>
 
         {/* Chips de Categoría de Formato */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar select-none text-[11px] font-bold">
-          <span className="text-[#72777F] dark:text-[#8C9199] shrink-0 mr-1 flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar select-none text-[10px] sm:text-[11px] font-bold">
+          <span className="text-[#72777F] dark:text-[#8C9199] shrink-0 mr-0.5 flex items-center gap-1">
             <Filter className="w-3 h-3" /> Tipo:
           </span>
 
@@ -465,15 +486,15 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
             { id: 'all', label: 'Todos' },
             { id: 'pdf', label: 'PDFs' },
             { id: 'slides', label: 'Diapositivas' },
-            { id: 'docs', label: 'Documentos Word' },
-            { id: 'sheets', label: 'Hojas Excel' },
-            { id: 'links', label: 'Enlaces Web' },
+            { id: 'docs', label: 'Word' },
+            { id: 'sheets', label: 'Excel' },
+            { id: 'links', label: 'Enlaces' },
           ].map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setSelectedFormatFilter(f.id as FormatFilterType)}
-              className={`px-2.5 py-1 rounded-full transition-all shrink-0 cursor-pointer ${
+              className={`px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${
                 selectedFormatFilter === f.id
                   ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-black shadow-2xs'
                   : 'bg-transparent text-[#72777F] dark:text-[#8C9199] hover:bg-black/5 dark:hover:bg-white/5'
@@ -485,37 +506,35 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 3. LISTADO DE ARCHIVOS EN GRID Y TARJETAS                */}
-      {/* ======================================================== */}
+      {/* 3. Listado de Archivos en Rejilla M3 Descongestionada */}
       {filteredAndSortedDocs.length === 0 ? (
-        <div className="text-center py-16 px-4 rounded-[28px] border-2 border-dashed border-[#C2C7CE]/60 dark:border-[#42474E]/60 space-y-3 bg-[#F1F4FA]/30 dark:bg-[#1D2024]/30">
-          <div className="w-14 h-14 rounded-2xl bg-[#E2E7EF] dark:bg-[#272A2F] text-[#00639B] dark:text-[#92CCFF] flex items-center justify-center mx-auto shadow-xs">
-            <FolderOpen className="w-7 h-7 stroke-[1.8]" />
+        <div className="text-center py-12 px-4 rounded-2xl sm:rounded-3xl border-2 border-dashed border-[#C2C7CE]/60 dark:border-[#42474E]/60 space-y-2.5 bg-[#F1F4FA]/30 dark:bg-[#1D2024]/30">
+          <div className="w-11 h-11 rounded-2xl bg-[#E2E7EF] dark:bg-[#272A2F] text-[#00639B] dark:text-[#92CCFF] flex items-center justify-center mx-auto shadow-2xs">
+            <FolderOpen className="w-5 h-5 stroke-[1.8]" />
           </div>
-          <h3 className="text-base font-bold text-[#191C20] dark:text-[#E2E2E6]">
+          <h3 className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
             {documents.length === 0
               ? 'Aún no has vinculado ningún documento'
               : 'No se encontraron archivos con los filtros actuales'}
           </h3>
           <p className="text-xs text-[#72777F] dark:text-[#8C9199] max-w-md mx-auto leading-relaxed">
             {documents.length === 0
-              ? 'Vincula diapositivas en PowerPoint, informes en Word, guías en PDF o enlaces a Google Drive para organizarlos por materia y abrirlos en tu celular con un solo toque.'
-              : 'Prueba cambiando la asignatura seleccionada o borrando el término de búsqueda.'}
+              ? 'Vincula diapositivas, documentos Word, guías PDF o enlaces web para organizarlos por materia.'
+              : 'Prueba cambiando la asignatura seleccionada o borrando la búsqueda.'}
           </p>
           {documents.length === 0 && (
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] rounded-full text-sm sm:text-base font-extrabold tracking-wide bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] hover:scale-[1.02] transition-all cursor-pointer shadow-md"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] transition-all cursor-pointer shadow-sm"
             >
-              <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+              <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Vincular mi primer archivo</span>
             </button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3">
           {filteredAndSortedDocs.map((doc) => {
             const visuals = getFormatVisuals(doc.fileExtension, doc.isExternalLink);
             const subj = subjectsMap.get(doc.subjectId);
@@ -525,15 +544,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
               <div
                 key={doc.id}
                 onClick={() => !isOpening && handleOpenDoc(doc)}
-                className={`p-3.5 rounded-[24px] bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs hover:border-[#00639B]/50 transition-all cursor-pointer group active:scale-[0.99] select-none ${
+                className={`p-3 rounded-2xl sm:rounded-3xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 flex flex-col justify-between gap-2.5 shadow-2xs hover:shadow-xs hover:border-[#00639B]/50 transition-all cursor-pointer group active:scale-[0.99] select-none ${
                   isOpening ? 'opacity-70 ring-2 ring-[#00639B]/40' : ''
                 }`}
               >
-                {/* Parte Superior: Ícono, Título y Botones de Acción */}
-                <div className="flex items-start gap-3">
-                  {/* Squircle M3 de Formato */}
+                {/* Parte Superior: Ícono, Título y Ficha Técnica */}
+                <div className="flex items-start gap-2.5">
                   <div
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ring-1 ring-white/20 select-none"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ring-1 ring-white/20 select-none"
                     style={{ backgroundColor: visuals.bg }}
                   >
                     {visuals.icon}
@@ -541,16 +559,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono font-bold text-[10px] px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
+                      <span className="font-mono font-bold text-[9px] px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
                         {visuals.label}
                       </span>
                       {doc.sizeBytes && (
-                        <span className="text-[11px] font-semibold text-[#72777F] dark:text-[#8C9199]">
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-[#72777F] dark:text-[#8C9199]">
                           {formatFileSize(doc.sizeBytes)}
                         </span>
                       )}
                     </div>
-                    <h4 className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors mt-0.5 leading-snug">
+                    <h4 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors mt-0.5 leading-snug">
                       {doc.name}
                     </h4>
                   </div>
@@ -562,37 +580,37 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                       e.stopPropagation();
                       setSelectedDocForInfo(doc);
                     }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors shrink-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors shrink-0"
                     title="Ver detalles técnicos y ruta"
                     aria-label="Información del archivo"
                   >
-                    <Info className="w-4 h-4" />
+                    <Info className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {/* Parte Inferior: Materia asignada, Fecha y Botones */}
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-white/5 text-[11px]">
+                {/* Parte Inferior: Materia asignada y Acciones */}
+                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 text-[11px]">
                   {/* Chip de Materia */}
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-1 min-w-0 flex-1">
                     {subj ? (
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <SubjectBadge
                           icon={subj.icon}
                           color={subj.color}
                           size="sm"
-                          className="w-4.5 h-4.5 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
+                          className="w-4 h-4 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
                         />
-                        <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate">
+                        <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate text-[11px]">
                           {subj.name}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-slate-400 italic truncate">Materia no asignada</span>
+                      <span className="text-slate-400 italic truncate text-[10px]">Sin asignar</span>
                     )}
                   </div>
 
-                  {/* Botones Abrir y Menú */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Botones Abrir, Reasignar y Eliminar */}
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
                       disabled={isOpening}
@@ -600,9 +618,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                         e.stopPropagation();
                         handleOpenDoc(doc);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                     >
-                      <ArrowUpRight className={`w-3.5 h-3.5 ${isOpening ? 'animate-spin' : ''}`} />
+                      <ArrowUpRight className={`w-3 h-3 ${isOpening ? 'animate-spin' : ''}`} />
                       <span>{isOpening ? 'Abriendo...' : 'Abrir'}</span>
                     </button>
 
@@ -613,10 +631,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                         setDocToReassign(doc);
                         setNewReassignedSubjectId(doc.subjectId);
                       }}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                       title="Cambiar materia asignada"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
+                      <RefreshCw className="w-3 h-3" />
                     </button>
 
                     <button
@@ -625,11 +643,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                         e.stopPropagation();
                         deleteDocument(doc.id);
                       }}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 transition-colors cursor-pointer"
+                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 transition-colors cursor-pointer"
                       title="Quitar acceso directo"
                       aria-label="Quitar acceso directo"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -639,9 +657,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </div>
       )}
 
-      {/* ======================================================== */}
-      {/* 4. MODAL M3 DE INFORMACIÓN TÉCNICA Y AUDITORÍA           */}
-      {/* ======================================================== */}
+      {/* 4. Modal M3 de Información Técnica */}
       {selectedDocForInfo && (
         <Modal
           isOpen={!!selectedDocForInfo}
@@ -649,8 +665,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           title="Ficha Técnica del Documento"
           maxWidth="lg"
         >
-          <div className="space-y-4 -mt-2">
-            {/* Cabecera del archivo en el modal */}
+          <div className="space-y-3 -mt-2">
             {(() => {
               const doc = selectedDocForInfo;
               const visuals = getFormatVisuals(doc.fileExtension, doc.isExternalLink);
@@ -661,49 +676,49 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
 
               return (
                 <>
-                  <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#F1F4FA] dark:bg-[#1D2024] border border-[#C2C7CE]/40 dark:border-[#42474E]/40 shadow-xs">
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F1F4FA] dark:bg-[#1D2024] border border-[#C2C7CE]/40 dark:border-[#42474E]/40 shadow-2xs">
                     <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
                       style={{ backgroundColor: visuals.bg }}
                     >
                       {visuals.icon}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-[10px] px-2 py-0.5 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-[9px] px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
                           {visuals.label}
                         </span>
-                        <span className="text-xs font-bold text-[#72777F] dark:text-[#8C9199]">
+                        <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199]">
                           {formatFileSize(doc.sizeBytes)}
                         </span>
                       </div>
-                      <h4 className="text-sm sm:text-base font-black text-[#191C20] dark:text-[#E2E2E6] truncate mt-0.5">
+                      <h4 className="text-xs sm:text-sm font-black text-[#191C20] dark:text-[#E2E2E6] truncate mt-0.5">
                         {doc.name}
                       </h4>
                     </div>
                   </div>
 
                   {/* Cuadrícula de Especificaciones */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {/* Materia Vinculada */}
-                    <div className="p-3 rounded-2xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50">
-                      <div className="flex items-center gap-1.5 text-[#72777F] dark:text-[#8C9199] font-medium mb-1">
-                        <Tag className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Asignatura Asignada</span>
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50">
+                      <div className="flex items-center gap-1 text-[#72777F] dark:text-[#8C9199] font-medium mb-0.5">
+                        <Tag className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
+                        <span>Asignatura</span>
                       </div>
                       {subj ? (
-                        <div className="flex items-center gap-2.5 mt-1.5">
+                        <div className="flex items-center gap-2 mt-1">
                           <SubjectBadge
                             icon={subj.icon}
                             color={subj.color}
-                            size="md"
+                            size="sm"
                           />
                           <div className="min-w-0">
-                            <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate block">
+                            <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate block text-xs">
                               {subj.name}
                             </span>
                             {subj.code && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[10px] font-black bg-black text-white dark:bg-white dark:text-black tracking-wider mt-0.5">
+                              <span className="inline-flex items-center px-1.5 py-0.2 rounded font-mono text-[9px] font-black bg-black text-white dark:bg-white dark:text-black tracking-wider mt-0.5">
                                 {subj.code}
                               </span>
                             )}
@@ -714,13 +729,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                       )}
                     </div>
 
-                    {/* Fecha de Vinculación */}
-                    <div className="p-3 rounded-2xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50">
-                      <div className="flex items-center gap-1.5 text-[#72777F] dark:text-[#8C9199] font-medium mb-1">
-                        <Clock className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Fecha y Hora de Registro</span>
+                    {/* Fecha de Registro */}
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50">
+                      <div className="flex items-center gap-1 text-[#72777F] dark:text-[#8C9199] font-medium mb-0.5">
+                        <Clock className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
+                        <span>Fecha de Registro</span>
                       </div>
-                      <div className="font-bold text-[#191C20] dark:text-[#E2E2E6]">
+                      <div className="font-bold text-[#191C20] dark:text-[#E2E2E6] text-xs">
                         {new Date(doc.createdAt).toLocaleString('es-ES', {
                           dateStyle: 'medium',
                           timeStyle: 'short',
@@ -729,80 +744,77 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                     </div>
 
                     {/* Tipo MIME Oficial */}
-                    <div className="p-3 rounded-2xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50 sm:col-span-2">
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50 sm:col-span-2">
                       <div className="flex items-center justify-between gap-2 text-[#72777F] dark:text-[#8C9199] font-medium mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <Database className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
+                        <div className="flex items-center gap-1">
+                          <Database className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
                           <span>Tipo MIME Registrado</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleCopyText(doc.mimeType, 'mime')}
-                          className="text-[11px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
+                          className="text-[10px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
                         >
                           {copiedField === 'mime' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                           <span>{copiedField === 'mime' ? 'Copiado' : 'Copiar'}</span>
                         </button>
                       </div>
-                      <div className="font-mono text-[11px] font-bold text-[#191C20] dark:text-[#E2E2E6] truncate bg-slate-100 dark:bg-[#1D2024] p-1.5 rounded-lg">
+                      <div className="font-mono text-[10px] font-bold text-[#191C20] dark:text-[#E2E2E6] truncate bg-slate-100 dark:bg-[#1D2024] p-1.5 rounded-lg">
                         {doc.mimeType}
                       </div>
                     </div>
 
                     {/* Almacenamiento y Rutas del Sistema */}
-                    <div className="p-3.5 rounded-2xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50 sm:col-span-2 space-y-2.5">
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50 sm:col-span-2 space-y-2">
                       <div className="flex items-center gap-1.5 text-[#72777F] dark:text-[#8C9199] font-bold">
-                        <Smartphone className="w-4 h-4 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Ubicación y Almacenamiento en el Teléfono</span>
+                        <Smartphone className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
+                        <span>Almacenamiento Local PWA & Móvil</span>
                       </div>
 
-                      <div className="space-y-2">
-                        {/* Almacén IndexedDB */}
+                      <div className="space-y-1.5">
                         <div>
-                          <span className="text-[10px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
-                            Base de Datos Local PWA (Persistencia Segura):
+                          <span className="text-[9px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
+                            Base de Datos Local PWA:
                           </span>
-                          <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                          <span className="font-mono text-[10px] text-slate-700 dark:text-slate-300">
                             IndexedDB → AgendaDocsCacheDB → objectStore: blobs (Clave: {doc.id})
                           </span>
                         </div>
 
-                        {/* Ruta Interna de Android */}
                         <div>
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
-                              Ruta de Caché Nativa de Android (Sandboxed):
+                            <span className="text-[9px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
+                              Ruta Sandboxed Android:
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyText(androidInternalPath, 'path')}
-                              className="text-[10px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
+                              className="text-[9px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
                             >
                               {copiedField === 'path' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                              <span>{copiedField === 'path' ? 'Copiada' : 'Copiar Ruta'}</span>
+                              <span>{copiedField === 'path' ? 'Copiada' : 'Copiar'}</span>
                             </button>
                           </div>
-                          <div className="font-mono text-[10px] sm:text-[11px] text-[#191C20] dark:text-[#E2E2E6] bg-slate-100 dark:bg-[#1D2024] p-2 rounded-lg break-all select-all">
+                          <div className="font-mono text-[10px] text-[#191C20] dark:text-[#E2E2E6] bg-slate-100 dark:bg-[#1D2024] p-1.5 rounded-lg break-all select-all">
                             {androidInternalPath}
                           </div>
                         </div>
 
-                        {/* URI Seguro de FileProvider */}
                         <div>
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
-                              URI de Intercambio FileProvider (Hacia Word, PowerPoint, etc.):
+                            <span className="text-[9px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
+                              URI FileProvider:
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyText(androidContentUri, 'uri')}
-                              className="text-[10px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
+                              className="text-[9px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
                             >
                               {copiedField === 'uri' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                              <span>{copiedField === 'uri' ? 'Copiado' : 'Copiar URI'}</span>
+                              <span>{copiedField === 'uri' ? 'Copiado' : 'Copiar'}</span>
                             </button>
                           </div>
-                          <div className="font-mono text-[10px] text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/30 dark:bg-[#004B76]/20 p-2 rounded-lg break-all select-all">
+                          <div className="font-mono text-[9px] text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/30 dark:bg-[#004B76]/20 p-1.5 rounded-lg break-all select-all">
                             {androidContentUri}
                           </div>
                         </div>
@@ -815,7 +827,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                     <button
                       type="button"
                       onClick={() => setSelectedDocForInfo(null)}
-                      className="px-4 py-2 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF] hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF] hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
                     >
                       Cerrar
                     </button>
@@ -826,10 +838,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                         setSelectedDocForInfo(null);
                         handleOpenDoc(doc);
                       }}
-                      className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] shadow-xs active:scale-95 transition-all"
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] shadow-2xs active:scale-95 transition-all"
                     >
-                      <ArrowUpRight className="w-4 h-4" />
-                      <span>Abrir Documento con App</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      <span>Abrir Documento</span>
                     </button>
                   </div>
                 </>
@@ -839,18 +851,15 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </Modal>
       )}
 
-      {/* ======================================================== */}
-      {/* 5. MODAL M3 PARA VINCULAR NUEVO ARCHIVO O ENLACE         */}
-      {/* ======================================================== */}
+      {/* 5. Modal M3 para Vincular Nuevo Archivo o Enlace */}
       {isAddModalOpen && (
         <Modal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          title="Vincular Documento a Asignatura"
+          title="Vincular Documento"
           maxWidth="md"
         >
-          <div className="space-y-4 -mt-2">
-            {/* Input Oculto de Archivos */}
+          <div className="space-y-3 -mt-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -861,8 +870,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
 
             {/* Selector de Asignatura Obligatorio M3 */}
             <div>
-              <label className="block text-xs font-bold text-[#41474D] dark:text-[#C2C7CF] mb-1.5">
-                Selecciona la Asignatura Destino:
+              <label className="block text-xs font-bold text-[#41474D] dark:text-[#C2C7CF] mb-1">
+                Asignatura Destino:
               </label>
               <M3Select
                 value={targetSubjectId}
@@ -873,28 +882,28 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
             </div>
 
             {/* Selector de Tipo (Archivo vs Enlace) */}
-            <div className="flex p-1 rounded-2xl bg-[#E2E7EF] dark:bg-[#272A2F]">
+            <div className="flex p-0.5 rounded-xl bg-[#E2E7EF] dark:bg-[#272A2F]">
               <button
                 type="button"
                 onClick={() => setAddMode('file')}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-1 rounded-lg text-xs font-bold transition-all ${
                   addMode === 'file'
                     ? 'bg-[#00639B] text-white shadow-2xs'
                     : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-black/5'
                 }`}
               >
-                Archivo en Celular / PC
+                Archivo en Dispositivo
               </button>
               <button
                 type="button"
                 onClick={() => setAddMode('link')}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-1 rounded-lg text-xs font-bold transition-all ${
                   addMode === 'link'
                     ? 'bg-[#00639B] text-white shadow-2xs'
                     : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-black/5'
                 }`}
               >
-                Enlace (Google Drive / Web)
+                Enlace Web / Drive
               </button>
             </div>
 
@@ -902,20 +911,20 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
             {addMode === 'file' ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="p-6 rounded-[24px] border-2 border-dashed border-[#00639B]/40 dark:border-[#92CCFF]/40 text-center space-y-2 hover:bg-[#D0E4FF]/10 transition-colors cursor-pointer"
+                className="p-5 rounded-2xl border-2 border-dashed border-[#00639B]/40 dark:border-[#92CCFF]/40 text-center space-y-1.5 hover:bg-[#D0E4FF]/10 transition-colors cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-2xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center mx-auto shadow-xs">
-                  <HardDrive className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center mx-auto shadow-2xs">
+                  <HardDrive className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
+                <h4 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
                   Toca aquí para seleccionar un archivo
                 </h4>
-                <p className="text-xs text-[#72777F] dark:text-[#8C9199] max-w-xs mx-auto">
-                  Soporta presentaciones PPTX, documentos Word, guías PDF, hojas Excel y apuntes de clase.
+                <p className="text-[11px] text-[#72777F] dark:text-[#8C9199] max-w-xs mx-auto">
+                  Soporta PPTX, DOCX, PDF, XLSX y archivos de texto.
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSaveExternalLink} className="space-y-3">
+              <form onSubmit={handleSaveExternalLink} className="space-y-2.5">
                 <div>
                   <label className="block text-xs font-bold text-[#41474D] dark:text-[#C2C7CF] mb-1">
                     Nombre Descriptivo:
@@ -925,7 +934,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                     placeholder="ej. Diapositivas en Google Drive"
                     value={linkName}
                     onChange={(e) => setLinkName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-2xl bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs text-[#191C20] dark:text-[#E2E2E6] focus:outline-none focus:ring-2 focus:ring-[#00639B]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs text-[#191C20] dark:text-[#E2E2E6] focus:outline-none focus:ring-2 focus:ring-[#00639B]"
                   />
                 </div>
                 <div>
@@ -937,20 +946,20 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                     placeholder="https://drive.google.com/..."
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-2xl bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs text-[#191C20] dark:text-[#E2E2E6] focus:outline-none focus:ring-2 focus:ring-[#00639B]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs text-[#191C20] dark:text-[#E2E2E6] focus:outline-none focus:ring-2 focus:ring-[#00639B]"
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF]"
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF]"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs"
+                    className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs"
                   >
                     Guardar Enlace
                   </button>
@@ -961,19 +970,17 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </Modal>
       )}
 
-      {/* ======================================================== */}
-      {/* 6. MODAL M3 PARA REASIGNAR MATERIA                       */}
-      {/* ======================================================== */}
+      {/* 6. Modal M3 para Reasignar Materia */}
       {docToReassign && (
         <Modal
           isOpen={!!docToReassign}
           onClose={() => setDocToReassign(null)}
-          title="Reasignar Asignatura del Documento"
+          title="Reasignar Asignatura"
           maxWidth="sm"
         >
-          <div className="space-y-4 -mt-2">
+          <div className="space-y-3 -mt-2">
             <p className="text-xs text-[#72777F] dark:text-[#8C9199]">
-              Cambia la materia a la cual está vinculado el documento <strong className="text-[#191C20] dark:text-[#E2E2E6]">{docToReassign.name}</strong>:
+              Cambia la materia asignada a <strong className="text-[#191C20] dark:text-[#E2E2E6]">{docToReassign.name}</strong>:
             </p>
 
             <M3Select
@@ -983,27 +990,27 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
               placeholder="Seleccionar nueva materia..."
             />
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
+            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => setDocToReassign(null)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF]"
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmReassign}
-                className="px-5 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs"
+                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs"
               >
-                Actualizar Materia
+                Actualizar
               </button>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* Notificación Contextual Centrada y Translúcida */}
+      {/* Notificación Contextual */}
       <ContextualToast
         message={docToast || actionError}
         bottomOffset="nav"
@@ -1013,7 +1020,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         }}
       />
 
-      {/* Botón Flotante Compacto Reubicable (Móvil permanente + Scroll en horizontal/escritorio) */}
+      {/* Botón Flotante Compacto */}
       {isActive && (
         <DraggableFAB
           colorScheme="documents"
