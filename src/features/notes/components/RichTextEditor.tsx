@@ -65,7 +65,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         allowBase64: true,
         HTMLAttributes: {
           class:
-            'rounded-2xl max-w-full my-4 shadow-md border border-slate-200 block mx-auto cursor-zoom-in hover:ring-2 hover:ring-[#2481cc]/50 transition-all active:scale-[0.99]',
+            'rounded-2xl max-w-full my-3 shadow-md border border-slate-200 block mx-auto cursor-zoom-in hover:ring-2 hover:ring-[#00639B]/50 transition-all active:scale-[0.99]',
           title: 'Toca para ampliar y hacer zoom',
         },
       }),
@@ -80,7 +80,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-base sm:text-lg leading-relaxed prose dark:prose-invert max-w-none pb-24',
+          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-sm sm:text-base leading-relaxed prose dark:prose-invert max-w-none pb-20',
       },
       handleDOMEvents: {
         click: (_view, event) => {
@@ -150,7 +150,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         className="hidden"
       />
 
-      {/* Todo el espacio dedicado al lienzo editable estilo Google Docs (clic en cualquier área vacía enfoca el editor) */}
+      {/* Espacio dedicado al lienzo editable */}
       <div
         onClick={() => {
           if (!editor.isFocused) {
@@ -165,159 +165,159 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         />
       </div>
 
-      {/* Barra de Herramientas Inferior estilo Google Docs Mobile (100% borde a borde) */}
+      {/* Barra de Herramientas Inferior Compacta Material Design 3 */}
       <div
         style={{
           paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
         }}
-        className="fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-md-surface-container)] border-t border-[var(--color-md-outline-variant)] shadow-lg sm:px-6 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        className="fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-md-surface-container)] border-t border-[var(--color-md-outline-variant)] shadow-lg sm:px-6 py-1.5 pb-[max(0.35rem,env(safe-area-inset-bottom))]"
       >
-        <div className="w-full flex items-center justify-between md:justify-start md:gap-2 overflow-x-auto scrollbar-none py-0.5">
+        <div className="w-full flex items-center justify-between md:justify-start md:gap-1.5 overflow-x-auto scrollbar-none py-0.5">
           {/* Bloque Formato Tipográfico: B, I, U, S */}
           <div className="flex items-center gap-0.5 shrink-0">
             {/* Bold */}
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('bold')
-                  ? 'bg-[#2481cc] text-white shadow-xs font-black'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs font-black'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Negrita (Ctrl+B)"
             >
-              <span className="font-black text-sm">B</span>
+              <span className="font-black text-xs sm:text-sm">B</span>
             </button>
 
             {/* Italic */}
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('italic')
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Cursiva (Ctrl+I)"
             >
-              <span className="italic font-serif font-black text-sm">I</span>
+              <span className="italic font-serif font-black text-xs sm:text-sm">I</span>
             </button>
 
             {/* Underline */}
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleUnderline().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('underline')
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Subrayado (Ctrl+U)"
             >
-              <span className="underline font-black text-sm underline-offset-2">U</span>
+              <span className="underline font-black text-xs sm:text-sm underline-offset-2">U</span>
             </button>
 
             {/* Strikethrough */}
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('strike')
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Tachado"
             >
-              <span className="line-through font-bold text-sm">S</span>
+              <span className="line-through font-bold text-xs sm:text-sm">S</span>
             </button>
           </div>
 
-          <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
 
           {/* Bloque Encabezados: H1, H2 */}
           <div className="flex items-center gap-0.5 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('heading', { level: 1 })
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Título Grande (H1)"
             >
-              <Heading1 className="w-4 h-4" />
+              <Heading1 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('heading', { level: 2 })
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Subtítulo (H2)"
             >
-              <Heading2 className="w-4 h-4" />
+              <Heading2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
 
-          <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
 
-          {/* Bloque Listas y Bloques: Bullet, Numbered, Quote, Divider */}
+          {/* Bloque Listas y Bloques */}
           <div className="flex items-center gap-0.5 shrink-0">
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('bulletList')
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Lista con viñetas"
             >
-              <List className="w-4 h-4" />
+              <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('orderedList')
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
               title="Lista numerada"
             >
-              <ListOrdered className="w-4 h-4" />
+              <ListOrdered className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
+              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
                 editor.isActive('blockquote')
-                  ? 'bg-[#2481cc] text-white shadow-xs'
+                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
-              title="Cita o nota destacada"
+              title="Cita destacada"
             >
-              <Quote className="w-4 h-4" />
+              <Quote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              className="w-8 h-8 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg cursor-pointer transition-all active:scale-90"
-              title="Línea horizontal divisoria"
+              className="w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg cursor-pointer transition-all active:scale-90"
+              title="Línea divisoria"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
 
-          <div className="h-5 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
+          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
 
           {/* Bloque Multimedia: Cámara y Galería */}
           <div className="flex items-center gap-1 shrink-0">
@@ -325,10 +325,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               disabled={isProcessingImage}
               onClick={() => cameraInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2481cc]/10 hover:bg-[#2481cc]/20 text-[#2481cc] dark:text-[#2AABEE] text-xs font-bold rounded-lg border border-[#2481cc]/30 transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1 px-2 py-1 bg-[#00639B]/10 hover:bg-[#00639B]/20 text-[#00639B] dark:text-[#92CCFF] text-[11px] font-bold rounded-lg border border-[#00639B]/30 transition-all active:scale-95 cursor-pointer"
               title="Tomar foto con la cámara"
             >
-              <Camera className="w-3.5 h-3.5" />
+              <Camera className="w-3 h-3" />
               <span className="hidden sm:inline">Cámara</span>
             </button>
 
@@ -336,16 +336,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               disabled={isProcessingImage}
               onClick={() => galleryInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg border border-slate-200 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
               title="Insertar imagen de la galería"
             >
-              <ImageIcon className="w-3.5 h-3.5 text-emerald-500" />
+              <ImageIcon className="w-3 h-3 text-emerald-500" />
               <span className="hidden sm:inline">Galería</span>
             </button>
 
             {isProcessingImage && (
-              <span className="flex items-center gap-1 text-[11px] text-[#2481cc] font-medium ml-1">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span className="flex items-center gap-1 text-[10px] text-[#00639B] dark:text-[#92CCFF] font-medium ml-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
               </span>
             )}
           </div>
@@ -354,7 +354,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </div>
       </div>
 
-      {/* Visor Interactivo con Zoom y Arrastre para fotos ampliadas */}
+      {/* Visor Interactivo con Zoom */}
       {zoomedImage && (
         <ImageZoomModal
           src={zoomedImage.src}

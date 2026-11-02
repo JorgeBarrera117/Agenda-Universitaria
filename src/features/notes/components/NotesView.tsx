@@ -51,9 +51,17 @@ export const NotesView: React.FC<NotesViewProps> = ({
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(
     initialSubjectFilterId || 'all'
   );
+  const [prevInitialFilterId, setPrevInitialFilterId] = useState(initialSubjectFilterId);
+
+  // Sincronizar filtro si cambia la materia entrante sin disparar useEffect cascada
+  if (initialSubjectFilterId !== prevInitialFilterId) {
+    setPrevInitialFilterId(initialSubjectFilterId);
+    setSelectedSubjectId(initialSubjectFilterId || 'all');
+  }
+
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modo de visualización de galería: cuadrícula 2 columnas (Google Docs) o lista
+  // Modo de visualización de galería: cuadrícula 2 columnas o lista
   const [galleryLayout, setGalleryLayout] = useState<'grid' | 'list'>('grid');
 
   // Ordenamiento de documentos
@@ -69,7 +77,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
   const { subjects, getSubjectById } = useSubjects();
   const isScrolled = useScrollCollapse(48);
 
-  // Optimización de Memoria: Conteo de fotos por apunte mediante claves de índice
+  // Mapa de materias memoizado para búsqueda O(1) de asignaturas
+  const subjectMap = useMemo(() => new Map(subjects.map((s) => [s.id, s])), [subjects]);
+
+  // Optimización de Memoria: Conteo de fotos por apunte mediante claves de índice Dexie
   const imageCounts = useLiveQuery(async () => {
     try {
       const noteIds = (await db.noteImages.orderBy('noteId').keys()) as string[];
@@ -84,7 +95,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     }
   }, []);
 
-  // Vistas a pantalla completa: 'list' (galería Google Docs), 'editor' (crear/editar), 'reader' (lectura)
+  // Vistas a pantalla completa: 'list' (galería), 'editor' (crear/editar), 'reader' (lectura)
   const [viewMode, setViewMode] = useState<'list' | 'editor' | 'reader'>('list');
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
   const [readingNote, setReadingNote] = useState<Note | null>(null);
@@ -113,14 +124,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     setTimeout(() => setReaderToast(null), 3000);
   };
 
-  // Si cambia la materia inicial desde otra pantalla
-  useEffect(() => {
-    if (initialSubjectFilterId) {
-      setSelectedSubjectId(initialSubjectFilterId);
-    }
-  }, [initialSubjectFilterId]);
-
-  // Notificar al layout principal si estamos en modo editor o lector para maximizar la pantalla (Oculta Navbar y BottomNav)
+  // Notificar al layout principal si estamos en modo editor o lector para maximizar pantalla
   useEffect(() => {
     onEditorActiveChange?.(viewMode === 'editor' || viewMode === 'reader');
     return () => {
@@ -255,7 +259,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     return cleaned || 'Documento sin contenido escrito aún.';
   };
 
-  // Pre-calcular y memoizar los extractos limpios de cada nota para evitar ejecutar RegEx en cada render o swipe
+  // Pre-calcular y memoizar los extractos limpios de cada nota
   const snippetsById = useMemo(() => {
     const map: Record<string, string> = {};
     for (const note of notes) {
@@ -297,7 +301,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     return { words, chars };
   };
 
-  // 1. Vista de Edición a Pantalla Completa Estilo Google Docs
+  // 1. Vista de Edición a Pantalla Completa
   if (viewMode === 'editor') {
     return (
       <NoteEditor
@@ -308,13 +312,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
     );
   }
 
-  // 2. Vista de Lectura a Pantalla Completa Estilo Telegram y Google Docs
+  // 2. Vista de Lectura a Pantalla Completa
   if (viewMode === 'reader' && readingNote) {
-    const readingSubject = getSubjectById(readingNote.subjectId);
+    const readingSubject = subjectMap.get(readingNote.subjectId) || getSubjectById(readingNote.subjectId);
     const dateFormatted = new Date(readingNote.createdAt).toLocaleDateString('es-ES', {
-      weekday: 'long',
+      weekday: 'short',
       day: 'numeric',
-      month: 'long',
+      month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
@@ -323,51 +327,51 @@ export const NotesView: React.FC<NotesViewProps> = ({
     const stats = getNoteStats(readingNote);
 
     return (
-      <div className="relative min-h-[100dvh] w-full flex flex-col pb-20">
-        {/* Barra Superior Fija estilo Telegram / Google Docs */}
-        <header className="sticky top-0 z-40 bg-[var(--color-md-surface-container)] border-b border-[var(--color-md-outline-variant)] px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs">
+      <div className="relative min-h-[100dvh] w-full flex flex-col pb-16">
+        {/* Barra Superior Fija Compacta */}
+        <header className="sticky top-0 z-40 bg-[var(--color-md-surface-container)] border-b border-[var(--color-md-outline-variant)] px-3 sm:px-6 py-2 flex items-center justify-between gap-2.5 shadow-xs">
           {/* Izquierda: Botón Volver y Contexto de la Nota */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
               onClick={handleBackToList}
               aria-label="Volver a la galería"
               title="Volver"
-              className="w-10 h-10 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] text-[#191C20] dark:text-[#E2E2E6] flex items-center justify-center active:scale-95 transition-all cursor-pointer shrink-0"
+              className="w-9 h-9 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] text-[#191C20] dark:text-[#E2E2E6] flex items-center justify-center active:scale-95 transition-all cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4.5 h-4.5" />
             </button>
 
             <div className="min-w-0 flex-1">
-              <h2 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate">
+              <h2 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate leading-tight">
                 {readingNote.title || 'Documento sin título'}
               </h2>
-              <div className="flex items-center gap-1.5 text-[11px] text-[#72777F] dark:text-[#8C9199] truncate">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#72777F] dark:text-[#8C9199] truncate mt-0.5">
                 <div
-                  className="w-4 h-4 rounded-md flex items-center justify-center shrink-0 text-white shadow-2xs"
+                  className="w-3.5 h-3.5 rounded-md flex items-center justify-center shrink-0 text-white shadow-2xs"
                   style={{ backgroundColor: readingSubject?.color || '#00639B' }}
                 >
-                  <SubjectIcon icon={readingSubject?.icon} className="w-2.5 h-2.5 text-white" />
+                  <SubjectIcon icon={readingSubject?.icon} className="w-2 h-2 text-white" />
                 </div>
-                <span className="truncate max-w-[130px] sm:max-w-xs font-semibold text-[#191C20] dark:text-[#E2E2E6]">
+                <span className="truncate max-w-[120px] sm:max-w-xs font-semibold text-[#191C20] dark:text-[#E2E2E6]">
                   {readingSubject?.name || 'Materia'}
                 </span>
                 <span>•</span>
-                <span>Modo Lectura</span>
+                <span>Lectura</span>
               </div>
             </div>
           </div>
 
-          {/* Derecha: Menú de Opciones (⋮) con Editar Apunte */}
-          <div className="flex items-center gap-1.5 shrink-0 relative">
+          {/* Derecha: Menú de Opciones (⋮) */}
+          <div className="flex items-center gap-1 shrink-0 relative">
             <button
               type="button"
               onClick={() => setIsReaderMenuOpen(!isReaderMenuOpen)}
               title="Más opciones"
               aria-label="Más opciones"
-              className="w-10 h-10 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D0E4FF] text-[#191C20] dark:text-[#E2E2E6] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+              className="w-9 h-9 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D0E4FF] text-[#191C20] dark:text-[#E2E2E6] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
             >
-              <MoreVertical className="w-5 h-5" />
+              <MoreVertical className="w-4.5 h-4.5" />
             </button>
 
             {/* Menú Desplegable Flotante */}
@@ -377,16 +381,16 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   className="fixed inset-0 z-40"
                   onClick={() => setIsReaderMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-12 z-50 w-56 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[20px] shadow-lg p-1.5 space-y-0.5 text-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 top-11 z-50 w-52 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-2xl shadow-lg p-1.5 space-y-0.5 text-xs animate-in fade-in zoom-in-95 duration-150">
                   <button
                     type="button"
                     onClick={() => {
                       setIsReaderMenuOpen(false);
                       handleOpenEdit(readingNote);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
                   >
-                    <Edit2 className="w-4 h-4 text-[#2481cc]" />
+                    <Edit2 className="w-4 h-4 text-[#00639B] dark:text-[#92CCFF]" />
                     <span>Editar apunte</span>
                   </button>
 
@@ -396,10 +400,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       setIsReaderMenuOpen(false);
                       readerCameraInputRef.current?.click();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
                   >
                     <Camera className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span>Tomar foto del pizarrón</span>
+                    <span>Foto del pizarrón</span>
                   </button>
 
                   <button
@@ -408,7 +412,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       setIsReaderMenuOpen(false);
                       readerGalleryInputRef.current?.click();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
                   >
                     <ImageIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     <span>Subir de galería</span>
@@ -420,7 +424,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       setIsReaderMenuOpen(false);
                       handleCopyText();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
                   >
                     <Copy className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     <span>Copiar texto</span>
@@ -432,13 +436,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       setIsReaderMenuOpen(false);
                       setIsDetailsModalOpen(true);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
                   >
                     <Info className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                    <span>Detalles del documento</span>
+                    <span>Detalles</span>
                   </button>
 
-                  <div className="h-px bg-slate-100 dark:bg-white/10 my-1" />
+                  <div className="h-px bg-slate-100 dark:bg-white/10 my-0.5" />
 
                   <button
                     type="button"
@@ -446,7 +450,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       setIsReaderMenuOpen(false);
                       setNoteToDelete(readingNote);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer text-left font-medium"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer text-left font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>Eliminar apunte</span>
@@ -475,40 +479,40 @@ export const NotesView: React.FC<NotesViewProps> = ({
           className="hidden"
         />
 
-        {/* Lienzo del Folio estilo Google Docs / Telegram Instant View (100% del ancho en PC) */}
-        <div className="w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-6">
-          <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-[28px] sm:rounded-[32px] p-5 sm:p-10 shadow-xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-5 text-[#191C20] dark:text-[#E2E2E6] transition-colors">
+        {/* Folio de Lectura Descongestionado */}
+        <div className="w-full px-2.5 sm:px-6 lg:px-8 py-2.5 sm:py-5 space-y-4">
+          <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 lg:p-7 shadow-xs border border-[#C3C7D0]/40 dark:border-[#43474E]/40 space-y-4 text-[#191C20] dark:text-[#E2E2E6] transition-colors">
             {/* Metadatos y Badges */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow-2xs"
                   style={{ backgroundColor: readingSubject?.color || '#00639B' }}
                 >
-                  <SubjectIcon icon={readingSubject?.icon} className="w-3.5 h-3.5 text-white" />
+                  <SubjectIcon icon={readingSubject?.icon} className="w-3 h-3 text-white" />
                   {readingSubject?.name || 'Materia'} {readingSubject?.code ? `• ${readingSubject.code}` : ''}
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#43474E] dark:text-[#C3C7D0] bg-[#F1F4FA] dark:bg-[#272A2F] px-3 py-1 rounded-full border border-[#C3C7D0]/40 dark:border-[#43474E]/40">
-                  <Clock className="w-3.5 h-3.5 text-[#72777F]" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#43474E] dark:text-[#C3C7D0] bg-[#F1F4FA] dark:bg-[#272A2F] px-2.5 py-0.5 rounded-full border border-[#C3C7D0]/30 dark:border-[#43474E]/30">
+                  <Clock className="w-3 h-3 text-[#72777F]" />
                   {dateFormatted}
                 </span>
               </div>
 
-              {/* Título Principal */}
-              <h1 className="text-2xl sm:text-4xl font-black text-[#191C20] dark:text-[#E2E2E6] tracking-tight leading-tight">
+              {/* Título Principal Compacto */}
+              <h1 className="text-xl sm:text-2xl font-black text-[#191C20] dark:text-[#E2E2E6] tracking-tight leading-snug">
                 {readingNote.title || 'Documento sin título'}
               </h1>
 
               {/* Etiquetas (#Tags) */}
               {readingNote.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1 pt-0.5">
                   {readingNote.tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] rounded-full border border-[#00639B]/20"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] rounded-full border border-[#00639B]/20"
                     >
-                      <Tag className="w-3 h-3" />
+                      <Tag className="w-2.5 h-2.5" />
                       #{t}
                     </span>
                   ))}
@@ -530,24 +534,24 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   });
                 }
               }}
-              className="prose dark:prose-invert max-w-none text-[#191C20] dark:text-[#E2E2E6] leading-relaxed text-base select-text"
+              className="prose dark:prose-invert max-w-none text-[#191C20] dark:text-[#E2E2E6] leading-relaxed text-sm sm:text-base select-text"
               dangerouslySetInnerHTML={{ __html: readingNote.content }}
             />
 
-            {/* Fotografías del Pizarrón y Diapositivas (Diseño Telegram) */}
-            <div className="pt-6 border-t border-[#C3C7D0]/30 dark:border-[#43474E]/30 space-y-3">
+            {/* Fotografías del Pizarrón y Diapositivas */}
+            <div className="pt-4 border-t border-[#C3C7D0]/30 dark:border-[#43474E]/30 space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#2481cc]/15 text-[#2481cc] dark:text-[#2AABEE] flex items-center justify-center">
-                    <Camera className="w-4 h-4" />
+                  <div className="w-6 h-6 rounded-lg bg-[#00639B]/15 text-[#00639B] dark:text-[#92CCFF] flex items-center justify-center">
+                    <Camera className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                      Fotografías del Pizarrón
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                      Fotos del Pizarrón
                     </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
                       {readingNoteImages.length}{' '}
-                      {readingNoteImages.length === 1 ? 'fotografía adjunta' : 'fotografías adjuntas'}
+                      {readingNoteImages.length === 1 ? 'foto adjunta' : 'fotos adjuntas'}
                     </p>
                   </div>
                 </div>
@@ -558,48 +562,48 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     type="button"
                     disabled={isUploadingInReader}
                     onClick={() => readerCameraInputRef.current?.click()}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#2481cc]/15 hover:bg-[#2481cc]/25 text-[#2481cc] dark:text-[#2AABEE] text-xs font-bold rounded-xl transition-all cursor-pointer border border-[#2481cc]/30 active:scale-95"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#00639B]/15 hover:bg-[#00639B]/25 text-[#00639B] dark:text-[#92CCFF] text-[11px] font-bold rounded-xl transition-all cursor-pointer border border-[#00639B]/30 active:scale-95"
                     title="Tomar foto con la cámara"
                   >
-                    <Camera className="w-3.5 h-3.5" />
-                    <span className="hidden xs:inline">Cámara</span>
+                    <Camera className="w-3 h-3" />
+                    <span>Cámara</span>
                   </button>
 
                   <button
                     type="button"
                     disabled={isUploadingInReader}
                     onClick={() => readerGalleryInputRef.current?.click()}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 active:scale-95"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 text-[11px] font-bold rounded-xl transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 active:scale-95"
                     title="Subir de la galería"
                   >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    <span className="hidden xs:inline">Galería</span>
+                    <ImageIcon className="w-3 h-3" />
+                    <span>Galería</span>
                   </button>
 
                   {isUploadingInReader && (
-                    <Loader2 className="w-4 h-4 text-[#2481cc] animate-spin ml-1" />
+                    <Loader2 className="w-3.5 h-3.5 text-[#00639B] animate-spin ml-1" />
                   )}
                 </div>
               </div>
 
-              {/* Estado de Fotos: Banner Sutil o Grid Telegram */}
+              {/* Miniaturas de Fotos */}
               {readingNoteImages.length === 0 ? (
                 <div
                   onClick={() => readerCameraInputRef.current?.click()}
-                  className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-[#0e1621] border border-dashed border-slate-200/90 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-slate-100/70 dark:hover:bg-[#121c27] transition-all group"
+                  className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#1D2024] border border-dashed border-slate-200/90 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-100/70 transition-all group"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Camera className="w-4 h-4 text-slate-400 group-hover:text-[#2481cc] transition-colors" />
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#00639B] transition-colors" />
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       Sin fotografías anexadas a este apunte
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-[#2481cc] dark:text-[#2AABEE] group-hover:underline">
-                    + Tomar foto
+                  <span className="text-[11px] font-bold text-[#00639B] dark:text-[#92CCFF] group-hover:underline">
+                    + Foto
                   </span>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {readingNoteImages.map((img) => (
                     <ThumbnailCard
                       key={img.id}
@@ -614,8 +618,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           </div>
         </div>
 
-
-        {/* Toast Notificación Contextual Centrado y Translúcido */}
+        {/* Toast Notificación Contextual */}
         <ContextualToast
           message={readerToast}
           bottomOffset="compact"
@@ -629,8 +632,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
           title="Detalles del Documento"
           maxWidth="sm"
         >
-          <div className="space-y-3.5 text-xs text-slate-600 dark:text-slate-300">
-            <div className="p-3 bg-slate-50 dark:bg-[#0e1621] rounded-2xl border border-slate-200/70 dark:border-white/10 space-y-2">
+          <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-2.5 bg-slate-50 dark:bg-[#1D2024] rounded-xl border border-slate-200/70 dark:border-white/10 space-y-1.5">
               <div className="flex justify-between">
                 <span className="font-medium text-slate-500 dark:text-slate-400">Palabras:</span>
                 <span className="font-bold text-slate-900 dark:text-white">{stats.words}</span>
@@ -645,7 +648,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 dark:bg-[#0e1621] rounded-2xl border border-slate-200/70 dark:border-white/10 space-y-2 text-[11px]">
+            <div className="p-2.5 bg-slate-50 dark:bg-[#1D2024] rounded-xl border border-slate-200/70 dark:border-white/10 space-y-1.5 text-[11px]">
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Creado:</span>
                 <span className="font-medium text-slate-700 dark:text-slate-300">
@@ -664,7 +667,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDetailsModalOpen(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
               >
                 Cerrar
               </button>
@@ -679,24 +682,24 @@ export const NotesView: React.FC<NotesViewProps> = ({
           title="¿Eliminar Apunte?"
           maxWidth="sm"
         >
-          <div className="space-y-4">
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              ¿Deseas eliminar <strong>{noteToDelete?.title}</strong>? Esta acción borrará también todas las fotos adjuntas permanentemente.
+          <div className="space-y-3">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              ¿Deseas eliminar <strong>{noteToDelete?.title}</strong>? Esta acción borrará permanentemente sus fotos anexadas.
             </p>
-            <div className="flex justify-end gap-3 pt-3">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setNoteToDelete(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
               >
-                Eliminar Apunte
+                Eliminar
               </button>
             </div>
           </div>
@@ -709,15 +712,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
           title="¿Eliminar Fotografía?"
           maxWidth="sm"
         >
-          <div className="space-y-4">
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              ¿Estás seguro de que deseas eliminar esta fotografía del pizarrón? Esta acción no se puede deshacer.
+          <div className="space-y-3">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              ¿Deseas eliminar esta fotografía del pizarrón? Esta acción no se puede deshacer.
             </p>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setImageToDelete(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -729,9 +732,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     setImageToDelete(null);
                   }
                 }}
-                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
               >
-                Eliminar Foto
+                Eliminar
               </button>
             </div>
           </div>
@@ -754,10 +757,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
     );
   }
 
-  // 3. Vista de Galería de Documentos (Google Docs Mobile Style • 100% ancho en PC)
+  // 3. Vista de Galería de Documentos (M3 High Density)
   return (
-    <div className="space-y-4 w-full">
-      {/* Overlay transparente para cerrar menú contextual de tres puntos */}
+    <div className="space-y-3.5 w-full">
+      {/* Overlay transparente para cerrar menú contextual */}
       {activeMenuNoteId && (
         <div
           className="fixed inset-0 z-20"
@@ -765,19 +768,19 @@ export const NotesView: React.FC<NotesViewProps> = ({
         />
       )}
 
-      {/* 1. ENCABEZADO DEL APARTADO (JERARQUÍA NIVEL 1 EN EL BODY) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
               Cuaderno de Apuntes
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
               {notes.length}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Notas de cátedra, fotografías de pizarrón y fórmulas organizadas por asignatura.
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            Notas de cátedra, fotos de pizarrón y fórmulas por asignatura.
           </p>
         </div>
         <div
@@ -787,20 +790,20 @@ export const NotesView: React.FC<NotesViewProps> = ({
         >
           <Button
             variant="primary"
-            size="md"
-            icon={<Plus className="w-4 h-4 lg:w-5 lg:h-5 stroke-[2.5]" />}
+            size="sm"
+            icon={<Plus className="w-4 h-4 stroke-[2.3]" />}
             onClick={handleOpenCreate}
-            className="lg:min-h-[48px] lg:px-6 lg:py-3 lg:text-sm shadow-md hover:shadow-lg ring-2 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 hover:scale-[1.02] whitespace-nowrap"
+            className="shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 active:scale-95 whitespace-nowrap"
           >
             Nuevo Apunte
           </Button>
         </div>
       </div>
 
-      {/* 2. BARRA DE BÚSQUEDA (MATERIAL DESIGN 3 SEARCH BAR) */}
+      {/* 2. Barra de Búsqueda Compacta (M3 Search Bar) */}
       <div className="relative">
-        <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-12 sm:h-14 px-4 sm:px-5 shadow-xs transition-all">
-          <Search className="w-5 h-5 text-[#43474E] dark:text-[#C3C7D0] mr-3 shrink-0" />
+        <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-10 sm:h-11 px-3.5 sm:px-4 shadow-2xs transition-all">
+          <Search className="w-4 h-4 text-[#43474E] dark:text-[#C3C7D0] mr-2.5 shrink-0" />
           <input
             type="text"
             value={searchQuery}
@@ -812,26 +815,26 @@ export const NotesView: React.FC<NotesViewProps> = ({
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="p-1.5 rounded-full text-[#43474E] hover:text-[#191C20] dark:text-[#C3C7D0] dark:hover:text-[#E2E2E6] hover:bg-[#1D2024]/10 dark:hover:bg-[#E2E2E6]/10 transition-colors ml-1 cursor-pointer"
+              className="p-1 rounded-full text-[#43474E] hover:text-[#191C20] dark:text-[#C3C7D0] dark:hover:text-[#E2E2E6] hover:bg-[#1D2024]/10 dark:hover:bg-[#E2E2E6]/10 transition-colors ml-1 cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Píldoras de Materias (Material Design 3 Filter Chips con Íconos Personalizados) */}
-      <div className="flex items-center sm:flex-wrap gap-2 overflow-x-auto sm:overflow-visible py-1 px-1 scrollbar-none select-none">
+      {/* Píldoras de Materias Compactas */}
+      <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible py-0.5 px-0.5 scrollbar-none select-none">
         <button
           type="button"
           onClick={() => setSelectedSubjectId('all')}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
             selectedSubjectId === 'all'
-              ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs border border-[#004B76]/30 dark:border-[#D0E4FF]/30'
+              ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-2xs border border-[#004B76]/30 dark:border-[#D0E4FF]/30'
               : 'bg-[#F1F4FA] dark:bg-[#1D2024] text-[#43474E] dark:text-[#C3C7D0] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
           }`}
         >
-          <BookOpen className="w-3.5 h-3.5 shrink-0" />
+          <BookOpen className="w-3 h-3 shrink-0" />
           <span>Todos ({notes.length})</span>
         </button>
 
@@ -842,37 +845,33 @@ export const NotesView: React.FC<NotesViewProps> = ({
               key={sub.id}
               type="button"
               onClick={() => setSelectedSubjectId(sub.id)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
                 isSelected
-                  ? 'text-white shadow-xs ring-1 ring-white/30'
+                  ? 'text-white shadow-2xs ring-1 ring-white/30'
                   : 'bg-[#F1F4FA] dark:bg-[#1D2024] text-[#191C20] dark:text-[#E2E2E6] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
               }`}
               style={{
                 backgroundColor: isSelected ? sub.color : undefined,
               }}
             >
-              {/* Ícono de la Asignatura en squircle con el color definido por el usuario */}
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
-                  isSelected
-                    ? 'bg-white/25 text-white'
-                    : 'text-white shadow-2xs'
+                className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 transition-all ${
+                  isSelected ? 'bg-white/25 text-white' : 'text-white shadow-2xs'
                 }`}
                 style={{
                   backgroundColor: isSelected ? undefined : sub.color,
                 }}
               >
-                <SubjectIcon icon={sub.icon} className="w-3 h-3 text-white" />
+                <SubjectIcon icon={sub.icon} className="w-2.5 h-2.5 text-white" />
               </div>
-              <span className="truncate max-w-[180px] sm:max-w-none">{sub.name}</span>
+              <span className="truncate max-w-[160px] sm:max-w-none">{sub.name}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Barra de Ordenamiento y Alternador de Vista (Cuadrícula / Lista) estilo Google Docs */}
-      <div className="flex items-center justify-between px-1 text-xs text-slate-500 dark:text-slate-400">
-        {/* Selector de Orden Canónico M3Select (Unificado en toda la app) */}
+      {/* Barra de Ordenamiento y Alternador de Vista (Cuadrícula / Lista) */}
+      <div className="flex items-center justify-between px-0.5 text-xs text-slate-500 dark:text-slate-400">
         <M3Select<'updatedAt' | 'createdAt' | 'title'>
           variant="pill"
           menuAlign="left"
@@ -880,71 +879,71 @@ export const NotesView: React.FC<NotesViewProps> = ({
           onChange={setSortBy}
           leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
           options={[
-            { value: 'updatedAt', label: 'Última modificación' },
-            { value: 'createdAt', label: 'Fecha de creación' },
+            { value: 'updatedAt', label: 'Modificación' },
+            { value: 'createdAt', label: 'Fecha' },
             { value: 'title', label: 'Alfabético (A-Z)' },
           ]}
         />
 
         {/* Alternador Cuadrícula / Lista */}
-        <div className="flex items-center bg-slate-100 dark:bg-[#17212b] p-0.5 rounded-xl border border-slate-200/80 dark:border-white/10">
+        <div className="flex items-center bg-slate-100 dark:bg-[#272A2F] p-0.5 rounded-xl border border-slate-200/80 dark:border-white/10">
           <button
             type="button"
             onClick={() => setGalleryLayout('list')}
             title="Vista de lista"
-            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`p-1 rounded-lg transition-all cursor-pointer ${
               galleryLayout === 'list'
-                ? 'bg-white dark:bg-white/15 text-[#2481cc] dark:text-white shadow-2xs'
+                ? 'bg-white dark:bg-white/15 text-[#00639B] dark:text-[#92CCFF] shadow-2xs'
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
             }`}
           >
-            <ListIcon className="w-4 h-4" />
+            <ListIcon className="w-3.5 h-3.5" />
           </button>
 
           <button
             type="button"
             onClick={() => setGalleryLayout('grid')}
-            title="Vista de cuadrícula (2 columnas)"
-            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+            title="Vista de cuadrícula"
+            className={`p-1 rounded-lg transition-all cursor-pointer ${
               galleryLayout === 'grid'
-                ? 'bg-white dark:bg-white/15 text-[#2481cc] dark:text-white shadow-2xs'
+                ? 'bg-white dark:bg-white/15 text-[#00639B] dark:text-[#92CCFF] shadow-2xs'
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
             }`}
           >
-            <LayoutGrid className="w-4 h-4" />
+            <LayoutGrid className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* Cuadrícula o Lista de Apuntes */}
       {sortedNotes.length === 0 ? (
-        <Card padding="relaxed" className="text-center py-14 border-dashed border-slate-300 dark:border-slate-800">
-          <div className="w-14 h-14 rounded-2xl bg-[#2481cc]/15 text-[#2481cc] flex items-center justify-center mx-auto mb-3">
-            <FileText className="w-7 h-7" />
+        <Card padding="relaxed" className="text-center py-10 border-dashed border-slate-300 dark:border-slate-800">
+          <div className="w-10 h-10 rounded-2xl bg-[#00639B]/15 text-[#00639B] dark:text-[#92CCFF] flex items-center justify-center mx-auto mb-2.5">
+            <FileText className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
             {searchQuery ? 'No se encontraron documentos' : 'No hay apuntes registrados'}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 max-w-sm mx-auto">
             {searchQuery
               ? 'Intenta con otro término de búsqueda o selecciona otra materia.'
               : 'Redacta tu primer documento con formato enriquecido o adjunta fotos del pizarrón.'}
           </p>
           <Button
             variant="primary"
-            size="lg"
-            icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />}
+            size="md"
+            icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
             onClick={handleOpenCreate}
-            className="shadow-md"
+            className="shadow-sm"
           >
             Crear primer documento
           </Button>
         </Card>
       ) : galleryLayout === 'grid' ? (
-        /* Cuadrícula Responsiva que se adapta en horizontal móvil y aprovecha el 100% del ancho en PC */
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+        /* Cuadrícula Compacta Responsiva */
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3">
           {sortedNotes.map((note) => {
-            const subject = getSubjectById(note.subjectId);
+            const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;
             const snippet = snippetsById[note.id] ?? '';
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
@@ -958,28 +957,26 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/50 dark:border-[#43474E]/40 rounded-[24px] sm:rounded-[28px] p-3.5 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-[#00639B]/40 transition-all cursor-pointer group relative"
+                className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 flex flex-col justify-between shadow-2xs hover:shadow-sm hover:border-[#00639B]/40 transition-all cursor-pointer group relative"
               >
-                {/* Cabecera de la Tarjeta Google Docs: Ícono de archivo + Título + Tres Puntos (⋮) */}
+                {/* Cabecera de la Tarjeta */}
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    {/* Ícono de la Asignatura */}
                     <div
-                      className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-2xs text-white"
+                      className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 shadow-2xs text-white"
                       style={{
                         backgroundColor: subject?.color || '#00639B',
                       }}
                     >
-                      <SubjectIcon icon={subject?.icon} className="w-3.5 h-3.5 text-white" />
+                      <SubjectIcon icon={subject?.icon} className="w-3 h-3 text-white" />
                     </div>
 
-                    {/* Título del documento */}
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#2481cc] dark:group-hover:text-[#2AABEE] transition-colors">
-                      {note.title || 'Documento sin título'}
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                      {note.title || 'Documento'}
                     </h3>
                   </div>
 
-                  {/* Botón Tres Puntos (⋮) con menú contextual flotante */}
+                  {/* Botón Tres Puntos (⋮) */}
                   <div className="relative shrink-0">
                     <button
                       type="button"
@@ -987,34 +984,34 @@ export const NotesView: React.FC<NotesViewProps> = ({
                         e.stopPropagation();
                         setActiveMenuNoteId(isMenuOpen ? null : note.id);
                       }}
-                      className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                       title="Más opciones"
                       aria-label="Más opciones"
                     >
-                      <MoreVertical className="w-4 h-4" />
+                      <MoreVertical className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Menú Contextual Flotante de la Tarjeta (M3 Surface) */}
+                    {/* Menú Contextual Flotante */}
                     {isMenuOpen && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-8 w-48 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 z-30 animate-in fade-in zoom-in-95 duration-150 space-y-0.5"
+                        className="absolute right-0 top-7 w-44 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-xl shadow-lg p-1 z-30 animate-in fade-in zoom-in-95 duration-150 space-y-0.5"
                       >
                         <button
                           type="button"
                           onClick={() => handleOpenRead(note)}
-                          className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer"
+                          className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                         >
-                          <BookOpen className="w-4 h-4 text-[#00639B] dark:text-[#92CCFF]" />
+                          <BookOpen className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
                           <span>Leer apunte</span>
                         </button>
                         <button
                           type="button"
                           onClick={(e) => handleOpenEdit(note, e)}
-                          className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer"
+                          className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                         >
-                          <Edit2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                          <span>Editar apunte</span>
+                          <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span>Editar</span>
                         </button>
                         <button
                           type="button"
@@ -1022,9 +1019,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
                             setActiveMenuNoteId(null);
                             setNoteToDelete(note);
                           }}
-                          className="w-full px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer"
+                          className="w-full px-2.5 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                           <span>Eliminar</span>
                         </button>
                       </div>
@@ -1032,20 +1029,19 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   </div>
                 </div>
 
-                {/* Hoja de Papel / Miniatura de Documento estilo Google Docs */}
-                <div className="aspect-[4/3] rounded-xl bg-white dark:bg-slate-100 border border-slate-200/80 p-2.5 sm:p-3 overflow-hidden text-slate-800 shadow-2xs my-2.5 flex flex-col justify-between select-none relative group-hover:border-[#2481cc]/40 transition-colors">
-                  {/* Vista previa del contenido en miniatura */}
+                {/* Hoja de Papel en Miniatura Descongestionada */}
+                <div className="aspect-[4/3] rounded-xl bg-white dark:bg-slate-100 border border-slate-200/80 p-2 overflow-hidden text-slate-800 shadow-2xs my-2 flex flex-col justify-between select-none relative group-hover:border-[#00639B]/40 transition-colors">
                   <div className="space-y-1">
-                    <div className="w-2/3 h-1.5 rounded-full bg-slate-300 dark:bg-slate-400 mb-1.5" />
-                    <p className="text-[9px] sm:text-[10px] text-slate-600 leading-tight line-clamp-4 font-sans">
+                    <div className="w-1/2 h-1 rounded-full bg-slate-300 dark:bg-slate-400 mb-1" />
+                    <p className="text-[9px] text-slate-600 leading-tight line-clamp-3 font-sans">
                       {snippet}
                     </p>
                   </div>
 
-                  {/* Pie de la Hoja de Papel: Conteo de fotos y Glifo de Asignatura */}
+                  {/* Pie de la Hoja de Papel */}
                   <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                     {imageCount > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
                         <Camera className="w-2.5 h-2.5" />
                         <span>{imageCount}</span>
                       </span>
@@ -1053,23 +1049,22 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       <div />
                     )}
 
-                    {/* Insignia de Materia en la esquina de la hoja con su ícono */}
                     <div
-                      className="w-5 h-5 rounded-md flex items-center justify-center text-white shadow-2xs shrink-0"
+                      className="w-4 h-4 rounded flex items-center justify-center text-white shadow-2xs shrink-0"
                       style={{ backgroundColor: subject?.color || '#00639B' }}
                       title={subject?.name || 'Materia'}
                     >
-                      <SubjectIcon icon={subject?.icon} className="w-3 h-3 text-white" />
+                      <SubjectIcon icon={subject?.icon} className="w-2.5 h-2.5 text-white" />
                     </div>
                   </div>
                 </div>
 
-                {/* Pie de la Tarjeta: Materia y Fecha */}
-                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
-                  <span className="truncate max-w-[90px] font-medium">
+                {/* Pie de la Tarjeta */}
+                <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                  <span className="truncate max-w-[80px] font-medium">
                     {subject?.name || 'General'}
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
                     {dateFormatted}
                   </span>
                 </div>
@@ -1078,10 +1073,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
           })}
         </div>
       ) : (
-        /* Vista de Lista Agrupada estilo Google Docs */
-        <div className="bg-white dark:bg-[#17212b] border border-slate-200/90 dark:border-white/10 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-xs">
+        /* Vista de Lista Agrupada */
+        <div className="bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-2xs">
           {sortedNotes.map((note) => {
-            const subject = getSubjectById(note.subjectId);
+            const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
@@ -1095,24 +1090,23 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="flex items-center justify-between p-3 sm:p-3.5 hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group relative"
+                className="flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group relative"
               >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {/* Ícono de la Asignatura */}
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs text-white"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs text-white"
                     style={{
                       backgroundColor: subject?.color || '#00639B',
                     }}
                   >
-                    <SubjectIcon icon={subject?.icon} className="w-5 h-5 text-white" />
+                    <SubjectIcon icon={subject?.icon} className="w-4 h-4 text-white" />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-[#2481cc] dark:group-hover:text-[#2AABEE] transition-colors">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors leading-tight">
                       {note.title || 'Documento sin título'}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       <span className="truncate max-w-[120px] font-semibold text-slate-600 dark:text-slate-300">
                         {subject?.name || 'General'}
                       </span>
@@ -1122,7 +1116,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                         <>
                           <span>•</span>
                           <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-                            <Camera className="w-3 h-3" />
+                            <Camera className="w-2.5 h-2.5" />
                             {imageCount}
                           </span>
                         </>
@@ -1139,32 +1133,31 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       e.stopPropagation();
                       setActiveMenuNoteId(isMenuOpen ? null : note.id);
                     }}
-                    className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <MoreVertical className="w-4 h-4" />
+                    <MoreVertical className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Menú Contextual (M3 Surface) */}
                   {isMenuOpen && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute right-0 top-8 w-48 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 z-30 animate-in fade-in zoom-in-95 duration-150 space-y-0.5"
+                      className="absolute right-0 top-7 w-44 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-xl shadow-lg p-1 z-30 animate-in fade-in zoom-in-95 duration-150 space-y-0.5"
                     >
                       <button
                         type="button"
                         onClick={() => handleOpenRead(note)}
-                        className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer"
+                        className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                       >
-                        <BookOpen className="w-4 h-4 text-[#00639B] dark:text-[#92CCFF]" />
+                        <BookOpen className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
                         <span>Leer apunte</span>
                       </button>
                       <button
                         type="button"
                         onClick={(e) => handleOpenEdit(note, e)}
-                        className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer"
+                        className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                       >
-                        <Edit2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>Editar apunte</span>
+                        <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Editar</span>
                       </button>
                       <button
                         type="button"
@@ -1172,9 +1165,9 @@ export const NotesView: React.FC<NotesViewProps> = ({
                           setActiveMenuNoteId(null);
                           setNoteToDelete(note);
                         }}
-                        className="w-full px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer"
+                        className="w-full px-2.5 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                         <span>Eliminar</span>
                       </button>
                     </div>
@@ -1193,20 +1186,20 @@ export const NotesView: React.FC<NotesViewProps> = ({
         title="¿Eliminar Documento?"
         maxWidth="sm"
       >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-700 dark:text-slate-300">
+        <div className="space-y-3">
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
             ¿Deseas eliminar el documento <strong className="text-slate-900 dark:text-white">{noteToDelete?.title}</strong>? Esta acción no se puede deshacer.
           </p>
-          <div className="flex justify-end gap-3 pt-3">
+          <div className="flex justify-end gap-2.5 pt-2">
             <button
               onClick={() => setNoteToDelete(null)}
-              className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+              className="px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
             >
               Eliminar
             </button>
@@ -1214,7 +1207,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
       </Modal>
 
-      {/* Botón Flotante Compacto Reubicable (Móvil permanente + Scroll en horizontal/escritorio) */}
+      {/* Botón Flotante Compacto */}
       {isActive && (
         <DraggableFAB
           colorScheme="notes"
@@ -1278,8 +1271,8 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, onZoom, onDelete }
   return (
     <div
       onClick={onZoom}
-      className="relative group rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 aspect-square shadow-2xs hover:shadow-md transition-all cursor-zoom-in active:scale-95 select-none"
-      title="Tocar para ver en pantalla completa con zoom"
+      className="relative group rounded-xl overflow-hidden border border-slate-200/90 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 aspect-square shadow-2xs hover:shadow-sm transition-all cursor-zoom-in active:scale-95 select-none"
+      title="Tocar para ampliar"
     >
       <img
         src={objectUrl}
@@ -1292,11 +1285,11 @@ const ThumbnailCard: React.FC<ThumbnailCardProps> = ({ image, onZoom, onDelete }
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-900/75 hover:bg-red-600 text-white flex items-center justify-center shadow-md active:scale-90 transition-all z-10 cursor-pointer"
-        title="Eliminar fotografía"
+        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-slate-900/75 hover:bg-red-600 text-white flex items-center justify-center shadow-md active:scale-90 transition-all z-10 cursor-pointer"
+        title="Eliminar foto"
         aria-label="Eliminar fotografía"
       >
-        <Trash2 className="w-4 h-4 text-white" />
+        <Trash2 className="w-3 h-3 text-white" />
       </button>
     </div>
   );

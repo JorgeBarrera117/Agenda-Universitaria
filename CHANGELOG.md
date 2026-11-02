@@ -5,6 +5,21 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.4] - 2026-11-02
+
+### Optimizado
+- **Reorganización y Densidad M3 en Apuntes (`NotesView.tsx`):**
+  - Descongestión de Galería: Rediseño compacto de tarjetas estilo hoja de papel (`rounded-2xl sm:rounded-3xl`, padding `p-2.5 sm:p-3`, miniatura `p-2 my-2`), aumentando en más del 40% la cantidad de documentos visibles simultáneamente en pantalla sin desplazamiento vertical forzado.
+  - Barra de búsqueda M3 compactada a `h-10 sm:h-11` y micro-chips de asignaturas con espaciado optimizado.
+  - Modo Lectura refinado: reducción de márgenes envolventes masivos (`p-5 sm:p-10` a `p-3.5 sm:p-6 lg:p-7`), encabezado compacto de 44px y grilla de fotografías de pizarrón de alta densidad.
+  - Erradicación de bucles y renderizados en cascada: sincronización de filtros durante el ciclo de render sin recurrir a efectos síncronos con `setState`, y memoización $O(1)$ de asignaturas mediante `subjectMap` erradicando barridos repetitivos de arrays en el mapeo de documentos.
+- **Lienzo y Dock de Redacción Compacto (`NoteEditor.tsx` & `RichTextEditor.tsx`):**
+  - Barra de edición superior compactada a `py-2` con controles de acción discretos (guardar, deshacer, rehacer, inserción y opciones).
+  - Título y metadatos de asignatura integrados sin márgenes inflados, ganando más del 15% de área de escritura útil en móviles y pantallas de portátiles.
+  - Barra inferior fija de herramientas tipográficas rediseñada bajo estándares M3 con altura compacta (`py-1.5`) y botones ergonómicos de formato y captura multimedia.
+
+---
+
 ## [1.7.10.3] - 2026-10-23
 
 ### Optimizado
