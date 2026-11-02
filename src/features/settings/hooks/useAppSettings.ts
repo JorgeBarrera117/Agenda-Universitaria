@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DEFAULT_SETTINGS, type AppSettings } from '../types';
 
 const SETTINGS_STORAGE_KEY = 'agenda_universitaria_settings';
@@ -65,8 +65,8 @@ export function useAppSettings() {
   }, []);
 
   // Calcular uso real del almacenamiento IndexedDB
-  const refreshStorageEstimate = async () => {
-    if (navigator.storage && navigator.storage.estimate) {
+  const refreshStorageEstimate = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
       try {
         const estimate = await navigator.storage.estimate();
         const used = (estimate.usage || 0) / (1024 * 1024);
@@ -81,11 +81,11 @@ export function useAppSettings() {
         console.warn('Could not estimate storage:', e);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
-    refreshStorageEstimate();
-  }, []);
+    void refreshStorageEstimate();
+  }, [refreshStorageEstimate]);
 
   return {
     settings,

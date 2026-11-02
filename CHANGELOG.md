@@ -5,6 +5,26 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.6] - 2026-11-02
+
+### Optimizado
+- **Reorganización y Densidad M3 en Ajustes y Configuración (`SettingsView.tsx` & `SettingsModal.tsx`):**
+  - Descongestión del Menú Principal: Tarjeta de identidad del campus compactada (`p-2.5 sm:p-3`, avatar `w-9 h-9 sm:w-10 sm:h-10`, badges `px-2 py-0.5 text-[10px]`). Filas de navegación compactadas de `p-3.5` a `p-2.5 sm:p-3` con esquinas `rounded-2xl sm:rounded-3xl` e iconos en squircle de 32px (`w-8 h-8`).
+  - Sub-vistas Especializadas de Alta Densidad:
+    - **Apariencia y Tema:** Selector de luminosidad (Claro/Oscuro/Auto) con tarjetas compactas de 38px de altura; grilla adaptativa de paletas Material You con previsualización armónica sin saltos de línea ni desbordamientos; Wallpaper Studio estilizado con miniaturas de tapiz de 44px (`h-11`), sliders compactos de opacidad, escala y blur, y previsualización en vivo descongestionada.
+    - **Semestre y Horario:** Input y botón de periodo lectivo compactados (`py-2`, `h-9 sm:h-10`), botones de vista semanal/diaria y micro-píldoras de días visibles.
+    - **Notificaciones y Avisos:** Píldora de comprobación de permisos y prueba compacta; botones de momentos de aviso (15 min antes, al iniciar, sonido) en tarjetas `p-2.5`.
+    - **Fotografías y Pizarrón:** Tarjetas de compresión 720p y 1080p descongestionadas (`p-3 rounded-xl sm:rounded-2xl`).
+    - **Acerca de:** Ficha técnica y créditos condensados sin scroll forzado.
+  - Sincronización Segura sin Renders en Cascada: Erradicación del efecto síncrono `setSemesterInput(settings.semesterName)` sincronizándolo directamente durante la fase de renderizado, y adición de callback memoizado para `refreshStorageEstimate`.
+- **Descongestión y Prevención de Fugas en Almacenamiento (`BackupSection.tsx`):**
+  - Contenedor rediseñado con padding equilibrado `p-3 sm:p-4 rounded-2xl sm:rounded-3xl` (reducción de más del 35% de espacio residual).
+  - Bloques de Exportación e Importación organizados en cuadrículas de 2 columnas de alta densidad con tipografía y badges optimizados.
+  - Control de temporizadores (`copiedTimerRef`) con descarte garantizado en el ciclo de desmontaje (`clearTimeout`), previniendo fugas de memoria en WebViews móviles.
+  - Modal de restauración por texto JSON rediseñado con área de texto compacta de 6 filas y botones de acción directos.
+
+---
+
 ## [1.7.10.5] - 2026-11-02
 
 ### Optimizado
