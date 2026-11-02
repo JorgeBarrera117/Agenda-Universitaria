@@ -5,6 +5,18 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.10] - 2026-11-02
+
+### Optimizado
+- **Refactorización de Interfaz con Inteligencia de Diseño UI/UX Pro Max en Documentos (`DocumentLinkForm`, `DocumentDetailView`, `DocumentReassignView`):**
+  - **Ergonomía de Toque y Accesibilidad (WCAG 2.1 AA):** Estandarización de objetivos táctiles mínimos de 44×44px en botones de navegación (`ArrowLeft`), selectores y botones de acción.
+  - **Proporciones y Peso Visual de Iconos:** Calibración armónica de iconos SVG (18px a 28px) con grosor de trazo M3 (`stroke-[2.2]` a `stroke-[2.5]`) y squircles cromáticos de 56×56px y 64×64px según el tipo de archivo.
+  - **Zona Interactiva de Carga (Dropzone):** Soporte completo para arrastrar y soltar (Drag & Drop) con retroalimentación visual inmediata (`isDraggingOver`), visualización en micro-píldoras de colores canónicos por formato admitido (PDF, DOCX, PPTX, XLSX, FOTOS) y tarjeta de previsualización de archivo seleccionado con tamaño en KB/MB y botón de descarte rápido.
+  - **Limpieza de Desplazamiento y Ritmo Vertical:** Eliminación de barras grises antiestéticas de scroll horizontal en el carrusel táctil de asignaturas (`scrollbar:hidden`).
+  - **Ergonomía de Pulgar (Thumb Zone):** Botones de acción inferiores con diseño adaptativo móvil (ancho completo cómodo para el pulgar en teléfonos y alineación derecha en ordenadores).
+
+---
+
 ## [1.7.10.9] - 2026-11-02
 
 ### Corregido
