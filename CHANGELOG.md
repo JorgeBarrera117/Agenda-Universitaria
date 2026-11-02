@@ -5,6 +5,17 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.14] - 2026-11-02
+
+### Optimizado
+- **Descongestión Integral y Menú Kebab en Directorio de Catedráticos (`ProfessorsView.tsx`):**
+  - Eliminación de los botones individuales de edición y eliminación (`Edit2`, `Trash2`) en la cabecera de la tarjeta de contacto.
+  - Supresión del botón de borrado en rojo estridente que generaba sesgo visual negativo y riesgo de toque accidental en móviles.
+  - Integración del menú universal `M3KebabMenu` (⋮) agrupando: *"Editar catedrático"*, *"Llamar por teléfono"*, *"Enviar correo"* y *"Eliminar catedrático"* (con estilo semántico destructivo).
+  - Mayor espacio horizontal (+30%) para el nombre del docente y sus chips de materias asociadas.
+
+---
+
 ## [1.7.10.13] - 2026-11-02
 
 ### Optimizado

@@ -20,6 +20,7 @@ import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal } from '../../../shared/components/Modal';
+import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
@@ -303,28 +304,49 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                   </div>
                 </div>
 
-                {/* Acciones de Edición y Eliminación Discretas */}
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(prof)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] hover:text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
-                    title="Editar catedrático"
-                    aria-label="Editar profesor"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setProfToDelete(prof)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:opacity-90 flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-2xs"
-                    title="Eliminar catedrático"
-                    aria-label="Eliminar profesor"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {/* Menú Contextual M3 (Kebab ⋮) para Descongestión de Tarjeta */}
+                <M3KebabMenu
+                  items={[
+                    {
+                      id: 'edit',
+                      label: 'Editar catedrático',
+                      icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                      variant: 'primary',
+                      onClick: () => handleOpenEdit(prof),
+                    },
+                    ...(prof.phone
+                      ? [
+                          {
+                            id: 'call',
+                            label: `Llamar (${prof.phone})`,
+                            icon: <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
+                            onClick: () => {
+                              window.location.href = `tel:${prof.phone}`;
+                            },
+                          },
+                        ]
+                      : []),
+                    ...(prof.email
+                      ? [
+                          {
+                            id: 'email',
+                            label: `Correo (${prof.email})`,
+                            icon: <Mail className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                            onClick: () => {
+                              window.location.href = `mailto:${prof.email}`;
+                            },
+                          },
+                        ]
+                      : []),
+                    {
+                      id: 'delete',
+                      label: 'Eliminar catedrático',
+                      icon: <Trash2 className="w-3.5 h-3.5" />,
+                      variant: 'destructive',
+                      onClick: () => setProfToDelete(prof),
+                    },
+                  ]}
+                />
               </div>
 
               {/* Fila Inferior: Cubículo, Asesorías y Botones de Contacto */}
