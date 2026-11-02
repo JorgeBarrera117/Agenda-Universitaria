@@ -6,6 +6,8 @@ interface BottomNavProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   subjectCount?: number;
+  professorsCount?: number;
+  notesCount?: number;
   documentsCount?: number;
 }
 
@@ -13,6 +15,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab,
   onTabChange,
   subjectCount = 0,
+  professorsCount = 0,
+  notesCount = 0,
   documentsCount = 0,
 }) => {
   const navItems = [
@@ -23,6 +27,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     { id: 'documents' as TabType, label: 'Archivos', icon: FolderKanban },
   ];
 
+  const getBadgeInfo = (id: TabType) => {
+    switch (id) {
+      case 'subjects':
+        return { count: subjectCount, color: 'bg-[#BA1A1A] text-white' };
+      case 'professors':
+        return { count: professorsCount, color: 'bg-[#6750A4] dark:bg-[#D0BCFF] text-white dark:text-[#381E72]' };
+      case 'notes':
+        return { count: notesCount, color: 'bg-[#B26B00] dark:bg-[#FFB86A] text-white dark:text-[#4A2800]' };
+      case 'documents':
+        return { count: documentsCount, color: 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#001D32]' };
+      default:
+        return null;
+    }
+  };
+
   return (
     <nav
       aria-label="Navegación principal móvil M3"
@@ -32,6 +51,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const badge = getBadgeInfo(item.id);
 
           return (
             <button
@@ -63,22 +83,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 />
 
                 {/* M3 Badges */}
-                {item.id === 'subjects' && subjectCount > 0 && (
+                {badge && badge.count > 0 && (
                   <span
-                    className={`absolute -top-1 -right-0.5 z-20 px-1 min-w-[15px] h-3.5 rounded-full text-[9px] font-bold bg-[#BA1A1A] text-white flex items-center justify-center shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                    className={`absolute -top-1 -right-0.5 z-20 px-1 min-w-[15px] h-3.5 rounded-full text-[9px] font-bold ${badge.color} flex items-center justify-center shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                       isActive ? 'scale-105' : 'scale-100'
                     }`}
                   >
-                    {subjectCount}
-                  </span>
-                )}
-                {item.id === 'documents' && documentsCount > 0 && (
-                  <span
-                    className={`absolute -top-1 -right-0.5 z-20 px-1 min-w-[15px] h-3.5 rounded-full text-[9px] font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#001D32] flex items-center justify-center shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                      isActive ? 'scale-105' : 'scale-100'
-                    }`}
-                  >
-                    {documentsCount}
+                    {badge.count}
                   </span>
                 )}
               </div>

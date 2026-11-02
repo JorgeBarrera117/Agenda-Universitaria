@@ -219,6 +219,8 @@ export function App() {
           onTabChange={handleTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
           subjectCount={subjects.length}
+          professorsCount={professors.length}
+          notesCount={notes.length}
           documentsCount={allDocuments.length}
         />
       )}
@@ -301,6 +303,8 @@ export function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           subjectCount={subjects.length}
+          professorsCount={professors.length}
+          notesCount={notes.length}
           documentsCount={allDocuments.length}
         />
       )}

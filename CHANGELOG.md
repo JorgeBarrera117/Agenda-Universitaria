@@ -5,6 +5,17 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.18] - 2026-11-02
+
+### Añadido & Optimizado
+- **Insignias de Conteo Reactivas en Menú de Navegación (PC y Móvil):**
+  - **Soporte Completo de Conteo:** Incorporación del badge de conteo para el módulo de **Profesores** (cantidad de catedráticos registrados) y para el módulo de **Apuntes** (cantidad total de notas y apuntes tomados), complementando las insignias existentes de Materias y Archivos.
+  - **Barra Superior Desktop (Navbar):** Unificación del cálculo y renderizado de píldoras tonales M3 (getBadgeCount), adaptándose armónicamente tanto en modo claro como en modo oscuro con alto contraste según el estado activo de la pestaña.
+  - **Barra de Navegación Móvil (BottomNav):** Integración de insignias flotantes con paleta cromática semántica M3 adaptativa: Violeta terciario (#6750A4 / #D0BCFF) para docentes y Ámbar cálido (#B26B00 / #FFB86A) para apuntes de cátedra.
+  - **Reactividad Instantánea Offline-First:** Conectado directamente a las consultas reactivas useLiveQuery de Dexie.js en App.tsx, actualizando los indicadores al momento exacto en que se añade, edita o elimina un registro.
+
+---
+
 ## [1.7.10.17] - 2026-11-02
 
 ### Corregido & Optimizado

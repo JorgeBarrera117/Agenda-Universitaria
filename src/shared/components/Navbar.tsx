@@ -17,6 +17,8 @@ interface NavbarProps {
   onTabChange: (tab: TabType) => void;
   onOpenSettings: () => void;
   subjectCount?: number;
+  professorsCount?: number;
+  notesCount?: number;
   documentsCount?: number;
 }
 
@@ -26,6 +28,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTabChange,
   onOpenSettings,
   subjectCount = 0,
+  professorsCount = 0,
+  notesCount = 0,
   documentsCount = 0,
 }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -57,6 +61,21 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'notes' as TabType, label: 'Apuntes', icon: FileText },
     { id: 'documents' as TabType, label: 'Archivos', icon: FolderKanban },
   ];
+
+  const getBadgeCount = (id: TabType): number => {
+    switch (id) {
+      case 'subjects':
+        return subjectCount;
+      case 'professors':
+        return professorsCount;
+      case 'notes':
+        return notesCount;
+      case 'documents':
+        return documentsCount;
+      default:
+        return 0;
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-[#F1F4FA]/95 dark:bg-[#1D2024]/95 backdrop-blur-md border-b border-[#C2C7CE]/35 dark:border-[#42474E]/35 text-[#191C20] dark:text-[#E2E2E6] shadow-xs transition-colors duration-200">
@@ -116,6 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const badgeCount = getBadgeCount(item.id);
 
               return (
                 <button
@@ -136,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }`}
                   />
                   <span>{item.label}</span>
-                  {item.id === 'subjects' && subjectCount > 0 && (
+                  {badgeCount > 0 && (
                     <span
                       className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
                         isActive
@@ -144,18 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
                       }`}
                     >
-                      {subjectCount}
-                    </span>
-                  )}
-                  {item.id === 'documents' && documentsCount > 0 && (
-                    <span
-                      className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
-                        isActive
-                          ? 'bg-[#001D32] dark:bg-[#D0E4FF] text-white dark:text-[#001D32]'
-                          : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
-                      }`}
-                    >
-                      {documentsCount}
+                      {badgeCount}
                     </span>
                   )}
                 </button>
