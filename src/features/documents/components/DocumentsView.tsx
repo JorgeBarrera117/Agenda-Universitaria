@@ -21,6 +21,7 @@ import { useSubjectDocuments, type SubjectDocumentItem } from '../../subjects/ho
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select } from '../../../shared/components/M3Select';
+import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -538,25 +539,52 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                     </h4>
                   </div>
 
-                  {/* Botón de Información Técnica (Abre Ficha Técnica a pantalla completa) */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDoc(doc);
-                      setViewMode('details');
-                    }}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors shrink-0"
-                    title="Ver detalles técnicos y ruta"
-                    aria-label="Información del archivo"
-                  >
-                    <Info className="w-3.5 h-3.5" />
-                  </button>
+                  {/* Menú Contextual M3 (Kebab ⋮) para Descongestionar Tarjetas */}
+                  <M3KebabMenu
+                    items={[
+                      {
+                        id: 'open',
+                        label: isOpening ? 'Abriendo...' : 'Abrir archivo / enlace',
+                        icon: <ArrowUpRight className="w-3.5 h-3.5" />,
+                        variant: 'primary',
+                        disabled: isOpening,
+                        onClick: () => handleOpenDoc(doc),
+                      },
+                      {
+                        id: 'details',
+                        label: 'Ficha técnica y ruta',
+                        icon: <Info className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                        onClick: () => {
+                          setSelectedDoc(doc);
+                          setViewMode('details');
+                        },
+                      },
+                      {
+                        id: 'reassign',
+                        label: 'Reasignar asignatura',
+                        icon: <RefreshCw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />,
+                        onClick: () => {
+                          setSelectedDoc(doc);
+                          setViewMode('reassign');
+                        },
+                      },
+                      {
+                        id: 'delete',
+                        label: 'Quitar acceso directo',
+                        icon: <Trash2 className="w-3.5 h-3.5" />,
+                        variant: 'destructive',
+                        onClick: () => {
+                          deleteDocument(doc.id);
+                          showDocToast('Documento eliminado');
+                        },
+                      },
+                    ]}
+                  />
                 </div>
 
-                {/* Parte Inferior: Materia asignada y Acciones */}
+                {/* Parte Inferior: Materia asignada y Acción Primaria Descongestionada */}
                 <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 text-[11px]">
-                  {/* Chip de Materia */}
+                  {/* Chip de Materia (Ahora con más del 70% de espacio disponible) */}
                   <div className="flex items-center gap-1 min-w-0 flex-1">
                     {subj ? (
                       <div className="flex items-center gap-1.5 min-w-0">
@@ -577,48 +605,19 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                     )}
                   </div>
 
-                  {/* Acciones */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      disabled={isOpening}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenDoc(doc);
-                      }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
-                    >
-                      <ArrowUpRight className={`w-3 h-3 ${isOpening ? 'animate-spin' : ''}`} />
-                      <span>{isOpening ? 'Abriendo...' : 'Abrir'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedDoc(doc);
-                        setViewMode('reassign');
-                      }}
-                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                      title="Cambiar materia asignada"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteDocument(doc.id);
-                        showDocToast('Documento eliminado');
-                      }}
-                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 transition-colors cursor-pointer"
-                      title="Quitar acceso directo"
-                      aria-label="Quitar acceso directo"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
+                  {/* Acción Primaria Canónica en Thumb Zone */}
+                  <button
+                    type="button"
+                    disabled={isOpening}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenDoc(doc);
+                    }}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    <ArrowUpRight className={`w-3 h-3 ${isOpening ? 'animate-spin' : ''}`} />
+                    <span>{isOpening ? 'Abriendo...' : 'Abrir'}</span>
+                  </button>
                 </div>
               </div>
             );

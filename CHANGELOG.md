@@ -5,6 +5,22 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.12] - 2026-11-02
+
+### Añadido & Optimizado
+- **Componente Universal Canónico de Menú Contextual M3 (`M3KebabMenu.tsx`):**
+  - Implementación de menú flotante canónico de 3 puntos (⋮ / *Kebab Overflow Menu*) bajo directrices de Material Design 3 y UI/UX Pro Max.
+  - Objetivo táctil envolvente de 44×44px para cumplimiento estricto de WCAG 2.1 AA en dispositivos móviles.
+  - Detección reactiva de bordes (*Smart Flip* vertical y horizontal) que se adapta si el espacio inferior es inferior a 220px, abriendo hacia arriba automáticamente sin desbordamiento.
+  - Integración nativa con la pila de retroceso de Android (`useBackButton` con prioridad 85) y cierre automático al pulsar la tecla `Escape` o hacer clic exterior.
+- **Descongestión Integral de Tarjetas en el Módulo de Documentos (`DocumentsView.tsx`):**
+  - Eliminación de la acumulación de 3 micro-botones individuales en el pie y cabecera de las tarjetas (`Info`, `RefreshCw`, `Trash2`).
+  - Agrupación ordenada de acciones secundarias y destructivas en el menú Kebab contextual: *"Abrir archivo / enlace"*, *"Ficha técnica y ruta"*, *"Reasignar asignatura"* y *"Quitar acceso directo"* (con variante semántica destructiva).
+  - Liberación de más del 65% de espacio horizontal en el pie de tarjeta: el badge de materia y su nombre disponen ahora de ancho amplio sin truncamientos agresivos.
+  - Retención limpia de la acción primaria *"Abrir"* en la zona ergonómica del pulgar (*Thumb Zone*) con micro-interacción y estado de carga (`animate-spin`).
+
+---
+
 ## [1.7.10.11] - 2026-11-02
 
 ### Añadido
