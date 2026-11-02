@@ -5,6 +5,17 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.20] - 2026-11-02
+
+### Restaurado & Optimizado
+- **Restauración de la Hero Card Prominente "Próxima Clase Hoy" en el Horario:**
+  - **Diseño M3 Prominente Respaldado por Feedback de Usuarios:** En respuesta al agrado y preferencia de los usuarios, se recuperó la tarjeta hero completa y distinguida para `PRÓXIMA CLASE HOY` frente al banner reducido, ofreciendo una jerarquía visual clara y atractiva.
+  - **Componentes Visuales Enriquecidos:** Contenedor redondeado M3 (`rounded-2xl sm:rounded-3xl`) con fondo tonal dinámico (`bg-[#D0E4FF] dark:bg-[#004B76]`), chip distintivo con icono de destellos (`Sparkles`) en contenedor ámbar, nombre de materia destacado, insignia de código de asignatura con tipografía monoespaciada en alto contraste, hora de inicio, modalidad presencial/virtual (con iconos de `MapPin` o `Laptop`) y profesor asignado.
+  - **Resumen Diario Proporcional:** Incorporación del contador `Total hoy: X clases` adaptado tanto para móviles (junto a la cabecera del badge) como para escritorio (en el extremo derecho de la tarjeta).
+  - **Jornada Completada:** Mantenimiento de la tarjeta celebratoria de jornada completada con mensaje de ánimo e icono de verificación esmeralda.
+
+---
+
 ## [1.7.10.19] - 2026-11-02
 
 ### Añadido & Optimizado

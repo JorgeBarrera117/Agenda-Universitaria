@@ -317,49 +317,49 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* 2. BLOQUE DE EVENTOS DE HOY (Compacto, no invasivo) */}
+      {/* 2. TARJETA HERO DE EVENTOS DE HOY / PRÓXIMA CLASE (Diseño M3 Prominente Solicitado) */}
       {activeClassNow ? (
         // Estado A: Clase en Curso Ahora
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] p-3 sm:p-4 shadow-2xs border border-[#00639B]/25 dark:border-white/10">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-            <div className="space-y-1 min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
-                EN CLASE AHORA
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] p-3.5 sm:p-5 shadow-xs border border-[#00639B]/25 dark:border-white/10">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
+                EN CLASE AHORA MISMO
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base sm:text-lg font-black tracking-tight text-[#001D32] dark:text-[#D0E4FF] truncate">
+                <h3 className="text-base sm:text-xl font-bold tracking-tight text-[#001D32] dark:text-[#D0E4FF] truncate">
                   {getSubjectById(activeClassNow.subjectId)?.name || 'Clase Universitaria'}
                 </h3>
                 {getSubjectById(activeClassNow.subjectId)?.code && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                     {getSubjectById(activeClassNow.subjectId)?.code}
                   </span>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium pt-0.5">
-                <span className="inline-flex items-center gap-1 font-mono font-bold bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md text-[11px]">
-                  <Clock className="w-3 h-3 text-[#00639B] dark:text-[#96CCFF]" />
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium pt-0.5">
+                <span className="inline-flex items-center gap-1 font-mono font-bold bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-xs">
+                  <Clock className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
                   {activeClassNow.startTime} - {activeClassNow.endTime}
                 </span>
                 {isSlotVirtual(activeClassNow) ? (
-                  <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md text-[11px] font-bold">
-                    <Laptop className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                  <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg font-bold text-[11px]">
+                    <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                     <span>Virtual {activeClassNow.classroom && activeClassNow.classroom.toLowerCase() !== 'virtual' ? `• ${activeClassNow.classroom}` : ''}</span>
                   </span>
                 ) : (
                   activeClassNow.classroom && (
-                    <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md text-[11px] font-medium">
-                      <Building2 className="w-3 h-3 text-[#00639B] dark:text-[#96CCFF]" />
+                    <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg font-medium text-[11px]">
+                      <Building2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
                       <span>{activeClassNow.classroom}{activeClassNow.building ? ` (${activeClassNow.building})` : ''}</span>
                     </span>
                   )
                 )}
                 {getProfessorById(activeClassNow.professorId) && (
-                  <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md text-[11px]">
-                    <span className="font-medium truncate max-w-[140px]">Prof. {getProfessorById(activeClassNow.professorId)?.name}</span>
+                  <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-[11px]">
+                    <span className="font-medium truncate max-w-[160px]">Prof. {getProfessorById(activeClassNow.professorId)?.name}</span>
                   </span>
                 )}
               </div>
@@ -368,10 +368,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             {onNavigateToNotes && (
               <Button
                 variant="primary"
-                size="sm"
+                size="md"
                 onClick={() => onNavigateToNotes(activeClassNow.subjectId)}
-                icon={<FileEdit className="w-3.5 h-3.5 stroke-[2.3]" />}
-                className="shrink-0 self-start md:self-center h-8 px-4 text-xs font-extrabold shadow-xs"
+                icon={<FileEdit className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.3]" />}
+                className="shrink-0 self-start md:self-center sm:px-6 sm:py-3 sm:text-base font-extrabold shadow-md ring-2 ring-white/25 dark:ring-black/20 hover:scale-[1.02]"
               >
                 Tomar Apunte
               </Button>
@@ -379,29 +379,88 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           </div>
         </section>
       ) : nextClassToday ? (
-        // Estado B: Siguiente Clase Hoy (Banner delgado)
-        <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-2xl bg-[#FFDCC1]/60 dark:bg-[#683D00]/50 border border-amber-500/25 text-[#2E1500] dark:text-[#FFDCC1] text-xs">
-          <div className="flex items-center gap-2 truncate">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-[#FFDCC1] dark:bg-[#8B5000] text-[#2E1500] dark:text-[#FFDCC1] shrink-0">
-              <Sparkles className="w-3 h-3" />
-              SIGUIENTE
-            </span>
-            <span className="font-bold truncate">
-              {getSubjectById(nextClassToday.subjectId)?.name}
-            </span>
-            <span className="font-mono text-[11px] opacity-90 hidden sm:inline">
-              ({nextClassToday.startTime} - {nextClassToday.endTime})
-            </span>
+        // Estado B: Próxima Clase Hoy (Hero Card M3 rica y prominente preferida por los usuarios)
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] p-3.5 sm:p-5 shadow-xs border border-[#00639B]/25 dark:border-white/10">
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <div className="flex items-center justify-between sm:justify-start gap-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FFDCC1] dark:bg-[#683D00] text-[#2E1500] dark:text-[#FFDCC1] border border-amber-500/20 shrink-0">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  PRÓXIMA CLASE HOY
+                </div>
+                {/* Resumen en pantallas móviles */}
+                <div className="flex items-center gap-1 sm:hidden text-xs font-medium bg-white/60 dark:bg-black/30 px-2.5 py-0.5 rounded-lg">
+                  <span className="opacity-80">Total hoy:</span>
+                  <span className="font-mono font-bold">
+                    {todaySlots.length} {todaySlots.length === 1 ? 'clase' : 'clases'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base sm:text-xl font-bold tracking-tight text-[#001D32] dark:text-[#D0E4FF] truncate">
+                  {getSubjectById(nextClassToday.subjectId)?.name || 'Clase Universitaria'}
+                </h3>
+                {getSubjectById(nextClassToday.subjectId)?.code && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
+                    {getSubjectById(nextClassToday.subjectId)?.code}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium pt-0.5">
+                <span className="inline-flex items-center gap-1 font-mono font-bold bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-xs">
+                  <Clock className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
+                  Inicia a las {nextClassToday.startTime}
+                </span>
+
+                {isSlotVirtual(nextClassToday) ? (
+                  <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg font-bold text-[11px]">
+                    <Laptop className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <span>Virtual {nextClassToday.classroom && nextClassToday.classroom.toLowerCase() !== 'virtual' ? `• ${nextClassToday.classroom}` : ''}</span>
+                  </span>
+                ) : (
+                  nextClassToday.classroom && (
+                    <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg font-medium text-[11px]">
+                      <MapPin className="w-3.5 h-3.5 text-[#00639B] dark:text-[#96CCFF]" />
+                      <span>{nextClassToday.classroom}{nextClassToday.building ? ` (${nextClassToday.building})` : ''}</span>
+                    </span>
+                  )
+                )}
+
+                {getProfessorById(nextClassToday.professorId) && (
+                  <span className="inline-flex items-center gap-1 bg-white/70 dark:bg-black/30 px-2.5 py-1 rounded-lg text-[11px]">
+                    <span className="font-medium truncate max-w-[160px]">Prof. {getProfessorById(nextClassToday.professorId)?.name}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Resumen en pantallas medianas y de escritorio */}
+            <div className="hidden sm:flex flex-col items-end gap-1 text-xs shrink-0 font-medium">
+              <span className="opacity-80">Total hoy:</span>
+              <span className="font-mono font-bold text-sm bg-white/60 dark:bg-black/30 px-3 py-1 rounded-lg">
+                {todaySlots.length} {todaySlots.length === 1 ? 'clase' : 'clases'}
+              </span>
+            </div>
           </div>
-          <span className="font-mono font-bold text-[11px] shrink-0">
-            {todaySlots.length} hoy
-          </span>
-        </div>
+        </section>
       ) : todaySlots.length > 0 ? (
-        // Estado C: Jornada finalizada (Píldora delgada, no ocupa espacio)
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-[#C4EED0]/40 dark:bg-[#0A532C]/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-500/20">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <span className="truncate">Jornada de hoy completada ({todaySlots.length} clases cursadas).</span>
+        // Estado C: Jornada finalizada
+        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl sm:rounded-3xl bg-[#C4EED0]/40 dark:bg-[#0A532C]/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-500/20 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-emerald-900 dark:text-emerald-200">
+                ¡Jornada de hoy completada!
+              </h4>
+              <p className="text-[11px] sm:text-xs opacity-80 hidden sm:block">
+                Has terminado todas tus clases del día ({todaySlots.length} {todaySlots.length === 1 ? 'clase cursada' : 'clases cursadas'}). Aprovecha para repasar tus apuntes.
+              </p>
+            </div>
+          </div>
         </div>
       ) : null}
 
