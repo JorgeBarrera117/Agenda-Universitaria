@@ -87,7 +87,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Agenda Universitaria",
-      "artifactName": "${productName}-Setup-v1.7.10.21.${ext}",
+      "artifactName": "${productName}-Setup-v1.7.10.22.${ext}",
       "include": "electron/installer.nsh",
       "deleteAppDataOnUninstall": false
     }
