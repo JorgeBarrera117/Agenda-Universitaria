@@ -15,10 +15,13 @@ import {
   X,
   Globe,
   Sparkles,
+  AlertTriangle,
+  LogOut,
 } from 'lucide-react';
 import type { Subject } from '../../subjects/types';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
+import { Modal } from '../../../shared/components/Modal';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 
 export interface DocumentLinkFormProps {
@@ -46,13 +49,28 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
   const [linkUrl, setLinkUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Interceptar botón atrás físico en Android para volver a la lista
+  // Solicitar confirmación antes de salir
+  const handleRequestCancel = () => {
+    setShowDiscardModal(true);
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowDiscardModal(false);
+    onCancel();
+  };
+
+  // Interceptar botón atrás físico en Android para preguntar antes de salir sin guardar
   useBackButton(
     () => {
-      onCancel();
+      if (showDiscardModal) {
+        setShowDiscardModal(false);
+        return true;
+      }
+      setShowDiscardModal(true);
       return true;
     },
     BACK_PRIORITY.SUBVIEW,
@@ -201,7 +219,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
       <div className="flex items-center gap-3.5 pb-3.5 border-b border-[#C2C7CE]/40 dark:border-[#42474E]/40">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleRequestCancel}
           className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#D0E4FF] dark:hover:bg-[#004B76]/50 flex items-center justify-center transition-all cursor-pointer active:scale-90 shrink-0 shadow-2xs"
           aria-label="Volver al catálogo de documentos"
         >
@@ -543,7 +561,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-3">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={handleRequestCancel}
             disabled={isSubmitting}
             className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-full text-xs sm:text-sm font-bold text-[#41474D] dark:text-[#C2C7CF] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center"
           >
@@ -569,6 +587,56 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
           </button>
         </div>
       </form>
+
+      {/* 5. MODAL M3: CONFIRMACIÓN PARA SALIR SIN GUARDAR */}
+      {showDiscardModal && (
+        <Modal
+          isOpen={showDiscardModal}
+          onClose={() => setShowDiscardModal(false)}
+          title="¿Salir sin guardar?"
+          maxWidth="sm"
+        >
+          <div className="space-y-4 -mt-2">
+            <div className="flex items-start gap-3.5 pt-1">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20 shadow-2xs">
+                <AlertTriangle className="w-6 h-6 stroke-[2.2]" />
+              </div>
+              <div className="space-y-1 min-w-0 flex-1">
+                <h4 className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
+                  Se perderán los cambios no vinculados
+                </h4>
+                <p className="text-xs text-[#72777F] dark:text-[#8C9199] leading-relaxed">
+                  {selectedFile
+                    ? `Tienes seleccionado el archivo "${selectedFile.name}". Si decides salir ahora, no se vinculará a la materia y se descartará.`
+                    : linkName.trim() || linkUrl.trim()
+                    ? `Has ingresado datos para el enlace "${linkName.trim() || 'nuevo'}". Si decides salir ahora, la información se perderá.`
+                    : 'Estás a punto de salir del formulario de vinculación. ¿Deseas descartar este proceso y volver al catálogo?'}
+                </p>
+              </div>
+            </div>
+
+            {/* Acciones del Diálogo Ergonómicas */}
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-white/10">
+              <button
+                type="button"
+                onClick={handleConfirmDiscard}
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <LogOut className="w-4 h-4 stroke-[2]" />
+                <span>Salir sin guardar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDiscardModal(false)}
+                className="w-full sm:w-auto min-h-[44px] px-5 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] shadow-2xs active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+              >
+                Seguir editando
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

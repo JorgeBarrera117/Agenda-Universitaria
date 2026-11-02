@@ -5,6 +5,16 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.11] - 2026-11-02
+
+### Añadido
+- **Diálogo de Confirmación Anti-Pérdida de Datos en Vincular Documento (`DocumentLinkForm.tsx`):**
+  - Implementación de modal de confirmación inteligente (`showDiscardModal`) al presionar el botón "Cancelar", la flecha de retroceso superior (`ArrowLeft`) o el botón físico/gesto de navegación de Android (`useBackButton` con prioridad `SUBVIEW`).
+  - Detección contextual del contenido: advierte específicamente con el nombre del archivo seleccionado o del enlace ingresado antes de descartar el formulario.
+  - Diseño M3 con squircle ambarino (`AlertTriangle`), botón primario "Seguir editando" y botón de acción destructiva "Salir sin guardar" con touch target accesible de 44px.
+
+---
+
 ## [1.7.10.10] - 2026-11-02
 
 ### Optimizado
