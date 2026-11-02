@@ -25,6 +25,7 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal } from '../../../shared/components/Modal';
+import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
@@ -549,34 +550,36 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                   {slot.startTime} - {slot.endTime}
                                 </span>
 
-                                <div className="flex items-center gap-1 shrink-0">
-                                  {onNavigateToNotes && (
-                                    <button
-                                      type="button"
-                                      onClick={() => onNavigateToNotes(slot.subjectId)}
-                                      className="p-1 rounded-md text-[#00639B] dark:text-[#96CCFF] hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                                      title="Tomar apunte"
-                                    >
-                                      <FileEdit className="w-3 h-3" />
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenEdit(slot)}
-                                    className="p-1 rounded-md text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                                    title="Editar clase"
-                                  >
-                                    <Edit2 className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSlotToDelete(slot)}
-                                    className="p-1 rounded-md text-rose-600 dark:text-rose-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                                    title="Eliminar clase"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
+                                {/* Menú Contextual M3 (Kebab ⋮) */}
+                                <M3KebabMenu
+                                  size="sm"
+                                  items={[
+                                    {
+                                      id: 'edit',
+                                      label: 'Editar clase',
+                                      icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                                      variant: 'primary',
+                                      onClick: () => handleOpenEdit(slot),
+                                    },
+                                    ...(onNavigateToNotes
+                                      ? [
+                                          {
+                                            id: 'notes',
+                                            label: 'Tomar apunte',
+                                            icon: <FileEdit className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />,
+                                            onClick: () => onNavigateToNotes(slot.subjectId),
+                                          },
+                                        ]
+                                      : []),
+                                    {
+                                      id: 'delete',
+                                      label: 'Eliminar clase',
+                                      icon: <Trash2 className="w-3.5 h-3.5" />,
+                                      variant: 'destructive',
+                                      onClick: () => setSlotToDelete(slot),
+                                    },
+                                  ]}
+                                />
                               </div>
 
                               {/* Fila 2: Título de Materia */}
@@ -704,24 +707,35 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="action-blue"
-                        size="icon-xs"
-                        onClick={() => handleOpenEdit(slot)}
-                        title="Editar clase"
-                        aria-label="Editar clase"
-                        icon={<Edit2 className="w-3.5 h-3.5" />}
-                      />
-                      <Button
-                        variant="action-rose"
-                        size="icon-xs"
-                        onClick={() => setSlotToDelete(slot)}
-                        title="Eliminar clase"
-                        aria-label="Eliminar clase"
-                        icon={<Trash2 className="w-3.5 h-3.5" />}
-                      />
-                    </div>
+                    {/* Menú Contextual M3 (Kebab ⋮) */}
+                    <M3KebabMenu
+                      items={[
+                        {
+                          id: 'edit',
+                          label: 'Editar clase',
+                          icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                          variant: 'primary',
+                          onClick: () => handleOpenEdit(slot),
+                        },
+                        ...(onNavigateToNotes
+                          ? [
+                              {
+                                id: 'notes',
+                                label: 'Tomar apunte',
+                                icon: <FileEdit className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />,
+                                onClick: () => onNavigateToNotes(slot.subjectId),
+                              },
+                            ]
+                          : []),
+                        {
+                          id: 'delete',
+                          label: 'Eliminar clase',
+                          icon: <Trash2 className="w-3.5 h-3.5" />,
+                          variant: 'destructive',
+                          onClick: () => setSlotToDelete(slot),
+                        },
+                      ]}
+                    />
                   </div>
 
                   {/* Fila Horario y Ubicación */}

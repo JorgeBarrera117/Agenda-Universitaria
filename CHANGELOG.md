@@ -5,6 +5,16 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.16] - 2026-11-02
+
+### Optimizado
+- **Descongestión Integral y Menú Kebab en Horario Semanal y Diario (`ScheduleView.tsx`):**
+  - Erradicación de la acumulación de micro-botones en las tarjetas de clases tanto en la vista semanal (`Weekly`) como en la vista diaria (`Daily`).
+  - En la vista semanal: reemplazo de los 3 botones apiñados (`FileEdit`, `Edit2`, `Trash2`) en columnas estrechas por un menú `M3KebabMenu (size="sm")`, liberando espacio para el rango horario y el nombre de la materia.
+  - En la vista diaria: erradicación de los botones de edición y borrado en la cabecera; se agrupan ordenadamente en el menú Kebab (`Editar clase`, `Tomar apunte`, `Eliminar clase`), manteniendo en el pie el botón primario de acción de pulgar (*Thumb Zone*).
+
+---
+
 ## [1.7.10.15] - 2026-11-02
 
 ### Optimizado
