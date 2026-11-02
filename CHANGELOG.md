@@ -5,6 +5,17 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.13] - 2026-11-02
+
+### Optimizado
+- **Descongestión Integral y Menú Kebab en Tarjetas de Asignaturas (`SubjectsView.tsx`):**
+  - Erradicación de la fila saturada de 3 micro-botones individuales en la cabecera de tarjeta (`FolderOpen`, `Edit2`, `Trash2`).
+  - Integración del menú universal `M3KebabMenu` en la esquina superior derecha: agrupa ordenadamente las acciones *"Editar asignatura"*, *"Archivos vinculados (X)"*, *"Ver apuntes (Y)"* y *"Eliminar asignatura"* (con estilo destructivo en rojo).
+  - Liberación de más del 40% de ancho útil para el título de la materia y su chip de código (`ASIGNATURA`), reduciendo truncamientos forzados.
+  - Reestructuración del pie de tarjeta: chips de métricas interactivas a la izquierda (bloques semanales, archivos adjuntos y apuntes) y botón de acción primaria *"Ver apuntes"* claramente posicionado en el *Thumb Zone* inferior.
+
+---
+
 ## [1.7.10.12] - 2026-11-02
 
 ### Añadido & Optimizado

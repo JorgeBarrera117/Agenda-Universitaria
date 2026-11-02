@@ -22,6 +22,7 @@ import { SubjectDocumentsModal } from './SubjectDocumentsModal';
 import { useSubjectDocuments } from '../hooks/useSubjectDocuments';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal } from '../../../shared/components/Modal';
+import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
@@ -253,33 +254,41 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Micro-acciones discretas */}
-                  <div className="flex items-center gap-0.5 shrink-0 pt-0.5">
-                    <Button
-                      variant="action-indigo"
-                      size="icon-xs"
-                      onClick={() => setSelectedSubjectForDocs(subject)}
-                      title="Archivos y documentos vinculados"
-                      aria-label="Ver documentos"
-                      icon={<FolderOpen className="w-3.5 h-3.5" />}
-                    />
-                    <Button
-                      variant="action-blue"
-                      size="icon-xs"
-                      onClick={() => handleOpenEdit(subject)}
-                      title="Editar asignatura"
-                      aria-label="Editar asignatura"
-                      icon={<Edit2 className="w-3.5 h-3.5" />}
-                    />
-                    <Button
-                      variant="action-rose"
-                      size="icon-xs"
-                      onClick={() => setSubjectToDelete(subject)}
-                      title="Eliminar asignatura"
-                      aria-label="Eliminar asignatura"
-                      icon={<Trash2 className="w-3.5 h-3.5" />}
-                    />
-                  </div>
+                  {/* Menú Contextual M3 (Kebab ⋮) para Descongestión de Tarjeta */}
+                  <M3KebabMenu
+                    items={[
+                      {
+                        id: 'edit',
+                        label: 'Editar asignatura',
+                        icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                        variant: 'primary',
+                        onClick: () => handleOpenEdit(subject),
+                      },
+                      {
+                        id: 'docs',
+                        label: `Archivos vinculados (${docCount})`,
+                        icon: <FolderOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />,
+                        onClick: () => setSelectedSubjectForDocs(subject),
+                      },
+                      ...(onNavigateToNotes
+                        ? [
+                            {
+                              id: 'notes',
+                              label: `Ver apuntes (${noteCount})`,
+                              icon: <BookOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
+                              onClick: () => onNavigateToNotes(subject.id),
+                            },
+                          ]
+                        : []),
+                      {
+                        id: 'delete',
+                        label: 'Eliminar asignatura',
+                        icon: <Trash2 className="w-3.5 h-3.5" />,
+                        variant: 'destructive',
+                        onClick: () => setSubjectToDelete(subject),
+                      },
+                    ]}
+                  />
                 </div>
 
                 {/* 2. Chips Académicos Condicionales */}
@@ -319,42 +328,69 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                   )}
                 </div>
 
-                {/* 3. Pie de Tarjeta: Métricas y Acciones Thumb Zone */}
+                {/* 3. Pie de Tarjeta: Métricas y Acción Primaria en Thumb Zone */}
                 <div className="pt-1.5 border-t border-[#C2C7CE]/30 dark:border-white/5 flex items-center justify-between gap-1.5 text-xs">
                   <div className="flex items-center gap-1.5 text-[10.5px]">
-                    <span className="flex items-center gap-0.5 text-slate-500 font-medium">
+                    <span
+                      className="flex items-center gap-0.5 text-slate-500 dark:text-slate-400 font-medium"
+                      title={`${classCount} clases semanales`}
+                    >
                       <Clock className="w-3 h-3 text-[#00639B] dark:text-[#96CCFF]" />
-                      {classCount}
+                      <span>{classCount}</span>
                     </span>
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-bold text-[10px]">
-                      <FileText className="w-2.5 h-2.5" />
-                      {noteCount}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-1 shrink-0 ml-auto">
                     <button
                       type="button"
-                      onClick={() => setSelectedSubjectForDocs(subject)}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
-                      title="Archivos de esta asignatura"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedSubjectForDocs(subject);
+                      }}
+                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer font-bold text-[10px]"
+                      title="Ver archivos vinculados"
                     >
-                      <FolderOpen className="w-3 h-3 stroke-[2.2]" />
-                      <span>{docCount > 0 ? `${docCount}` : 'Docs'}</span>
+                      <FolderOpen className="w-2.5 h-2.5" />
+                      <span>{docCount}</span>
                     </button>
 
                     {onNavigateToNotes && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigateToNotes(subject.id);
+                        }}
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] transition-colors cursor-pointer font-bold text-[10px]"
+                        title="Ver apuntes registrados"
+                      >
+                        <FileText className="w-2.5 h-2.5" />
+                        <span>{noteCount}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0 ml-auto">
+                    {onNavigateToNotes ? (
                       <Button
                         variant="action-indigo"
                         size="xs"
                         onClick={() => onNavigateToNotes(subject.id)}
-                        title="Ver apuntes"
+                        title="Ver apuntes de la materia"
                         aria-label="Ver apuntes"
                         icon={<BookOpen className="w-3 h-3 stroke-[2.2]" />}
-                        className="text-[11px] py-1 px-2.5 h-7 font-bold whitespace-nowrap"
+                        className="text-[11px] py-1 px-3 h-7 font-bold whitespace-nowrap shadow-2xs"
                       >
-                        Apuntes
+                        Ver apuntes
                       </Button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSubjectForDocs(subject)}
+                        className="px-3 py-1 rounded-full text-[11px] font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
+                        title="Archivos de esta asignatura"
+                      >
+                        <FolderOpen className="w-3 h-3 stroke-[2.2]" />
+                        <span>Archivos</span>
+                      </button>
                     )}
                   </div>
                 </div>
