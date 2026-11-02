@@ -5,6 +5,18 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.17] - 2026-11-02
+
+### Corregido & Optimizado
+- **Solución al Recorte (Clipping Trap) de Menús Kebab vía React Portal (`M3KebabMenu.tsx` & `Card.tsx`):**
+  - **Diagnóstico:** Los menús contextuales quedaban cortados por la base de la tarjeta debido al estilo `overflow-hidden` nativo de `<Card>` y el anidamiento `absolute` en el DOM local.
+  - **Renderizado Soberano en Portal (`createPortal`):** El contenedor flotante de `M3KebabMenu` ahora se monta directamente en el `document.body` con posición fija (`fixed`) y `z-index: 9999`, haciéndolo 100% inmune a `overflow: hidden`, contextos de apilamiento y bordes redondeados de tarjetas.
+  - **Cálculo Preciso de Coordenadas Viewport:** Medición milimétrica del disparador (`getBoundingClientRect()`) con un ancho ampliado de 230px que evita truncamientos de texto como *"Archivos vinculados (0)"*.
+  - **Desenganche Táctil en Scroll:** Si el usuario realiza un scroll en la vista, el menú se desvanece suavemente para prevenir desfasajes visuales flotantes.
+  - **Limpieza de Card:** Eliminación del `overflow-hidden` forzado en el contenedor base `Card.tsx`.
+
+---
+
 ## [1.7.10.16] - 2026-11-02
 
 ### Optimizado
