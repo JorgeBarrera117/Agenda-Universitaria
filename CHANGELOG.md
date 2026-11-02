@@ -5,6 +5,17 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.15] - 2026-11-02
+
+### Optimizado
+- **Estandarización Canónica de Menú Kebab en Cuaderno de Apuntes (`NotesView.tsx`):**
+  - Unificación de menús contextuales duplicados e independientes en los modos cuadrícula (*Grid*) y lista (*List*), sustituyéndolos por el componente universal `M3KebabMenu`.
+  - Supresión de overlays estáticos a pantalla completa (`fixed inset-0`) y estados locales redundantes (`activeMenuNoteId`), reduciendo el tamaño del bundle JavaScript.
+  - Dotación de *Smart Flip* vertical automático: los menús de notas situadas en la parte inferior de la galería se orientan hacia arriba sin salirse del viewport ni requerir scroll artificial.
+  - Soporte nativo para retroceso con botón físico de Android (`useBackButton`) y tecla `Escape`.
+
+---
+
 ## [1.7.10.14] - 2026-11-02
 
 ### Optimizado

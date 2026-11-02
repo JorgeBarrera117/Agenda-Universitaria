@@ -27,6 +27,7 @@ import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
 import { M3Select } from '../../../shared/components/M3Select';
+import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
@@ -66,9 +67,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // Ordenamiento de documentos
   const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'title'>('updatedAt');
-
-  // Menú de tres puntos activo por apunte
-  const [activeMenuNoteId, setActiveMenuNoteId] = useState<string | null>(null);
 
   const { notes, addNote, updateNote, removeNote } = useNotes(
     selectedSubjectId,
@@ -161,14 +159,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   const handleOpenEdit = (note: Note, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setActiveMenuNoteId(null);
     setEditingNote(note);
     setViewMode('editor');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenRead = (note: Note) => {
-    setActiveMenuNoteId(null);
     setReadingNote(note);
     setViewMode('reader');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -760,14 +756,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // 3. Vista de Galería de Documentos (M3 High Density)
   return (
     <div className="space-y-3.5 w-full">
-      {/* Overlay transparente para cerrar menú contextual */}
-      {activeMenuNoteId && (
-        <div
-          className="fixed inset-0 z-20"
-          onClick={() => setActiveMenuNoteId(null)}
-        />
-      )}
-
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
@@ -951,8 +939,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
               month: 'short',
             });
 
-            const isMenuOpen = activeMenuNoteId === note.id;
-
             return (
               <div
                 key={note.id}
@@ -976,57 +962,31 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     </h3>
                   </div>
 
-                  {/* Botón Tres Puntos (⋮) */}
-                  <div className="relative shrink-0">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveMenuNoteId(isMenuOpen ? null : note.id);
-                      }}
-                      className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                      title="Más opciones"
-                      aria-label="Más opciones"
-                    >
-                      <MoreVertical className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Menú Contextual Flotante */}
-                    {isMenuOpen && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-7 w-44 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-xl shadow-lg p-1 z-30 animate-in fade-in zoom-in-95 duration-150 space-y-0.5"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleOpenRead(note)}
-                          className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <BookOpen className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-                          <span>Leer apunte</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => handleOpenEdit(note, e)}
-                          className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                          <span>Editar</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveMenuNoteId(null);
-                            setNoteToDelete(note);
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Eliminar</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  {/* Menú Contextual M3 (Kebab ⋮) */}
+                  <M3KebabMenu
+                    items={[
+                      {
+                        id: 'read',
+                        label: 'Leer apunte',
+                        icon: <BookOpen className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                        variant: 'primary',
+                        onClick: () => handleOpenRead(note),
+                      },
+                      {
+                        id: 'edit',
+                        label: 'Editar apunte',
+                        icon: <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
+                        onClick: () => handleOpenEdit(note),
+                      },
+                      {
+                        id: 'delete',
+                        label: 'Eliminar apunte',
+                        icon: <Trash2 className="w-3.5 h-3.5" />,
+                        variant: 'destructive',
+                        onClick: () => setNoteToDelete(note),
+                      },
+                    ]}
+                  />
                 </div>
 
                 {/* Hoja de Papel en Miniatura Descongestionada */}
@@ -1084,8 +1044,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
               year: 'numeric',
             });
 
-            const isMenuOpen = activeMenuNoteId === note.id;
-
             return (
               <div
                 key={note.id}
@@ -1125,53 +1083,32 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   </div>
                 </div>
 
-                {/* Botón Tres Puntos (⋮) */}
-                <div className="relative shrink-0 ml-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMenuNoteId(isMenuOpen ? null : note.id);
-                    }}
-                    className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                  >
-                    <MoreVertical className="w-3.5 h-3.5" />
-                  </button>
-
-                  {isMenuOpen && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute right-0 top-7 w-44 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-xl shadow-lg p-1 z-30 animate-in fade-in zoom-in-95 duration-150 space-y-0.5"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => handleOpenRead(note)}
-                        className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                      >
-                        <BookOpen className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Leer apunte</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => handleOpenEdit(note, e)}
-                        className="w-full px-2.5 py-1.5 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                      >
-                        <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        <span>Editar</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveMenuNoteId(null);
-                          setNoteToDelete(note);
-                        }}
-                        className="w-full px-2.5 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Eliminar</span>
-                      </button>
-                    </div>
-                  )}
+                {/* Menú Contextual M3 (Kebab ⋮) */}
+                <div className="shrink-0 ml-2">
+                  <M3KebabMenu
+                    items={[
+                      {
+                        id: 'read',
+                        label: 'Leer apunte',
+                        icon: <BookOpen className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
+                        variant: 'primary',
+                        onClick: () => handleOpenRead(note),
+                      },
+                      {
+                        id: 'edit',
+                        label: 'Editar apunte',
+                        icon: <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
+                        onClick: () => handleOpenEdit(note),
+                      },
+                      {
+                        id: 'delete',
+                        label: 'Eliminar apunte',
+                        icon: <Trash2 className="w-3.5 h-3.5" />,
+                        variant: 'destructive',
+                        onClick: () => setNoteToDelete(note),
+                      },
+                    ]}
+                  />
                 </div>
               </div>
             );
