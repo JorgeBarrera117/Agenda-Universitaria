@@ -145,10 +145,13 @@ export function App() {
   // Sincronizar automáticamente el Widget de la Pantalla de Inicio de Android (con debounce de 600ms para optimizar CPU y batería)
   useEffect(() => {
     const timer = setTimeout(() => {
-      WidgetSyncService.syncWidgetData(slots, subjects, professors, notes).catch(console.warn);
+      WidgetSyncService.syncWidgetData(slots, subjects, professors, notes, {
+        theme: settings.theme,
+        colorPalette: settings.colorPalette,
+      }).catch(console.warn);
     }, 600);
     return () => clearTimeout(timer);
-  }, [slots, subjects, professors, notes]);
+  }, [slots, subjects, professors, notes, settings.theme, settings.colorPalette]);
 
   const showToast = (message: string) => {
     if (toastTimerRef.current) {

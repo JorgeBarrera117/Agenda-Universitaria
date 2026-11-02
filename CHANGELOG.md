@@ -5,6 +5,19 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.19] - 2026-11-02
+
+### Añadido & Optimizado
+- **Adaptación Cromática Dinámica de Widgets Android a Material You (Claro/Oscuro):**
+  - **Sincronización Total de Paleta:** Los widgets de Android ahora se tiñen dinámicamente con la paleta activa seleccionada por el usuario (Aqua Turquesa, Lavanda Iris, Rosa Pastel, Bosque Esmeralda, Melocotón Cálido, Azul Océano, Cereza Carmesí o Clásico Pastel) tanto en modo Claro como Oscuro.
+  - **Arquitectura de Tintado con RemoteViews:** Se implementó WidgetThemeHelper.java para resolver tokens semánticos (surface, cardBg, surfaceContainer, primary, onPrimary, onSurface, onSurfaceVariant), aplicando capas tintables vectoriales en esquinas redondeadas (20dp para widget, 12dp para tarjetas, 10dp para botones de día y 6dp para badges).
+  - **Transmisión de Tokens en Tiempo Real:** WidgetSyncService.ts calcula y empaqueta la paleta activa en el payload JSON hacia WidgetBridge, reactivando la actualización instantánea ante cambios en Ajustes con debounce seguro.
+- **Solución al Congelamiento de Navegación entre Días en el Widget:**
+  - **Eliminación de Bloqueo de Disco:** Se sustituyó editor.commit() por editor.apply() en ScheduleDayWidgetProvider, evitando pausas sincrónicas en el hilo del BroadcastReceiver.
+  - **Identificador de Día Único en URI de Adaptador:** Se configuró el serviceIntent.setData(...) con el día explícito (/day_ + selectedDay), forzando a los launchers del sistema (incluyendo HyperOS / MIUI) a conmutar y renderizar la lista del día seleccionado de forma inmediata sin desincronizaciones de IPC.
+
+---
+
 ## [1.7.10.18] - 2026-11-02
 
 ### Añadido & Optimizado

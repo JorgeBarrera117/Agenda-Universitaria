@@ -52,10 +52,13 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         SharedPreferences prefs = context.getSharedPreferences(AgendaWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE);
 
         int appWidgetId = intent.getIntExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
-        if (appWidgetId != -1) {
-            currentTab = prefs.getString(AgendaWidgetProvider.KEY_SELECTED_TAB + "_" + appWidgetId, prefs.getString(AgendaWidgetProvider.KEY_SELECTED_TAB, "schedule"));
-        } else {
-            currentTab = prefs.getString(AgendaWidgetProvider.KEY_SELECTED_TAB, "schedule");
+        currentTab = intent.getStringExtra(AgendaWidgetProvider.EXTRA_TAB);
+        if (currentTab == null || currentTab.isEmpty()) {
+            if (appWidgetId != -1) {
+                currentTab = prefs.getString(AgendaWidgetProvider.KEY_SELECTED_TAB + "_" + appWidgetId, prefs.getString(AgendaWidgetProvider.KEY_SELECTED_TAB, "schedule"));
+            } else {
+                currentTab = prefs.getString(AgendaWidgetProvider.KEY_SELECTED_TAB, "schedule");
+            }
         }
 
         String rawJson = prefs.getString("widget_data", null);
@@ -96,6 +99,7 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         }
 
         JSONObject item = itemList.get(position);
+        WidgetThemeHelper.ThemeColors theme = WidgetThemeHelper.getThemeColors(context);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_list_item);
 
         String title = item.optString("title", "Elemento");
@@ -106,22 +110,35 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         boolean isToday = item.optBoolean("isToday", false);
         String id = item.optString("id", "");
 
-        views.setTextViewText(R.id.widget_item_title, title);
-        views.setTextViewText(R.id.widget_item_time_or_date, timeOrDate);
-        views.setTextViewText(R.id.widget_item_details, details);
-        views.setTextViewText(R.id.widget_item_badge, badge);
+        // Fondo de tarjeta adaptado al tema (cardBg)
+        views.setInt(R.id.widget_item_bg_view, "setColorFilter", theme.cardBg);
 
+        // Textos adaptados al tema
+        views.setTextViewText(R.id.widget_item_title, title);
+        views.setTextColor(R.id.widget_item_title, theme.onSurface);
+
+        views.setTextViewText(R.id.widget_item_time_or_date, timeOrDate);
+        views.setTextColor(R.id.widget_item_time_or_date, theme.primary);
+
+        views.setTextViewText(R.id.widget_item_details, details);
+        views.setTextColor(R.id.widget_item_details, theme.onSurfaceVariant);
+
+        // Badge adaptado al tema
+        views.setTextViewText(R.id.widget_item_badge, badge);
         if (isToday) {
-            views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_today);
+            views.setInt(R.id.widget_item_badge_bg, "setColorFilter", theme.primary);
+            views.setTextColor(R.id.widget_item_badge, theme.onPrimary);
         } else {
-            views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_day);
+            views.setInt(R.id.widget_item_badge_bg, "setColorFilter", theme.surfaceContainer);
+            views.setTextColor(R.id.widget_item_badge, theme.onSurfaceVariant);
         }
 
+        // Barra de color representativo de la asignatura
         try {
             int color = Color.parseColor(colorHex);
             views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", color);
         } catch (Exception ignored) {
-            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", 0xFF38BDF8);
+            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", theme.primary);
         }
 
         Intent fillInIntent = new Intent();

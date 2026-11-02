@@ -31,6 +31,26 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             R.id.widget_btn_day_7  // Domingo
     };
 
+    private static final int[] DAY_BUTTON_BG_IDS = new int[]{
+            R.id.widget_btn_day_1_bg,
+            R.id.widget_btn_day_2_bg,
+            R.id.widget_btn_day_3_bg,
+            R.id.widget_btn_day_4_bg,
+            R.id.widget_btn_day_5_bg,
+            R.id.widget_btn_day_6_bg,
+            R.id.widget_btn_day_7_bg
+    };
+
+    private static final int[] DAY_BUTTON_TEXT_IDS = new int[]{
+            R.id.widget_btn_day_1_text,
+            R.id.widget_btn_day_2_text,
+            R.id.widget_btn_day_3_text,
+            R.id.widget_btn_day_4_text,
+            R.id.widget_btn_day_5_text,
+            R.id.widget_btn_day_6_text,
+            R.id.widget_btn_day_7_text
+    };
+
     private static final String[] DAY_NAMES_ES = new String[]{
             "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"
     };
@@ -60,7 +80,11 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             selectedDay = today;
         }
 
+        WidgetThemeHelper.ThemeColors theme = WidgetThemeHelper.getThemeColors(context);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_schedule_day_layout);
+
+        // Capa de fondo tintable según el tema
+        views.setInt(R.id.widget_day_bg_image, "setColorFilter", theme.surface);
 
         // Título dinámico con el día seleccionado
         String dayName = DAY_NAMES_ES[selectedDay - 1];
@@ -69,20 +93,25 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             headerTitle += " (Hoy)";
         }
         views.setTextViewText(R.id.widget_day_title, headerTitle);
-        views.setTextViewText(R.id.widget_day_subtitle, "Toca un día para consultar");
+        views.setTextColor(R.id.widget_day_title, theme.onSurface);
 
-        // Configuración de los 7 botones de día (Lun a Dom)
+        views.setTextViewText(R.id.widget_day_subtitle, "Toca un día para consultar");
+        views.setTextColor(R.id.widget_day_subtitle, theme.onSurfaceVariant);
+
+        // Configuración de los 7 botones de día (Lun a Dom) con píldoras dinámicas
         for (int i = 0; i < 7; i++) {
             int dayNum = i + 1;
-            int btnId = DAY_BUTTON_IDS[i];
+            int btnFrameId = DAY_BUTTON_IDS[i];
+            int btnBgId = DAY_BUTTON_BG_IDS[i];
+            int btnTextId = DAY_BUTTON_TEXT_IDS[i];
             boolean isSelected = (dayNum == selectedDay);
 
             if (isSelected) {
-                views.setInt(btnId, "setBackgroundResource", R.drawable.widget_tab_active);
-                views.setTextColor(btnId, 0xFFFFFFFF);
+                views.setInt(btnBgId, "setColorFilter", theme.primary);
+                views.setTextColor(btnTextId, theme.onPrimary);
             } else {
-                views.setInt(btnId, "setBackgroundResource", R.drawable.widget_tab_inactive);
-                views.setTextColor(btnId, 0xFF94A3B8);
+                views.setInt(btnBgId, "setColorFilter", theme.surfaceContainer);
+                views.setTextColor(btnTextId, theme.onSurfaceVariant);
             }
 
             Intent dayIntent = new Intent(context, ScheduleDayWidgetProvider.class);
@@ -96,10 +125,13 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
                     dayIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
-            views.setOnClickPendingIntent(btnId, dayPending);
+            views.setOnClickPendingIntent(btnFrameId, dayPending);
         }
 
         // Botón "Hoy"
+        views.setInt(R.id.widget_day_btn_today_bg, "setColorFilter", theme.primary);
+        views.setTextColor(R.id.widget_day_btn_today_text, theme.onPrimary);
+
         Intent todayIntent = new Intent(context, ScheduleDayWidgetProvider.class);
         todayIntent.setAction(ACTION_SELECT_TODAY);
         todayIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
@@ -113,6 +145,9 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_day_btn_today, todayPending);
 
         // Botón para abrir la app desde cabecera o botón lateral
+        views.setInt(R.id.widget_day_btn_open_app_bg, "setColorFilter", theme.surfaceContainer);
+        views.setInt(R.id.widget_day_icon_open_app, "setColorFilter", theme.primary);
+
         Intent openAppIntent = new Intent(context, MainActivity.class);
         openAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openAppPending = PendingIntent.getActivity(
@@ -124,10 +159,14 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_day_header_clickable, openAppPending);
         views.setOnClickPendingIntent(R.id.widget_day_btn_open_app, openAppPending);
 
-        // Adaptador con URI ESTABLE para evitar reconexiones de IPC
+        // Texto de vista vacía adaptado al tema
+        views.setTextColor(R.id.widget_day_empty_view, theme.onSurfaceVariant);
+
+        // Adaptador con URI dinámica por día para navegación 100% fluida e instantánea
         Intent serviceIntent = new Intent(context, ScheduleDayWidgetService.class);
         serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        serviceIntent.setData(Uri.parse("content://schedule_day_widget/widget_" + appWidgetId));
+        serviceIntent.putExtra(EXTRA_DAY, selectedDay);
+        serviceIntent.setData(Uri.parse("content://schedule_day_widget/widget_" + appWidgetId + "/day_" + selectedDay));
         views.setRemoteAdapter(R.id.widget_day_list_view, serviceIntent);
         views.setEmptyView(R.id.widget_day_list_view, R.id.widget_day_empty_view);
 
@@ -173,7 +212,7 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
                     editor.putInt(KEY_SELECTED_DAY + "_" + appWidgetId, selectedDay);
                 }
                 editor.putInt(KEY_SELECTED_DAY, selectedDay);
-                editor.commit();
+                editor.apply();
 
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
@@ -191,7 +230,7 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
                 editor.putInt(KEY_SELECTED_DAY + "_" + appWidgetId, today);
             }
             editor.putInt(KEY_SELECTED_DAY, today);
-            editor.commit();
+            editor.apply();
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {

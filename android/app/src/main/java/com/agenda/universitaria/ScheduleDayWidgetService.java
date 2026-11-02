@@ -51,12 +51,14 @@ class ScheduleDayListRemoteViewsFactory implements RemoteViewsService.RemoteView
         SharedPreferences prefs = context.getSharedPreferences(ScheduleDayWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE);
 
         int appWidgetId = intent.getIntExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
-        int today = ScheduleDayWidgetProvider.getTodayDayOfWeek();
-        int selectedDay = today;
-        if (appWidgetId != -1) {
-            selectedDay = prefs.getInt(ScheduleDayWidgetProvider.KEY_SELECTED_DAY + "_" + appWidgetId, prefs.getInt(ScheduleDayWidgetProvider.KEY_SELECTED_DAY, today));
-        } else {
-            selectedDay = prefs.getInt(ScheduleDayWidgetProvider.KEY_SELECTED_DAY, today);
+        int selectedDay = intent.getIntExtra(ScheduleDayWidgetProvider.EXTRA_DAY, -1);
+        if (selectedDay < 1 || selectedDay > 7) {
+            int today = ScheduleDayWidgetProvider.getTodayDayOfWeek();
+            if (appWidgetId != -1) {
+                selectedDay = prefs.getInt(ScheduleDayWidgetProvider.KEY_SELECTED_DAY + "_" + appWidgetId, prefs.getInt(ScheduleDayWidgetProvider.KEY_SELECTED_DAY, today));
+            } else {
+                selectedDay = prefs.getInt(ScheduleDayWidgetProvider.KEY_SELECTED_DAY, today);
+            }
         }
 
         String rawJson = prefs.getString("widget_data", null);
@@ -100,6 +102,7 @@ class ScheduleDayListRemoteViewsFactory implements RemoteViewsService.RemoteView
         }
 
         JSONObject item = itemList.get(position);
+        WidgetThemeHelper.ThemeColors theme = WidgetThemeHelper.getThemeColors(context);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_list_item);
 
         String title = item.optString("title", "Clase");
@@ -110,22 +113,35 @@ class ScheduleDayListRemoteViewsFactory implements RemoteViewsService.RemoteView
         boolean isToday = item.optBoolean("isToday", false);
         String id = item.optString("id", "");
 
-        views.setTextViewText(R.id.widget_item_title, title);
-        views.setTextViewText(R.id.widget_item_time_or_date, timeOrDate);
-        views.setTextViewText(R.id.widget_item_details, details);
-        views.setTextViewText(R.id.widget_item_badge, badge);
+        // Fondo de tarjeta adaptado al tema (Material You cardBg)
+        views.setInt(R.id.widget_item_bg_view, "setColorFilter", theme.cardBg);
 
+        // Textos con colores de alto contraste accesibles del tema
+        views.setTextViewText(R.id.widget_item_title, title);
+        views.setTextColor(R.id.widget_item_title, theme.onSurface);
+
+        views.setTextViewText(R.id.widget_item_time_or_date, timeOrDate);
+        views.setTextColor(R.id.widget_item_time_or_date, theme.primary);
+
+        views.setTextViewText(R.id.widget_item_details, details);
+        views.setTextColor(R.id.widget_item_details, theme.onSurfaceVariant);
+
+        // Badge adaptado al tema
+        views.setTextViewText(R.id.widget_item_badge, badge);
         if (isToday) {
-            views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_today);
+            views.setInt(R.id.widget_item_badge_bg, "setColorFilter", theme.primary);
+            views.setTextColor(R.id.widget_item_badge, theme.onPrimary);
         } else {
-            views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_day);
+            views.setInt(R.id.widget_item_badge_bg, "setColorFilter", theme.surfaceContainer);
+            views.setTextColor(R.id.widget_item_badge, theme.onSurfaceVariant);
         }
 
+        // Barra de color representativo de la asignatura
         try {
             int color = Color.parseColor(colorHex);
             views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", color);
         } catch (Exception ignored) {
-            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", 0xFF38BDF8);
+            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", theme.primary);
         }
 
         Intent fillInIntent = new Intent();

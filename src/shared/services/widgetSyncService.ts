@@ -4,29 +4,94 @@ import { DAY_NAMES, SHORT_DAY_NAMES } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { Note } from '../../features/notes/types';
+import type { MaterialColorTheme, ThemeMode } from '../../features/settings/types';
+import { MATERIAL_COLOR_PALETTES } from '../utils/theme';
 import { WidgetBridge } from '../plugins/widgetBridge';
+
+export interface WidgetThemeTokens {
+  isDark: boolean;
+  palette: string;
+  primary: string;
+  onPrimary: string;
+  primaryContainer: string;
+  onPrimaryContainer: string;
+  secondaryContainer: string;
+  onSecondaryContainer: string;
+  surface: string;
+  cardBg: string;
+  surfaceContainer: string;
+  surfaceContainerHigh: string;
+  onSurface: string;
+  onSurfaceVariant: string;
+  outline: string;
+}
 
 export class WidgetSyncService {
   private static lastWidgetHash = '';
 
   /**
-   * Sincroniza el horario diario y semanal, así como los apuntes más recientes, con el Widget de Android
+   * Sincroniza el horario diario y semanal, apuntes recientes y el tema visual Material You con el Widget de Android
    */
   public static async syncWidgetData(
     slots: ScheduleSlot[],
     subjects: Subject[],
     professors: Professor[],
-    notes: Note[]
+    notes: Note[],
+    themeSettings?: { theme: ThemeMode; colorPalette: MaterialColorTheme }
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
 
-    // Guard de rendimiento: Si el contenido no ha variado, evitar serialización JSON y bridge IPC
+    // Obtener configuración de tema (de argumentos o de localStorage como respaldo)
+    let themeMode: ThemeMode = themeSettings?.theme || 'system';
+    let paletteName: MaterialColorTheme = themeSettings?.colorPalette || 'default';
+
+    if (!themeSettings && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('agenda_universitaria_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.theme) themeMode = parsed.theme;
+          if (parsed.colorPalette) paletteName = parsed.colorPalette;
+        }
+      } catch {
+        // Fallback a valores por defecto
+      }
+    }
+
+    const isDark =
+      themeMode === 'dark' ||
+      (themeMode === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    const paletteDef = MATERIAL_COLOR_PALETTES[paletteName] || MATERIAL_COLOR_PALETTES.default;
+    const tokens = isDark ? paletteDef.dark : paletteDef.light;
+
+    const themePayload: WidgetThemeTokens = {
+      isDark,
+      palette: paletteName,
+      primary: tokens.primary,
+      onPrimary: tokens.onPrimary,
+      primaryContainer: tokens.primaryContainer,
+      onPrimaryContainer: tokens.onPrimaryContainer,
+      secondaryContainer: tokens.secondaryContainer,
+      onSecondaryContainer: tokens.onSecondaryContainer,
+      surface: tokens.surface,
+      cardBg: tokens.cardBg,
+      surfaceContainer: tokens.surfaceContainer,
+      surfaceContainerHigh: tokens.surfaceContainerHigh,
+      onSurface: tokens.onSurface,
+      onSurfaceVariant: tokens.onSurfaceVariant,
+      outline: tokens.outline,
+    };
+
+    // Guard de rendimiento: Si el contenido ni el tema han variado, evitar serialización JSON y bridge IPC
     const todayDay = (() => {
       const d = new Date().getDay();
       return (d === 0 ? 7 : d); // 1 = Lunes ... 7 = Domingo
     })();
 
-    const currentHash = `${todayDay}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => s.id).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
+    const currentHash = `${todayDay}_${isDark ? 'dark' : 'light'}_${paletteName}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => s.id).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
     if (currentHash === this.lastWidgetHash) {
       return;
     }
@@ -172,6 +237,7 @@ export class WidgetSyncService {
       }
 
       const payload = {
+        theme: themePayload,
         schedule: scheduleData,
         notes: recentNotes,
         scheduleByDay,

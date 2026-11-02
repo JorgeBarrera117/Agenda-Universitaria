@@ -35,39 +35,48 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String selectedTab = prefs.getString(KEY_SELECTED_TAB + "_" + appWidgetId, prefs.getString(KEY_SELECTED_TAB, "schedule"));
 
+        WidgetThemeHelper.ThemeColors theme = WidgetThemeHelper.getThemeColors(context);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_agenda_layout);
 
-        // Fecha actual formateada (ej. "Jueves, 15 oct")
+        // Capa de fondo tintable según el tema activo
+        views.setInt(R.id.widget_bg_image, "setColorFilter", theme.surface);
+
+        // Título de la app y fecha
+        views.setTextColor(R.id.widget_title_text, theme.onSurface);
+
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMM", new Locale("es", "ES"));
         String todayDate = sdf.format(new Date());
         if (todayDate.length() > 0) {
             todayDate = todayDate.substring(0, 1).toUpperCase(new Locale("es", "ES")) + todayDate.substring(1);
         }
         views.setTextViewText(R.id.widget_date_subtitle, todayDate);
+        views.setTextColor(R.id.widget_date_subtitle, theme.onSurfaceVariant);
 
-        // Configurar pestañas visuales con iconos vectoriales de la app (sin emojis)
+        // Configurar pestañas visuales con iconos vectoriales de la app adaptadas al tema
         boolean isSchedule = "schedule".equals(selectedTab);
         if (isSchedule) {
-            views.setInt(R.id.widget_btn_tab_schedule, "setBackgroundResource", R.drawable.widget_tab_active);
-            views.setTextColor(R.id.widget_text_tab_schedule, 0xFFFFFFFF);
-            views.setInt(R.id.widget_icon_tab_schedule, "setColorFilter", 0xFFFFFFFF);
+            views.setInt(R.id.widget_bg_tab_schedule, "setColorFilter", theme.primary);
+            views.setTextColor(R.id.widget_text_tab_schedule, theme.onPrimary);
+            views.setInt(R.id.widget_icon_tab_schedule, "setColorFilter", theme.onPrimary);
 
-            views.setInt(R.id.widget_btn_tab_notes, "setBackgroundResource", R.drawable.widget_tab_inactive);
-            views.setTextColor(R.id.widget_text_tab_notes, 0xFF94A3B8);
-            views.setInt(R.id.widget_icon_tab_notes, "setColorFilter", 0xFF94A3B8);
+            views.setInt(R.id.widget_bg_tab_notes, "setColorFilter", theme.surfaceContainer);
+            views.setTextColor(R.id.widget_text_tab_notes, theme.onSurfaceVariant);
+            views.setInt(R.id.widget_icon_tab_notes, "setColorFilter", theme.onSurfaceVariant);
 
             views.setTextViewText(R.id.widget_empty_view, context.getString(R.string.widget_empty_schedule));
         } else {
-            views.setInt(R.id.widget_btn_tab_schedule, "setBackgroundResource", R.drawable.widget_tab_inactive);
-            views.setTextColor(R.id.widget_text_tab_schedule, 0xFF94A3B8);
-            views.setInt(R.id.widget_icon_tab_schedule, "setColorFilter", 0xFF94A3B8);
+            views.setInt(R.id.widget_bg_tab_schedule, "setColorFilter", theme.surfaceContainer);
+            views.setTextColor(R.id.widget_text_tab_schedule, theme.onSurfaceVariant);
+            views.setInt(R.id.widget_icon_tab_schedule, "setColorFilter", theme.onSurfaceVariant);
 
-            views.setInt(R.id.widget_btn_tab_notes, "setBackgroundResource", R.drawable.widget_tab_active);
-            views.setTextColor(R.id.widget_text_tab_notes, 0xFFFFFFFF);
-            views.setInt(R.id.widget_icon_tab_notes, "setColorFilter", 0xFFFFFFFF);
+            views.setInt(R.id.widget_bg_tab_notes, "setColorFilter", theme.primary);
+            views.setTextColor(R.id.widget_text_tab_notes, theme.onPrimary);
+            views.setInt(R.id.widget_icon_tab_notes, "setColorFilter", theme.onPrimary);
 
             views.setTextViewText(R.id.widget_empty_view, context.getString(R.string.widget_empty_notes));
         }
+
+        views.setTextColor(R.id.widget_empty_view, theme.onSurfaceVariant);
 
         // PendingIntent para conmutar a la pestaña Horario (estable e inmutable)
         Intent scheduleTabIntent = new Intent(context, AgendaWidgetProvider.class);
@@ -98,6 +107,9 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_btn_tab_notes, notesPending);
 
         // PendingIntent para abrir la App desde la cabecera o botón superior
+        views.setInt(R.id.widget_btn_open_app_bg, "setColorFilter", theme.surfaceContainer);
+        views.setInt(R.id.widget_icon_open_app, "setColorFilter", theme.primary);
+
         Intent openAppIntent = new Intent(context, MainActivity.class);
         openAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openAppPending = PendingIntent.getActivity(
@@ -109,10 +121,11 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_header_clickable, openAppPending);
         views.setOnClickPendingIntent(R.id.widget_btn_open_app, openAppPending);
 
-        // Adaptador con URI ESTABLE para evitar reconexiones de IPC repetidas que congelaban el widget
+        // Adaptador con URI dinámica por pestaña para recarga inmediata y fluida
         Intent serviceIntent = new Intent(context, AgendaWidgetService.class);
         serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        serviceIntent.setData(Uri.parse("content://agenda_widget/widget_" + appWidgetId));
+        serviceIntent.putExtra(EXTRA_TAB, selectedTab);
+        serviceIntent.setData(Uri.parse("content://agenda_widget/widget_" + appWidgetId + "/tab_" + selectedTab));
         views.setRemoteAdapter(R.id.widget_list_view, serviceIntent);
         views.setEmptyView(R.id.widget_list_view, R.id.widget_empty_view);
 
@@ -159,7 +172,7 @@ public class AgendaWidgetProvider extends AppWidgetProvider {
                     editor.putString(KEY_SELECTED_TAB + "_" + appWidgetId, newTab);
                 }
                 editor.putString(KEY_SELECTED_TAB, newTab);
-                editor.commit(); // Commit sincrónico para garantizar lectura inmediata en onDataSetChanged
+                editor.apply();
 
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
