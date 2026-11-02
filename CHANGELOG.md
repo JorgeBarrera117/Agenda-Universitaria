@@ -5,6 +5,20 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.8] - 2026-11-02
+
+### Corregido & Optimizado
+- **Erradicación de menús emergentes y modales en el apartado de Documentos (`DocumentsView.tsx`):**
+  - Transformación integral de flujos a **apartados independientes a pantalla completa**:
+    - **`DocumentLinkForm.tsx`:** Apartado dedicado para vincular archivos locales y enlaces web con espacio ilimitado, dropzone de carga interactiva, selección rápida de asignaturas, previsualización de archivo y botones M3 ergonómicos.
+    - **`DocumentDetailView.tsx`:** Apartado dedicado para ficha técnica, especificaciones MIME, rutas locales sandboxed de Android y FileProvider URI con botones de copiado y apertura directa sin dobles barras de desplazamiento.
+    - **`DocumentReassignView.tsx`:** Apartado dedicado para reasignar la materia de un documento con selector M3 amplio y catálogo en cuadrícula.
+  - Integración de `useBackButton` con prioridad `SUBVIEW` en cada apartado para garantizar retroceso fluido en móviles Android sin cerrar la aplicación.
+- **Detección inteligente de dirección en selector M3 (`M3Select.tsx`):**
+  - Incorporación de cálculo dinámico de posición (`openDirection`): si el espacio inferior en la ventana es menor a 260px, el menú desplegable se orienta automáticamente hacia arriba (`bottom-[calc(100%+6px)]`), evitando desbordamientos y recortes visuales.
+
+---
+
 ## [1.7.10.7] - 2026-11-02
 
 ### Corregido

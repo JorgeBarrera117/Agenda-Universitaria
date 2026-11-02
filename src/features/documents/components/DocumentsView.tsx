@@ -7,7 +7,6 @@ import {
   Presentation,
   File,
   Link as LinkIcon,
-  HardDrive,
   Trash2,
   ArrowUpRight,
   FolderOpen,
@@ -15,25 +14,19 @@ import {
   Info,
   Filter,
   ArrowUpDown,
-  Copy,
-  Check,
   RefreshCw,
-  FolderKanban,
   FolderPlus,
-  Tag,
-  Clock,
-  Database,
-  Smartphone,
 } from 'lucide-react';
 import { useSubjectDocuments, type SubjectDocumentItem } from '../../subjects/hooks/useSubjectDocuments';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select } from '../../../shared/components/M3Select';
-import { Modal } from '../../../shared/components/Modal';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
-import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
+import { DocumentLinkForm } from './DocumentLinkForm';
+import { DocumentDetailView } from './DocumentDetailView';
+import { DocumentReassignView } from './DocumentReassignView';
 
 interface DocumentsViewProps {
   isActive?: boolean;
@@ -41,6 +34,7 @@ interface DocumentsViewProps {
 
 type FormatFilterType = 'all' | 'pdf' | 'slides' | 'docs' | 'sheets' | 'links' | 'other';
 type SortByType = 'newest' | 'oldest' | 'largest' | 'name';
+type DocumentsViewMode = 'list' | 'add' | 'details' | 'reassign';
 
 export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true }) => {
   const { documents, addLocalDocument, addExternalLink, openDocument, deleteDocument, reassignSubject } =
@@ -48,38 +42,26 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const { subjects } = useSubjects();
   const isScrolled = useScrollCollapse(48);
 
+  // Modo de navegación: apartado principal de lista o apartados dedicados independientes a pantalla completa
+  const [viewMode, setViewMode] = useState<DocumentsViewMode>('list');
+  const [selectedDoc, setSelectedDoc] = useState<SubjectDocumentItem | null>(null);
+
   // Estados de Búsqueda, Filtros y Ordenamiento
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>('all');
   const [selectedFormatFilter, setSelectedFormatFilter] = useState<FormatFilterType>('all');
   const [sortBy, setSortBy] = useState<SortByType>('newest');
 
-  // Modales
-  const [selectedDocForInfo, setSelectedDocForInfo] = useState<SubjectDocumentItem | null>(null);
-  const [docToReassign, setDocToReassign] = useState<SubjectDocumentItem | null>(null);
-  const [newReassignedSubjectId, setNewReassignedSubjectId] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  // Formulario para vincular archivo/enlace nuevo
-  const [targetSubjectId, setTargetSubjectId] = useState(subjects[0]?.id || '');
-  const [addMode, setAddMode] = useState<'file' | 'link'>('file');
-  const [linkName, setLinkName] = useState('');
-  const [linkUrl, setLinkUrl] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Estados interactivos
   const [isOpeningId, setIsOpeningId] = useState<string | null>(null);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [docToast, setDocToast] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Limpiar temporizadores para evitar fugas de memoria
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
 
@@ -88,27 +70,6 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => setDocToast(null), 3000);
   };
-
-  // Botón físico Atrás en Android
-  useBackButton(
-    () => {
-      if (selectedDocForInfo) {
-        setSelectedDocForInfo(null);
-        return true;
-      }
-      if (docToReassign) {
-        setDocToReassign(null);
-        return true;
-      }
-      if (isAddModalOpen) {
-        setIsAddModalOpen(false);
-        return true;
-      }
-      return false;
-    },
-    BACK_PRIORITY.MODAL,
-    isActive && (!!selectedDocForInfo || !!docToReassign || isAddModalOpen)
-  );
 
   // Helper para mapear formato a glifo y colores M3
   const getFormatVisuals = (ext: string, isLink?: boolean) => {
@@ -270,87 +231,87 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
     }
   };
 
-  // Copiar texto al portapapeles con feedback
-  const handleCopyText = (text: string, fieldKey: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(fieldKey);
-    showDocToast('Información copiada al portapapeles');
-    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-    copyTimerRef.current = setTimeout(() => setCopiedField(null), 2000);
-  };
-
-  // Vincular Archivo Local desde Input
-  const handleSelectLocalFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !targetSubjectId) return;
-
-    try {
-      setActionError(null);
-      await addLocalDocument(targetSubjectId, file);
-      setIsAddModalOpen(false);
-      showDocToast('Archivo vinculado correctamente');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err: unknown) {
-      if (err instanceof Error) setActionError(err.message);
-      else setActionError('Error al vincular el archivo.');
-    }
-  };
-
-  // Guardar Enlace Externo
-  const handleSaveExternalLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!linkName.trim() || !linkUrl.trim() || !targetSubjectId) {
-      setActionError('Completa todos los campos obligatorios.');
-      return;
-    }
-
-    try {
-      setActionError(null);
-      await addExternalLink(targetSubjectId, linkName.trim(), linkUrl.trim());
-      setLinkName('');
-      setLinkUrl('');
-      setIsAddModalOpen(false);
-      showDocToast('Enlace guardado correctamente');
-    } catch (err: unknown) {
-      if (err instanceof Error) setActionError(err.message);
-      else setActionError('Error al guardar el enlace.');
-    }
-  };
-
-  // Confirmar Reasignación de Materia
-  const handleConfirmReassign = async () => {
-    if (!docToReassign || !newReassignedSubjectId) return;
-    try {
-      await reassignSubject(docToReassign.id, newReassignedSubjectId);
-      setDocToReassign(null);
-      setNewReassignedSubjectId('');
-      showDocToast('Asignatura actualizada correctamente');
-    } catch (err: unknown) {
-      if (err instanceof Error) setActionError(err.message);
-    }
-  };
-
-  // Opciones para M3Select de Materias
-  const subjectSelectOptions = useMemo(() => {
-    return subjects.map((s) => ({
-      value: s.id,
-      label: s.name,
-      sublabel: s.code || 'ASIGNATURA',
-      color: s.color,
-      icon: <SubjectBadge icon={s.icon} color={s.color} size="select" />,
-    }));
-  }, [subjects]);
-
-  // Abrir modal de vincular documento con validaciones
-  const handleOpenAddModal = () => {
+  const handleOpenAdd = () => {
     if (subjects.length === 0) {
       setActionError('Debes registrar al menos una asignatura antes de vincular archivos.');
       return;
     }
-    if (!targetSubjectId) setTargetSubjectId(subjects[0]?.id || '');
-    setIsAddModalOpen(true);
+    setViewMode('add');
   };
 
+  // 1. APARTADO INDEPENDIENTE A PANTALLA COMPLETA: VINCULAR DOCUMENTO
+  if (viewMode === 'add') {
+    return (
+      <DocumentLinkForm
+        subjects={subjects}
+        initialSubjectId={selectedSubjectFilter !== 'all' ? selectedSubjectFilter : undefined}
+        onSubmitLocalFile={async (subjectId, file) => {
+          await addLocalDocument(subjectId, file);
+          setViewMode('list');
+          showDocToast('Archivo vinculado correctamente');
+        }}
+        onSubmitExternalLink={async (subjectId, name, url) => {
+          await addExternalLink(subjectId, name, url);
+          setViewMode('list');
+          showDocToast('Enlace guardado correctamente');
+        }}
+        onCancel={() => setViewMode('list')}
+      />
+    );
+  }
+
+  // 2. APARTADO INDEPENDIENTE A PANTALLA COMPLETA: FICHA TÉCNICA
+  if (viewMode === 'details' && selectedDoc) {
+    const docSubject = subjectsMap.get(selectedDoc.subjectId);
+    return (
+      <DocumentDetailView
+        document={selectedDoc}
+        subject={docSubject}
+        onBack={() => {
+          setViewMode('list');
+          setSelectedDoc(null);
+        }}
+        onOpen={async (doc) => {
+          await handleOpenDoc(doc);
+        }}
+        onRequestReassign={(doc) => {
+          setSelectedDoc(doc);
+          setViewMode('reassign');
+        }}
+        onDelete={(doc) => {
+          deleteDocument(doc.id);
+          setViewMode('list');
+          setSelectedDoc(null);
+          showDocToast('Documento eliminado');
+        }}
+        onShowToast={showDocToast}
+      />
+    );
+  }
+
+  // 3. APARTADO INDEPENDIENTE A PANTALLA COMPLETA: REASIGNAR MATERIA
+  if (viewMode === 'reassign' && selectedDoc) {
+    const docSubject = subjectsMap.get(selectedDoc.subjectId);
+    return (
+      <DocumentReassignView
+        document={selectedDoc}
+        currentSubject={docSubject}
+        subjects={subjects}
+        onConfirmReassign={async (docId, newSubjectId) => {
+          await reassignSubject(docId, newSubjectId);
+          setViewMode('list');
+          setSelectedDoc(null);
+          showDocToast('Asignatura actualizada correctamente');
+        }}
+        onCancel={() => {
+          setViewMode('list');
+          setSelectedDoc(null);
+        }}
+      />
+    );
+  }
+
+  // 4. APARTADO PRINCIPAL: CATÁLOGO Y LISTADO GENERAL
   return (
     <div className="space-y-3.5 w-full animate-in fade-in duration-200">
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
@@ -372,7 +333,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         {/* Botón Primario M3 */}
         <button
           type="button"
-          onClick={handleOpenAddModal}
+          onClick={handleOpenAdd}
           className={`hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 transition-all duration-300 ease-out origin-right shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap ${
             isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
           }`}
@@ -382,66 +343,59 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </button>
       </div>
 
-      {/* 2. Barra de Búsqueda y Herramientas de Filtrado M3 */}
+      {/* 2. Barra de Búsqueda, Ordenamiento y Filtros Descongestionada */}
       <div className="space-y-2.5">
-        {/* Barra de Búsqueda y Ordenamiento */}
-        <div className="flex items-center gap-2 flex-col sm:flex-row">
-          {/* M3 Search Bar */}
-          <div className="relative flex-1 w-full">
+        <div className="flex items-center gap-2">
+          {/* Campo de Búsqueda */}
+          <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#72777F] dark:text-[#8C9199]" />
             <input
               type="text"
-              placeholder="Buscar por nombre de archivo o asignatura..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 sm:h-11 pl-10 pr-9 rounded-full bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 text-[#191C20] dark:text-[#E2E2E6] text-xs sm:text-sm placeholder:text-[#72777F] dark:placeholder:text-[#8C9199] border border-transparent focus:border-[#00639B] dark:focus:border-[#92CCFF] focus:outline-none transition-all shadow-2xs"
+              placeholder="Buscar por nombre o código de materia..."
+              className="w-full pl-9 pr-9 h-10 sm:h-11 rounded-full bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs sm:text-sm text-[#191C20] dark:text-[#E2E2E6] placeholder-[#72777F] dark:placeholder-[#8C9199] focus:outline-none focus:ring-2 focus:ring-[#00639B]/40 transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#191C20] dark:hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#C2C7CE]/50 dark:bg-[#42474E]/50 flex items-center justify-center text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#C2C7CE] transition-colors"
+                aria-label="Limpiar búsqueda"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
 
-          {/* Selector de Orden M3Select */}
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-auto">
-            <M3Select<SortByType>
-              variant="pill"
-              menuAlign="right"
-              value={sortBy}
-              onChange={setSortBy}
-              leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
-              options={[
-                { value: 'newest', label: 'Más recientes' },
-                { value: 'oldest', label: 'Más antiguos' },
-                { value: 'largest', label: 'Mayor tamaño' },
-                { value: 'name', label: 'Nombre (A-Z)' },
-              ]}
-              className="w-full sm:w-auto min-w-[160px]"
-            />
-          </div>
+          {/* Selector de Ordenamiento M3 */}
+          <M3Select<SortByType>
+            value={sortBy}
+            onChange={setSortBy}
+            variant="pill"
+            leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
+            menuAlign="right"
+            options={[
+              { value: 'newest', label: 'Más recientes' },
+              { value: 'oldest', label: 'Más antiguos' },
+              { value: 'largest', label: 'Mayor tamaño' },
+              { value: 'name', label: 'Nombre A-Z' },
+            ]}
+          />
         </div>
 
-        {/* Chips Deslizables de Asignatura */}
-        <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-0.5 pt-0.5 custom-scrollbar select-none">
+        {/* Chips Horizontales de Asignaturas */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar select-none">
           <button
             type="button"
             onClick={() => setSelectedSubjectFilter('all')}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               selectedSubjectFilter === 'all'
                 ? 'bg-[#00639B] text-white shadow-2xs'
                 : 'bg-[#E2E7EF]/80 dark:bg-[#272A2F]/80 text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#D0E4FF]/50'
             }`}
           >
-            <FolderKanban className="w-3.5 h-3.5 shrink-0" />
-            <span>Todas</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
-              {documents.length}
-            </span>
+            Todas ({documents.length})
           </button>
 
           {subjects.map((subj) => {
@@ -506,7 +460,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </div>
       </div>
 
-      {/* 3. Listado de Archivos en Rejilla M3 Descongestionada */}
+      {/* 3. Listado de Archivos en Rejilla M3 */}
       {filteredAndSortedDocs.length === 0 ? (
         <div className="text-center py-12 px-4 rounded-2xl sm:rounded-3xl border-2 border-dashed border-[#C2C7CE]/60 dark:border-[#42474E]/60 space-y-2.5 bg-[#F1F4FA]/30 dark:bg-[#1D2024]/30">
           <div className="w-11 h-11 rounded-2xl bg-[#E2E7EF] dark:bg-[#272A2F] text-[#00639B] dark:text-[#92CCFF] flex items-center justify-center mx-auto shadow-2xs">
@@ -525,7 +479,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
           {documents.length === 0 && (
             <button
               type="button"
-              onClick={handleOpenAddModal}
+              onClick={handleOpenAdd}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] transition-all cursor-pointer shadow-sm"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -573,12 +527,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                     </h4>
                   </div>
 
-                  {/* Botón de Información Técnica (i) */}
+                  {/* Botón de Información Técnica (Abre Ficha Técnica a pantalla completa) */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedDocForInfo(doc);
+                      setSelectedDoc(doc);
+                      setViewMode('details');
                     }}
                     className="w-7 h-7 rounded-full flex items-center justify-center text-[#72777F] hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors shrink-0"
                     title="Ver detalles técnicos y ruta"
@@ -598,18 +553,20 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                           icon={subj.icon}
                           color={subj.color}
                           size="sm"
-                          className="w-4 h-4 rounded-md shadow-2xs ring-1 ring-white/20 shrink-0"
+                          className="w-4 h-4 rounded-md shadow-2xs ring-1 ring-white/10 shrink-0"
                         />
-                        <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate text-[11px]">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate text-[11px]">
                           {subj.name}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-slate-400 italic truncate text-[10px]">Sin asignar</span>
+                      <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">
+                        Sin asignatura
+                      </span>
                     )}
                   </div>
 
-                  {/* Botones Abrir, Reasignar y Eliminar */}
+                  {/* Acciones */}
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
@@ -628,8 +585,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDocToReassign(doc);
-                        setNewReassignedSubjectId(doc.subjectId);
+                        setSelectedDoc(doc);
+                        setViewMode('reassign');
                       }}
                       className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-[#00639B] dark:hover:text-[#92CCFF] hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                       title="Cambiar materia asignada"
@@ -642,6 +599,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteDocument(doc.id);
+                        showDocToast('Documento eliminado');
                       }}
                       className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/25 transition-colors cursor-pointer"
                       title="Quitar acceso directo"
@@ -657,359 +615,6 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         </div>
       )}
 
-      {/* 4. Modal M3 de Información Técnica */}
-      {selectedDocForInfo && (
-        <Modal
-          isOpen={!!selectedDocForInfo}
-          onClose={() => setSelectedDocForInfo(null)}
-          title="Ficha Técnica del Documento"
-          maxWidth="lg"
-        >
-          <div className="space-y-3 -mt-2">
-            {(() => {
-              const doc = selectedDocForInfo;
-              const visuals = getFormatVisuals(doc.fileExtension, doc.isExternalLink);
-              const subj = subjectsMap.get(doc.subjectId);
-              const safeFileName = doc.name.replaceAll(/[\\/:*?"<>|]/g, '_');
-              const androidInternalPath = `/data/user/0/com.agenda.universitaria/cache/shared_docs/${safeFileName}`;
-              const androidContentUri = `content://com.agenda.universitaria.fileprovider/my_cache_images/shared_docs/${safeFileName}`;
-
-              return (
-                <>
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F1F4FA] dark:bg-[#1D2024] border border-[#C2C7CE]/40 dark:border-[#42474E]/40 shadow-2xs">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
-                      style={{ backgroundColor: visuals.bg }}
-                    >
-                      {visuals.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono font-bold text-[9px] px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
-                          {visuals.label}
-                        </span>
-                        <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199]">
-                          {formatFileSize(doc.sizeBytes)}
-                        </span>
-                      </div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#191C20] dark:text-[#E2E2E6] truncate mt-0.5">
-                        {doc.name}
-                      </h4>
-                    </div>
-                  </div>
-
-                  {/* Cuadrícula de Especificaciones */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {/* Materia Vinculada */}
-                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50">
-                      <div className="flex items-center gap-1 text-[#72777F] dark:text-[#8C9199] font-medium mb-0.5">
-                        <Tag className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Asignatura</span>
-                      </div>
-                      {subj ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <SubjectBadge
-                            icon={subj.icon}
-                            color={subj.color}
-                            size="sm"
-                          />
-                          <div className="min-w-0">
-                            <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] truncate block text-xs">
-                              {subj.name}
-                            </span>
-                            {subj.code && (
-                              <span className="inline-flex items-center px-1.5 py-0.2 rounded font-mono text-[9px] font-black bg-black text-white dark:bg-white dark:text-black tracking-wider mt-0.5">
-                                {subj.code}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400">Sin asignar</span>
-                      )}
-                    </div>
-
-                    {/* Fecha de Registro */}
-                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50">
-                      <div className="flex items-center gap-1 text-[#72777F] dark:text-[#8C9199] font-medium mb-0.5">
-                        <Clock className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Fecha de Registro</span>
-                      </div>
-                      <div className="font-bold text-[#191C20] dark:text-[#E2E2E6] text-xs">
-                        {new Date(doc.createdAt).toLocaleString('es-ES', {
-                          dateStyle: 'medium',
-                          timeStyle: 'short',
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Tipo MIME Oficial */}
-                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50 sm:col-span-2">
-                      <div className="flex items-center justify-between gap-2 text-[#72777F] dark:text-[#8C9199] font-medium mb-1">
-                        <div className="flex items-center gap-1">
-                          <Database className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
-                          <span>Tipo MIME Registrado</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyText(doc.mimeType, 'mime')}
-                          className="text-[10px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
-                        >
-                          {copiedField === 'mime' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                          <span>{copiedField === 'mime' ? 'Copiado' : 'Copiar'}</span>
-                        </button>
-                      </div>
-                      <div className="font-mono text-[10px] font-bold text-[#191C20] dark:text-[#E2E2E6] truncate bg-slate-100 dark:bg-[#1D2024] p-1.5 rounded-lg">
-                        {doc.mimeType}
-                      </div>
-                    </div>
-
-                    {/* Almacenamiento y Rutas del Sistema */}
-                    <div className="p-2.5 rounded-xl bg-white dark:bg-[#272A2F] border border-[#C2C7CE]/50 dark:border-[#42474E]/50 sm:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1.5 text-[#72777F] dark:text-[#8C9199] font-bold">
-                        <Smartphone className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-                        <span>Almacenamiento Local PWA & Móvil</span>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <div>
-                          <span className="text-[9px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
-                            Base de Datos Local PWA:
-                          </span>
-                          <span className="font-mono text-[10px] text-slate-700 dark:text-slate-300">
-                            IndexedDB → AgendaDocsCacheDB → objectStore: blobs (Clave: {doc.id})
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
-                              Ruta Sandboxed Android:
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyText(androidInternalPath, 'path')}
-                              className="text-[9px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
-                            >
-                              {copiedField === 'path' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                              <span>{copiedField === 'path' ? 'Copiada' : 'Copiar'}</span>
-                            </button>
-                          </div>
-                          <div className="font-mono text-[10px] text-[#191C20] dark:text-[#E2E2E6] bg-slate-100 dark:bg-[#1D2024] p-1.5 rounded-lg break-all select-all">
-                            {androidInternalPath}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
-                              URI FileProvider:
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyText(androidContentUri, 'uri')}
-                              className="text-[9px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1"
-                            >
-                              {copiedField === 'uri' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                              <span>{copiedField === 'uri' ? 'Copiado' : 'Copiar'}</span>
-                            </button>
-                          </div>
-                          <div className="font-mono text-[9px] text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/30 dark:bg-[#004B76]/20 p-1.5 rounded-lg break-all select-all">
-                            {androidContentUri}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Botones de Acción al pie de la Ficha Técnica */}
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDocForInfo(null)}
-                      className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF] hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
-                    >
-                      Cerrar
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedDocForInfo(null);
-                        handleOpenDoc(doc);
-                      }}
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] shadow-2xs active:scale-95 transition-all"
-                    >
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                      <span>Abrir Documento</span>
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </Modal>
-      )}
-
-      {/* 5. Modal M3 para Vincular Nuevo Archivo o Enlace */}
-      {isAddModalOpen && (
-        <Modal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          title="Vincular Documento"
-          maxWidth="md"
-        >
-          <div className="space-y-3 -mt-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,image/*"
-              onChange={handleSelectLocalFile}
-              className="hidden"
-            />
-
-            {/* Selector de Asignatura Obligatorio M3 */}
-            <div>
-              <label className="block text-xs font-bold text-[#41474D] dark:text-[#C2C7CF] mb-1">
-                Asignatura Destino:
-              </label>
-              <M3Select
-                value={targetSubjectId}
-                onChange={setTargetSubjectId}
-                options={subjectSelectOptions}
-                placeholder="Elige la materia..."
-              />
-            </div>
-
-            {/* Selector de Tipo (Archivo vs Enlace) */}
-            <div className="flex p-0.5 rounded-xl bg-[#E2E7EF] dark:bg-[#272A2F]">
-              <button
-                type="button"
-                onClick={() => setAddMode('file')}
-                className={`flex-1 py-1 rounded-lg text-xs font-bold transition-all ${
-                  addMode === 'file'
-                    ? 'bg-[#00639B] text-white shadow-2xs'
-                    : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-black/5'
-                }`}
-              >
-                Archivo en Dispositivo
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddMode('link')}
-                className={`flex-1 py-1 rounded-lg text-xs font-bold transition-all ${
-                  addMode === 'link'
-                    ? 'bg-[#00639B] text-white shadow-2xs'
-                    : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-black/5'
-                }`}
-              >
-                Enlace Web / Drive
-              </button>
-            </div>
-
-            {/* Contenido según el modo */}
-            {addMode === 'file' ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="p-5 rounded-2xl border-2 border-dashed border-[#00639B]/40 dark:border-[#92CCFF]/40 text-center space-y-1.5 hover:bg-[#D0E4FF]/10 transition-colors cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center mx-auto shadow-2xs">
-                  <HardDrive className="w-5 h-5" />
-                </div>
-                <h4 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
-                  Toca aquí para seleccionar un archivo
-                </h4>
-                <p className="text-[11px] text-[#72777F] dark:text-[#8C9199] max-w-xs mx-auto">
-                  Soporta PPTX, DOCX, PDF, XLSX y archivos de texto.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSaveExternalLink} className="space-y-2.5">
-                <div>
-                  <label className="block text-xs font-bold text-[#41474D] dark:text-[#C2C7CF] mb-1">
-                    Nombre Descriptivo:
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ej. Diapositivas en Google Drive"
-                    value={linkName}
-                    onChange={(e) => setLinkName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs text-[#191C20] dark:text-[#E2E2E6] focus:outline-none focus:ring-2 focus:ring-[#00639B]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#41474D] dark:text-[#C2C7CF] mb-1">
-                    Dirección URL del Enlace:
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://drive.google.com/..."
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#E2E7EF]/60 dark:bg-[#272A2F]/60 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs text-[#191C20] dark:text-[#E2E2E6] focus:outline-none focus:ring-2 focus:ring-[#00639B]"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF]"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs"
-                  >
-                    Guardar Enlace
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </Modal>
-      )}
-
-      {/* 6. Modal M3 para Reasignar Materia */}
-      {docToReassign && (
-        <Modal
-          isOpen={!!docToReassign}
-          onClose={() => setDocToReassign(null)}
-          title="Reasignar Asignatura"
-          maxWidth="sm"
-        >
-          <div className="space-y-3 -mt-2">
-            <p className="text-xs text-[#72777F] dark:text-[#8C9199]">
-              Cambia la materia asignada a <strong className="text-[#191C20] dark:text-[#E2E2E6]">{docToReassign.name}</strong>:
-            </p>
-
-            <M3Select
-              value={newReassignedSubjectId}
-              onChange={setNewReassignedSubjectId}
-              options={subjectSelectOptions}
-              placeholder="Seleccionar nueva materia..."
-            />
-
-            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200 dark:border-white/10">
-              <button
-                type="button"
-                onClick={() => setDocToReassign(null)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#41474D] dark:text-[#C2C7CF]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmReassign}
-                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs"
-              >
-                Actualizar
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
       {/* Notificación Contextual */}
       <ContextualToast
         message={docToast || actionError}
@@ -1020,11 +625,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
         }}
       />
 
-      {/* Botón Flotante Compacto */}
-      {isActive && (
+      {/* Botón Flotante Compacto (visible solo en modo lista) */}
+      {isActive && viewMode === 'list' && (
         <DraggableFAB
           colorScheme="documents"
-          onClick={handleOpenAddModal}
+          onClick={handleOpenAdd}
           label="Vincular Documento"
           icon={<FolderPlus className="w-6 h-6 stroke-[2.2]" />}
         />

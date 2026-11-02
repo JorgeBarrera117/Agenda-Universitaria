@@ -51,7 +51,22 @@ export const M3Select = <T extends string | number = string>({
   menuAlign = 'left',
 }: M3SelectProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openDirection, setOpenDirection] = useState<'down' | 'up'>('down');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Calcular dirección óptima de apertura (arriba o abajo) según el espacio disponible en pantalla
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      if (spaceBelow < 260 && spaceAbove > spaceBelow) {
+        setOpenDirection('up');
+      } else {
+        setOpenDirection('down');
+      }
+    }
+  }, [isOpen]);
 
   // Cerrar al hacer clic fuera del componente
   useEffect(() => {
@@ -163,7 +178,9 @@ export const M3Select = <T extends string | number = string>({
       {isOpen && (
         <div
           role="listbox"
-          className={`absolute top-[calc(100%+6px)] z-50 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/70 dark:border-[#43474E]/70 rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute z-50 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/70 dark:border-[#43474E]/70 rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ${
+            openDirection === 'up' ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'
+          } ${
             isPill
               ? `min-w-[210px] ${menuAlign === 'right' ? 'right-0' : 'left-0'}`
               : 'left-0 right-0'
