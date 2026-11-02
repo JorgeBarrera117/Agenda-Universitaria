@@ -133,6 +133,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_1_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Martes (2) -->
@@ -159,6 +168,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_2_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Miércoles (3) -->
@@ -185,6 +203,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_3_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Jueves (4) -->
@@ -211,6 +238,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_4_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Viernes (5) -->
@@ -237,6 +273,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_5_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Sábado (6) -->
@@ -263,6 +308,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_6_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Domingo (7) -->
@@ -289,6 +343,15 @@
                     android:textColor="#94a3b8"
                     android:textSize="10sp"
                     android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/widget_btn_day_7_dot"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="2.5dp"
+                    android:src="@drawable/widget_day_gold_dot"
+                    android:visibility="gone" />
             </FrameLayout>
         </LinearLayout>
 

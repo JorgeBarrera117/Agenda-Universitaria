@@ -5,6 +5,19 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.22] - 2026-11-02
+
+### Añadido & Optimizado
+- **Auto-Fijación al Día Actual en Widget de Horario Diario (Android):**
+  - **Sincronización Automática con el Calendario:** El widget registra la fecha activa en `SharedPreferences`. Al iniciar una nueva jornada o pasar la medianoche, el widget restablece automáticamente el día mostrado a "HOY", evitando que se quede indefinidamente en un día consultado con anterioridad.
+  - **Libertad de Exploración Conservada:** El usuario puede seguir pulsando y consultando libremente cualquier día de la semana (`Lun` - `Dom`) a lo largo del día sin que el widget fuerce el regreso mientras dure la fecha.
+  - **Escucha de Eventos Temporales del Sistema:** Se agregaron filtros de intención para `android.intent.action.DATE_CHANGED`, `TIME_SET` y `TIMEZONE_CHANGED` en `AndroidManifest.xml`, garantizando que el widget se actualice exactamente al cambiar de jornada.
+- **Puntito Dorado Indicador de "HOY" en la Barra de Días:**
+  - **Identificador Visual Persistente:** Se introdujo un círculo ámbar dorado distintivo (`widget_day_gold_dot.xml`, `#F59E0B` con borde de contraste `#78350F`) ubicado sobre el botón del día actual.
+  - **Referencia Temporal Permanente:** El indicador dorado se mantiene encendido sobre el día que es "Hoy", incluso cuando el usuario está navegando y visualizando el horario de otros días de la semana.
+
+---
+
 ## [1.7.10.21] - 2026-11-02
 
 ### Mejorado & Optimizado

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import java.util.Calendar;
@@ -20,6 +21,7 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
     public static final String EXTRA_DAY = "extra_day";
     public static final String PREFS_NAME = AgendaWidgetProvider.PREFS_NAME;
     public static final String KEY_SELECTED_DAY = "pref_selected_day";
+    public static final String KEY_LAST_ACTIVE_DATE = "schedule_day_last_date";
 
     private static final int[] DAY_BUTTON_IDS = new int[]{
             R.id.widget_btn_day_1, // Lunes
@@ -51,6 +53,16 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             R.id.widget_btn_day_7_text
     };
 
+    private static final int[] DAY_BUTTON_DOT_IDS = new int[]{
+            R.id.widget_btn_day_1_dot,
+            R.id.widget_btn_day_2_dot,
+            R.id.widget_btn_day_3_dot,
+            R.id.widget_btn_day_4_dot,
+            R.id.widget_btn_day_5_dot,
+            R.id.widget_btn_day_6_dot,
+            R.id.widget_btn_day_7_dot
+    };
+
     private static final String[] DAY_NAMES_ES = new String[]{
             "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"
     };
@@ -75,9 +87,26 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         int today = getTodayDayOfWeek();
-        int selectedDay = prefs.getInt(KEY_SELECTED_DAY + "_" + appWidgetId, prefs.getInt(KEY_SELECTED_DAY, today));
-        if (selectedDay < 1 || selectedDay > 7) {
+
+        // Detección de paso de fecha: Auto-fijar a HOY si ha cambiado el día del calendario
+        Calendar cal = Calendar.getInstance();
+        String todayDateStr = cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.DAY_OF_YEAR);
+        String lastDate = prefs.getString(KEY_LAST_ACTIVE_DATE + "_" + appWidgetId, null);
+
+        int selectedDay;
+        if (lastDate == null || !lastDate.equals(todayDateStr)) {
+            // Es un nuevo día en el calendario: auto-fijar al día de HOY
             selectedDay = today;
+            prefs.edit()
+                    .putString(KEY_LAST_ACTIVE_DATE + "_" + appWidgetId, todayDateStr)
+                    .putInt(KEY_SELECTED_DAY + "_" + appWidgetId, today)
+                    .apply();
+        } else {
+            // Mismo día: respetar la navegación manual del usuario durante la jornada
+            selectedDay = prefs.getInt(KEY_SELECTED_DAY + "_" + appWidgetId, prefs.getInt(KEY_SELECTED_DAY, today));
+            if (selectedDay < 1 || selectedDay > 7) {
+                selectedDay = today;
+            }
         }
 
         WidgetThemeHelper.ThemeColors theme = WidgetThemeHelper.getThemeColors(context);
@@ -98,20 +127,30 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_day_subtitle, "Toca un día para consultar");
         views.setTextColor(R.id.widget_day_subtitle, theme.onSurfaceVariant);
 
-        // Configuración de los 7 botones de día (Lun a Dom) con píldoras dinámicas
+        // Configuración de los 7 botones de día (Lun a Dom) con píldoras dinámicas y puntito dorado en HOY
         for (int i = 0; i < 7; i++) {
             int dayNum = i + 1;
             int btnFrameId = DAY_BUTTON_IDS[i];
             int btnBgId = DAY_BUTTON_BG_IDS[i];
             int btnTextId = DAY_BUTTON_TEXT_IDS[i];
+            int btnDotId = DAY_BUTTON_DOT_IDS[i];
             boolean isSelected = (dayNum == selectedDay);
+            boolean isToday = (dayNum == today);
 
+            // Estilo de la píldora según esté seleccionada o inactiva
             if (isSelected) {
                 views.setInt(btnBgId, "setColorFilter", theme.primary);
                 views.setTextColor(btnTextId, theme.onPrimary);
             } else {
                 views.setInt(btnBgId, "setColorFilter", theme.surfaceContainer);
                 views.setTextColor(btnTextId, theme.onSurfaceVariant);
+            }
+
+            // Indicador de Puntito Dorado persistente sobre el día en que se encuentra HOY el calendario
+            if (isToday) {
+                views.setViewVisibility(btnDotId, View.VISIBLE);
+            } else {
+                views.setViewVisibility(btnDotId, View.GONE);
             }
 
             Intent dayIntent = new Intent(context, ScheduleDayWidgetProvider.class);
@@ -202,6 +241,11 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         String action = intent.getAction();
+        if (action == null) return;
+
+        Calendar cal = Calendar.getInstance();
+        String todayDateStr = cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.DAY_OF_YEAR);
+
         if (ACTION_SELECT_DAY.equals(action)) {
             int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
             int selectedDay = intent.getIntExtra(EXTRA_DAY, -1);
@@ -209,8 +253,10 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
                 SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = prefs.edit();
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    editor.putString(KEY_LAST_ACTIVE_DATE + "_" + appWidgetId, todayDateStr);
                     editor.putInt(KEY_SELECTED_DAY + "_" + appWidgetId, selectedDay);
                 }
+                editor.putString(KEY_LAST_ACTIVE_DATE, todayDateStr);
                 editor.putInt(KEY_SELECTED_DAY, selectedDay);
                 editor.apply();
 
@@ -227,8 +273,10 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                editor.putString(KEY_LAST_ACTIVE_DATE + "_" + appWidgetId, todayDateStr);
                 editor.putInt(KEY_SELECTED_DAY + "_" + appWidgetId, today);
             }
+            editor.putString(KEY_LAST_ACTIVE_DATE, todayDateStr);
             editor.putInt(KEY_SELECTED_DAY, today);
             editor.apply();
 
@@ -245,6 +293,11 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             openIntent.putExtra("widget_target_type", "schedule");
             if (itemId != null) openIntent.putExtra("widget_target_id", itemId);
             context.startActivity(openIntent);
+        } else if (Intent.ACTION_DATE_CHANGED.equals(action) ||
+                   Intent.ACTION_TIME_CHANGED.equals(action) ||
+                   Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
+            // El reloj del sistema o la fecha cambiaron a un nuevo día: auto-sincronizar widgets a HOY
+            updateAllWidgets(context);
         }
     }
 }
