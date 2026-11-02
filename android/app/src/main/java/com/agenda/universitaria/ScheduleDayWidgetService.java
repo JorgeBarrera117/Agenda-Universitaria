@@ -126,14 +126,24 @@ class ScheduleDayListRemoteViewsFactory implements RemoteViewsService.RemoteView
         views.setTextViewText(R.id.widget_item_details, details);
         views.setTextColor(R.id.widget_item_details, theme.onSurfaceVariant);
 
-        // Badge adaptado al tema
+        // Badge de alta visibilidad y contraste (independiente del tema)
         views.setTextViewText(R.id.widget_item_badge, badge);
         if (isToday) {
-            views.setInt(R.id.widget_item_badge_bg, "setColorFilter", theme.primary);
-            views.setTextColor(R.id.widget_item_badge, theme.onPrimary);
+            if (theme.isDark) {
+                views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_today_dark);
+                views.setTextColor(R.id.widget_item_badge, Color.parseColor("#1C1917"));
+            } else {
+                views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_today_light);
+                views.setTextColor(R.id.widget_item_badge, Color.parseColor("#FFFFFF"));
+            }
         } else {
-            views.setInt(R.id.widget_item_badge_bg, "setColorFilter", theme.surfaceContainer);
-            views.setTextColor(R.id.widget_item_badge, theme.onSurfaceVariant);
+            if (theme.isDark) {
+                views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_day_dark);
+                views.setTextColor(R.id.widget_item_badge, Color.parseColor("#E2E8F0"));
+            } else {
+                views.setInt(R.id.widget_item_badge, "setBackgroundResource", R.drawable.widget_badge_day_light);
+                views.setTextColor(R.id.widget_item_badge, Color.parseColor("#334155"));
+            }
         }
 
         // Barra de color representativo de la asignatura

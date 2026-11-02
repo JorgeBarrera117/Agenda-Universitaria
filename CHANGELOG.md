@@ -5,6 +5,16 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.21] - 2026-11-02
+
+### Mejorado & Optimizado
+- **Badge "HOY" de Alta Visibilidad y Contraste en Widgets de Android:**
+  - **Eliminación del Fallo de Medición:** Se reemplazó el contenedor superpuesto por un TextView directo con fondo nativo redondeado (`widget_badge_today_light` y `widget_badge_today_dark`), eliminando el colapso visual que volvía invisible la palabra "HOY".
+  - **Contraste Semántico Garantizado (Ámbar Cálido):** En modo Claro, el badge adopta un fondo ámbar cálido profundo (`#B45309`) con tipografía en blanco puro (`#FFFFFF`), ofreciendo contraste instantáneo e inconfundible sin importar qué paleta de color esté activa. En modo Oscuro, aplica ámbar dorado brillante (`#FBBF24`) con texto carbón oscuro (`#1C1917`).
+  - **Compatibilidad con Versiones Previas de Android:** Se incrementó el `versionCode` a `171021` para permitir actualizaciones directas e instantáneas en el dispositivo.
+
+---
+
 ## [1.7.10.20] - 2026-11-02
 
 ### Restaurado & Optimizado

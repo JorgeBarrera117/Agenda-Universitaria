@@ -40,29 +40,18 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <FrameLayout
+                <TextView
+                    android:id="@+id/widget_item_badge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp">
-
-                    <ImageView
-                        android:id="@+id/widget_item_badge_bg"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/widget_badge_shape"
-                        android:scaleType="fitXY" />
-
-                    <TextView
-                        android:id="@+id/widget_item_badge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingHorizontal="5dp"
-                        android:paddingVertical="1dp"
-                        android:text="HOY"
-                        android:textColor="#ffffff"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/widget_badge_today_light"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="HOY"
+                    android:textColor="#ffffff"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/widget_item_title"
