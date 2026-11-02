@@ -30,13 +30,17 @@ import { DocumentReassignView } from './DocumentReassignView';
 
 interface DocumentsViewProps {
   isActive?: boolean;
+  onEditorActiveChange?: (isActive: boolean) => void;
 }
 
 type FormatFilterType = 'all' | 'pdf' | 'slides' | 'docs' | 'sheets' | 'links' | 'other';
 type SortByType = 'newest' | 'oldest' | 'largest' | 'name';
 type DocumentsViewMode = 'list' | 'add' | 'details' | 'reassign';
 
-export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true }) => {
+export const DocumentsView: React.FC<DocumentsViewProps> = ({
+  isActive = true,
+  onEditorActiveChange,
+}) => {
   const { documents, addLocalDocument, addExternalLink, openDocument, deleteDocument, reassignSubject } =
     useSubjectDocuments();
   const { subjects } = useSubjects();
@@ -58,7 +62,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ isActive = true })
   const [docToast, setDocToast] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Limpiar temporizadores para evitar fugas de memoria
+  // Notificar al contenedor principal (App.tsx) para ocultar las barras superior e inferior en sub-apartados
+  useEffect(() => {
+    const isSubViewActive = viewMode !== 'list';
+    onEditorActiveChange?.(isSubViewActive);
+    return () => {
+      onEditorActiveChange?.(false);
+    };
+  }, [viewMode, onEditorActiveChange]);
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);

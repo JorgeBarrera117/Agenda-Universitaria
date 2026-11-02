@@ -61,6 +61,11 @@ export function App() {
     (active: boolean) => handleEditorActiveChange('professors', active),
     [handleEditorActiveChange]
   );
+  const handleDocumentsEditorChange = useCallback(
+    (active: boolean) => handleEditorActiveChange('documents', active),
+    [handleEditorActiveChange]
+  );
+
   const handleNotesEditorChange = useCallback(
     (active: boolean) => handleEditorActiveChange('notes', active),
     [handleEditorActiveChange]
@@ -281,7 +286,10 @@ export function App() {
               />
             </div>
             <div className={activeTab === 'documents' ? tabEnterClass : 'hidden'}>
-              <DocumentsView isActive={activeTab === 'documents'} />
+              <DocumentsView
+                isActive={activeTab === 'documents'}
+                onEditorActiveChange={handleDocumentsEditorChange}
+              />
             </div>
           </div>
         )}

@@ -5,6 +5,15 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [1.7.10.9] - 2026-11-02
+
+### Corregido
+- **Ocultamiento de barras de navegación superior e inferior en sub-apartados de Documentos (`App.tsx` & `DocumentsView.tsx`):**
+  - Implementación del hook de sincronización `onEditorActiveChange` en `DocumentsView.tsx` y conexión con el manejador `handleDocumentsEditorChange` en `App.tsx`.
+  - Al acceder a los apartados independientes de vinculación (`DocumentLinkForm`), ficha técnica (`DocumentDetailView`) o reasignación (`DocumentReassignView`), la barra superior (`Navbar`) y la barra inferior de navegación móvil (`BottomNav`) se ocultan automáticamente, otorgando el 100% del área visible en pantalla sin interferencias visuales.
+
+---
+
 ## [1.7.10.8] - 2026-11-02
 
 ### Corregido & Optimizado
