@@ -1,5 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Square } from 'lucide-react';
+import {
+  Backpack,
+  BellRing,
+  Bubbles,
+  Castle,
+  Church,
+  Clock4,
+  Droplet,
+  Droplets,
+  Drum,
+  Flower2,
+  GraduationCap,
+  Landmark,
+  Music,
+  Music4,
+  Piano,
+  Play,
+  Radar,
+  School,
+  Smartphone,
+  Square,
+  Sun,
+  TrainFront,
+  Wind,
+  type LucideIcon,
+} from 'lucide-react';
 import {
   NOTIFICATION_TONE_GROUPS,
   NOTIFICATION_TONES,
@@ -8,6 +33,31 @@ import {
   type NotificationToneInfo,
 } from '../notificationTones';
 import type { NotificationSoundTone } from '../types';
+
+/** Ícono característico de cada tono (Record: un tono nuevo sin ícono no compila). */
+const TONE_ICONS: Record<NotificationSoundTone, LucideIcon> = {
+  chime_school_jp: School,
+  chime_big_ben: Clock4,
+  chime_lycee_fr: Backpack,
+  bell_retro_school: BellRing,
+  chime_shinjuku_station: TrainFront,
+  carillon_oxford: GraduationCap,
+  bell_campus: Landmark,
+  bell_harvard_chapel: Church,
+  carillon_sorbonne: Castle,
+  bell_berkeley_campanile: Sun,
+  bowl_tibetan_zen: Flower2,
+  tone_water_tuning_fork: Droplets,
+  windchime_furin: Wind,
+  sonar_study_ping: Radar,
+  zen_drop: Droplet,
+  kalimba_study_arpeggio: Music,
+  harp_glissando_short: Music4,
+  marimba_gentle: Drum,
+  synth_warm_chord: Piano,
+  pop_glass_organic: Bubbles,
+  default: Smartphone,
+};
 
 interface NotificationTonePickerProps {
   value: NotificationSoundTone;
@@ -74,6 +124,7 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
   const renderTone = (tone: NotificationToneInfo) => {
     const isSelected = tone.id === selected;
     const isPlaying = playing === tone.id;
+    const ToneIcon = TONE_ICONS[tone.id];
     return (
       <div
         key={tone.id}
@@ -114,12 +165,13 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
                 {tone.label}
               </span>
               <span
-                className={`shrink-0 rounded-md px-1.5 py-px text-[10px] font-bold ${
+                className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-px text-[10px] font-bold ${
                   isSelected
                     ? 'bg-[var(--color-md-surface)]/60 text-[var(--color-md-on-primary-container)]'
                     : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
                 }`}
               >
+                <ToneIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
                 {tone.badge}
               </span>
             </span>
