@@ -168,6 +168,38 @@ Transformar el Lector de Apuntes (`NotesView.tsx` modo `reader`) y el Editor Tip
 
 ---
 
+
+---
+
+### 🌊 FASE 7: Sistema Global de Animaciones Fluidas y Continuidad Espacial M3 (Motion Engine)
+**Estado:** `EN EJECUCIÓN (LISTA PARA IMPLEMENTAR)`
+
+#### Objetivo
+Dotar a toda la aplicación de fluidez visual nativa (60-120 FPS sin caídas de frames) en cada transición entre pestañas, apertura y cierre de formularios/hojas modales, menús desplegables y acciones de retorno, aplicando curvas de aceleración canónicas de Material Design 3 (`md.sys.motion`) y eliminando los cierres instantáneos a 0ms.
+
+#### Principios de Movimiento M3 (Invariantes de Animación)
+1. **Aceleración por GPU Estricta:** Las animaciones se ejecutan exclusivamente sobre `transform: translate3d / scale` y `opacity`. Prohibido animar `width`, `height`, `top`, `left` o `margin` (0 Reflows).
+2. **Curvas Canónicas M3:**
+   - Apertura / Entrada: `cubic-bezier(0.05, 0.7, 0.1, 1)` (Emphasized Decelerate) en 240-280ms.
+   - Cierre / Salida: `cubic-bezier(0.3, 0, 0.8, 0.15)` (Emphasized Accelerate) en 160-200ms.
+   - Micro-interacciones: `cubic-bezier(0.2, 0, 0, 1)` (Standard) en 120-150ms.
+3. **Transición Bidireccional (Apertura y Cierre):** Los formularios (`FormSheet`), modales (`Modal`) y menús (`M3KebabMenu`, `M3Select`) no deben desaparecer bruscamente a 0ms al presionar Atrás/Cerrar; deben ejecutar una salida suave coordinada.
+4. **Accesibilidad Obligatoria:** Respetar `@media (prefers-reduced-motion: reduce)` fijando duraciones a `1ms` sin animaciones espaciales.
+
+#### Tareas de Implementación (Fase 7)
+- [ ] **7.1. Curvas de Movimiento y Clases Core en `src/index.css`:**
+  - Añadir keyframes y utilidades M3: `m3-sheet-enter`, `m3-sheet-exit`, `m3-dialog-enter`, `m3-dialog-exit`, `m3-menu-enter`, `m3-menu-exit`.
+  - Refinar la transición horizontal de pestañas (`m3-tab-enter-right` / `m3-tab-enter-left`) con sutil escala continua `scale(0.985) -> 1` para mayor fluidez.
+- [ ] **7.2. Cierre y Salida Fluida en `FormSheet.tsx` (Formularios y Editor):**
+  - Implementar fase de salida (`isClosing`) de ~180ms al activar `onBack` (tecla Esc, botón Atrás de Android o botón flecha en pantalla), antes de desmontar el formulario.
+- [ ] **7.3. Transiciones en `NotesView.tsx` (Modo Reader y Editor):**
+  - Suavizar la entrada y retorno del Lector de Notas con efecto Shared Axis y salida coordinada al volver al catálogo.
+- [ ] **7.4. Menús y Diálogos (`M3KebabMenu.tsx`, `M3Select.tsx`, `Modal.tsx`):**
+  - Suavizar la apertura con escala desde el punto de origen (origin-top-right / origin-bottom-right) y salida suave.
+  - `Modal.tsx` con entrada y salida animada de backdrop y contenedor.
+- [ ] **7.5. Fluidez en Barras de Navegación (`BottomNav.tsx` y `Navbar.tsx`):**
+  - Transición fluida del indicador de píldora activa entre pestañas.
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
