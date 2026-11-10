@@ -268,7 +268,7 @@ Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/fe
 ---
 
 ### 🛡️ FASE 9: Selector de Color Canónico M3 y Sistema Global de Legibilidad de Fondos (Readability & Wallpaper Scrim)
-**Estado:** `LISTA PARA IMPLEMENTAR`
+**Estado:** `COMPLETADA (Commit c869538)`
 
 #### Objetivo
 1. **Eliminar el selector de color nativo arcaico de Android:** Reemplazar `<input type="color">` en `IdentityPicker.tsx` por un modal canónico de Material Design 3 (`M3ColorPickerModal.tsx`) con paleta de tonos armónicos, ajuste de matiz y entrada hexadecimal, eliminando el diálogo anticuado del sistema operativo.
@@ -283,7 +283,7 @@ Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/fe
    - En *Ajustes* (Img 5): Encabezado "Ajustes" y los títulos de grupo ("Preferencias de estudio", "Notificaciones y medios", "Almacenamiento y sistema") se pierden por completo sobre el tapiz.
 
 #### Tareas de Implementación (Fase 9)
-- [ ] **9.1. Componente Canónico `M3ColorPickerModal.tsx`:**
+- [x] **9.1. Componente Canónico `M3ColorPickerModal.tsx`:**
   - Crear `src/shared/components/form/M3ColorPickerModal.tsx` utilizando el `Modal` M3 existente.
   - Contenido:
     - Avatar/Vista previa grande con el color seleccionado y código HEX.
@@ -291,56 +291,78 @@ Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/fe
     - Slider continuo de matiz cromático (arcoíris) + input de texto hexadecimal con prefijo `#`.
     - Botones de acción: `Cancelar` y `Aplicar color`.
   - Integrar en `IdentityPicker.tsx` sustituyendo el `<input type="color">` por la apertura de este modal.
-- [ ] **9.2. Velo de Legibilidad Adaptativo en `AppWallpaper.tsx`:**
+- [x] **9.2. Velo de Legibilidad Adaptativo en `AppWallpaper.tsx`:**
   - En `src/shared/components/AppWallpaper.tsx`, para `wallpaperStyle === 'custom'`, añadir una capa de contraste/atenuación sutil:
     - En modo oscuro: velo de superficie oscura `bg-black/40` o `bg-[var(--color-md-surface)]/50` para atenuar fondos brillantes y asegurar contraste $\ge 4.5:1$ (WCAG AA).
     - En modo claro: velo de superficie clara `bg-white/45` o `bg-[var(--color-md-surface)]/60`.
-- [ ] **9.3. Protección de Encabezados de Pantalla (Header Scrim Capsule):**
+- [x] **9.3. Protección de Encabezados de Pantalla (Header Scrim Capsule):**
   - En los encabezados de `ScheduleView.tsx`, `SubjectsView.tsx`, `ProfessorsView.tsx`, `NotesView.tsx`, `DocumentsView.tsx` y `SettingsView.tsx`:
-    - Añadir una clase de protección o contenedor con respaldo sutil: `bg-[var(--color-md-surface)]/65 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-[var(--color-md-outline-variant)]/30 shadow-2xs` o una cápsula semitranslúcida que garantice legibilidad absoluta de los títulos H1/H2 y sus subtítulos.
-- [ ] **9.4. Cápsulas y Chips Tonales para Etiquetas de Sección:**
-  - `ProfessorsView.tsx`: Envolver "Directorio Alfabético • X Catedráticos" en un chip tonal: `inline-flex px-3 py-1 rounded-full bg-[var(--color-md-surface-container)]/85 backdrop-blur-sm border border-[var(--color-md-outline-variant)]/50 text-[11px] font-bold text-[var(--color-md-on-surface-variant)] shadow-2xs`.
+    - Añadir una clase de protección o contenedor con respaldo sutil: `bg-[var(--color-md-surface)]/65 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-[var(--color-md-outline-variant)]/30 shadow-2xs` o una cápsula semitranslúcida que garantice legibilidad absoluta de los títulos H1/H2 y sus subtítulos (`HEADER_SCRIM_CLASS`).
+- [x] **9.4. Cápsulas y Chips Tonales para Etiquetas de Sección:**
+  - `ProfessorsView.tsx`: Envolver "Directorio Alfabético • X Catedráticos" en un chip tonal: `inline-flex px-3 py-1 rounded-full bg-[var(--color-md-surface-container)]/85 backdrop-blur-sm border border-[var(--color-md-outline-variant)]/50 text-[11px] font-bold text-[var(--color-md-on-surface-variant)] shadow-2xs` (`TONAL_CHIP_CLASS`).
   - `DocumentsView.tsx`: Envolver la barra de tipos ("Tipo: Todos | PDFs...") en un contenedor con `bg-[var(--color-md-surface-container)]/85 backdrop-blur-md rounded-xl p-1 border border-[var(--color-md-outline-variant)]/50`.
   - `DocumentsView.tsx`: Estado vacío ("Aún no has vinculado ningún documento...") con `bg-[var(--md-card-surface)]/90 backdrop-blur-md border border-[var(--color-md-outline-variant)]` para máxima nitidez.
   - `SettingsPrimitives.tsx` (`SettingsGroup`): Envolver los títulos de sección en un chip o cápsula tonal: `inline-flex px-2.5 py-0.5 rounded-md bg-[var(--color-md-surface-container-high)]/85 backdrop-blur-sm border border-[var(--color-md-outline-variant)]/40 text-xs font-bold text-[var(--color-md-on-surface-variant)]`.
-- [ ] **9.5. Verificación y Compilación:**
+- [x] **9.5. Verificación y Compilación:**
   - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
 
 ---
 
-### 🔔 FASE 10: Motor de Tonos y Alertas Sonoras Universitarias (Notification Sound Studio)
+### 🔔 FASE 10: Motor de Tonos y Alertas Sonoras Universitarias y Mundiales (Notification Sound Studio)
 **Estado:** `LISTA PARA IMPLEMENTAR`
 
 #### Objetivo
-Dotar a la aplicación de un catálogo de tonos de notificación estudiantiles personalizados y configurables (incluyendo la célebre campana escolar japonesa en celesta armónica), con preescucha interactiva en vivo en la pantalla de Ajustes y compatibilidad nativa con los canales de notificación de Android (`NotificationChannel` vía `@capacitor/local-notifications`) y la PWA Web.
+Dotar a la aplicación de un catálogo completo de tonos y campanas de escuelas y universidades del mundo (Japón, Reino Unido, Francia, Oxford, campus clásico, cuenco tibetano, campana retro, marimba y gota zen), con preescucha interactiva en vivo en la pantalla de Ajustes y compatibilidad nativa con los canales de notificación de Android (`NotificationChannel` vía `@capacitor/local-notifications`) y la PWA Web.
 
-#### Recursos de Audio ya Sintetizados y Listos en el Proyecto
-Los archivos de sonido fueron sintetizados matemáticamente a 44.1 kHz PCM 16-bit y ya están disponibles en:
+#### Recursos de Audio Sintetizados y Listos en el Proyecto
+Los archivos de sonido fueron sintetizados matemáticamente a 44.1 kHz PCM 16-bit Mono y están disponibles en:
 - `public/sounds/` (para PWA y preescucha en navegador)
 - `android/app/src/main/res/raw/` (para alarmas nativas de Android con pantalla bloqueada)
 
-Catálogo de Tonos:
+Catálogo Internacional de Tonos:
 1. 🎌 **`chime_school_jp.wav`**: Timbre Escolar Japonés (*Westminster Quarters* en celesta/campana tubular armónica: Fa#4, Re4, Mi4, La3).
-2. 🏛️ **`bell_campus.wav`**: Campana de Torre Universitaria (resonancia profunda de bronce académico).
-3. 🪵 **`marimba_gentle.wav`**: Marimba Suave (acorde acústico de madera cálido y no intrusivo).
-4. 💧 **`zen_drop.wav`**: Gota Zen de Biblioteca (tono minimalista de 80ms para espacios silenciosos).
-5. ⚙️ **`default`**: Tono por defecto del sistema operativo.
+2. 🇬🇧 **`chime_big_ben.wav`**: Gran Reloj de Westminster / Big Ben de Londres (armónicos de campana pesada de torre inglesa: Mi4, Sol#4, Fa#4, Si3).
+3. 🇫🇷 **`chime_lycee_fr.wav`**: Timbre de Liceo Francés y Escuela Europea (intervalo melódico Sol5 → Mi5 en barras vibrafónicas).
+4. 🔔 **`bell_retro_school.wav`**: Campana Escolar Retro / Timbre Mecánico (martillo oscilante a 22 Hz sobre dos copas metálicas "Brrr-ring").
+5. 🎓 **`carillon_oxford.wav`**: Carillón de Torre Universitaria (Oxford / Heidelberg: secuencia triunfal Do5, Mi5, Do6).
+6. 🏛️ **`bell_campus.wav`**: Campana de Torre Universitaria Clásica (resonancia profunda de bronce académico).
+7. 🧘 **`bowl_tibetan_zen.wav`**: Cuenco Tibetano / Campana de Meditación Zen (432 Hz armónico puro con batimiento binaural calmante).
+8. 🪵 **`marimba_gentle.wav`**: Marimba Suave Lofi (acorde acústico de madera Do-Mi-Sol cálido y no intrusivo).
+9. 💧 **`zen_drop.wav`**: Gota Zen de Biblioteca (tono minimalista de 80ms para espacios silenciosos).
+10. 📱 **`default`**: Tono predeterminado del sistema operativo.
 
 #### Tareas de Implementación (Fase 10)
 - [ ] **10.1. Tipado y Configuración en `src/features/settings/types.ts`:**
-  - Definir `export type NotificationSoundTone = 'chime_school_jp' | 'bell_campus' | 'marimba_gentle' | 'zen_drop' | 'default';`.
+  - Definir:
+    ```ts
+    export type NotificationSoundTone =
+      | 'chime_school_jp'
+      | 'chime_big_ben'
+      | 'chime_lycee_fr'
+      | 'bell_retro_school'
+      | 'carillon_oxford'
+      | 'bell_campus'
+      | 'bowl_tibetan_zen'
+      | 'marimba_gentle'
+      | 'zen_drop'
+      | 'default';
+    ```
   - Añadir a `AppSettings`: `notificationTone: NotificationSoundTone;` (por defecto `'chime_school_jp'`).
 - [ ] **10.2. Selector M3 con Preescucha Interactiva en `NotificationSettings.tsx`:**
   - En `src/features/settings/components/NotificationSettings.tsx`:
-    - Añadir una sección "Tono de Notificación" cuando `settings.notificationSound` esté activo.
-    - Renderizar los tonos en una lista de tarjetas/píldoras compactas M3.
-    - Cada tono incluye: Icono, nombre, badge tonal y un **botón interactivo de Preescucha (Play / Stop)** que utiliza `new Audio('/sounds/' + tone + '.wav')` para que el estudiante escuche el sonido al instante antes de seleccionarlo.
+    - Añadir prop `onSelectTone: (tone: NotificationSoundTone) => void`.
+    - Mostrar bloque "Tono de notificación" cuando `settings.notificationSound && settings.notificationsEnabled` estén activos.
+    - Renderizar los 10 tonos en fichas/píldoras compactas con nombre, región/estilo e icono.
+    - Botón de preescucha interactiva (Play / Stop) con icono `Play` / `Square` de `lucide-react` reproduciendo `/sounds/${tone}.wav` mediante `new Audio()`.
+    - Manejar ciclo de vida: pausar audio anterior al presionar Play en otro tono o al desmontar.
+  - Conectar en `SettingsView.tsx`: `onSelectTone={(tone) => void updateSettings({ notificationTone: tone })}`.
 - [ ] **10.3. Integración en `NotificationService.ts` y Canales Nativos de Android:**
   - En `src/shared/services/notificationService.ts`:
-    - Actualizar `init()` y `syncScheduleNotifications()` para crear canales dinámicos según el tono:
+    - Crear canales dinámicos según el tono:
       `id: 'academic_schedule_' + (settings.notificationTone || 'chime_school_jp')`
-      apuntando a `sound: (settings.notificationTone || 'chime_school_jp') + '.wav'`.
-    - Asignar el canal y el sonido correspondiente en `notificationsToSchedule`.
+      apuntando a `sound: (settings.notificationTone === 'default' ? undefined : (settings.notificationTone || 'chime_school_jp') + '.wav')`.
+    - Incluir `settings.notificationTone` en `currentHash` (fingerprint guard).
+    - Asignar el canal y el sonido correspondiente en `notificationsToSchedule` y `sendTestNotification`.
 - [ ] **10.4. Verificación y Compilación:**
   - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
 
