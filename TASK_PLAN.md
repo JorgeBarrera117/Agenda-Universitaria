@@ -145,7 +145,7 @@ Erradicar la fragmentación visual ("Card Soup"), las scrollbars toscas y las et
 ---
 
 ### 📖 FASE 6: Rediseño Editorial y Fluidez del Lector y Editor de Apuntes (UI/UX Pro Max)
-**Estado:** `EN EJECUCIÓN (LISTA PARA IMPLEMENTAR)`
+**Estado:** `COMPLETADA (Commit 54ec2d7 & 7af0cc3)`
 
 #### Objetivo
 Transformar el Lector de Apuntes (`NotesView.tsx` modo `reader`) y el Editor TipTap (`NoteEditor.tsx` y `RichTextEditor.tsx`) en una experiencia de redacción y lectura de clase mundial (*Notion / Apple Notes / Craft*), aplicando inteligencia de diseño `ui-ux-pro-max`: ergonomía táctil en barra de herramientas (touch targets de 40px y espaciado mínimo de 8px), folio editorial con acabado de superficie continuo, eliminación del menú flotante artesanal en favor de `M3KebabMenu`, y recolocación canónica del botón Guardar a la derecha.
@@ -168,11 +168,8 @@ Transformar el Lector de Apuntes (`NotesView.tsx` modo `reader`) y el Editor Tip
 
 ---
 
-
----
-
 ### 🌊 FASE 7: Sistema Global de Animaciones Fluidas y Continuidad Espacial M3 (Motion Engine)
-**Estado:** `EN EJECUCIÓN (LISTA PARA IMPLEMENTAR)`
+**Estado:** `COMPLETADA (Commit 383a9f8)`
 
 #### Objetivo
 Dotar a toda la aplicación de fluidez visual nativa (60-120 FPS sin caídas de frames) en cada transición entre pestañas, apertura y cierre de formularios/hojas modales, menús desplegables y acciones de retorno, aplicando curvas de aceleración canónicas de Material Design 3 (`md.sys.motion`) y eliminando los cierres instantáneos a 0ms.
@@ -187,17 +184,17 @@ Dotar a toda la aplicación de fluidez visual nativa (60-120 FPS sin caídas de 
 4. **Accesibilidad Obligatoria:** Respetar `@media (prefers-reduced-motion: reduce)` fijando duraciones a `1ms` sin animaciones espaciales.
 
 #### Tareas de Implementación (Fase 7)
-- [ ] **7.1. Curvas de Movimiento y Clases Core en `src/index.css`:**
+- [x] **7.1. Curvas de Movimiento y Clases Core en `src/index.css`:**
   - Añadir keyframes y utilidades M3: `m3-sheet-enter`, `m3-sheet-exit`, `m3-dialog-enter`, `m3-dialog-exit`, `m3-menu-enter`, `m3-menu-exit`.
   - Refinar la transición horizontal de pestañas (`m3-tab-enter-right` / `m3-tab-enter-left`) con sutil escala continua `scale(0.985) -> 1` para mayor fluidez.
-- [ ] **7.2. Cierre y Salida Fluida en `FormSheet.tsx` (Formularios y Editor):**
+- [x] **7.2. Cierre y Salida Fluida en `FormSheet.tsx` (Formularios y Editor):**
   - Implementar fase de salida (`isClosing`) de ~180ms al activar `onBack` (tecla Esc, botón Atrás de Android o botón flecha en pantalla), antes de desmontar el formulario.
-- [ ] **7.3. Transiciones en `NotesView.tsx` (Modo Reader y Editor):**
+- [x] **7.3. Transiciones en `NotesView.tsx` (Modo Reader y Editor):**
   - Suavizar la entrada y retorno del Lector de Notas con efecto Shared Axis y salida coordinada al volver al catálogo.
-- [ ] **7.4. Menús y Diálogos (`M3KebabMenu.tsx`, `M3Select.tsx`, `Modal.tsx`):**
+- [x] **7.4. Menús y Diálogos (`M3KebabMenu.tsx`, `M3Select.tsx`, `Modal.tsx`):**
   - Suavizar la apertura con escala desde el punto de origen (origin-top-right / origin-bottom-right) y salida suave.
   - `Modal.tsx` con entrada y salida animada de backdrop y contenedor.
-- [ ] **7.5. Fluidez en Barras de Navegación (`BottomNav.tsx` y `Navbar.tsx`):**
+- [x] **7.5. Fluidez en Barras de Navegación (`BottomNav.tsx` y `Navbar.tsx`):**
   - Transición fluida del indicador de píldora activa entre pestañas.
 
 ## 🤝 3. Flujo de Trabajo para Claude
