@@ -83,24 +83,24 @@ Transformar el encabezado de `ScheduleView` en un centro de mando inteligente y 
 ---
 
 ### 🎨 FASE 4: Motor de Ultra-Personalización ("Cada Agenda es Única")
-**Estado:** `EN EJECUCIÓN (LISTA PARA IMPLEMENTAR)`
+**Estado:** `COMPLETADA`
 
 #### Objetivo
 Darle al estudiante libertad creativa para que su agenda refleje su personalidad, combinando estética juvenil, legibilidad profesional y temas de vanguardia.
 
 #### Tareas de Implementación (Fase 4)
-- [ ] **4.1. Nuevas Paletas Estéticas en `src/shared/utils/theme.ts` y `src/features/settings/types.ts`:**
+- [x] **4.1. Nuevas Paletas Estéticas en `src/shared/utils/theme.ts` y `src/features/settings/types.ts`:**
   - Añadir presets de tendencia manteniendo contraste WCAG AA/AAA:
     1. **`oled` (Cyberpunk OLED):** Fondo negro puro `#000000` (ahorro de batería en pantallas AMOLED) con contenedores `#0D0F14` y acentos neón cian/violeta.
     2. **`matcha` (Matcha & Cream Lofi):** Tonos papel cálido `#FAF7F2` en modo claro y bosque profundo en modo oscuro, con acentos verde matcha orgánico.
     3. **`sunset` (Sunset Horizon):** Tonos terracota, coral y ámbar cálido inspirados en atardeceres.
     4. **`slate` (Minimalist Mono):** Estética monocromática de ultra-alto contraste estilo *Linear / Vercel*.
-- [ ] **4.2. Personalización de Estilo de Superficie (Card & Glass Style):**
+- [x] **4.2. Personalización de Estilo de Superficie (Card & Glass Style):**
   - Permitir al usuario elegir en Ajustes el acabado de las tarjetas:
     - `solid`: Superficie sólida limpia (actual).
     - `glass`: Efecto *Glassmorphism* translúcido (`backdrop-blur-md`) que deja entrever sutilmente el `AppWallpaper` personalizado.
     - `bordered`: Estilo plano con bordes marcados de alto contraste.
-- [ ] **4.3. Perfil / Credencial Digital del Estudiante:**
+- [x] **4.3. Perfil / Credencial Digital del Estudiante:**
   - Permitir personalizar en el encabezado o ajustes el nombre del estudiante, carrera/facultad y meta del semestre junto al `semesterName`.
 
 ---
