@@ -6,7 +6,7 @@
  * Eslogan: "POR Y PARA LOS ESTUDIANTES"
  * ==============================================================================
  */
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
@@ -17,7 +17,7 @@ import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { NotificationService } from './shared/services/notificationService';
-import { applyTheme, setupSystemThemeListener } from './shared/utils/theme';
+import { applyTheme, applyCardSurface, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
@@ -121,6 +121,11 @@ export function App() {
     });
     return cleanup;
   }, [settings.theme, settings.colorPalette]);
+
+  // Acabado de tarjetas antes del primer pintado para que no parpadeen de sólido a cristal
+  useLayoutEffect(() => {
+    applyCardSurface(settings.cardSurfaceStyle);
+  }, [settings.cardSurfaceStyle]);
 
 
   useEffect(() => {
@@ -229,6 +234,7 @@ export function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          studentName={settings.studentName}
           subjectCount={subjectCount}
           professorsCount={professorsCount}
           notesCount={notesCount}

@@ -20,6 +20,8 @@ interface NavbarProps {
   professorsCount?: number;
   notesCount?: number;
   documentsCount?: number;
+  /** Nombre del perfil estudiantil; si existe, el título saluda al estudiante. */
+  studentName?: string;
 }
 
 
@@ -31,7 +33,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   professorsCount = 0,
   notesCount = 0,
   documentsCount = 0,
+  studentName,
 }) => {
+  const firstName = studentName?.trim().split(/\s+/)[0];
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -102,8 +106,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-[15px] lg:text-lg xl:text-xl font-extrabold tracking-tight text-[#191C20] dark:text-[#E2E2E6] leading-tight whitespace-nowrap">
-                  Agenda Universitaria
+                <h1 className="text-sm sm:text-[15px] lg:text-lg xl:text-xl font-extrabold tracking-tight text-[var(--color-md-on-surface)] leading-tight whitespace-nowrap truncate max-w-[200px] sm:max-w-none">
+                  {firstName ? `Hola, ${firstName}` : 'Agenda Universitaria'}
                 </h1>
                 <span className="hidden 2xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
                   Campus Digital

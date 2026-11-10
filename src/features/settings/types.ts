@@ -7,7 +7,14 @@ export type MaterialColorTheme =
   | 'amber'
   | 'pink'
   | 'rose'
-  | 'teal';
+  | 'teal'
+  | 'oled'
+  | 'matcha'
+  | 'sunset'
+  | 'slate';
+
+/** Acabado de las tarjetas: sólido (actual), cristal translúcido o plano con bordes marcados. */
+export type CardSurfaceStyle = 'solid' | 'glass' | 'bordered';
 
 export type WallpaperStyle =
   | 'campus'
@@ -21,7 +28,12 @@ export type WallpaperStyle =
 export interface AppSettings {
   theme: ThemeMode;
   colorPalette: MaterialColorTheme;
+  cardSurfaceStyle: CardSurfaceStyle;
   semesterName: string;
+  // Perfil / credencial estudiantil (opcional, solo se guarda en este dispositivo)
+  studentName?: string;
+  careerName?: string;
+  semesterGoal?: string;
   defaultScheduleView: 'weekly' | 'daily';
   imageQuality: 'balanced' | 'high';
   visibleDays: 'mon-fri' | 'mon-sat' | 'all';
@@ -41,6 +53,7 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
   colorPalette: 'default',
+  cardSurfaceStyle: 'solid',
   semesterName: 'Semestre 2026-I',
   defaultScheduleView: 'weekly',
   imageQuality: 'balanced',

@@ -38,11 +38,12 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         }`
       : '';
 
-    // Estilo de fondo con tinte cromático sutil si se especifica color de materia, o el fondo de tarjeta del tema activo
+    // Tinte sutil con el color de la materia sobre la superficie del acabado activo
+    // (--md-card-surface: sólida, translúcida en "glass"; ver index.css)
     const cardStyle: React.CSSProperties = {
       ...(accentColor
         ? {
-            background: `linear-gradient(145deg, ${accentColor}16 0%, ${accentColor}06 100%), var(--color-md-card-bg)`,
+            background: `linear-gradient(145deg, ${accentColor}16 0%, ${accentColor}06 100%), var(--md-card-surface)`,
             borderColor: `${accentColor}40`,
           }
         : {}),
@@ -53,7 +54,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         style={cardStyle}
-        className={`rounded-[24px] sm:rounded-[28px] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-all duration-150 ease-out relative text-[var(--color-md-on-surface)] ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
+        className={`md-card rounded-[24px] sm:rounded-[28px] bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-all duration-150 ease-out relative text-[var(--color-md-on-surface)] ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
         {...props}
       >
         {children}

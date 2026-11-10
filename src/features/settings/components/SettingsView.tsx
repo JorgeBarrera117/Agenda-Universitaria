@@ -18,7 +18,6 @@ import {
   Send,
   Heart,
   Palette,
-  ShieldCheck,
   Sparkles,
   Image as ImageIcon,
   Sliders,
@@ -38,7 +37,9 @@ import {
 } from '../../../shared/components/AppWallpaper';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
-import type { AppSettings, MaterialColorTheme, WallpaperStyle } from '../types';
+import { StudentCredential } from './StudentCredential';
+import { StudentProfileForm } from './StudentProfileForm';
+import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, WallpaperStyle } from '../types';
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -51,7 +52,14 @@ type SettingsCategory =
   | 'notifications'
   | 'media'
   | 'backup'
-  | 'about';
+  | 'about'
+  | 'profile';
+
+const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: string }[] = [
+  { id: 'solid', label: 'Sólido', description: 'Superficie limpia y opaca' },
+  { id: 'glass', label: 'Cristal', description: 'Translúcido sobre el papel tapiz' },
+  { id: 'bordered', label: 'Bordes', description: 'Plano, sin sombra, alto contraste' },
+];
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   onBack,
@@ -157,6 +165,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     applyTheme(settings.theme, newPalette);
     updateSettings({ ...settings, colorPalette: newPalette });
     onShowToast(`Paleta de color actualizada: ${MATERIAL_COLOR_PALETTES[newPalette].name}`);
+  };
+
+  const handleCardSurfaceChange = (cardSurfaceStyle: CardSurfaceStyle) => {
+    updateSettings({ ...settings, cardSurfaceStyle });
+    const option = CARD_SURFACE_OPTIONS.find((o) => o.id === cardSurfaceStyle);
+    onShowToast(`Acabado de tarjetas: ${option?.label ?? cardSurfaceStyle}`);
+  };
+
+  const handleSaveProfile = (profile: Pick<AppSettings, 'studentName' | 'careerName' | 'semesterGoal'>) => {
+    updateSettings({ ...settings, ...profile });
+    setActiveSubView(null);
+    onShowToast(profile.studentName ? `Perfil guardado. ¡Hola, ${profile.studentName.split(/\s+/)[0]}!` : 'Perfil guardado.');
   };
 
   // Manejador de guardado de semestre
@@ -286,40 +306,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
-            {/* Ficha de Identidad del Campus (Perfil Universitario Compacto) */}
-            <div className="bg-[var(--color-md-card-bg)] rounded-2xl p-2.5 sm:p-3 shadow-2xs border border-[var(--color-md-outline-variant)] flex items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="relative shrink-0">
-                  <img
-                    src="./app-icon-claro.svg"
-                    alt="Logo Agenda Universitaria"
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-2xs ring-1 ring-[var(--color-md-primary)]/40 object-contain bg-white p-0.5"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-cove-gold border-2 border-[var(--color-md-card-bg)] flex items-center justify-center">
-                    <span className="w-1 h-1 rounded-full bg-cove-navy" />
-                  </div>
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-xs sm:text-sm font-black text-[var(--color-md-on-surface)] truncate">
-                    {APP_INFO.name}
-                  </h2>
-                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] truncate">
-                      {settings.semesterName || 'Ciclo Académico'}
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] text-[var(--color-md-on-surface-variant)] font-medium">
-                      v{APP_INFO.version}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="shrink-0">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <ShieldCheck className="w-3 h-3" />
-                  Offline
-                </span>
-              </div>
-            </div>
+            {/* Credencial estudiantil plegable (perfil editable en su propia sub-página) */}
+            <StudentCredential
+              settings={settings}
+              appVersion={APP_INFO.version}
+              onEdit={() => setActiveSubView('profile')}
+            />
 
             {/* GRUPO 1: PREFERENCIAS DE ESTUDIO */}
             <div className="space-y-1">
@@ -550,6 +542,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     {activeSubView === 'media' && 'Fotografías y Pizarras'}
                     {activeSubView === 'backup' && 'Datos y Copias de Seguridad'}
                     {activeSubView === 'about' && 'Acerca de la Agenda'}
+                    {activeSubView === 'profile' && 'Perfil Estudiantil'}
                   </h2>
                   <p className="text-[11px] text-[var(--color-md-on-surface-variant)] font-medium">
                     Ajustes • Configuración específica
@@ -766,6 +759,58 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               style={{ backgroundColor: tokenSet.secondaryContainer }}
                             />
                           </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2.5 Acabado de tarjetas: sólido, cristal o bordes */}
+                <div className="pt-3 border-t border-[var(--color-md-outline-variant)] space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />
+                    <span className="text-xs font-bold text-[var(--color-md-on-surface)]">Acabado de tarjetas</span>
+                  </div>
+                  <div role="radiogroup" aria-label="Acabado de tarjetas" className="grid grid-cols-3 gap-2">
+                    {CARD_SURFACE_OPTIONS.map((option) => {
+                      const isSelected = settings.cardSurfaceStyle === option.id;
+                      return (
+                        <label
+                          key={option.id}
+                          className={`flex cursor-pointer flex-col gap-2 rounded-xl border-2 p-2 transition-all duration-150 ease-out active:scale-[0.98] sm:rounded-2xl ${
+                            isSelected
+                              ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
+                              : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="cardSurfaceStyle"
+                            value={option.id}
+                            checked={isSelected}
+                            onChange={() => handleCardSurfaceChange(option.id)}
+                            className="sr-only"
+                          />
+                          {/* Muestra en miniatura del acabado sobre un fondo con patrón */}
+                          <span
+                            aria-hidden="true"
+                            className="relative block h-10 overflow-hidden rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-md-primary)_0_6px,var(--color-md-primary-container)_6px_12px)]"
+                          >
+                            <span
+                              className={`absolute inset-x-2 inset-y-1.5 rounded-md ${
+                                option.id === 'solid'
+                                  ? 'bg-[var(--color-md-card-bg)] shadow-sm'
+                                  : option.id === 'glass'
+                                    ? 'bg-[var(--color-md-card-bg)]/55 backdrop-blur-sm'
+                                    : 'bg-[var(--color-md-card-bg)] border-[1.5px] border-[var(--color-md-outline)]'
+                              }`}
+                            />
+                          </span>
+                          <span className="flex items-center justify-between gap-1">
+                            <span className="text-xs font-extrabold">{option.label}</span>
+                            {isSelected && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+                          </span>
+                          <span className="hidden text-[10.5px] leading-snug sm:block">{option.description}</span>
                         </label>
                       );
                     })}
@@ -1172,6 +1217,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             )}
 
             {/* ---------------- SUB-VISTA 2: SEMESTRE Y HORARIO ---------------- */}
+            {activeSubView === 'profile' && (
+              <StudentProfileForm
+                initialValues={{
+                  studentName: settings.studentName,
+                  careerName: settings.careerName,
+                  semesterGoal: settings.semesterGoal,
+                }}
+                onSave={handleSaveProfile}
+              />
+            )}
+
             {activeSubView === 'schedule' && (
               <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-4">
                 {/* Periodo Lectivo */}
