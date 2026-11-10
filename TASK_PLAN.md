@@ -199,35 +199,70 @@ Dotar a toda la aplicación de fluidez visual nativa (60-120 FPS sin caídas de 
 
 ---
 
-### 🎨 FASE 8: Rediseño Ergonómico de Apariencia y Personalización M3 (Theme Studio)
+### 🎨 FASE 8: Rediseño Ergonómico Integral del Módulo de Ajustes (M3 Settings Studio)
 **Estado:** `LISTA PARA IMPLEMENTAR`
 
 #### Objetivo
-Descongestionar la subvista de **Apariencia y Tema** (`src/features/settings/components/SettingsView.tsx`), reduciendo drásticamente el desplazamiento vertical (scroll bloat de más de 600px a menos de 280px) mediante controles canónicos de Material Design 3 (`SegmentedControl`), fichas de paleta cromática ultracompactas de 44px de altura con swatches de doble tono, y un selector estilizado de acabados de tarjeta.
+Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/features/settings/components/SettingsView.tsx`) y **todas sus subvistas** (`appearance`, `profile`, `schedule`, `notifications`, `media`, `backup`, `about`), erradicando los 59 colores hardcodeados (`#00639B`, `#FDFBFF`, `#D0E4FF`), reduciendo el scroll bloat vertical a más de la mitad mediante controles canónicos de Material Design 3 (`SegmentedControl`), eliminando etiquetas en mayúsculas sostenidas y dotando a las subvistas de transiciones de salida fluidas (`useExitTransition`).
 
-#### Problema Detectado (Auditoría UX / UI)
-1. **Modo de Luminosidad:** 3 tarjetas cuadradas gigantes (alto ~85px) con contenedores redundantes para iconos y checkmarks, malgastando el 25% del primer pantallazo móvil.
-2. **Saturación en Paletas Material You:** 12 tarjetas masivas en rejilla de 2 columnas (`grid-cols-2`). Cada una tiene punto de color, radio button, título y 4 barras cromáticas. Ocupa más de 550px de altura y se siente pesada, tosca y abultada.
-3. **Acabado de Tarjetas:** 3 tarjetas con patrones de rayas diagonales que duplican controles segmentados.
+#### Problemas Detectados por Subvista
+1. **`appearance` (Apariencia y Tema):**
+   - 3 tarjetas gigantes de 85px para Luminosidad.
+   - 12 tarjetas masivas de 85px con radio buttons y 4 barras cromáticas que generan más de 550px de scroll innecesario.
+   - Selector de acabados con rayas diagonales toscas.
+2. **`schedule` (Semestre y Horario):**
+   - 100% de estilos con colores hexadecimales fijos (`#FDFBFF`, `#00639B`, `#D0E4FF`) rompiendo temas como OLED `#000000` y Matcha.
+   - Botones artesanales para vista inicial (Semanal vs Día) y días visibles (Lun-Vie, Lun-Sáb, Toda la semana).
+   - Etiquetas en ALL CAPS (`PERIOD LECTIVO`, `VISTA PREDETERMINADA`).
+3. **`notifications` (Notificaciones y Avisos):**
+   - Colores hexadecimales fijos violando ADR-005.
+   - Botones toscos para momentos de aviso (15m antes, al iniciar, sonido).
+4. **`media` (Fotografías y Pizarras):**
+   - 2 tarjetas gigantes para 720p vs 1080p con colores hardcodeados.
+5. **`backup` (Datos y Copias de Seguridad - `BackupSection.tsx`):**
+   - Contenedores con `#FDFBFF` y `#1D2024` fijos. Falta jerarquía visual entre exportar e importar.
+6. **`about` (Acerca de la Agenda):**
+   - Colores fijos `#00639B`, `#D0E4FF` en badges y bordes.
+7. **`root` (Menú Principal de Ajustes):**
+   - Clases `text-slate-900`, `bg-slate-100`, etc. sin enlace semántico a `--color-md-*`.
 
 #### Invariantes UX para la Fase 8
-1. **Ergonomía Táctil Móvil:** Todo control interactivo debe mantener un target táctil $\ge 40$px (WCAG 2.1 AA) sin abultar innecesariamente la pantalla.
-2. **Tokens Semánticos 100%:** Mantener el soporte para paletas reactivas `--color-md-*`, modo oscuro OLED `#000000` y acabados de superficie (`solid`, `glass`, `bordered`).
-3. **Feedback Táctil:** Micro-interacciones `active:scale-[0.98]` y animaciones M3 suaves de 150ms.
+1. **Cero Colores Hardcodeados (ADR-005):** Prohibido el uso de `#00639B`, `#FDFBFF`, `#D0E4FF`, etc. Usar exclusivamente variables semánticas `--color-md-*`.
+2. **Controles Canónicos M3:** Usar `SegmentedControl` en todas las opciones de selección mutuamente excluyentes (Luminosidad, Vista Horario, Días Visibles, Resolución Fotográfica, Acabado de Tarjetas).
+3. **Ergonomía Táctil y Densidad:** Targets táctiles $\ge 40$px (WCAG 2.1 AA) sin abultamiento vertical innecesario.
+4. **Fluidez de Transición:** Sincronizar retorno a la lista de ajustes con `useExitTransition` (salida coordinada sin saltos a 0ms).
 
 #### Tareas de Implementación (Fase 8)
-- [ ] **8.1. Modo de Luminosidad con `SegmentedControl`:**
-  - Reemplazar las 3 tarjetas cuadradas por el componente `SegmentedControl` (`src/shared/components/form/SegmentedControl.tsx`):
-    - Opciones: `Claro` (icono `Sun`), `Oscuro` (icono `Moon`) y `Auto` (icono `Monitor`).
-    - Altura compacta de 42px con píldora activa animada.
-- [ ] **8.2. Fichas de Paletas Cromáticas Compactas (Material You):**
-  - Sustituir las 12 tarjetas masivas por una cuadrícula ergonómica de fichas compactas de 44px de altura (2 columnas en móviles estrechos, 3 columnas en pantallas estándar `grid-cols-2 sm:grid-cols-3`):
-    - Cada ficha contiene un doble círculo cromático armonioso (aro exterior `primaryContainer` con núcleo central `primary`), el nombre de la paleta en `text-xs font-bold truncate`, y un checkmark discreto al estar activa.
-    - Eliminar las 4 barritas inferiores redundantes y los radio buttons flotantes.
-    - Añadir al encabezado una píldora resumen en vivo: `[ ● {Nombre de la Paleta} · {Modo} ]`.
-- [ ] **8.3. Selector de Acabado de Tarjetas (`cardSurfaceStyle`):**
-  - Unificar las opciones (`Sólido`, `Cristal`, `Bordeado`) en un `SegmentedControl` estilizado de 40px con iconos semánticos (`Layers`, `Sparkles`, `Frame`) o mini-tarjetas de previsualización compacta sin rayas estridentes.
-- [ ] **8.4. Verificación y Calidad:**
+- [ ] **8.1. Subvista de Apariencia y Tema (`appearance`):**
+  - Modo de Luminosidad con `SegmentedControl` (Claro, Oscuro, Auto) de 42px de altura.
+  - Rejilla ergonómica de 12 paletas Material You con fichas compactas de 44px de altura (`grid-cols-2 sm:grid-cols-3`): doble círculo cromático armonioso (aro exterior `primaryContainer` con núcleo central `primary`), nombre de la paleta en `text-xs font-bold truncate` y checkmark discreto al estar activa.
+  - Píldora resumen en vivo en el encabezado: `[ ● {Nombre de la Paleta} · {Modo} ]`.
+  - Acabado de tarjetas con `SegmentedControl` estilizado de 40px con iconos semánticos (`Layers`, `Sparkles`, `Frame`).
+  - Wallpaper Studio compacto con miniaturas limpias de 36px.
+- [ ] **8.2. Subvista de Semestre y Horario (`schedule`):**
+  - Erradicar todos los `#00639B`, `#FDFBFF`, `#D0E4FF`. Migrar al 100% a `--color-md-*`.
+  - Reemplazar botones de "Vista Predeterminada" por `SegmentedControl` (`Semanal` con icono `Layers` vs `Por Día` con icono `Calendar`).
+  - Reemplazar botones de "Días de Cursada" por `SegmentedControl` (`Lun - Vie`, `Lun - Sáb`, `Toda la semana`).
+  - Input de Semestre con `formInputClass` y botón `Guardar` con token `--color-md-primary` y `active:scale-95`.
+  - Cambiar etiquetas ALL CAPS a Sentence Case descansado (`Periodo lectivo actual`, `Vista predeterminada`).
+- [ ] **8.3. Subvista de Notificaciones y Avisos (`notifications`):**
+  - Migrar al 100% a tokens semánticos `--color-md-*`.
+  - Switch M3 canónico con colores reactivos al tema.
+  - Banner de permisos y botón de test con estilo M3 elevado.
+  - Píldoras de momentos de aviso (15m antes, al iniciar, sonido) como chips M3 compactos con checkmark integrado.
+- [ ] **8.4. Subvista de Fotografías y Pizarras (`media`):**
+  - Migrar al 100% a tokens semánticos `--color-md-*`.
+  - Selector de resolución (720p vs 1080p) mediante `SegmentedControl` ergonómico con texto explicativo secundario.
+- [ ] **8.5. Subvista de Datos y Copias de Seguridad (`backup` / `BackupSection.tsx`):**
+  - Erradicar `#FDFBFF` y `#1D2024`. Usar `--color-md-card-bg`, `--color-md-outline-variant`, `--color-md-primary`.
+  - Tarjetas de acciones limpias agrupadas (Exportar a Descargas, Compartir, Copiar JSON / Importar Archivo, Pegar JSON).
+- [ ] **8.6. Subvista de Acerca de la Agenda (`about`):**
+  - Migrar al 100% a tokens semánticos `--color-md-*`.
+  - Folio M3 con avatar de la app, versión dinámica, garantía offline-first y créditos del desarrollador.
+- [ ] **8.7. Limpieza en Menú Raíz y Transiciones de Subvistas:**
+  - Reemplazar los colores hardcodeados de las tarjetas del menú raíz (`activeSubView === null`) por tokens `--color-md-*`.
+  - Integrar `useExitTransition` al pulsar la flecha atrás de la subvista para que vuelva suavemente a la lista de ajustes.
+- [ ] **8.8. Verificación y Calidad:**
   - Ejecutar `npm run build` (`tsc -b && vite build`) y `npm run lint` (`oxlint`) garantizando cero errores.
 
 ---
