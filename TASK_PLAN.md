@@ -507,6 +507,38 @@ Permitir al estudiante personalizar exhaustivamente el encabezado de identidad d
 
 ---
 
+### 🖼️ FASE 13: Miniaturas Visuales en Cuaderno de Apuntes y Extracción Limpia de Contenido (Rich Note Thumbnails & Snippet Sanitization)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Resolver definitivamente el bug visual en la cuadrícula del **Cuaderno de Apuntes** (`NotesView.tsx`), donde las tarjetas muestran fragmentos de código HTML crudo (`<img class="rounded-2xl max-w-full my-3 shadow-md border...`) en lugar de contenido legible. Transformar las miniaturas de las notas en tarjetas visuales modernas estilo *Apple Notes / Google Keep*, renderizando la fotografía o diagrama real en miniatura cuando la nota contiene imágenes, o un extracto limpio de texto sin etiquetas HTML cuando es texto puro.
+
+#### Diagnóstico Técnico del Bug (Causa Raíz)
+En `NotesView.tsx`, la función `cleanSnippetPreview(rawContent)` ejecutaba:
+```ts
+const truncated = rawContent.length > 1000 ? rawContent.slice(0, 1000) : rawContent;
+```
+Cuando el estudiante inserta o pega una imagen en el editor TipTap/ProseMirror, esta se guarda como una etiqueta `<img ... src="data:image/jpeg;base64,..." />` que mide entre 50.000 y 500.000 caracteres. Al recortar la cadena en el carácter 1.000, la etiqueta HTML queda partida por la mitad (sin su `>` de cierre). Por lo tanto, las expresiones regulares posteriores (`/<img[^>]*>/gi` y `/<[^>]*>/g`) fallaban al no encontrar el cierre del tag, inyectando el código HTML roto `<img class="rounded-2xl...` directamente en el párrafo de la tarjeta.
+
+#### Tareas de Implementación (Fase 13)
+- [ ] **13.1. Parser Inteligente de Miniaturas (`parseNotePreview` en `NotesView.tsx`):**
+  - Reemplazar `cleanSnippetPreview` por un extractor desacoplado que primero analiza la cadena completa:
+    ```ts
+    export interface NotePreviewData {
+      coverImageUrl: string | null;
+      cleanText: string;
+    }
+    ```
+  - **Detección de Imagen:** Extraer el atributo `src` de la primera etiqueta `<img ... src="([^"]+)"` antes de purgar.
+  - **Purgado Robusto de HTML:** Eliminar todas las etiquetas `<[^>]+>` y entidades HTML (`&nbsp;`, `&amp;`, `&lt;`, `&gt;`) sobre la cadena completa, y luego extraer un extracto limpio de texto (150-200 caracteres).
+- [ ] **13.2. Renderizado Visual Rico en la Cuadrícula (`aspect-[4/3]` en `NotesView.tsx`):**
+  - **Si la nota contiene imagen:** Renderizar la imagen como miniatura de portada con `object-cover rounded-xl w-full h-full`, acompañada de un degradado inferior sutil si hay texto complementario.
+  - **Si la nota es solo texto:** Renderizar el folio de papel limpio con las líneas y el extracto de texto legible sin una sola etiqueta HTML.
+- [ ] **13.3. Verificación y Compilación:**
+  - Ejecutar `npm run build` (`tsc -b && vite build`) y `npm run lint` (`oxlint`) garantizando 0 errores y verificando la desaparición del código HTML en las tarjetas.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
