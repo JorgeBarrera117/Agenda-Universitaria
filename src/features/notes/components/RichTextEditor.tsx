@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -29,6 +30,8 @@ interface RichTextEditorProps {
   statusSlot?: React.ReactNode;
   onEditorReady?: (editor: Editor) => void;
   onImageError?: (message: string) => void;
+  /** Clase de animación de la barra (va en un portal y no hereda la animación del editor). */
+  toolbarMotionClass?: string;
 }
 
 interface ToolbarAction {
@@ -82,6 +85,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   statusSlot,
   onEditorReady,
   onImageError,
+  toolbarMotionClass = '',
 }) => {
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
@@ -206,13 +210,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         />
       </div>
 
-      {/* Barra de formato inferior, en la zona del pulgar */}
+      {/* Barra de formato inferior, en la zona del pulgar. Va en un portal a <body>: si un ancestro
+          anima transform, un position:fixed dentro de él dejaría de anclarse a la pantalla. */}
+      {createPortal(
       <div
         style={{
           paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
         }}
-        className="fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl sm:px-6"
+        className={`fixed bottom-0 left-0 right-0 z-30 ${toolbarMotionClass} border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl sm:px-6`}
       >
         <div
           role="toolbar"
@@ -246,7 +252,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           )}
           {statusSlot}
         </div>
-      </div>
+      </div>,
+      document.body
+      )}
 
       {zoomedImage && <ImageZoomModal src={zoomedImage.src} alt={zoomedImage.alt} onClose={() => setZoomedImage(null)} />}
     </div>

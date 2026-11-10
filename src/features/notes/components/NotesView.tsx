@@ -32,6 +32,7 @@ import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card } from '../../../shared/components/atoms';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
@@ -148,6 +149,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
     };
   }, [viewMode, onEditorActiveChange]);
 
+  // Salida animada del lector al volver al catálogo
+  const readerExit = useExitTransition(MOTION_EXIT_MS.sheet);
+  const closeReader = () =>
+    readerExit.runExit(() => {
+      setViewMode('list');
+      setReadingNote(null);
+      setEditingNote(undefined);
+    });
+
   // Interceptar botón "Atrás" de Android
   useBackButton(() => {
     if (viewMode === 'editor') {
@@ -161,9 +171,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
       return true;
     }
     if (viewMode === 'reader') {
-      setViewMode('list');
-      setReadingNote(null);
-      setEditingNote(undefined);
+      closeReader();
       return true;
     }
     return false;
@@ -333,12 +341,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
     const wasEdited = readingNote.updatedAt !== readingNote.createdAt;
 
     return (
-      <div className="relative flex min-h-[100dvh] w-full flex-col pb-16">
+      <div className={`relative flex min-h-[100dvh] w-full flex-col pb-16 ${readerExit.isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'}`}>
         {/* Barra superior: volver · título y materia · menú de acciones */}
         <header className="sticky top-0 z-40 flex items-center gap-2.5 border-b border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface)]/95 px-3 py-2 backdrop-blur-xl sm:px-6">
           <button
             type="button"
-            onClick={handleBackToList}
+            onClick={closeReader}
             aria-label="Volver a los apuntes"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface)] transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-container)] active:scale-95"
           >
@@ -605,7 +613,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // 3. Vista de Galería de Documentos (M3 High Density)
   return (
-    <div className="space-y-3.5 w-full">
+    <div className="space-y-3.5 w-full m3-view-enter">
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>

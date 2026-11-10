@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useCallback, useEffect, useImperativeHandle } from 'react';
 import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { ContextualToast } from '../ContextualToast';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
+import { useExitTransition, MOTION_EXIT_MS } from '../../hooks/useExitTransition';
+
+export interface FormSheetHandle {
+  /** Sale con la animación de cierre (p. ej. tras confirmar "Salir sin guardar"). */
+  close: () => void;
+}
 
 interface FormSheetProps {
   title: string;
   subtitle?: string;
-  /** Vuelve atrás (flecha, botón físico de Android). Sin botón "Cancelar" duplicado. */
+  /** Sale del formulario (flecha, Escape o botón físico de Android), tras la animación de cierre. */
   onBack: () => void;
+  /** Guarda opcional: devuelve false para quedarse (p. ej. para pedir confirmación antes de salir). */
+  onRequestBack?: () => boolean;
+  sheetRef?: React.Ref<FormSheetHandle>;
   backLabel: string;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   submitLabel: string;
@@ -28,6 +37,8 @@ export const FormSheet: React.FC<FormSheetProps> = ({
   title,
   subtitle,
   onBack,
+  onRequestBack,
+  sheetRef,
   backLabel,
   onSubmit,
   submitLabel,
@@ -38,17 +49,39 @@ export const FormSheet: React.FC<FormSheetProps> = ({
   backPriority = BACK_PRIORITY.MODAL,
   children,
 }) => {
+  const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
+
+  const exit = useCallback(() => runExit(onBack), [runExit, onBack]);
+
+  const requestBack = useCallback(() => {
+    if (onRequestBack && !onRequestBack()) return;
+    exit();
+  }, [onRequestBack, exit]);
+
+  useImperativeHandle(sheetRef, () => ({ close: exit }), [exit]);
+
   useBackButton(() => {
-    onBack();
+    requestBack();
     return true;
   }, backPriority, true);
 
+  // Escape vuelve atrás, salvo que lo esté usando un diálogo o un menú abierto encima
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"], [role="listbox"]')) return;
+      requestBack();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [requestBack]);
+
   return (
-    <form onSubmit={onSubmit} noValidate className="mx-auto w-full max-w-3xl pb-10 animate-in fade-in duration-150">
+    <form onSubmit={onSubmit} noValidate className={`mx-auto w-full max-w-3xl pb-10 ${isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'}`}>
       <div className="sticky top-0 z-30 -mx-3 mb-3 flex items-center gap-3 border-b border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface)]/95 px-3 py-2.5 backdrop-blur-xl sm:mx-0 sm:rounded-b-2xl sm:px-4">
         <button
           type="button"
-          onClick={onBack}
+          onClick={requestBack}
           aria-label={backLabel}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface)] transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-container)] active:scale-95"
         >

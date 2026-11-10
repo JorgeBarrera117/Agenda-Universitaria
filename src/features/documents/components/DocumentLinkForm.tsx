@@ -26,6 +26,7 @@ import {
   SegmentedControl,
   formInputClass,
   type SegmentedOption,
+  type FormSheetHandle,
 } from '../../../shared/components/form';
 
 export interface DocumentLinkFormProps {
@@ -91,15 +92,19 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
 
   const hasUnsavedInput = selectedFile !== null || linkName.trim() !== '' || linkUrl.trim() !== '';
 
-  // Solo se pide confirmación si hay algo que perder; un formulario vacío se cierra directamente
-  const handleBack = () => {
+  const sheetRef = useRef<FormSheetHandle>(null);
+
+  // Guarda de salida: solo se pide confirmación si hay algo que perder; si no, FormSheet sale animado
+  const handleRequestBack = (): boolean => {
     if (showDiscardModal) {
       setShowDiscardModal(false);
-    } else if (hasUnsavedInput) {
-      setShowDiscardModal(true);
-    } else {
-      onCancel();
+      return false;
     }
+    if (hasUnsavedInput) {
+      setShowDiscardModal(true);
+      return false;
+    }
+    return true;
   };
 
   const subjectOptions: M3SelectOption[] = subjects.map((s) => ({
@@ -173,7 +178,9 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
       <FormSheet
         title="Vincular documento"
         subtitle={currentSubject ? `Para ${currentSubject.name}` : 'Guías, diapositivas y enlaces por materia'}
-        onBack={handleBack}
+        onBack={onCancel}
+        onRequestBack={handleRequestBack}
+        sheetRef={sheetRef}
         backLabel="Volver al catálogo de documentos"
         backPriority={BACK_PRIORITY.SUBVIEW}
         onSubmit={handleSubmit}
@@ -342,8 +349,8 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
         </FormSection>
       </FormSheet>
 
-      {showDiscardModal && (
-        <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="¿Salir sin guardar?" maxWidth="sm">
+      {/* Siempre montado para que el diálogo también anime su salida */}
+      <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="¿Salir sin guardar?" maxWidth="sm">
           <div className="-mt-2 space-y-4">
             <div className="flex items-start gap-3 pt-1">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]">
@@ -361,7 +368,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
                 type="button"
                 onClick={() => {
                   setShowDiscardModal(false);
-                  onCancel();
+                  sheetRef.current?.close();
                 }}
                 className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold text-[var(--color-md-on-surface-variant)] transition-all duration-150 ease-out hover:bg-[var(--color-md-surface-container-high)] active:scale-95"
               >
@@ -377,8 +384,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
               </button>
             </div>
           </div>
-        </Modal>
-      )}
+      </Modal>
     </>
   );
 };

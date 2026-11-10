@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreVertical } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../hooks/useBackButton';
+import { useExitTransition, MOTION_EXIT_MS } from '../hooks/useExitTransition';
 
 export interface KebabMenuItem {
   id: string;
@@ -45,11 +46,14 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
   const [openDirection, setOpenDirection] = useState<'down' | 'up'>('down');
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.menu);
+  // Cierre con animación de salida; el portal se desmonta al terminar
+  const closeMenu = useCallback(() => runExit(() => setIsOpen(false)), [runExit]);
 
   // Cerrar menú con el botón físico "Atrás" de Android si está desplegado
   useBackButton(
     () => {
-      setIsOpen(false);
+      closeMenu();
       return true;
     },
     BACK_PRIORITY.MODAL + 5, // Prioridad 85: superior a modales estándar
@@ -99,7 +103,7 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
     const handleScroll = (e: Event) => {
       // Si el scroll ocurre dentro del propio menú, no cerrarlo
       if (menuRef.current && menuRef.current.contains(e.target as Node)) return;
-      setIsOpen(false);
+      closeMenu();
     };
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -110,13 +114,14 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
         menuRef.current &&
         !menuRef.current.contains(target)
       ) {
-        setIsOpen(false);
+        closeMenu();
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsOpen(false);
+        event.preventDefault();
+        closeMenu();
       }
     };
 
@@ -131,7 +136,7 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, updatePosition]);
+  }, [isOpen, updatePosition, closeMenu]);
 
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -139,14 +144,14 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
       updatePosition();
       setIsOpen(true);
     } else {
-      setIsOpen(false);
+      closeMenu();
     }
   };
 
   const handleItemClick = (e: React.MouseEvent, item: KebabMenuItem) => {
     e.stopPropagation();
     if (item.disabled) return;
-    setIsOpen(false);
+    closeMenu();
     item.onClick();
   };
 
@@ -170,10 +175,10 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        className={`relative flex items-center justify-center rounded-full transition-all cursor-pointer active:scale-90 ${triggerSizeClasses} ${
+        className={`relative flex items-center justify-center rounded-full transition-all duration-150 ease-out cursor-pointer active:scale-95 ${triggerSizeClasses} ${
           isOpen
-            ? 'bg-[#D0E4FF] text-[#001D32] dark:bg-[#004B76] dark:text-[#D0E4FF] shadow-2xs'
-            : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'
+            ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
+            : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
         }`}
       >
         {/* Pseudo-elemento táctil invisible de 44x44px para cumplir WCAG en pantallas móviles */}
@@ -196,8 +201,10 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
               maxWidth: 'calc(100vw - 20px)',
               zIndex: 9999,
             }}
-            className={`bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-2xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md select-none ${
-              openDirection === 'up' ? 'origin-bottom-right' : 'origin-top-right'
+            className={`bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-2xl shadow-2xl p-1.5 space-y-0.5 select-none ${isClosing ? 'm3-menu-exit' : 'm3-menu-enter'} ${
+              openDirection === 'up'
+                ? align === 'right' ? 'origin-bottom-right' : 'origin-bottom-left'
+                : align === 'right' ? 'origin-top-right' : 'origin-top-left'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -214,10 +221,10 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
                   onClick={(e) => handleItemClick(e, item)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-[13px] font-semibold transition-colors text-left cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none active:scale-[0.98] ${
                     isDestructive
-                      ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+                      ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-500/10'
                       : isPrimary
-                      ? 'text-[#00639B] dark:text-[#92CCFF] hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30'
-                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                      ? 'text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)]'
+                      : 'text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-surface-container-high)]'
                   }`}
                 >
                   {item.icon && (

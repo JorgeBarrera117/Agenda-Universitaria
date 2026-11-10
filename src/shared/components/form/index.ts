@@ -1,4 +1,4 @@
-export { FormSheet } from './FormSheet';
+export { FormSheet, type FormSheetHandle } from './FormSheet';
 export { FormSection } from './FormSection';
 export { FormField } from './FormField';
 export { SegmentedControl, type SegmentedOption } from './SegmentedControl';

@@ -8,6 +8,7 @@ import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
 import type { Editor } from '@tiptap/react';
 import type { Note, CreateNoteDTO } from '../types';
 
@@ -85,6 +86,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     tagDraft.trim() !== '' ||
     tags.join('|') !== (initialData?.tags ?? []).join('|');
 
+  const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
+
   // Salir: si hay cambios sin guardar se pide confirmación (también con el botón físico Atrás)
   const handleBack = () => {
     if (showDiscardModal) {
@@ -92,7 +95,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     } else if (isDirty) {
       setShowDiscardModal(true);
     } else {
-      onCancel();
+      runExit(onCancel);
     }
   };
 
@@ -151,7 +154,11 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
   );
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full flex-1 flex-col bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)]">
+    <div
+      className={`relative flex min-h-[100dvh] w-full flex-1 flex-col bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] ${
+        isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'
+      }`}
+    >
       {/* Cabecera: volver · documento y estado · deshacer, rehacer y guardar */}
       <header
         style={{
@@ -318,6 +325,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             onChange={setContent}
             onEditorReady={handleEditorReady}
             onImageError={setError}
+            toolbarMotionClass={isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'}
             placeholder="Comienza a redactar tu apunte aquí…"
             statusSlot={
               <span aria-live="off">
@@ -344,7 +352,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             size="sm"
             onClick={() => {
               setShowDiscardModal(false);
-              onCancel();
+              runExit(onCancel);
             }}
           >
             Descartar

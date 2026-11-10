@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useId } from 'react';
+import React, { useState, useRef, useEffect, useId, useCallback } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { useExitTransition, MOTION_EXIT_MS } from '../hooks/useExitTransition';
 
 export interface M3SelectOption<T extends string | number = string> {
   value: T;
@@ -55,6 +56,9 @@ export const M3Select = <T extends string | number = string>({
   const containerRef = useRef<HTMLDivElement>(null);
   const labelId = useId();
   const valueId = useId();
+  const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.menu);
+  // Cierre con animación de salida antes de desmontar el menú
+  const closeMenu = useCallback(() => runExit(() => setIsOpen(false)), [runExit]);
 
   // Calcular dirección óptima de apertura (arriba o abajo) según el espacio disponible en pantalla
   useEffect(() => {
@@ -75,11 +79,14 @@ export const M3Select = <T extends string | number = string>({
     if (!isOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        closeMenu();
       }
     };
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsOpen(false);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMenu();
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -88,13 +95,13 @@ export const M3Select = <T extends string | number = string>({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, closeMenu]);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
   const handleSelect = (optionValue: T) => {
     onChange(optionValue);
-    setIsOpen(false);
+    closeMenu();
   };
 
   const isPill = variant === 'pill';
@@ -112,7 +119,11 @@ export const M3Select = <T extends string | number = string>({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => {
+          if (disabled) return;
+          if (isOpen) closeMenu();
+          else setIsOpen(true);
+        }}
         aria-labelledby={label ? `${labelId} ${valueId}` : undefined}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -182,8 +193,8 @@ export const M3Select = <T extends string | number = string>({
       {isOpen && (
         <div
           role="listbox"
-          className={`absolute z-50 bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ${
-            openDirection === 'up' ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'
+          className={`absolute z-50 bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar ${isClosing ? 'm3-menu-exit' : 'm3-menu-enter'} ${
+            openDirection === 'up' ? 'bottom-[calc(100%+6px)] origin-bottom' : 'top-[calc(100%+6px)] origin-top'
           } ${
             isPill
               ? `min-w-[210px] ${menuAlign === 'right' ? 'right-0' : 'left-0'}`

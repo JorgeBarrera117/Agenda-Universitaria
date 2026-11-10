@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   BookOpen,
@@ -37,6 +37,40 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const firstName = studentName?.trim().split(/\s+/)[0];
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const tabsRef = useRef<HTMLElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+
+  // Píldora activa compartida que se desliza entre pestañas. Escribe estilos directamente en el DOM
+  // (sin estado) y se reubica si cambia el tamaño del dock. Solo anima transform y opacity.
+  useLayoutEffect(() => {
+    const tabs = tabsRef.current;
+    const indicator = indicatorRef.current;
+    if (!tabs || !indicator) return;
+
+    const place = () => {
+      const active = tabs.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+      if (!active || active.offsetWidth === 0) {
+        indicator.style.opacity = '0';
+        return;
+      }
+      indicator.style.width = `${active.offsetWidth}px`;
+      indicator.style.height = `${active.offsetHeight}px`;
+      indicator.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`;
+      indicator.style.opacity = '1';
+    };
+
+    place();
+    // La transición se activa después del primer posicionamiento para no "volar" desde la izquierda
+    const frame = requestAnimationFrame(() => {
+      indicator.dataset.ready = 'true';
+    });
+    const observer = new ResizeObserver(place);
+    observer.observe(tabs);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [activeTab]);
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -133,9 +167,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* M3 Primary Tabs (Desktop & Landscape Navigation Dock) */}
           <nav
+            ref={tabsRef}
             aria-label="Pestañas de navegación de campus M3"
-            className="hidden md:flex items-center justify-center gap-1 lg:gap-1.5 xl:gap-2 bg-[#E2E7EF] dark:bg-[#272A2F] p-1 lg:p-1.5 rounded-full shrink-0 shadow-inner lg:justify-self-center"
+            className="relative hidden md:flex items-center justify-center gap-1 lg:gap-1.5 xl:gap-2 bg-[var(--color-md-surface-container-high)] p-1 lg:p-1.5 rounded-full shrink-0 shadow-inner lg:justify-self-center"
           >
+            <span
+              ref={indicatorRef}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-0 rounded-full bg-[var(--color-md-primary-container)] opacity-0 shadow-xs data-[ready=true]:transition-[transform,opacity] data-[ready=true]:duration-200 data-[ready=true]:ease-out motion-reduce:transition-none"
+            />
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -148,14 +188,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => onTabChange(item.id)}
-                  className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-[15px] whitespace-nowrap transition-all duration-250 ease-[cubic-bezier(0.2,0,0,1)] active:scale-94 cursor-pointer select-none ${
+                  className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-[15px] whitespace-nowrap relative z-10 transition-all duration-200 ease-out active:scale-95 cursor-pointer select-none ${
                     isActive
-                      ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-bold shadow-xs'
-                      : 'text-[#41474D] dark:text-[#C2C7CF] hover:bg-[#191C20]/5 dark:hover:bg-white/5 font-medium'
+                      ? 'text-[var(--color-md-on-primary-container)] font-bold'
+                      : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/5 font-medium'
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 lg:w-4.5 lg:h-4.5 xl:w-5 xl:h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                    className={`w-4 h-4 lg:w-4.5 lg:h-4.5 xl:w-5 xl:h-5 shrink-0 transition-all duration-200 ease-out ${
                       isActive ? 'stroke-[2.4] scale-110' : 'stroke-[1.9] group-hover:scale-105 group-active:scale-90'
                     }`}
                   />
@@ -164,8 +204,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span
                       className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
                         isActive
-                          ? 'bg-[#001D32] dark:bg-[#D0E4FF] text-white dark:text-[#001D32]'
-                          : 'bg-[#C2C7CE] dark:bg-[#42474E] text-[#191C20] dark:text-[#E2E2E6]'
+                          ? 'bg-[var(--color-md-on-primary-container)] text-[var(--color-md-primary-container)]'
+                          : 'bg-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface)]'
                       }`}
                     >
                       {badgeCount}
