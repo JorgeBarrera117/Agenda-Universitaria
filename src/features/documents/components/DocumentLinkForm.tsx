@@ -222,37 +222,35 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
 
           {addMode === 'file' ? (
             selectedFile && fileType ? (
-              <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] p-3 text-[var(--color-md-on-primary-container)] animate-in zoom-in-95 duration-150">
+              <div className="flex items-start gap-3 rounded-2xl border border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] p-3 text-[var(--color-md-on-primary-container)] animate-in zoom-in-95 duration-150">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]">
                   <fileType.Icon className="h-6 w-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{selectedFile.name}</p>
+                  <p className="break-all text-sm font-bold leading-snug line-clamp-2">{selectedFile.name}</p>
                   <p className="text-xs font-medium opacity-80">
                     {fileType.label} · {formatFileSize(selectedFile.size)}
                   </p>
-                  <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-bold">
-                    <FileCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                    Listo para vincular{currentSubject ? ` a ${currentSubject.name}` : ''}
+                  <p className="mt-1 flex items-center gap-1 text-[11px] font-bold">
+                    <FileCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span className="truncate">Listo para vincular{currentSubject ? ` a ${currentSubject.name}` : ''}</span>
                   </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="h-9 rounded-full px-3 text-xs font-bold transition-all duration-150 ease-out hover:bg-[var(--color-md-card-bg)] active:scale-95"
+                    className="-ml-2 mt-1 h-8 rounded-full px-2 text-xs font-bold underline-offset-2 transition-all duration-150 ease-out hover:bg-[var(--color-md-card-bg)] hover:underline active:scale-95"
                   >
-                    Cambiar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFile(null)}
-                    aria-label="Quitar archivo seleccionado"
-                    className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-150 ease-out hover:bg-[var(--color-md-card-bg)] active:scale-95"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
+                    Cambiar archivo
                   </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFile(null)}
+                  aria-label="Quitar archivo seleccionado"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-150 ease-out hover:bg-[var(--color-md-card-bg)] active:scale-95"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
               </div>
             ) : (
               <button
