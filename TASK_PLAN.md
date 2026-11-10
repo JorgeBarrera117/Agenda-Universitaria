@@ -454,6 +454,59 @@ Garantizar una experiencia de navegación y desplazamiento a 60-120 FPS ultra-fl
 
 ---
 
+### 👤 FASE 12: Personalización de Identidad de Campus (Avatar de Galería y Estado Dinámico en Top Bar)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Permitir al estudiante personalizar exhaustivamente el encabezado de identidad de la barra superior (`Navbar.tsx`): sustituir el icono genérico de la app por su propia fotografía de perfil seleccionada de la galería del teléfono (o sus iniciales monogramadas M3), y permitir alternar el indicador de red Wifi por un estado estudiantil personalizado (*"Estudiando 📚"*, *"En clases 🎓"*, *"Época de exámenes ✍️"*, etc.) o la modalidad automática de conectividad.
+
+#### Elementos a Personalizar (Evidencia en Captura de Pantalla)
+1. **Avatar de Perfil (Esquina superior izquierda):**
+   - Reemplazar el logo estático de la app (`app-icon-claro.svg`) por un avatar dinámico:
+     - Si el usuario subió una foto de su galería: renderizarla con `object-cover rounded-2xl` y compresión ligera en canvas (~20 KB).
+     - Si no tiene foto pero configuró su nombre: renderizar monograma M3 con sus iniciales (ej. `JB`) sobre `bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]`.
+     - Si no tiene nombre ni foto: mostrar el icono oficial de la app.
+   - Micro-interacción ergonómica: el avatar se convierte en un botón interactivo táctil (`active:scale-95`) que al pulsarse abre directamente los Ajustes del perfil.
+   - Punto de presencia en la esquina del avatar: punto verde activo si hay internet (`bg-emerald-500`) o ámbar si está sin conexión (`bg-amber-500`).
+2. **Línea de Subtítulo (Fecha + Estado Contextual):**
+   - Mantener la fecha actual (`Martes, 10 Nov •`).
+   - Permitir personalizar la sección a la derecha del separador:
+     - **Modo Red (por defecto):** `<Wifi /> En línea` / `<WifiOff /> Offline`.
+     - **Modo Estado de Campus:** Frase personalizada del estudiante (ej. *"Estudiando 📚"*, *"En clases 🎓"*, *"Exámenes ✍️"*, *"Modo silencio 🤫"*, etc.).
+
+#### Tareas de Implementación (Fase 12)
+- [ ] **12.1. Modelado en `src/features/settings/types.ts`:**
+  - Añadir a `AppSettings`:
+    ```ts
+    studentAvatarUrl?: string; // DataURL de foto recortada en canvas
+    studentStatusMode?: 'network' | 'custom'; // 'network' (por defecto) o 'custom'
+    studentCustomStatus?: string; // Frase o estado personalizado
+    ```
+  - Inicializar en `DEFAULT_SETTINGS` con valores por defecto seguros.
+- [ ] **12.2. Selector de Foto y Estado en `src/features/settings/components/StudentProfileForm.tsx`:**
+  - Añadir zona de carga de avatar en la cabecera del formulario:
+    - Vista previa circular/squircle de 72px.
+    - Botón `Elegir foto de galería` con input oculto `<input type="file" accept="image/*">`.
+    - Al seleccionar imagen: procesar en `<canvas>` a 256x256 píxeles con calidad JPEG 0.85 (ultra ligero, ~20 KB) y guardar en `studentAvatarUrl`.
+    - Botón `Eliminar foto` para volver a iniciales monogramadas.
+  - Añadir selector de modo de estado en la barra superior:
+    - Selector segmentado (`Conectividad 📶` vs `Frase de estudio ✨`).
+    - Chips de sugerencias rápidas de estado de campus (`Estudiando 📚`, `En clase 🎓`, `Exámenes ✍️`, `Modo silencio 🤫`, `Concentrado 💻`) y campo de texto libre.
+- [ ] **12.3. Actualización de la Credencial en `src/features/settings/components/StudentCredential.tsx`:**
+  - Reflejar la foto de perfil del estudiante (`studentAvatarUrl`) en la ficha de credencial digital.
+- [ ] **12.4. Integración en `src/shared/components/Navbar.tsx` y `src/App.tsx`:**
+  - En `Navbar.tsx`:
+    - Renderizar la foto del estudiante si existe, o iniciales monogramadas, o logo de la app.
+    - Convertir el avatar en botón táctil con `onClick={onOpenSettings}` y `aria-label="Abrir perfil y ajustes"`.
+    - Renderizar la línea de estado según `studentStatusMode`:
+      - Si es `'custom'` y existe `studentCustomStatus`: mostrar el estado con badge o texto estilizado.
+      - Si es `'network'` (o no hay estado personalizado): mostrar el indicador de conexión Wifi actual.
+  - En `App.tsx`: pasar las props correspondientes a `Navbar`.
+- [ ] **12.5. Verificación y Compilación:**
+  - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
