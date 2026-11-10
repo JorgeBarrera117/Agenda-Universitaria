@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
 export interface M3SelectOption<T extends string | number = string> {
@@ -53,6 +53,8 @@ export const M3Select = <T extends string | number = string>({
   const [isOpen, setIsOpen] = useState(false);
   const [openDirection, setOpenDirection] = useState<'down' | 'up'>('down');
   const containerRef = useRef<HTMLDivElement>(null);
+  const labelId = useId();
+  const valueId = useId();
 
   // Calcular dirección óptima de apertura (arriba o abajo) según el espacio disponible en pantalla
   useEffect(() => {
@@ -100,9 +102,10 @@ export const M3Select = <T extends string | number = string>({
   return (
     <div className={`relative ${isPill ? 'inline-block' : 'w-full'} ${className}`} ref={containerRef}>
       {label && (
-        <label className="block text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider mb-1.5 select-none">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
+        <span id={labelId} className="block text-xs font-semibold text-[var(--color-md-on-surface)] mb-1.5 select-none">
+          {label}
+          {required && <span className="text-[var(--color-md-primary)]" aria-hidden="true"> *</span>}
+        </span>
       )}
 
       {/* Botón Disparador del Menú (Field o Pill) */}
@@ -110,6 +113,7 @@ export const M3Select = <T extends string | number = string>({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        aria-labelledby={label ? `${labelId} ${valueId}` : undefined}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         className={`w-full flex items-center justify-between transition-all text-left cursor-pointer select-none border ${
@@ -118,16 +122,16 @@ export const M3Select = <T extends string | number = string>({
             : 'gap-2.5 px-3.5 py-2.5 rounded-2xl'
         } ${
           isOpen
-            ? 'bg-[#FDFBFF] dark:bg-[#1D2024] border-[#00639B] dark:border-[#92CCFF] ring-2 ring-[#00639B]/20 dark:ring-[#92CCFF]/20 shadow-xs'
+            ? 'bg-[var(--color-md-card-bg)] border-[var(--color-md-primary)] ring-2 ring-[var(--color-md-primary)]/20 shadow-xs'
             : error
             ? 'bg-red-50/50 dark:bg-red-950/20 border-red-500/60 dark:border-red-500/60'
-            : 'bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#D0E4FF]/50 dark:hover:bg-[#004B76]/40'
+            : 'bg-[var(--color-md-surface-container-high)] border-[var(--color-md-outline-variant)] hover:border-[var(--color-md-outline)]'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {/* Ícono Fijo Izquierdo (ej. Ordenar) o Indicador de Opción Seleccionada */}
           {leadingIcon ? (
-            <span className="shrink-0 flex items-center justify-center text-[#00639B] dark:text-[#92CCFF]">
+            <span className="shrink-0 flex items-center justify-center text-[var(--color-md-primary)]">
               {leadingIcon}
             </span>
           ) : selectedOption ? (
@@ -142,24 +146,24 @@ export const M3Select = <T extends string | number = string>({
               />
             ) : null
           ) : !isPill ? (
-            <span className="w-6 h-6 rounded-lg shrink-0 bg-[#C3C7D0]/30 dark:bg-[#43474E]/30 border border-dashed border-[#C3C7D0]/60 dark:border-[#43474E]/60 flex items-center justify-center" />
+            <span className="w-6 h-6 rounded-lg shrink-0 bg-[var(--color-md-surface-container)] border border-dashed border-[var(--color-md-outline-variant)] flex items-center justify-center" />
           ) : null}
 
           {/* Texto Principal y Secundario */}
-          <div className="min-w-0 flex-1 truncate">
+          <div id={valueId} className="min-w-0 flex-1 truncate">
             {selectedOption ? (
               <div className="flex items-center gap-1.5 truncate">
-                <span className={`${isPill ? 'text-xs' : 'text-sm'} font-bold text-[#191C20] dark:text-[#E2E2E6] truncate`}>
+                <span className={`${isPill ? 'text-xs' : 'text-sm'} font-bold text-[var(--color-md-on-surface)] truncate`}>
                   {selectedOption.label}
                 </span>
                 {selectedOption.sublabel && (
-                  <span className="text-xs font-mono font-medium text-[#43474E] dark:text-[#8C9199] truncate shrink-0">
+                  <span className="text-xs font-mono font-medium text-[var(--color-md-on-surface-variant)] truncate shrink-0">
                     ({selectedOption.sublabel})
                   </span>
                 )}
               </div>
             ) : (
-              <span className={`${isPill ? 'text-xs' : 'text-sm'} font-medium text-[#72777F] dark:text-[#8C9199] truncate`}>
+              <span className={`${isPill ? 'text-xs' : 'text-sm'} font-medium text-[var(--color-md-on-surface-variant)] truncate`}>
                 {placeholder}
               </span>
             )}
@@ -168,8 +172,8 @@ export const M3Select = <T extends string | number = string>({
 
         {/* Chevron indicador con rotación suave */}
         <ChevronDown
-          className={`w-4 h-4 text-[#72777F] dark:text-[#8C9199] shrink-0 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-[#00639B] dark:text-[#92CCFF]' : ''
+          className={`w-4 h-4 text-[var(--color-md-on-surface-variant)] shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-[var(--color-md-primary)]' : ''
           }`}
         />
       </button>
@@ -178,7 +182,7 @@ export const M3Select = <T extends string | number = string>({
       {isOpen && (
         <div
           role="listbox"
-          className={`absolute z-50 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/70 dark:border-[#43474E]/70 rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute z-50 bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)] p-1.5 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ${
             openDirection === 'up' ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'
           } ${
             isPill
@@ -187,7 +191,7 @@ export const M3Select = <T extends string | number = string>({
           }`}
         >
           {options.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-center text-[#72777F] dark:text-[#8C9199]">
+            <div className="px-4 py-3 text-xs text-center text-[var(--color-md-on-surface-variant)]">
               No hay opciones disponibles
             </div>
           ) : (
@@ -203,8 +207,8 @@ export const M3Select = <T extends string | number = string>({
                   onClick={() => !option.disabled && handleSelect(option.value)}
                   className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all cursor-pointer select-none my-0.5 ${
                     isSelected
-                      ? 'bg-[#D0E4FF] dark:bg-[#004B76]/50 text-[#001D32] dark:text-[#D0E4FF] font-bold shadow-2xs'
-                      : 'hover:bg-[#E2E7EF]/70 dark:hover:bg-[#272A2F]/70 text-[#191C20] dark:text-[#E2E2E6]'
+                      ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] font-bold shadow-2xs'
+                      : 'hover:bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface)]'
                   } ${option.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -229,8 +233,8 @@ export const M3Select = <T extends string | number = string>({
                         <div
                           className={`text-xs font-mono truncate mt-0.5 ${
                             isSelected
-                              ? 'text-[#001D32]/80 dark:text-[#D0E4FF]/80'
-                              : 'text-[#43474E] dark:text-[#8C9199]'
+                              ? 'text-[var(--color-md-on-primary-container)] opacity-80'
+                              : 'text-[var(--color-md-on-surface-variant)]'
                           }`}
                         >
                           {option.sublabel}
@@ -241,7 +245,7 @@ export const M3Select = <T extends string | number = string>({
 
                   {/* Checkmark activo M3 */}
                   {isSelected && (
-                    <div className="w-6 h-6 rounded-full bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] flex items-center justify-center shrink-0 shadow-2xs animate-in zoom-in-75 duration-100">
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center shrink-0 shadow-2xs animate-in zoom-in-75 duration-100">
                       <Check className="w-3.5 h-3.5 stroke-[2.8]" />
                     </div>
                   )}
