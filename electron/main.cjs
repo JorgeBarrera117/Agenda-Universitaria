@@ -14,6 +14,42 @@ const iconPath = isDev
   ? path.join(__dirname, '../public/pwa-512x512.png')
   : path.join(__dirname, '../dist/pwa-512x512.png');
 
+const DEV_SERVER_ORIGIN = 'http://localhost:5173';
+const DIST_DIR = path.join(__dirname, '../dist');
+const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+
+// Debe coincidir con el atributo accept de los selectores de documentos (DocumentLinkForm,
+// SubjectDocumentsModal). Cualquier otra extensión (.exe, .bat, .lnk, .hta, .svg...) se rechaza
+// porque shell.openPath la ejecutaría con su programa asociado.
+const OPENABLE_DOCUMENT_EXTENSIONS = new Set([
+  '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.txt',
+  '.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.heic',
+]);
+
+function parseUrl(url) {
+  try {
+    return new URL(url);
+  } catch {
+    return null;
+  }
+}
+
+function isAppUrl(url) {
+  const parsed = parseUrl(url);
+  if (!parsed) return false;
+  if (isDev && parsed.origin === DEV_SERVER_ORIGIN) return true;
+  if (parsed.protocol !== 'file:') return false;
+  const relative = path.relative(DIST_DIR, decodeURIComponent(parsed.pathname).replace(/^\/([A-Za-z]:)/, '$1'));
+  return !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+function openExternalIfSafe(url) {
+  const parsed = parseUrl(url);
+  if (parsed && EXTERNAL_PROTOCOLS.has(parsed.protocol)) {
+    shell.openExternal(parsed.toString());
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -44,19 +80,17 @@ function createWindow() {
   });
 
   // Abrir enlaces externos (Zoom, Teams, Meet, portales) en el navegador predeterminado del sistema
+  // La app nunca abre ventanas propias: todo enlace va al navegador del sistema, y solo con
+  // esquemas seguros (otros esquemas registrados en Windows pueden lanzar programas).
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:')) {
-      shell.openExternal(url);
-      return { action: 'deny' };
-    }
-    return { action: 'allow' };
+    openExternalIfSafe(url);
+    return { action: 'deny' };
   });
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    const isLocal = url.startsWith('http://localhost') || url.startsWith('file://');
-    if (!isLocal) {
+    if (!isAppUrl(url)) {
       event.preventDefault();
-      shell.openExternal(url);
+      openExternalIfSafe(url);
     }
   });
 
@@ -73,13 +107,23 @@ function createWindow() {
 }
 
 // Canal IPC: Apertura nativa de documentos con la aplicación predeterminada del sistema operativo
-ipcMain.handle('open-document', async (_event, { fileName, base64Data }) => {
+ipcMain.handle('open-document', async (_event, options) => {
+  const fileName = options && options.fileName;
+  const base64Data = options && options.base64Data;
+  if (typeof fileName !== 'string' || typeof base64Data !== 'string') {
+    return { success: false, error: 'Solicitud de apertura de documento inválida.' };
+  }
+  const safeFileName = path.basename(fileName);
+  const extension = path.extname(safeFileName).toLowerCase();
+  if (!OPENABLE_DOCUMENT_EXTENSIONS.has(extension)) {
+    return { success: false, error: `Tipo de archivo no permitido por seguridad: ${extension || 'sin extensión'}` };
+  }
+
   try {
     const tempDir = path.join(app.getPath('temp'), 'AgendaUniversitaria_Docs');
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
-    const safeFileName = path.basename(fileName);
     const filePath = path.join(tempDir, safeFileName);
     const buffer = Buffer.from(base64Data, 'base64');
     fs.writeFileSync(filePath, buffer);
