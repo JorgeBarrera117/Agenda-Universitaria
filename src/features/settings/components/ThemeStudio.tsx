@@ -130,7 +130,7 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({ settings, onThemeChang
                 {/* Doble círculo: aro primaryContainer con núcleo primary de la propia paleta */}
                 <span
                   aria-hidden="true"
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 ring-black/10"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 ring-[var(--color-md-outline-variant)]"
                   style={{ backgroundColor: tokens.primaryContainer }}
                 >
                   <span className="h-3 w-3 rounded-full" style={{ backgroundColor: tokens.primary }} />

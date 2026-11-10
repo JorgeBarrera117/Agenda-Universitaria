@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Check,
   FileCode,
+  AlertTriangle,
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -23,6 +24,8 @@ import {
   pickAndRestoreBackup,
 } from '../../../shared/utils/backup';
 import { Modal } from '../../../shared/components/Modal';
+import { Button } from '../../../shared/components/atoms';
+import { formInputClass } from '../../../shared/components/form';
 
 interface BackupSectionProps {
   onShowToast: (message: string) => void;
@@ -192,223 +195,190 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
 
   return (
     <div
-      className={`bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-2xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-3.5 transition-colors ${
+      className={`md-card space-y-4 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-4 text-[var(--color-md-on-surface)] shadow-2xs sm:rounded-3xl sm:p-5 ${
         compact ? 'text-xs' : ''
       }`}
     >
-      {/* Encabezado */}
-      <div className="flex items-center gap-2.5 border-b border-[#C3C7D0]/30 dark:border-[#43474E]/30 pb-2.5">
-        <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-          <HardDrive className="w-4 h-4" />
-        </div>
+      <header className="flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-md-secondary-container)] text-[var(--color-md-primary)]">
+          <HardDrive className="h-4 w-4" aria-hidden="true" />
+        </span>
         <div className="min-w-0">
-          <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
-            Almacenamiento y Respaldos
-          </h3>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-            Datos 100% locales en IndexedDB. Exporta o restaura sin intermediarios.
+          <h3 className="truncate text-sm font-bold">Almacenamiento y respaldos</h3>
+          <p className="text-xs text-[var(--color-md-on-surface-variant)]">
+            Tus datos viven solo en este dispositivo. Expórtalos o restáuralos sin intermediarios.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* Bloque 1: Exportar Respaldo (4 Opciones en Grid Compacta) */}
-      <div className="space-y-1.5">
-        <label className="block text-[11px] font-black uppercase tracking-wider text-cove-navy dark:text-cove-sky">
-          1. Exportar Respaldo (JSON)
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {/* Opción A: Guardar en Descargas */}
-          <button
-            type="button"
+      <section className="space-y-2 border-t border-[var(--color-md-outline-variant)] pt-4" aria-label="Exportar respaldo">
+        <h4 className="text-sm font-bold">Exportar respaldo</h4>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <ActionTile
+            tone="primary"
+            icon={<FolderDown className="h-4 w-4" />}
+            title="Guardar en Descargas"
+            subtitle="Crea un archivo .json"
             onClick={handleSaveToDownloads}
             disabled={isExporting}
-            className="flex items-center gap-2 px-3 py-2 bg-cove-blue/10 dark:bg-cove-blue/20 hover:bg-cove-blue/20 dark:hover:bg-cove-blue/30 text-cove-blue dark:text-cove-sky font-bold text-xs rounded-xl sm:rounded-2xl border border-cove-sky/30 dark:border-cove-sky/40 transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
-          >
-            <FolderDown className="w-4 h-4 shrink-0 text-cove-blue dark:text-cove-sky" />
-            <div className="min-w-0 truncate">
-              <span className="block font-black truncate text-xs">Guardar en Descargas</span>
-              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                Crea .json en Descargas
-              </span>
-            </div>
-          </button>
-
-          {/* Opción B: Compartir por WhatsApp / Drive */}
-          <button
-            type="button"
+          />
+          <ActionTile
+            tone="primary"
+            icon={<Share2 className="h-4 w-4" />}
+            title="Compartir respaldo"
+            subtitle="WhatsApp, Drive o Gmail"
             onClick={handleShare}
             disabled={isExporting}
-            className="flex items-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-bold text-xs rounded-xl sm:rounded-2xl border border-emerald-300/50 dark:border-emerald-800/50 transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
-          >
-            <Share2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <div className="min-w-0 truncate">
-              <span className="block font-black truncate text-xs">Compartir Respaldo</span>
-              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                A WhatsApp, Drive o Gmail
-              </span>
-            </div>
-          </button>
-
-          {/* Opción C: Guardar Como... (Selector SAF) */}
-          <button
-            type="button"
+          />
+          <ActionTile
+            icon={<Download className="h-4 w-4" />}
+            title="Guardar como…"
+            subtitle="Elegir carpeta de destino"
             onClick={handleSaveWithPicker}
             disabled={isExporting}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl sm:rounded-2xl border border-slate-300/70 dark:border-slate-700 transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
-          >
-            <Download className="w-4 h-4 shrink-0 text-slate-600 dark:text-slate-400" />
-            <div className="min-w-0 truncate">
-              <span className="block font-black truncate text-xs">Guardar Como...</span>
-              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                Elegir carpeta en explorador
-              </span>
-            </div>
-          </button>
-
-          {/* Opción D: Copiar JSON al Portapapeles */}
-          <button
-            type="button"
+          />
+          <ActionTile
+            icon={copiedRecently ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            title={copiedRecently ? '¡Copiado!' : 'Copiar texto JSON'}
+            subtitle="Para pegarlo en tus notas"
             onClick={handleCopyClipboard}
             disabled={isExporting}
-            className="flex items-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-xs rounded-xl sm:rounded-2xl border border-amber-300/50 dark:border-amber-800/50 transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
-          >
-            {copiedRecently ? (
-              <Check className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            ) : (
-              <Copy className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-            )}
-            <div className="min-w-0 truncate">
-              <span className="block font-black truncate text-xs">
-                {copiedRecently ? '¡Copiado!' : 'Copiar Texto JSON'}
-              </span>
-              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                Para pegarlo en notas
-              </span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Bloque 2: Restaurar Respaldo (2 Opciones) */}
-      <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-        <label className="block text-[11px] font-black uppercase tracking-wider text-cove-navy dark:text-cove-sky">
-          2. Restaurar Copia de Seguridad
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {/* Opción A: Desde archivo */}
-          <button
-            type="button"
-            onClick={handleRestoreFromFile}
-            disabled={isImporting}
-            className="flex items-center gap-2 px-3 py-2 bg-cove-sand/50 dark:bg-slate-800 hover:bg-cove-sand dark:hover:bg-slate-700 border border-cove-gold/70 dark:border-slate-700 text-cove-navy dark:text-cove-sand font-bold text-xs rounded-xl sm:rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
-          >
-            {isImporting ? (
-              <RefreshCw className="w-4 h-4 animate-spin text-cove-navy dark:text-cove-sand shrink-0" />
-            ) : (
-              <Upload className="w-4 h-4 text-cove-navy dark:text-cove-sand shrink-0" />
-            )}
-            <div className="min-w-0 truncate">
-              <span className="block font-black truncate text-xs">Restaurar de Archivo</span>
-              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                Selecciona tu archivo .json
-              </span>
-            </div>
-          </button>
-
-          {/* Opción B: Pegando texto */}
-          <button
-            type="button"
-            onClick={() => setIsPasteModalOpen(true)}
-            disabled={isImporting}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl sm:rounded-2xl transition-all active:scale-98 cursor-pointer disabled:opacity-50 text-left"
-          >
-            <ClipboardPaste className="w-4 h-4 text-cove-blue dark:text-cove-sky shrink-0" />
-            <div className="min-w-0 truncate">
-              <span className="block font-black truncate text-xs">Restaurar Pegando Texto</span>
-              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                Pega el código JSON directamente
-              </span>
-            </div>
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleImportFile}
-            className="hidden"
           />
         </div>
-      </div>
+      </section>
 
-      {/* Espacio ocupado */}
-      <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-1.5 font-medium">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>Memoria local utilizada:</span>
+      <section className="space-y-2 border-t border-[var(--color-md-outline-variant)] pt-4" aria-label="Restaurar respaldo">
+        <div>
+          <h4 className="text-sm font-bold">Restaurar copia de seguridad</h4>
+          <p className="text-xs text-[var(--color-md-on-surface-variant)]">
+            Reemplaza las materias, docentes, horarios y apuntes actuales por los del respaldo.
+          </p>
         </div>
-        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <ActionTile
+            icon={isImporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            title="Restaurar desde archivo"
+            subtitle="Selecciona tu archivo .json"
+            onClick={handleRestoreFromFile}
+            disabled={isImporting}
+          />
+          <ActionTile
+            icon={<ClipboardPaste className="h-4 w-4" />}
+            title="Restaurar pegando texto"
+            subtitle="Pega el JSON directamente"
+            onClick={() => setIsPasteModalOpen(true)}
+            disabled={isImporting}
+          />
+        </div>
+        <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportFile} className="hidden" />
+      </section>
+
+      <footer className="flex items-center justify-between gap-2 border-t border-[var(--color-md-outline-variant)] pt-3 text-xs text-[var(--color-md-on-surface-variant)]">
+        <span className="flex items-center gap-1.5 font-medium">
+          <ShieldCheck className="h-4 w-4 text-[var(--color-md-primary)]" aria-hidden="true" />
+          Memoria local utilizada
+        </span>
+        <span className="font-mono font-bold text-[var(--color-md-on-surface)]">
           {storageEstimate.usedMB} MB / {storageEstimate.quotaMB} MB
         </span>
-      </div>
+      </footer>
 
-      {/* Modal para pegar texto JSON directamente */}
       <Modal
         isOpen={isPasteModalOpen}
         onClose={() => {
           setIsPasteModalOpen(false);
           setPasteError(null);
         }}
-        title="Restaurar Copiando JSON"
+        title="Restaurar pegando JSON"
         maxWidth="lg"
       >
-        <div className="space-y-3 text-slate-800 dark:text-slate-200">
-          <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl flex items-start gap-2 text-xs text-amber-900 dark:text-amber-200">
-            <FileCode className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="leading-snug">
-              Pega aquí el contenido JSON completo de tu respaldo. Se actualizarán las materias, profesores, horarios y apuntes.
-            </p>
-          </div>
+        <div className="space-y-3">
+          <p className="flex items-start gap-2 rounded-xl bg-[var(--color-md-surface-container-high)] p-3 text-xs text-[var(--color-md-on-surface)]">
+            <FileCode className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+            Pega el contenido completo de tu respaldo. Se reemplazarán las materias, docentes, horarios y apuntes.
+          </p>
 
+          <label htmlFor="backup-paste" className="sr-only">
+            Contenido JSON del respaldo
+          </label>
           <textarea
+            id="backup-paste"
             value={pastedJson}
             onChange={(e) => {
               setPastedJson(e.target.value);
               if (pasteError) setPasteError(null);
             }}
-            placeholder='Pega aquí el contenido JSON que empieza con { "version": 2, ... }'
+            placeholder='Pega aquí el JSON que empieza con { "version": 2, … }'
             rows={6}
-            className="w-full p-2.5 font-mono text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-cove-blue dark:focus:ring-cove-sky resize-y"
+            aria-invalid={pasteError !== null}
+            className={`${formInputClass} resize-y font-mono text-xs`}
           />
 
           {pasteError && (
-            <div className="p-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-300 rounded-xl text-xs font-medium">
+            <p
+              role="alert"
+              className="flex items-start gap-2 rounded-xl border border-[var(--color-md-outline)] bg-[var(--color-md-surface-container)] p-3 text-xs font-medium text-[var(--color-md-on-surface)]"
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
               {pasteError}
-            </div>
+            </p>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <button
-              type="button"
+          <div className="flex items-center justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setIsPasteModalOpen(false);
                 setPasteError(null);
               }}
-              className="px-3.5 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleRestoreFromPaste}
-              disabled={isImporting || !pastedJson.trim()}
-              className="px-4 py-1.5 text-xs font-black bg-cove-blue text-white rounded-xl shadow-2xs hover:bg-cove-navy active:scale-98 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {isImporting ? 'Restaurando...' : 'Restaurar Datos'}
-            </button>
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleRestoreFromPaste} disabled={isImporting || !pastedJson.trim()}>
+              {isImporting ? 'Restaurando…' : 'Restaurar datos'}
+            </Button>
           </div>
         </div>
       </Modal>
     </div>
   );
 };
+
+interface ActionTileProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  /** primary: acciones recomendadas (tono primario); neutral: alternativas. */
+  tone?: 'primary' | 'neutral';
+}
+
+const ActionTile: React.FC<ActionTileProps> = ({ icon, title, subtitle, onClick, disabled = false, tone = 'neutral' }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`flex min-h-[52px] items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${
+      tone === 'primary'
+        ? 'border-transparent bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:brightness-[0.97]'
+        : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)] hover:border-[var(--color-md-outline)]'
+    }`}
+  >
+    <span
+      aria-hidden="true"
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+        tone === 'primary'
+          ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
+          : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-primary)]'
+      }`}
+    >
+      {icon}
+    </span>
+    <span className="min-w-0">
+      <span className="block truncate text-xs font-bold">{title}</span>
+      <span className="block truncate text-[11px] opacity-80">{subtitle}</span>
+    </span>
+  </button>
+);

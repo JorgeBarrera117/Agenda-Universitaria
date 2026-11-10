@@ -81,7 +81,7 @@ export const StudentCredential: React.FC<StudentCredentialProps> = ({ settings, 
           <div className="flex items-start gap-2 rounded-xl bg-[var(--color-md-surface-container)] p-2.5">
             <Target className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)]">
+              <p className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
                 Meta del semestre
               </p>
               <p className="text-xs font-semibold text-[var(--color-md-on-surface)]">

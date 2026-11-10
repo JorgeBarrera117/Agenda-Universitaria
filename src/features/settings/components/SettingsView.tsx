@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft,
-  ChevronRight,
   Sun,
   Moon,
   Monitor,
-  Bell,
   BellRing,
-  Clock,
-  Volume2,
   Calendar,
-  Layers,
   Camera,
   Database,
   Info,
   Check,
-  Send,
-  Heart,
   Sparkles,
   Image as ImageIcon,
   Sliders,
@@ -36,6 +29,12 @@ import {
 } from '../../../shared/components/AppWallpaper';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
+import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
+import { SettingsGroup, SettingsRow, M3Switch } from './SettingsPrimitives';
+import { ScheduleSettings } from './ScheduleSettings';
+import { NotificationSettings } from './NotificationSettings';
+import { MediaSettings } from './MediaSettings';
+import { AboutSettings } from './AboutSettings';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
 import { StudentProfileForm } from './StudentProfileForm';
@@ -54,6 +53,16 @@ type SettingsCategory =
   | 'backup'
   | 'about'
   | 'profile';
+
+const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
+  appearance: 'Apariencia y tema',
+  schedule: 'Semestre y horario',
+  notifications: 'Notificaciones y avisos',
+  media: 'Fotografías y pizarras',
+  backup: 'Datos y copias de seguridad',
+  about: 'Acerca de la agenda',
+  profile: 'Perfil estudiantil',
+};
 
 const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: string }[] = [
   { id: 'solid', label: 'Sólido', description: 'Superficie limpia y opaca' },
@@ -143,10 +152,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     void NotificationService.checkPermissions().then(setHasPermission);
   }, [refreshStorageEstimate]);
 
+  // Volver de una subvista al menú con animación de salida (sin corte a 0 ms)
+  const subViewExit = useExitTransition(MOTION_EXIT_MS.sheet);
+  const closeSubView = () => subViewExit.runExit(() => setActiveSubView(null));
+
   // Interceptar botón "Atrás" de Android / Navegador
   useBackButton(() => {
     if (activeSubView !== null) {
-      setActiveSubView(null);
+      closeSubView();
       return true;
     }
     onBack();
@@ -175,7 +188,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleSaveProfile = (profile: Pick<AppSettings, 'studentName' | 'careerName' | 'semesterGoal'>) => {
     updateSettings({ ...settings, ...profile });
-    setActiveSubView(null);
+    closeSubView();
     onShowToast(profile.studentName ? `Perfil guardado. ¡Hola, ${profile.studentName.split(/\s+/)[0]}!` : 'Perfil guardado.');
   };
 
@@ -275,7 +288,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     settings.visibleDays === 'mon-fri' ? 'Lun - Vie' : settings.visibleDays === 'mon-sat' ? 'Lun - Sáb' : 'Toda la semana';
 
   return (
-    <div className="relative min-h-screen text-slate-800 dark:text-slate-100 pb-16 animate-in fade-in duration-200">
+    <div className="relative min-h-screen text-[var(--color-md-on-surface)] pb-16 m3-view-enter">
       <div className="w-full mx-auto pt-1 sm:pt-3 space-y-3">
 
         {/* =========================================================================
@@ -313,222 +326,69 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onEdit={() => setActiveSubView('profile')}
             />
 
-            {/* GRUPO 1: PREFERENCIAS DE ESTUDIO */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 block">
-                Preferencias de Estudio
-              </span>
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl border border-[#C3C7D0]/40 dark:border-[#43474E]/30 divide-y divide-[#C3C7D0]/20 dark:divide-[#43474E]/20 overflow-hidden shadow-2xs">
-                {/* 1.1 Apariencia y Modo Oscuro */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSubView('appearance')}
-                  className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      {settings.theme === 'dark' ? (
-                        <Moon className="w-4 h-4" />
-                      ) : settings.theme === 'light' ? (
-                        <Sun className="w-4 h-4" />
-                      ) : (
-                        <Monitor className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white block truncate">
-                        Apariencia y Tema
-                      </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        {themeLabel} • {(MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).name}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0 shadow-2xs"
-                        style={{ backgroundColor: (MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).light.primary }}
-                      />
-                      <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                        {themeLabel}
-                      </span>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
+            <SettingsGroup title="Preferencias de estudio">
+              <SettingsRow
+                icon={settings.theme === 'dark' ? <Moon className="h-4 w-4" /> : settings.theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+                title="Apariencia y tema"
+                subtitle={`${themeLabel} · ${(MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).name}`}
+                value={themeLabel}
+                onClick={() => setActiveSubView('appearance')}
+              />
+              <SettingsRow
+                icon={<Calendar className="h-4 w-4" />}
+                title="Semestre y horario"
+                subtitle={`${settings.semesterName || 'Configurar periodo'} · ${scheduleViewLabel}`}
+                value={visibleDaysLabel}
+                onClick={() => setActiveSubView('schedule')}
+              />
+            </SettingsGroup>
 
-                {/* 1.2 Semestre y Horario Académico */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSubView('schedule')}
-                  className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-cove-blue dark:text-cove-sky flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white block truncate">
-                        Semestre y Horario
-                      </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        {settings.semesterName || 'Configurar periodo'} • {scheduleViewLabel}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
-                      {visibleDaysLabel}
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
-              </div>
-            </div>
+            <SettingsGroup title="Notificaciones y medios">
+              <SettingsRow
+                icon={<BellRing className="h-4 w-4" />}
+                title="Notificaciones y avisos"
+                subtitle="Recordatorios antes de cada clase"
+                value={settings.notificationsEnabled ? 'Activas' : 'Desactivadas'}
+                valueTone={settings.notificationsEnabled ? 'active' : 'neutral'}
+                onClick={() => setActiveSubView('notifications')}
+              />
+              <SettingsRow
+                icon={<Camera className="h-4 w-4" />}
+                title="Fotografías y pizarras"
+                subtitle="Compresión y nitidez de las capturas"
+                value={settings.imageQuality === 'balanced' ? '720p' : '1080p'}
+                onClick={() => setActiveSubView('media')}
+              />
+            </SettingsGroup>
 
-            {/* GRUPO 2: NOTIFICACIONES Y MEDIOS */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 block">
-                Notificaciones y Medios
-              </span>
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl border border-[#C3C7D0]/40 dark:border-[#43474E]/30 divide-y divide-[#C3C7D0]/20 dark:divide-[#43474E]/20 overflow-hidden shadow-2xs">
-                {/* 2.1 Notificaciones de Clases */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSubView('notifications')}
-                  className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <BellRing className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white block truncate">
-                        Notificaciones y Avisos
-                      </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        Recordatorios en móvil antes de cada clase
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span
-                      className={`text-[11px] font-bold px-2 py-0.5 rounded-lg ${
-                        settings.notificationsEnabled
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {settings.notificationsEnabled ? 'Activas' : 'Desactivadas'}
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
-
-                {/* 2.2 Fotografías y Pizarras */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSubView('media')}
-                  className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Camera className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white block truncate">
-                        Fotografías y Notas de Pizarrón
-                      </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        Compresión y nitidez de capturas
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
-                      {settings.imageQuality === 'balanced' ? '720p' : '1080p'}
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* GRUPO 3: ALMACENAMIENTO Y SISTEMA */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 block">
-                Almacenamiento y Sistema
-              </span>
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl border border-[#C3C7D0]/40 dark:border-[#43474E]/30 divide-y divide-[#C3C7D0]/20 dark:divide-[#43474E]/20 overflow-hidden shadow-2xs">
-                {/* 3.1 Copias de Seguridad y Datos */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSubView('backup')}
-                  className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Database className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white block truncate">
-                        Datos y Copias de Seguridad
-                      </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        Exportar e importar respaldo JSON local
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
-                      {typeof storageEstimate.usedMB === 'number' ? `${storageEstimate.usedMB.toFixed(1)} MB` : 'Local'}
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
-
-                {/* 3.2 Información de la Aplicación */}
-                <button
-                  type="button"
-                  onClick={() => setActiveSubView('about')}
-                  className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Info className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white block truncate">
-                        Acerca de la Agenda
-                      </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate block">
-                        Créditos, arquitectura y versión
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
-                      v{APP_INFO.version}
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
-              </div>
-            </div>
+            <SettingsGroup title="Almacenamiento y sistema">
+              <SettingsRow
+                icon={<Database className="h-4 w-4" />}
+                title="Datos y copias de seguridad"
+                subtitle="Exportar e importar el respaldo JSON"
+                value={typeof storageEstimate.usedMB === 'number' ? `${storageEstimate.usedMB.toFixed(1)} MB` : 'Local'}
+                onClick={() => setActiveSubView('backup')}
+              />
+              <SettingsRow
+                icon={<Info className="h-4 w-4" />}
+                title="Acerca de la agenda"
+                subtitle="Créditos, privacidad y versión"
+                value={`v${APP_INFO.version}`}
+                onClick={() => setActiveSubView('about')}
+              />
+            </SettingsGroup>
           </div>
         ) : (
           /* =========================================================================
              VISTA 2: SUB-PÁGINAS DEDICADAS (FOCALIZADAS, LIMPIAS Y COMPACTAS)
              ========================================================================= */
-          <div className="space-y-3 m3-tab-enter-right">
+          <div className={`space-y-3 ${subViewExit.isClosing ? 'm3-sheet-exit' : 'm3-tab-enter-right'}`}>
             {/* Cabecera de la Sub-Página Compacta */}
             <div className="flex items-center justify-between pb-0.5">
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setActiveSubView(null)}
-                  title="Regresar a Ajustes"
+                  onClick={closeSubView}
                   aria-label="Regresar a Ajustes"
                   className="w-9 h-9 flex items-center justify-center text-[var(--color-md-on-surface)] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer"
                 >
@@ -536,16 +396,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
                 <div>
                   <h2 className="text-base sm:text-lg font-black text-[var(--color-md-on-surface)] tracking-tight">
-                    {activeSubView === 'appearance' && 'Apariencia y Tema'}
-                    {activeSubView === 'schedule' && 'Semestre y Horario'}
-                    {activeSubView === 'notifications' && 'Notificaciones y Avisos'}
-                    {activeSubView === 'media' && 'Fotografías y Pizarras'}
-                    {activeSubView === 'backup' && 'Datos y Copias de Seguridad'}
-                    {activeSubView === 'about' && 'Acerca de la Agenda'}
-                    {activeSubView === 'profile' && 'Perfil Estudiantil'}
+                    {SUBVIEW_TITLES[activeSubView]}
                   </h2>
                   <p className="text-[11px] text-[var(--color-md-on-surface-variant)] font-medium">
-                    Ajustes • Configuración específica
+                    Ajustes
                   </p>
                 </div>
               </div>
@@ -553,7 +407,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
             {activeSubView === 'appearance' && (
-              <div className="bg-[var(--color-md-card-bg)] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[var(--color-md-outline-variant)] space-y-4">
+              <div className="md-card bg-[var(--md-card-surface)] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[var(--color-md-outline-variant)] space-y-4">
                 {/* 1-2. Modo de luminosidad, paleta Material You y acabado de tarjetas */}
                 <ThemeStudio
                   settings={settings}
@@ -718,8 +572,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <button
                             type="button"
                             onClick={handleRemoveCustomWallpaper}
-                            className="p-1 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                            title="Eliminar foto personalizada"
+                            className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-md-on-surface-variant)] transition-all duration-150 ease-out hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)] active:scale-95"
+                            aria-label="Eliminar foto personalizada"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -851,34 +705,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               Aplica matiz armónico sobre tu imagen
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateSettings({
-                                ...settings,
-                                wallpaperTintWithTheme: !(settings.wallpaperTintWithTheme ?? true),
-                              })
-                            }
-                            className={`w-10 h-6 rounded-full transition-colors p-0.5 cursor-pointer ${
-                              (settings.wallpaperTintWithTheme ?? true)
-                                ? 'bg-[var(--color-md-primary)]'
-                                : 'bg-slate-300 dark:bg-slate-700'
-                            }`}
-                          >
-                            <div
-                              className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
-                                (settings.wallpaperTintWithTheme ?? true)
-                                  ? 'translate-x-4'
-                                  : 'translate-x-0'
-                              }`}
-                            />
-                          </button>
+                          <M3Switch
+                            checked={settings.wallpaperTintWithTheme ?? true}
+                            onChange={(checked) => updateSettings({ ...settings, wallpaperTintWithTheme: checked })}
+                            label="Fusionar foto con el tema"
+                          />
                         </div>
                       )}
 
                       {/* 5. Ventana de Previsualización en Vivo */}
                       <div className="pt-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)] block mb-1">
+                        <span className="text-xs font-semibold text-[var(--color-md-on-surface-variant)] block mb-1">
                           Vista previa en tiempo real
                         </span>
                         <div className="relative h-20 sm:h-22 rounded-xl bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)] overflow-hidden flex items-center justify-center p-2.5 shadow-inner">
@@ -974,263 +811,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             )}
 
             {activeSubView === 'schedule' && (
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-4">
-                {/* Periodo Lectivo */}
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
-                    Periodo Lectivo / Semestre Actual
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={semesterInput}
-                      onChange={(e) => setSemesterInput(e.target.value)}
-                      placeholder="Ej. Semestre 2026-I, Otoño 2026"
-                      className="flex-1 px-3 py-2 bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-xl text-xs sm:text-sm font-semibold text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#72777F] focus:outline-none focus:ring-2 focus:ring-[#00639B] dark:focus:ring-[#92CCFF]"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSaveSemester}
-                      className="px-4 py-2 bg-[#00639B] hover:bg-[#005282] dark:bg-[#92CCFF] dark:hover:bg-[#72BAF5] text-white dark:text-[#003353] font-bold rounded-xl text-xs transition-colors cursor-pointer shrink-0 shadow-2xs"
-                    >
-                      Guardar
-                    </button>
-                  </div>
-                </div>
-
-                {/* Vista Inicial */}
-                <div className="space-y-1.5 pt-2 border-t border-[#C3C7D0]/30 dark:border-[#43474E]/30">
-                  <label className="block text-[11px] font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
-                    Vista Predeterminada al Abrir Horario
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleViewModeChange('weekly')}
-                      className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                        settings.defaultScheduleView === 'weekly'
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#00639B] dark:border-[#92CCFF] shadow-2xs'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
-                      }`}
-                    >
-                      <Layers className="w-3.5 h-3.5" />
-                      <span>Semanal (Cuadrícula)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleViewModeChange('daily')}
-                      className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                        settings.defaultScheduleView === 'daily'
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#00639B] dark:border-[#92CCFF] shadow-2xs'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
-                      }`}
-                    >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Por Día (Lista)</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Días Lectivos */}
-                <div className="space-y-1.5 pt-2 border-t border-[#C3C7D0]/30 dark:border-[#43474E]/30">
-                  <label className="block text-[11px] font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
-                    Días de Cursada Visibles
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: 'mon-fri', label: 'Lun - Vie' },
-                      { id: 'mon-sat', label: 'Lun - Sáb' },
-                      { id: 'all', label: 'Toda la semana' },
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleVisibleDaysChange(item.id as AppSettings['visibleDays'])}
-                        className={`py-2 px-1 rounded-xl text-xs font-bold text-center transition-all cursor-pointer border ${
-                          settings.visibleDays === item.id
-                            ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] border-[#00639B] dark:border-[#92CCFF] shadow-2xs'
-                            : 'bg-[#F1F4FA] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0] border-[#C3C7D0]/40 dark:border-[#43474E]/40 hover:border-[#72777F]'
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <ScheduleSettings
+                settings={settings}
+                semesterInput={semesterInput}
+                onSemesterInputChange={setSemesterInput}
+                onSaveSemester={handleSaveSemester}
+                onViewModeChange={handleViewModeChange}
+                onVisibleDaysChange={handleVisibleDaysChange}
+              />
             )}
 
             {/* ---------------- SUB-VISTA 3: NOTIFICACIONES ---------------- */}
             {activeSubView === 'notifications' && (
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-4">
-                {/* Interruptor Principal */}
-                <div className="flex items-center justify-between pb-2.5 border-b border-[#C3C7D0]/30 dark:border-[#43474E]/30">
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
-                      Recordatorios de Clases
-                    </h3>
-                    <p className="text-[11px] text-[#72777F] dark:text-[#8C9199]">
-                      Alertas locales en tu teléfono antes de cada materia
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={settings.notificationsEnabled}
-                      onChange={(e) => handleToggleNotifications(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-[#E2E7EF] dark:bg-[#272A2F] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:bg-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-[#72777F] after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#00639B] dark:peer-checked:bg-[#92CCFF] peer-checked:border-[#00639B]"></div>
-                  </label>
-                </div>
-
-                {/* Estado de Permisos y Test */}
-                <div className="p-2.5 sm:p-3 bg-[#F1F4FA] dark:bg-[#272A2F] rounded-xl border border-[#C3C7D0]/40 dark:border-[#43474E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                        hasPermission ? 'bg-emerald-500' : 'bg-amber-500'
-                      }`}
-                    />
-                    <span className="font-semibold text-[#191C20] dark:text-[#E2E2E6] text-[11px]">
-                      Permiso:{' '}
-                      <strong className={hasPermission ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}>
-                        {hasPermission === null ? 'Comprobando...' : hasPermission ? 'Concedido' : 'Pendiente'}
-                      </strong>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    {!hasPermission && (
-                      <button
-                        type="button"
-                        onClick={handleRequestPermission}
-                        className="px-3 py-1 bg-[#00639B] hover:bg-[#005282] dark:bg-[#92CCFF] dark:text-[#003353] text-white font-bold rounded-lg text-xs transition-colors cursor-pointer"
-                      >
-                        Conceder
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleTestNotification}
-                      disabled={isTestingNotification}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] text-[#191C20] dark:text-[#E2E2E6] font-bold rounded-lg text-xs transition-colors cursor-pointer"
-                    >
-                      <Send className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
-                      <span>Probar Aviso</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Opciones Específicas */}
-                <div
-                  className={`space-y-1.5 pt-1 transition-opacity ${
-                    settings.notificationsEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'
-                  }`}
-                >
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
-                    Momentos de Notificación
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {/* 15 min antes */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleSpecificNotification('notify15MinBefore')}
-                      className={`p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 relative ${
-                        settings.notify15MinBefore
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF]'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0]'
-                      }`}
-                    >
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="font-bold text-[11px]">15m antes</span>
-                      {settings.notify15MinBefore && <Check className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF] stroke-[3]" />}
-                    </button>
-
-                    {/* Al iniciar */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleSpecificNotification('notifyAtClassStart')}
-                      className={`p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 relative ${
-                        settings.notifyAtClassStart
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF]'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0]'
-                      }`}
-                    >
-                      <Bell className="w-3.5 h-3.5" />
-                      <span className="font-bold text-[11px]">Al iniciar</span>
-                      {settings.notifyAtClassStart && <Check className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF] stroke-[3]" />}
-                    </button>
-
-                    {/* Sonido */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleSpecificNotification('notificationSound')}
-                      className={`p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 relative ${
-                        settings.notificationSound
-                          ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF]'
-                          : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0]'
-                      }`}
-                    >
-                      <Volume2 className="w-3.5 h-3.5" />
-                      <span className="font-bold text-[11px]">Sonido</span>
-                      {settings.notificationSound && <Check className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF] stroke-[3]" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <NotificationSettings
+                settings={settings}
+                hasPermission={hasPermission}
+                isTesting={isTestingNotification}
+                onToggleNotifications={(enabled) => void handleToggleNotifications(enabled)}
+                onToggleSpecific={(key) => void handleToggleSpecificNotification(key)}
+                onRequestPermission={() => void handleRequestPermission()}
+                onTestNotification={() => void handleTestNotification()}
+              />
             )}
 
             {/* ---------------- SUB-VISTA 4: FOTOGRAFÍAS Y PIZARRAS ---------------- */}
             {activeSubView === 'media' && (
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-3">
-                <div className="space-y-0.5">
-                  <label className="block text-[11px] font-bold text-[#191C20] dark:text-[#E2E2E6] uppercase tracking-wider">
-                    Resolución y Compresión de Capturas
-                  </label>
-                  <p className="text-[11px] text-[#72777F] dark:text-[#8C9199]">
-                    Ajusta la calidad de compresión automática de fotos de cátedra.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleImageQualityChange('balanced')}
-                    className={`p-3 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-start gap-1 text-left ${
-                      settings.imageQuality === 'balanced'
-                        ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF]'
-                        : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0] hover:border-[#72777F]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="font-bold text-xs sm:text-sm">720p (Equilibrada)</span>
-                      {settings.imageQuality === 'balanced' && <Check className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] stroke-[3]" />}
-                    </div>
-                    <span className="text-[10px] text-[#72777F] dark:text-[#8C9199] leading-tight">
-                      Ahorra más del 70% de espacio con fórmulas y texto legibles. Recomendada.
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleImageQualityChange('high')}
-                    className={`p-3 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-start gap-1 text-left ${
-                      settings.imageQuality === 'high'
-                        ? 'bg-[#D0E4FF] dark:bg-[#004B76] border-[#00639B] dark:border-[#92CCFF] text-[#001D32] dark:text-[#D0E4FF]'
-                        : 'bg-[#F1F4FA] dark:bg-[#272A2F] border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[#43474E] dark:text-[#C3C7D0] hover:border-[#72777F]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="font-bold text-xs sm:text-sm">1080p (Alta Nitidez)</span>
-                      {settings.imageQuality === 'high' && <Check className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF] stroke-[3]" />}
-                    </div>
-                    <span className="text-[10px] text-[#72777F] dark:text-[#8C9199] leading-tight">
-                      Mayor nivel de detalle para diapositivas con tipografía diminuta.
-                    </span>
-                  </button>
-                </div>
-              </div>
+              <MediaSettings imageQuality={settings.imageQuality} onImageQualityChange={handleImageQualityChange} />
             )}
 
             {/* ---------------- SUB-VISTA 5: DATOS Y RESPALDOS ---------------- */}
@@ -1243,49 +849,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             )}
 
             {/* ---------------- SUB-VISTA 6: ACERCA DE LA AGENDA ---------------- */}
-            {activeSubView === 'about' && (
-              <div className="bg-[#FDFBFF] dark:bg-[#1D2024] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[#C3C7D0]/50 dark:border-[#43474E]/40 space-y-3">
-                <div className="flex items-center gap-3 pb-3 border-b border-[#C3C7D0]/30 dark:border-[#43474E]/30">
-                  <img
-                    src="./app-icon-claro.svg"
-                    alt="Logo Agenda Universitaria"
-                    className="w-11 h-11 rounded-xl shadow-2xs ring-1 ring-[#00639B]/30 object-contain bg-white p-0.5"
-                  />
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-[#191C20] dark:text-[#E2E2E6]">
-                      {APP_INFO.name}
-                    </h3>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D0E4FF] text-[#001D32] dark:bg-[#004B76] dark:text-[#D0E4FF]">
-                        Versión {APP_INFO.version}
-                      </span>
-                      <span className="text-[10px] font-bold text-[#72777F] dark:text-[#8C9199]">
-                        "{APP_INFO.slogan}"
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-[#43474E] dark:text-[#C3C7D0] leading-relaxed">
-                  <div className="flex items-center gap-1.5 font-bold text-[#191C20] dark:text-[#E2E2E6]">
-                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
-                    <span>Desarrollada por {APP_INFO.author}</span>
-                  </div>
-                  <p className="text-[11px] text-[#72777F] dark:text-[#8C9199]">
-                    {APP_INFO.description}
-                  </p>
-                </div>
-
-                <div className="p-2.5 bg-[#F1F4FA] dark:bg-[#272A2F] rounded-xl border border-[#C3C7D0]/40 dark:border-[#43474E]/40 text-[10px] sm:text-[11px] text-[#43474E] dark:text-[#C3C7D0] space-y-0.5">
-                  <span className="font-bold text-[#191C20] dark:text-[#E2E2E6] block">
-                    Garantía Offline-First & Privacidad
-                  </span>
-                  <p>
-                    Tus datos se almacenan exclusivamente de forma local en tu dispositivo utilizando IndexedDB (Dexie.js). No se requiere cuenta ni conexión a internet para gestionar tus materias y apuntes.
-                  </p>
-                </div>
-              </div>
-            )}
+            {activeSubView === 'about' && <AboutSettings />}
           </div>
         )}
       </div>
