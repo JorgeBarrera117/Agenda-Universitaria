@@ -181,6 +181,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     onShowToast(`Paleta de color actualizada: ${MATERIAL_COLOR_PALETTES[newPalette].name}`);
   };
 
+  const handlePerformanceModeChange = (performanceMode: boolean) => {
+    updateSettings({ ...settings, performanceMode });
+    onShowToast(performanceMode ? 'Modo Ultra Fluidez activado.' : 'Modo Ultra Fluidez desactivado.');
+  };
+
   const handleCardSurfaceChange = (cardSurfaceStyle: CardSurfaceStyle) => {
     updateSettings({ ...settings, cardSurfaceStyle });
     const option = CARD_SURFACE_OPTIONS.find((o) => o.id === cardSurfaceStyle);
@@ -415,6 +420,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onThemeChange={handleThemeChange}
                   onPaletteChange={handleColorPaletteChange}
                   onCardSurfaceChange={handleCardSurfaceChange}
+                  onPerformanceModeChange={handlePerformanceModeChange}
                 />
 
                 {/* 3. Estudio de Papel Tapiz Adaptativo (Wallpaper Studio Compacto) */}

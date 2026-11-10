@@ -802,7 +802,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 flex flex-col justify-between shadow-2xs hover:shadow-sm hover:border-[#00639B]/40 transition-all cursor-pointer group relative"
+                className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl sm:rounded-3xl content-auto p-2.5 sm:p-3 flex flex-col justify-between shadow-2xs hover:shadow-sm hover:border-[#00639B]/40 transition-[box-shadow,border-color] cursor-pointer group relative"
               >
                 {/* Cabecera de la Tarjeta */}
                 <div className="flex items-start justify-between gap-1.5">
@@ -907,7 +907,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group relative"
+                className="content-auto [contain-intrinsic-size:auto_64px] flex items-center justify-between p-2.5 sm:p-3 hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors cursor-pointer group relative"
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div

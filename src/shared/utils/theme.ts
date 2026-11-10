@@ -543,6 +543,19 @@ export function applyCardSurface(style: CardSurfaceStyle = 'solid'): void {
   document.documentElement.setAttribute('data-card-surface', style);
 }
 
+/**
+ * Activa el Modo Ultra Fluidez como atributo de :root; las reglas viven en index.css bajo
+ * [data-performance-mode='true']. Se quita el atributo (en vez de "false") para no dejar rastro.
+ */
+export function applyPerformanceMode(enabled: boolean): void {
+  if (typeof document === 'undefined') return;
+  if (enabled) {
+    document.documentElement.setAttribute('data-performance-mode', 'true');
+  } else {
+    document.documentElement.removeAttribute('data-performance-mode');
+  }
+}
+
 export function applyTheme(
   theme: ThemeMode = 'light',
   colorPalette: MaterialColorTheme = 'default'

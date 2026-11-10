@@ -53,6 +53,8 @@ export interface AppSettings {
   theme: ThemeMode;
   colorPalette: MaterialColorTheme;
   cardSurfaceStyle: CardSurfaceStyle;
+  /** Modo Ultra Fluidez: sin desenfoques de fondo ni sombras (ver index.css). */
+  performanceMode: boolean;
   semesterName: string;
   // Perfil / credencial estudiantil (opcional, solo se guarda en este dispositivo)
   studentName?: string;
@@ -79,6 +81,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
   colorPalette: 'default',
   cardSurfaceStyle: 'solid',
+  performanceMode: false,
   semesterName: 'Semestre 2026-I',
   defaultScheduleView: 'weekly',
   imageQuality: 'balanced',

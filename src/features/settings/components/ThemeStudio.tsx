@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { Check, Frame, Layers, Monitor, Moon, Palette, Sparkles, Sun } from 'lucide-react';
+import { Check, Frame, Layers, Monitor, Moon, Palette, Sparkles, Sun, Zap } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
 import { MATERIAL_COLOR_PALETTES } from '../../../shared/utils/theme';
+import { M3Switch } from './SettingsPrimitives';
 import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, ThemeMode } from '../types';
 
 interface ThemeStudioProps {
@@ -9,6 +10,7 @@ interface ThemeStudioProps {
   onThemeChange: (theme: ThemeMode) => void;
   onPaletteChange: (palette: MaterialColorTheme) => void;
   onCardSurfaceChange: (style: CardSurfaceStyle) => void;
+  onPerformanceModeChange: (enabled: boolean) => void;
 }
 
 const THEME_OPTIONS: SegmentedOption<ThemeMode>[] = [
@@ -55,10 +57,16 @@ function SectionHeader({ icon, title, aside }: { icon: React.ReactNode; title: s
 }
 
 /**
- * Apariencia en tres controles compactos: modo de luminosidad, paleta Material You y acabado de
- * tarjetas. Las fichas de paleta muestran los colores reales de cada paleta en el modo activo.
+ * Apariencia en controles compactos: modo de luminosidad, paleta Material You, acabado de tarjetas
+ * y Modo Ultra Fluidez. Las fichas de paleta muestran los colores reales de cada paleta en el modo activo.
  */
-export const ThemeStudio: React.FC<ThemeStudioProps> = ({ settings, onThemeChange, onPaletteChange, onCardSurfaceChange }) => {
+export const ThemeStudio: React.FC<ThemeStudioProps> = ({
+  settings,
+  onThemeChange,
+  onPaletteChange,
+  onCardSurfaceChange,
+  onPerformanceModeChange,
+}) => {
   const paletteButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const currentPalette = settings.colorPalette || 'default';
   const activePalette = MATERIAL_COLOR_PALETTES[currentPalette] || MATERIAL_COLOR_PALETTES.default;
@@ -152,8 +160,27 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({ settings, onThemeChang
           ariaLabel="Acabado de tarjetas"
         />
         <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" aria-live="polite">
-          {surfaceOption.description}
+          {settings.performanceMode && settings.cardSurfaceStyle === 'glass'
+            ? 'Con el Modo Ultra Fluidez activo, el cristal se muestra como superficie sólida.'
+            : surfaceOption.description}
         </p>
+      </section>
+
+      <section
+        className="flex items-center justify-between gap-3 border-t border-[var(--color-md-outline-variant)] pt-3"
+        aria-label="Rendimiento"
+      >
+        <div className="min-w-0">
+          <SectionHeader icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} title="Modo Ultra Fluidez (Bajo consumo)" />
+          <p className="mt-0.5 text-[11px] text-[var(--color-md-on-surface-variant)]">
+            Desactiva desenfoques pesados y sombras para máxima velocidad y ahorro de batería.
+          </p>
+        </div>
+        <M3Switch
+          checked={settings.performanceMode}
+          onChange={onPerformanceModeChange}
+          label="Modo Ultra Fluidez (Bajo consumo)"
+        />
       </section>
     </div>
   );

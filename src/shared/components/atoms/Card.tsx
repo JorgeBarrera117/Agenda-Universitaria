@@ -54,7 +54,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         style={cardStyle}
-        className={`md-card rounded-[24px] sm:rounded-[28px] bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-all duration-150 ease-out relative text-[var(--color-md-on-surface)] ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
+        className={`md-card rounded-[24px] sm:rounded-[28px] bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-[transform,box-shadow,border-color] duration-150 ease-out relative text-[var(--color-md-on-surface)] ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
         {...props}
       >
         {children}

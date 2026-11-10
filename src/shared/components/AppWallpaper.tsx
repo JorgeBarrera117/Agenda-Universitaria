@@ -5,6 +5,18 @@ import type { WallpaperStyle } from '../../features/settings/types';
 export const CUSTOM_WALLPAPER_STORAGE_KEY = 'agenda_custom_wallpaper_v1';
 
 /**
+ * Capa de composición propia para el fondo: translate3d + will-change la promueven a textura de
+ * GPU y contain: strict aísla su layout y pintado, así que los cambios del resto de la página no
+ * invalidan el fondo y el compositor lo reutiliza tal cual al hacer scroll.
+ */
+const WALLPAPER_LAYER_STYLE: React.CSSProperties = {
+  transform: 'translate3d(0, 0, 0)',
+  willChange: 'transform',
+  contain: 'strict',
+  backfaceVisibility: 'hidden',
+};
+
+/**
  * Helper para guardar o eliminar la foto de papel tapiz personalizada en almacenamiento local
  * y notificar en tiempo real al motor de fondo.
  */
@@ -220,6 +232,7 @@ export const AppWallpaper: React.FC = () => {
       <div
         aria-hidden="true"
         className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
+        style={WALLPAPER_LAYER_STYLE}
       >
         <div
           style={{
@@ -259,6 +272,7 @@ export const AppWallpaper: React.FC = () => {
     <div
       aria-hidden="true"
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
+      style={WALLPAPER_LAYER_STYLE}
     >
       {/* Resplandor ambiental suave del tema en las esquinas */}
       <div

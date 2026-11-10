@@ -16,7 +16,7 @@ import { ViewSkeleton } from './shared/components/ViewSkeleton';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
-import { applyTheme, applyCardSurface, setupSystemThemeListener } from './shared/utils/theme';
+import { applyTheme, applyCardSurface, applyPerformanceMode, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
@@ -125,6 +125,11 @@ export function App() {
   useLayoutEffect(() => {
     applyCardSurface(settings.cardSurfaceStyle);
   }, [settings.cardSurfaceStyle]);
+
+  // Modo Ultra Fluidez, también antes del primer pintado
+  useLayoutEffect(() => {
+    applyPerformanceMode(settings.performanceMode);
+  }, [settings.performanceMode]);
 
 
   useEffect(() => {

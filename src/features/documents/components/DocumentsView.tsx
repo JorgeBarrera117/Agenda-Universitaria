@@ -512,7 +512,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               <div
                 key={doc.id}
                 onClick={() => !isOpening && handleOpenDoc(doc)}
-                className={`p-3 rounded-2xl sm:rounded-3xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 flex flex-col justify-between gap-2.5 shadow-2xs hover:shadow-xs hover:border-[#00639B]/50 transition-all cursor-pointer group active:scale-[0.99] select-none ${
+                className={`content-auto p-3 rounded-2xl sm:rounded-3xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 flex flex-col justify-between gap-2.5 shadow-2xs hover:shadow-xs hover:border-[#00639B]/50 transition-[transform,box-shadow,border-color] cursor-pointer group active:scale-[0.99] select-none ${
                   isOpening ? 'opacity-70 ring-2 ring-[#00639B]/40' : ''
                 }`}
               >

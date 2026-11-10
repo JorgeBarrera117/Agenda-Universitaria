@@ -271,7 +271,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
               key={prof.id}
               padding="compact"
               interactive
-              className="flex flex-col justify-between gap-2 group"
+              className="content-auto flex flex-col justify-between gap-2 group"
             >
               {/* Fila Superior: Avatar + Nombre + Micro-acciones de Edición/Borrado */}
               <div className="flex items-start justify-between gap-2.5">

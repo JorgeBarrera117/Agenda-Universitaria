@@ -416,7 +416,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                   : `linear-gradient(155deg, ${subject?.color || '#006BBB'}15 0%, ${subject?.color || '#006BBB'}04 100%), var(--color-md-card-bg)`,
                                 borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}40`,
                               }}
-                              className={`rounded-xl p-2 border transition-all duration-150 ease-out active:scale-[0.98] relative overflow-hidden group shadow-2xs hover:shadow-xs flex flex-col justify-between gap-1 ${
+                              className={`content-auto rounded-xl p-2 border transition-[transform,box-shadow,border-color] duration-150 ease-out active:scale-[0.98] relative overflow-hidden group shadow-2xs hover:shadow-xs flex flex-col justify-between gap-1 ${
                                 isNow
                                   ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-[var(--color-md-card-bg)]'
                                   : 'hover:border-[var(--color-md-primary)]'
@@ -553,7 +553,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   padding="compact"
                   accentColor={isNow ? undefined : subject?.color}
                   interactive
-                  className={`flex flex-col justify-between gap-2.5 ${
+                  className={`content-auto flex flex-col justify-between gap-2.5 ${
                     isNow ? 'border-emerald-500 ring-2 ring-emerald-400/40' : ''
                   }`}
                 >
