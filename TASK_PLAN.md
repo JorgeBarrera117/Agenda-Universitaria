@@ -308,6 +308,44 @@ Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/fe
 
 ---
 
+### 🔔 FASE 10: Motor de Tonos y Alertas Sonoras Universitarias (Notification Sound Studio)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Dotar a la aplicación de un catálogo de tonos de notificación estudiantiles personalizados y configurables (incluyendo la célebre campana escolar japonesa en celesta armónica), con preescucha interactiva en vivo en la pantalla de Ajustes y compatibilidad nativa con los canales de notificación de Android (`NotificationChannel` vía `@capacitor/local-notifications`) y la PWA Web.
+
+#### Recursos de Audio ya Sintetizados y Listos en el Proyecto
+Los archivos de sonido fueron sintetizados matemáticamente a 44.1 kHz PCM 16-bit y ya están disponibles en:
+- `public/sounds/` (para PWA y preescucha en navegador)
+- `android/app/src/main/res/raw/` (para alarmas nativas de Android con pantalla bloqueada)
+
+Catálogo de Tonos:
+1. 🎌 **`chime_school_jp.wav`**: Timbre Escolar Japonés (*Westminster Quarters* en celesta/campana tubular armónica: Fa#4, Re4, Mi4, La3).
+2. 🏛️ **`bell_campus.wav`**: Campana de Torre Universitaria (resonancia profunda de bronce académico).
+3. 🪵 **`marimba_gentle.wav`**: Marimba Suave (acorde acústico de madera cálido y no intrusivo).
+4. 💧 **`zen_drop.wav`**: Gota Zen de Biblioteca (tono minimalista de 80ms para espacios silenciosos).
+5. ⚙️ **`default`**: Tono por defecto del sistema operativo.
+
+#### Tareas de Implementación (Fase 10)
+- [ ] **10.1. Tipado y Configuración en `src/features/settings/types.ts`:**
+  - Definir `export type NotificationSoundTone = 'chime_school_jp' | 'bell_campus' | 'marimba_gentle' | 'zen_drop' | 'default';`.
+  - Añadir a `AppSettings`: `notificationTone: NotificationSoundTone;` (por defecto `'chime_school_jp'`).
+- [ ] **10.2. Selector M3 con Preescucha Interactiva en `NotificationSettings.tsx`:**
+  - En `src/features/settings/components/NotificationSettings.tsx`:
+    - Añadir una sección "Tono de Notificación" cuando `settings.notificationSound` esté activo.
+    - Renderizar los tonos en una lista de tarjetas/píldoras compactas M3.
+    - Cada tono incluye: Icono, nombre, badge tonal y un **botón interactivo de Preescucha (Play / Stop)** que utiliza `new Audio('/sounds/' + tone + '.wav')` para que el estudiante escuche el sonido al instante antes de seleccionarlo.
+- [ ] **10.3. Integración en `NotificationService.ts` y Canales Nativos de Android:**
+  - En `src/shared/services/notificationService.ts`:
+    - Actualizar `init()` y `syncScheduleNotifications()` para crear canales dinámicos según el tono:
+      `id: 'academic_schedule_' + (settings.notificationTone || 'chime_school_jp')`
+      apuntando a `sound: (settings.notificationTone || 'chime_school_jp') + '.wav'`.
+    - Asignar el canal y el sonido correspondiente en `notificationsToSchedule`.
+- [ ] **10.4. Verificación y Compilación:**
+  - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
