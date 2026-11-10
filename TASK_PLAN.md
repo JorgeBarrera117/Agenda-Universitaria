@@ -390,6 +390,70 @@ Catálogo Completo de Tonos:
 
 ---
 
+### ⚡ FASE 11: Motor de Ultra-Rendimiento Móvil y Fluidez a 60-120 FPS (Performance Engine & GPU Optimization)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Garantizar una experiencia de navegación y desplazamiento a 60-120 FPS ultra-fluida y sin tirones (*zero-jank*) en cualquier teléfono inteligente, especialmente dispositivos de gama media y de entrada (procesadores MediaTek Helio G80/G99, Snapdragon serie 600, GPUs Mali y Adreno con presupuestos térmicos reducidos), erradicando los cuellos de botella de renderizado causados por saturación de `backdrop-filter`, repintados masivos de fondo (*paint storms*), transiciones omnímodas `transition-all` y cálculo de nodos DOM fuera de pantalla.
+
+#### Diagnóstico Forense y Causas Raíz Detectadas
+1. **Saturación de `backdrop-filter: blur()` (GPU Fillrate Collapse):** En `index.css`, `:root[data-card-surface='glass'] .md-card` aplica `backdrop-filter: blur(12px) saturate(1.3)`. En móviles, calcular 6 pasadas de desenfoque gaussiano por cada tarjeta en pantalla durante el desplazamiento satura la GPU móvil y desploma los fotogramas de 60 a 18-25 FPS.
+2. **Repintados Masivos por el Papel Tapiz (`AppWallpaper.tsx` Paint Thrashing):** El contenedor `fixed inset-0` del wallpaper carece de su propia capa de composición de hardware aislada (`contain: strict; transform: translate3d(0,0,0)`). Cada tick de scroll vertical fuerza a Chromium en Android a rasterizar de nuevo el fondo completo junto con los patrones SVG y filtros de opacidad.
+3. **Sobrecarga de CPU por `transition-all` en `Card.tsx`:** Todas las tarjetas de clases, profesores y apuntes declaran `transition-all duration-150`. Esto obliga al motor de estilos a calcular e interpolar propiedades que provocan reflows (`width`, `height`, `padding`, `margin`, `box-shadow`) en cada frame.
+4. **Cálculo Innecesario de Nodos DOM Fuera de Pantalla:** En semanas con muchas clases o listas largas de profesores/apuntes, se calculan cientos de nodos DOM simultáneamente aunque no estén visibles para el usuario.
+
+#### Tareas de Implementación (Fase 11)
+
+- [ ] **11.1. Aislamiento Estricto de Capa GPU en `AppWallpaper.tsx`:**
+  - En `src/shared/components/AppWallpaper.tsx`, añadir estilos de aislamiento de hardware al contenedor raíz `fixed inset-0`:
+    ```tsx
+    style={{
+      transform: 'translate3d(0, 0, 0)',
+      willChange: 'transform',
+      contain: 'strict',
+      backfaceVisibility: 'hidden',
+    }}
+    ```
+  - Asegurar `pointer-events: none` y `select-none` para que el compositor de Chromium procese el fondo como una textura inmutable en memoria VRAM sin disparar eventos de repintado al hacer scroll.
+
+- [ ] **11.2. Transiciones Especializadas de GPU en `Card.tsx`:**
+  - En `src/shared/components/atoms/Card.tsx`, erradicar la clase genérica `transition-all`.
+  - Reemplazar por propiedades puramente acelerables por GPU:
+    `transition-[transform,box-shadow,border-color] duration-150 ease-out`
+  - Esto elimina el cálculo de reflows en la CPU móvil al interactuar con las tarjetas.
+
+- [ ] **11.3. Reglas de Alto Rendimiento y Virtualización Ligera en `src/index.css`:**
+  - Añadir clase de optimización de scroll mediante renderizado diferido nativo:
+    ```css
+    .content-auto {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 100px;
+    }
+    ```
+  - En pantallas móviles (`@media (max-width: 768px)`), ajustar el acabado de tarjetas `glass` para que use un desenfoque ligero y optimizado (`blur(4px)` en lugar de `blur(12px)`) con un fondo alfa más sólido (`color-mix(in srgb, var(--color-md-card-bg) 85%, transparent)`), manteniendo la estética de cristal pero reduciendo la carga de GPU en más del 65%.
+
+- [ ] **11.4. Integración de `content-auto` en las Vistas de Listas:**
+  - En `ScheduleView.tsx` (tarjetas de bloques de clase de la vista semanal y diaria).
+  - En `ProfessorsView.tsx` (tarjetas del directorio docente).
+  - En `NotesView.tsx` (tarjetas de apuntes en el catálogo).
+  - En `DocumentsView.tsx` (tarjetas de archivos vinculados).
+  - Aplicar `content-auto` a los contenedores iterados para que Chromium postergue el pintado de tarjetas que están fuera del viewport hasta que el usuario se aproxime a ellas.
+
+- [ ] **11.5. Opción "Modo Alto Rendimiento / Ahorro" en Ajustes:**
+  - En `src/features/settings/types.ts`: añadir `performanceMode: boolean;` a `AppSettings` (por defecto `false`).
+  - En `src/shared/utils/theme.ts`: reflejar en `:root` el atributo `data-performance-mode="true"` cuando esté activo.
+  - En `src/index.css`: cuando `:root[data-performance-mode='true']`:
+    - Desactivar `backdrop-filter` globalmente (`backdrop-filter: none !important; -webkit-backdrop-filter: none !important;`).
+    - Las tarjetas translúcidas pasan automáticamente a superficie sólida optimizada.
+    - Las sombras se simplifican a bordes limpios sin desenfoque (`box-shadow: none !important; border-width: 1px;`).
+  - En `src/features/settings/components/ThemeStudio.tsx` (o subvista `appearance`):
+    - Añadir un interruptor M3 accesible: **"Modo Ultra Fluidez (Bajo consumo)"** (*"Optimiza animaciones y filtros gráficos para máxima velocidad y ahorro de batería en cualquier dispositivo"*).
+
+- [ ] **11.6. Verificación y Calidad:**
+  - Ejecutar `npm run build` (`tsc -b && vite build`) y `npm run lint` (`oxlint`) garantizando 0 errores y midiendo la reducción en tiempos de renderizado.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
