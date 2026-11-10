@@ -28,8 +28,24 @@ export type WallpaperStyle =
 /** Tono de los recordatorios: archivo en public/sounds y res/raw, o el tono del sistema. */
 export type NotificationSoundTone =
   | 'chime_school_jp'
+  | 'chime_big_ben'
+  | 'chime_lycee_fr'
+  | 'bell_retro_school'
+  | 'carillon_oxford'
   | 'bell_campus'
+  | 'bell_harvard_chapel'
+  | 'carillon_sorbonne'
+  | 'bell_berkeley_campanile'
+  | 'chime_shinjuku_station'
+  | 'bowl_tibetan_zen'
+  | 'tone_water_tuning_fork'
+  | 'kalimba_study_arpeggio'
+  | 'windchime_furin'
+  | 'harp_glissando_short'
   | 'marimba_gentle'
+  | 'synth_warm_chord'
+  | 'pop_glass_organic'
+  | 'sonar_study_ping'
   | 'zen_drop'
   | 'default';
 

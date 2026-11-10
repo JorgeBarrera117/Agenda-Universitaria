@@ -100,7 +100,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     </SettingsBlock>
 
     {settings.notificationsEnabled && settings.notificationSound && (
-      <SettingsBlock title="Tono de notificación" description="Toca ▶ para escucharlo antes de elegirlo." icon={<Volume2 className="h-4 w-4" />}>
+      <SettingsBlock title="Tono de notificación" description="Elige la campana o timbre para tus alertas de clase. Toca ▶ para escucharlo." icon={<Volume2 className="h-4 w-4" />}>
         <NotificationTonePicker value={settings.notificationTone} onSelect={onSelectTone} />
       </SettingsBlock>
     )}
