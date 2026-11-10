@@ -106,7 +106,7 @@ Darle al estudiante libertad creativa para que su agenda refleje su personalidad
 ---
 
 ### 📝 FASE 5: Rediseño Ergonómico y Unificación de Formularios de Creación (UX Sheet M3)
-**Estado:** `EN EJECUCIÓN (LISTA PARA CLAUDE)`
+**Estado:** `COMPLETADA`
 
 #### Objetivo
 Erradicar la fragmentación visual ("Card Soup"), las scrollbars toscas y las etiquetas en mayúsculas en los formularios de creación/edición, transformándolos en hojas continuas elegantes (*M3 Modal Sheet / Canvas*) con identidad visual integrada, tokens semánticos `--color-md-*` y ergonomía táctil óptima.
@@ -122,22 +122,22 @@ Erradicar la fragmentación visual ("Card Soup"), las scrollbars toscas y las et
 5. **Tokens Semánticos 100%:** Prohibido usar colores fijos (`#00639B`, `#FDFBFF`, etc.). Todo debe emplear `--color-md-*` y respetar los modos `oled`, `matcha`, `sunset`, `slate` y acabados de superficie (`glass`, `solid`, `bordered`).
 
 #### Tareas de Implementación (Fase 5)
-- [ ] **5.1. `SubjectForm.tsx` (Materias / Asignaturas):**
+- [x] **5.1. `SubjectForm.tsx` (Materias / Asignaturas):**
   - Unificar en una superficie continua con Top App Bar canónica M3.
   - Hero integrado: Avatar de la materia grande con color e ícono en vivo; paleta de colores táctiles (32-36px con selector custom integrado) y cuadrícula compacta de íconos temáticos sin scrollbar.
   - Campos en 2 columnas para Código y Créditos.
   - Sección de Docente Titular con `M3Select` y botón sutil `+ Nuevo`.
-- [ ] **5.2. `ScheduleSlotForm.tsx` (Horarios / Clases):**
+- [x] **5.2. `ScheduleSlotForm.tsx` (Horarios / Clases):**
   - Top App Bar canónica M3.
   - Selector de materia mediante `M3Select` con badge cromático.
   - Selector de día en barra segmentada táctil o píldoras M3.
   - Horario (Inicio y Fin) en 2 columnas con píldora de duración calculada en vivo (*ej. "2 h de clase"*).
   - Segmented Button M3 para *Modalidad* (`Presencial` vs `Virtual`), con alternancia limpia de campos (Aula/Edificio vs Plataforma/Enlace).
-- [ ] **5.3. `ProfessorForm.tsx` (Profesores / Catedráticos):**
+- [x] **5.3. `ProfessorForm.tsx` (Profesores / Catedráticos):**
   - Top App Bar canónica M3.
   - Hero de Identidad con Avatar grande de profesor, paleta cromática e íconos temáticos.
   - Bloques semánticos: *Datos Personales y Grado*, *Canales de Contacto* (Email, Teléfono, Oficina) y *Cátedras Asignadas* (multiselect de chips con color de materia).
-- [ ] **5.4. `DocumentLinkForm.tsx` (Documentos / Archivos):**
+- [x] **5.4. `DocumentLinkForm.tsx` (Documentos / Archivos):**
   - Selector segmentado M3 (*Archivo Local* vs *Enlace Web*).
   - Dropzone moderno con drag & drop, indicador de tamaño y formato visual.
   - Selección de Asignatura mediante `M3Select`.
