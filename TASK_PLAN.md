@@ -312,24 +312,35 @@ Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/fe
 **Estado:** `LISTA PARA IMPLEMENTAR`
 
 #### Objetivo
-Dotar a la aplicación de un catálogo completo de tonos y campanas de escuelas y universidades del mundo (Japón, Reino Unido, Francia, Oxford, campus clásico, cuenco tibetano, campana retro, marimba y gota zen), con preescucha interactiva en vivo en la pantalla de Ajustes y compatibilidad nativa con los canales de notificación de Android (`NotificationChannel` vía `@capacitor/local-notifications`) y la PWA Web.
+Dotar a la aplicación de un catálogo completo de 20 tonos y campanas acústicas de escuelas y universidades del mundo (Japón, Reino Unido, Francia, Oxford, Harvard, Sorbonne, Berkeley, campana retro, cuenco tibetano, kalimba, arpa, marimba, sintetizador analógico y gotas zen), con preescucha interactiva en vivo en la pantalla de Ajustes y compatibilidad nativa con los canales de notificación de Android (`NotificationChannel` vía `@capacitor/local-notifications`) y la PWA Web.
 
 #### Recursos de Audio Sintetizados y Listos en el Proyecto
-Los archivos de sonido fueron sintetizados matemáticamente a 44.1 kHz PCM 16-bit Mono y están disponibles en:
+Los 20 archivos de sonido fueron sintetizados matemáticamente a 44.1 kHz PCM 16-bit Mono y están disponibles en:
 - `public/sounds/` (para PWA y preescucha en navegador)
 - `android/app/src/main/res/raw/` (para alarmas nativas de Android con pantalla bloqueada)
 
-Catálogo Internacional de Tonos:
+Catálogo Completo de Tonos:
 1. 🎌 **`chime_school_jp.wav`**: Timbre Escolar Japonés (*Westminster Quarters* en celesta/campana tubular armónica: Fa#4, Re4, Mi4, La3).
 2. 🇬🇧 **`chime_big_ben.wav`**: Gran Reloj de Westminster / Big Ben de Londres (armónicos de campana pesada de torre inglesa: Mi4, Sol#4, Fa#4, Si3).
 3. 🇫🇷 **`chime_lycee_fr.wav`**: Timbre de Liceo Francés y Escuela Europea (intervalo melódico Sol5 → Mi5 en barras vibrafónicas).
 4. 🔔 **`bell_retro_school.wav`**: Campana Escolar Retro / Timbre Mecánico (martillo oscilante a 22 Hz sobre dos copas metálicas "Brrr-ring").
 5. 🎓 **`carillon_oxford.wav`**: Carillón de Torre Universitaria (Oxford / Heidelberg: secuencia triunfal Do5, Mi5, Do6).
 6. 🏛️ **`bell_campus.wav`**: Campana de Torre Universitaria Clásica (resonancia profunda de bronce académico).
-7. 🧘 **`bowl_tibetan_zen.wav`**: Cuenco Tibetano / Campana de Meditación Zen (432 Hz armónico puro con batimiento binaural calmante).
-8. 🪵 **`marimba_gentle.wav`**: Marimba Suave Lofi (acorde acústico de madera Do-Mi-Sol cálido y no intrusivo).
-9. 💧 **`zen_drop.wav`**: Gota Zen de Biblioteca (tono minimalista de 80ms para espacios silenciosos).
-10. 📱 **`default`**: Tono predeterminado del sistema operativo.
+7. 🏛️ **`bell_harvard_chapel.wav`**: Campana de Capilla Harvard / Ivy League (tono majestuoso en La3 con armónicos solemnes).
+8. 🏰 **`carillon_sorbonne.wav`**: Carillón de la Sorbona de París (tríada ascendente Fa5, La5, Do6 de torre francesa).
+9. ☀️ **`bell_berkeley_campanile.wav`**: Campanile de Berkeley (acorde sinfónico de campanas Sol4, Si4, Re5, Sol5).
+10. 🚆 **`chime_shinjuku_station.wav`**: Melodía de Estación & Campus de Shinjuku / Tokio (micro-melodía alegre en campana FM).
+11. 🧘 **`bowl_tibetan_zen.wav`**: Cuenco Tibetano / Campana de Meditación Zen (432 Hz armónico puro con batimiento binaural calmante).
+12. 💧 **`tone_water_tuning_fork.wav`**: Gota de Agua & Diapasón 528 Hz (gota cristalina seguida de tono Solfeggio puro).
+13. 🪵 **`kalimba_study_arpeggio.wav`**: Kalimba Lofi de Estudio (arpegio cálido de 3 notas de piano de pulgar con caja de madera).
+14. 🎐 **`windchime_furin.wav`**: Campana de Viento Japonesa Fūrin (cristal puro y toque de bambú).
+15. 🎼 **`harp_glissando_short.wav`**: Arpa de Concierto Académica (micro-glissando de 4 cuerdas de arpa).
+16. 🪵 **`marimba_gentle.wav`**: Marimba Suave Lofi (acorde acústico de madera Do-Mi-Sol cálido y no intrusivo).
+17. 🎹 **`synth_warm_chord.wav`**: Sintetizador Analógico M3 (acorde cálido Fa Maj7 con filtro analógico suave).
+18. 🫧 **`pop_glass_organic.wav`**: Pop Orgánico de Cristal (burbuja táctil redondeada con ping cristalino).
+19. 🌊 **`sonar_study_ping.wav`**: Sonar de Concentración Profunda (ping acústico a 1046 Hz con eco espacial amplio).
+20. 💧 **`zen_drop.wav`**: Gota Zen de Biblioteca (tono minimalista de 80ms para espacios silenciosos).
+21. 📱 **`default`**: Tono predeterminado del sistema operativo.
 
 #### Tareas de Implementación (Fase 10)
 - [ ] **10.1. Tipado y Configuración en `src/features/settings/types.ts`:**
@@ -342,8 +353,19 @@ Catálogo Internacional de Tonos:
       | 'bell_retro_school'
       | 'carillon_oxford'
       | 'bell_campus'
+      | 'bell_harvard_chapel'
+      | 'carillon_sorbonne'
+      | 'bell_berkeley_campanile'
+      | 'chime_shinjuku_station'
       | 'bowl_tibetan_zen'
+      | 'tone_water_tuning_fork'
+      | 'kalimba_study_arpeggio'
+      | 'windchime_furin'
+      | 'harp_glissando_short'
       | 'marimba_gentle'
+      | 'synth_warm_chord'
+      | 'pop_glass_organic'
+      | 'sonar_study_ping'
       | 'zen_drop'
       | 'default';
     ```
@@ -352,7 +374,7 @@ Catálogo Internacional de Tonos:
   - En `src/features/settings/components/NotificationSettings.tsx`:
     - Añadir prop `onSelectTone: (tone: NotificationSoundTone) => void`.
     - Mostrar bloque "Tono de notificación" cuando `settings.notificationSound && settings.notificationsEnabled` estén activos.
-    - Renderizar los 10 tonos en fichas/píldoras compactas con nombre, región/estilo e icono.
+    - Renderizar los tonos agrupados o en lista/rejilla de tarjetas táctiles compactas con nombre, región/estilo e icono.
     - Botón de preescucha interactiva (Play / Stop) con icono `Play` / `Square` de `lucide-react` reproduciendo `/sounds/${tone}.wav` mediante `new Audio()`.
     - Manejar ciclo de vida: pausar audio anterior al presionar Play en otro tono o al desmontar.
   - Conectar en `SettingsView.tsx`: `onSelectTone={(tone) => void updateSettings({ notificationTone: tone })}`.
