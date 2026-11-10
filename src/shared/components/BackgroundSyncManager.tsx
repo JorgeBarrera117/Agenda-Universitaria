@@ -29,14 +29,7 @@ export function BackgroundSyncManager(): null {
       }
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [
-    slots,
-    subjects,
-    settings.notificationsEnabled,
-    settings.notify15MinBefore,
-    settings.notifyAtClassStart,
-    settings.notificationSound,
-  ]);
+  }, [slots, subjects, settings]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
