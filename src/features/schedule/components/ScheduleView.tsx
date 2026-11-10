@@ -570,7 +570,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     {/* Lista de Bloques Semanales Compactos */}
                     <div className="space-y-1.5 min-h-[160px]">
                       {daySlotsList.length === 0 ? (
-                        <div className="h-full flex items-center justify-center py-8 text-center text-[11px] text-slate-400 dark:text-slate-500 italic">
+                        <div className="h-full flex items-center justify-center py-8 text-center text-[11px] text-[var(--color-md-on-surface-variant)] italic">
                           Libre
                         </div>
                       ) : (
@@ -588,13 +588,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                               style={{
                                 background: isNow
                                   ? undefined
-                                  : `linear-gradient(155deg, ${subject?.color || '#006BBB'}15 0%, ${subject?.color || '#006BBB'}04 100%), var(--card-bg, #ffffff)`,
+                                  : `linear-gradient(155deg, ${subject?.color || '#006BBB'}15 0%, ${subject?.color || '#006BBB'}04 100%), var(--color-md-card-bg)`,
                                 borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}40`,
                               }}
-                              className={`rounded-xl p-2 border transition-all relative overflow-hidden group shadow-2xs hover:shadow-xs flex flex-col justify-between gap-1 ${
+                              className={`rounded-xl p-2 border transition-all duration-150 ease-out active:scale-[0.98] relative overflow-hidden group shadow-2xs hover:shadow-xs flex flex-col justify-between gap-1 ${
                                 isNow
-                                  ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/20'
-                                  : 'hover:border-cove-sky/80'
+                                  ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-[var(--color-md-card-bg)]'
+                                  : 'hover:border-[var(--color-md-primary)]'
                               }`}
                             >
                               {/* Barra superior de acento */}
@@ -603,33 +603,32 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 style={{ backgroundColor: subject?.color || '#006BBB' }}
                               />
 
-                              {/* Fila 1: Hora + Botones de Acción */}
-                              <div className="flex items-center justify-between gap-1 pt-0.5">
-                                <span className="font-mono font-bold text-[10px] text-[#00639B] dark:text-[#96CCFF]">
-                                  {slot.startTime} - {slot.endTime}
-                                </span>
+                              {/* Jerarquía: materia → hora → aula/modalidad. Las acciones viven en el menú ⋮,
+                                  porque en la cuadrícula semanal no cabe un botón sin saturar el bloque. */}
+                              <div className="flex items-start justify-between gap-1 pt-0.5">
+                                <h4 className="min-w-0 text-xs font-black text-[var(--color-md-on-surface)] leading-tight line-clamp-2">
+                                  {subject?.name || 'Materia'}
+                                </h4>
 
-                                {/* Menú Contextual M3 (Kebab ⋮) */}
                                 <M3KebabMenu
                                   size="sm"
                                   items={[
-                                    {
-                                      id: 'edit',
-                                      label: 'Editar clase',
-                                      icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
-                                      variant: 'primary',
-                                      onClick: () => handleOpenEdit(slot),
-                                    },
                                     ...(onNavigateToNotes
                                       ? [
                                           {
                                             id: 'notes',
                                             label: 'Tomar apunte',
-                                            icon: <FileEdit className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />,
+                                            icon: <FileEdit className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                                             onClick: () => onNavigateToNotes(slot.subjectId),
                                           },
                                         ]
                                       : []),
+                                    {
+                                      id: 'edit',
+                                      label: 'Editar clase',
+                                      icon: <Edit2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                                      onClick: () => handleOpenEdit(slot),
+                                    },
                                     {
                                       id: 'delete',
                                       label: 'Eliminar clase',
@@ -641,24 +640,20 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 />
                               </div>
 
-                              {/* Fila 2: Título de Materia */}
-                              <div className="min-w-0">
-                                <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight line-clamp-2">
-                                  {subject?.name || 'Materia'}
-                                </h4>
-                              </div>
+                              <span className="font-mono font-bold text-[10px] text-[var(--color-md-primary)]">
+                                {slot.startTime} - {slot.endTime}
+                              </span>
 
-                              {/* Fila 3: Aula/Modalidad + Docente */}
-                              <div className="flex items-center justify-between gap-1 text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/40 dark:border-slate-700/40 min-w-0">
+                              <div className="flex items-center justify-between gap-1 text-[10px] text-[var(--color-md-on-surface-variant)] pt-1 border-t border-[var(--color-md-outline-variant)] min-w-0">
                                 <span className="truncate font-medium flex items-center gap-1">
                                   {isSlotVirtual(slot) ? (
                                     <>
-                                      <Laptop className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
+                                      <Laptop className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
                                       <span>Virtual</span>
                                     </>
                                   ) : slot.classroom ? (
                                     <>
-                                      <Building2 className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                                      <Building2 className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
                                       <span className="truncate">{slot.classroom}</span>
                                     </>
                                   ) : (
@@ -734,9 +729,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   accentColor={isNow ? undefined : subject?.color}
                   interactive
                   className={`flex flex-col justify-between gap-2.5 ${
-                    isNow
-                      ? 'border-emerald-500 ring-2 ring-emerald-400/40 bg-emerald-50/10'
-                      : ''
+                    isNow ? 'border-emerald-500 ring-2 ring-emerald-400/40' : ''
                   }`}
                 >
                   {/* Cabecera: Ícono + Código + Título + Acciones */}
@@ -751,41 +744,30 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-black bg-black text-white dark:bg-white dark:text-black">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-black bg-[var(--color-md-on-surface)] text-[var(--color-md-surface)]">
                             {subject?.code || 'CLASE'}
                           </span>
                           {isNow && (
-                            <Badge variant="success" size="xs" className="animate-pulse">
+                            <Badge variant="success" size="xs" className="motion-safe:animate-pulse">
                               EN CURSO
                             </Badge>
                           )}
                         </div>
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate leading-tight mt-0.5">
+                        <h4 className="text-xs sm:text-sm font-black text-[var(--color-md-on-surface)] truncate leading-tight mt-0.5">
                           {subject?.name || 'Materia'}
                         </h4>
                       </div>
                     </div>
 
-                    {/* Menú Contextual M3 (Kebab ⋮) */}
+                    {/* Gestión en el menú ⋮; "Tomar apunte" ya es la acción visible del pie */}
                     <M3KebabMenu
                       items={[
                         {
                           id: 'edit',
                           label: 'Editar clase',
-                          icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
-                          variant: 'primary',
+                          icon: <Edit2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                           onClick: () => handleOpenEdit(slot),
                         },
-                        ...(onNavigateToNotes
-                          ? [
-                              {
-                                id: 'notes',
-                                label: 'Tomar apunte',
-                                icon: <FileEdit className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />,
-                                onClick: () => onNavigateToNotes(slot.subjectId),
-                              },
-                            ]
-                          : []),
                         {
                           id: 'delete',
                           label: 'Eliminar clase',
@@ -799,26 +781,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                   {/* Fila Horario y Ubicación */}
                   <div className="flex items-center gap-1.5 flex-wrap text-xs">
-                    <span className="inline-flex items-center gap-1 font-mono font-bold text-[#001D32] dark:text-[#D0E4FF] bg-[#D0E4FF] dark:bg-[#004B76] px-2 py-0.5 rounded-lg text-[10.5px]">
-                      <Clock className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
+                    <span className="inline-flex items-center gap-1 font-mono font-bold text-[var(--color-md-on-primary-container)] bg-[var(--color-md-primary-container)] px-2 py-0.5 rounded-lg text-[10.5px]">
+                      <Clock className="w-3 h-3" aria-hidden="true" />
                       {slot.startTime} - {slot.endTime}
                     </span>
 
                     {isSlotVirtual(slot) ? (
-                      <span className="inline-flex items-center gap-1 text-[#2B1700] dark:text-[#FFDCC2] bg-[#FFDCC2] dark:bg-[#683D00] px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                        <Laptop className="w-3 h-3 text-[#8B5000] dark:text-[#FFB77B]" />
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                        <Laptop className="w-3 h-3" aria-hidden="true" />
                         <span>Virtual</span>
                       </span>
                     ) : slot.classroom ? (
-                      <span className="inline-flex items-center gap-1 text-[#191C20] dark:text-[#E2E2E6] bg-[#E2E7EF] dark:bg-[#272A2F] px-2 py-0.5 rounded-lg text-[10px] font-semibold truncate">
-                        <MapPin className="w-3 h-3 text-[#00639B] dark:text-[#92CCFF]" />
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-0.5 rounded-lg text-[10px] font-semibold truncate">
+                        <MapPin className="w-3 h-3" aria-hidden="true" />
                         <span className="truncate">{slot.classroom}</span>
                       </span>
                     ) : null}
                   </div>
 
-                  {/* Pie de tarjeta con Docente y Botón Apunte */}
-                  <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
+                  {/* Pie: docente + única acción primaria */}
+                  <div className="pt-1.5 border-t border-[var(--color-md-outline-variant)] flex items-center justify-between gap-2 text-xs">
                     {professor ? (
                       <div className="flex items-center gap-1.5 min-w-0">
                         <ProfessorAvatar
@@ -828,27 +810,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           size="xs"
                           className="shrink-0"
                         />
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 truncate text-[10.5px]">
+                        <span className="font-semibold text-[var(--color-md-on-surface)] truncate text-[10.5px]">
                           {professor.name}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-[10px] text-slate-400 italic">
+                      <span className="text-[10px] text-[var(--color-md-on-surface-variant)] italic">
                         Sin docente
                       </span>
                     )}
 
                     {onNavigateToNotes && (
                       <Button
-                        variant="action-indigo"
-                        size="sm"
+                        variant="primary"
+                        size="xs"
                         onClick={() => onNavigateToNotes(slot.subjectId)}
-                        title="Tomar apunte"
-                        aria-label="Tomar apunte"
-                        icon={<FileEdit className="w-3.5 h-3.5" />}
-                        className="text-[11px] py-1 px-2.5 h-7 font-bold"
+                        aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
+                        icon={<FileEdit className="w-3 h-3" />}
+                        className="shrink-0 text-[11px] py-1 px-3 h-7 whitespace-nowrap"
                       >
-                        Apunte
+                        Tomar apunte
                       </Button>
                     )}
                   </div>

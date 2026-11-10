@@ -48,22 +48,23 @@ Trabajaremos de manera incremental fase por fase. Cada fase debe compilar limpia
 ---
 
 ### 🎯 FASE 2: Descongestión Visual, Jerarquía de Controles y Ergonomía M3
-**Estado:** `EN EJECUCIÓN (LISTA PARA CLAUDE)`
+**Estado:** `COMPLETADA`
 
 #### Objetivo
 Limpiar la saturación visual en tarjetas de horarios, materias, profesores y apuntes para que la interfaz respire como una app moderna de primer nivel (*Linear / Craft / Notion Calendar*).
 
 #### Tareas de Implementación (Fase 2)
-- [ ] **2.1. Regla de "1 Acción Primaria + Kebab Menu":**
+- [x] **2.1. Regla de "1 Acción Primaria + Kebab Menu":**
   - Auditar `SubjectsView.tsx`, `ProfessorsView.tsx` y `ScheduleView.tsx` para asegurar que ninguna tarjeta muestre múltiples botones de acción (Editar, Borrar, Reasignar) amontonados.
   - Consolidar acciones secundarias y destructivas en `M3KebabMenu` (`src/shared/components/M3KebabMenu.tsx`).
-- [ ] **2.2. Micro-interacciones y Densidad Adaptativa:**
-  - Mejorar el feedback visual de botones y tarjetas (`active:scale-[0.98]`, transiciones suaves de 150ms, bordes sutiles de 1px con `outline-variant`).
+- [x] **2.2. Micro-interacciones y Densidad Adaptativa:**
+  - Mejorar el feedback visual de botones y tarjetas (`active:scale-[0.98]`, transiciones suaves de 150ms `ease-out`, bordes sutiles de 1px con `outline-variant`).
+  - Adaptación 100% fiel a los tokens CSS semánticos `--color-md-*`.
 
 ---
 
 ### 🧩 FASE 3: "Campus Pulse" — Bento Grid Header en el Horario
-**Estado:** `EN COLA`
+**Estado:** `EN EJECUCIÓN (LISTA PARA CLAUDE)`
 
 #### Objetivo
 Transformar el encabezado de `ScheduleView` en un centro de mando inteligente y juvenil que responda en tiempo real al contexto del estudiante.

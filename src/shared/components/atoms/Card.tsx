@@ -30,9 +30,12 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       relaxed: 'p-4.5 sm:p-6',
     };
 
-    // Estilos de interacción táctil y elevación Material Design 3
+    // Elevación al pasar el cursor y respuesta táctil al presionar. El cursor de mano solo
+    // aparece si la tarjeta entera es clicable, para no prometer una acción que no existe.
     const interactiveStyles = interactive
-      ? 'hover:shadow-[0_4px_8px_3px_rgba(0,0,0,0.08),0_1px_3px_0_rgba(0,0,0,0.15)] hover:-translate-y-0.5 active:scale-[0.99] cursor-pointer'
+      ? `hover:shadow-[0_4px_8px_3px_rgba(0,0,0,0.08),0_1px_3px_0_rgba(0,0,0,0.15)] hover:-translate-y-0.5 active:scale-[0.98] ${
+          props.onClick ? 'cursor-pointer' : ''
+        }`
       : '';
 
     // Estilo de fondo con tinte cromático sutil si se especifica color de materia, o el fondo de tarjeta del tema activo
@@ -50,7 +53,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         style={cardStyle}
-        className={`rounded-[24px] sm:rounded-[28px] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-all duration-200 relative text-[var(--color-md-on-surface)] ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
+        className={`rounded-[24px] sm:rounded-[28px] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-all duration-150 ease-out relative text-[var(--color-md-on-surface)] ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
         {...props}
       >
         {children}

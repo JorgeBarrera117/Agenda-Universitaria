@@ -227,14 +227,14 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
       {/* Lista de Contactos (Material Design 3 High-Density Cards) */}
       {filteredProfessors.length === 0 ? (
-        <Card padding="relaxed" className="text-center py-10 border-dashed border-[#C3C7D0] dark:border-[#43474E]">
-          <div className="w-10 h-10 rounded-full bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] flex items-center justify-center mx-auto mb-2.5">
+        <Card padding="relaxed" className="text-center py-10 border-dashed">
+          <div className="w-10 h-10 rounded-full bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] flex items-center justify-center mx-auto mb-2.5">
             <Users className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] mb-1">
+          <h3 className="text-sm font-bold text-[var(--color-md-on-surface)] mb-1">
             {searchQuery ? 'No se encontraron catedráticos' : 'No hay catedráticos registrados'}
           </h3>
-          <p className="text-xs text-[#43474E] dark:text-[#8C9199] mb-3 max-w-sm mx-auto">
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] mb-3 max-w-sm mx-auto">
             {searchQuery
               ? `No hay coincidencias para "${searchQuery}". Intenta con otro término.`
               : 'Registra a tus profesores para tener a mano sus contactos y horarios de asesoría.'}
@@ -242,7 +242,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           {searchQuery ? (
             <button
               onClick={() => setSearchQuery('')}
-              className="px-3.5 py-1.5 text-xs font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 rounded-full hover:bg-[#D0E4FF] transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-bold text-[var(--color-md-on-primary-container)] bg-[var(--color-md-primary-container)] rounded-full hover:bg-[var(--color-md-secondary-container)] transition-all duration-150 ease-out active:scale-[0.98] cursor-pointer"
             >
               Borrar filtro
             </button>
@@ -260,10 +260,17 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
-          {filteredProfessors.map((prof) => (
-            <div
+          {filteredProfessors.map((prof) => {
+            // Una sola acción de contacto visible: el correo si existe, si no el teléfono.
+            // El otro canal, editar y eliminar quedan en el menú ⋮.
+            const primaryContact: 'email' | 'phone' | null = prof.email ? 'email' : prof.phone ? 'phone' : null;
+
+            return (
+            <Card
               key={prof.id}
-              className="flex flex-col justify-between gap-2 p-3 sm:p-3.5 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl sm:rounded-3xl shadow-2xs hover:border-[#00639B]/40 dark:hover:border-[#92CCFF]/40 transition-all group"
+              padding="compact"
+              interactive
+              className="flex flex-col justify-between gap-2 group"
             >
               {/* Fila Superior: Avatar + Nombre + Micro-acciones de Edición/Borrado */}
               <div className="flex items-start justify-between gap-2.5">
@@ -278,7 +285,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                   />
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] leading-tight break-words group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                    <h3 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] leading-tight break-words group-hover:text-[var(--color-md-primary)] transition-colors duration-150">
                       {prof.name}
                     </h3>
 
@@ -304,40 +311,27 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                   </div>
                 </div>
 
-                {/* Menú Contextual M3 (Kebab ⋮) para Descongestión de Tarjeta */}
+                {/* Acciones secundarias y de gestión agrupadas en el menú ⋮ */}
                 <M3KebabMenu
                   items={[
-                    {
-                      id: 'edit',
-                      label: 'Editar catedrático',
-                      icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
-                      variant: 'primary',
-                      onClick: () => handleOpenEdit(prof),
-                    },
-                    ...(prof.phone
+                    ...(prof.phone && primaryContact !== 'phone'
                       ? [
                           {
                             id: 'call',
                             label: `Llamar (${prof.phone})`,
-                            icon: <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
+                            icon: <Phone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                             onClick: () => {
                               window.location.href = `tel:${prof.phone}`;
                             },
                           },
                         ]
                       : []),
-                    ...(prof.email
-                      ? [
-                          {
-                            id: 'email',
-                            label: `Correo (${prof.email})`,
-                            icon: <Mail className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
-                            onClick: () => {
-                              window.location.href = `mailto:${prof.email}`;
-                            },
-                          },
-                        ]
-                      : []),
+                    {
+                      id: 'edit',
+                      label: 'Editar catedrático',
+                      icon: <Edit2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                      onClick: () => handleOpenEdit(prof),
+                    },
                     {
                       id: 'delete',
                       label: 'Eliminar catedrático',
@@ -349,57 +343,48 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                 />
               </div>
 
-              {/* Fila Inferior: Cubículo, Asesorías y Botones de Contacto */}
-              {(prof.office || prof.notes || prof.phone || prof.email) && (
-                <div className="flex items-center justify-between flex-wrap gap-1.5 pt-1.5 border-t border-[#C3C7D0]/20 dark:border-white/5">
-                  <div className="flex items-center flex-wrap gap-1 min-w-0">
+              {/* Fila inferior: datos de solo lectura + una única acción de contacto */}
+              {(prof.office || prof.notes || primaryContact) && (
+                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-[var(--color-md-outline-variant)]">
+                  <div className="flex items-center flex-wrap gap-1 min-w-0 text-[10px] font-medium">
                     {prof.office && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#191C20] dark:text-[#E2E2E6] bg-[#E2E7EF] dark:bg-[#272A2F] px-2 py-0.5 rounded-md max-w-full">
-                        <MapPin className="w-2.5 h-2.5 text-[#BA1A1A] dark:text-[#FFB4AB] shrink-0" />
-                        <span className="truncate max-w-[150px] sm:max-w-[200px]">{prof.office}</span>
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-0.5 rounded-md max-w-full">
+                        <MapPin className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
+                        <span className="truncate max-w-[130px] sm:max-w-[180px]">{prof.office}</span>
                       </span>
                     )}
 
                     {prof.notes && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#0E2010] dark:text-[#D7E8CD] bg-[#D7E8CD] dark:bg-[#234E27] px-2 py-0.5 rounded-md max-w-full">
-                        <CalendarCheck className="w-2.5 h-2.5 text-[#386A20] dark:text-[#B1F194] shrink-0" />
-                        <span className="truncate max-w-[160px] sm:max-w-[220px]">{prof.notes}</span>
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-0.5 rounded-md max-w-full">
+                        <CalendarCheck className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
+                        <span className="truncate max-w-[130px] sm:max-w-[180px]">{prof.notes}</span>
                       </span>
                     )}
                   </div>
 
-                  {/* Acciones de Llamada y Correo en Cápsula Ergonómica */}
-                  {(prof.phone || prof.email) && (
-                    <div className="flex items-center gap-1 ml-auto shrink-0">
-                      {prof.phone && (
-                        <a
-                          href={`tel:${prof.phone}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] hover:opacity-90 transition-all active:scale-95 shadow-2xs"
-                          title={`Llamar a ${prof.name}`}
-                          aria-label="Llamar al profesor"
-                        >
-                          <Phone className="w-3 h-3 shrink-0" />
-                          <span>Llamar</span>
-                        </a>
+                  {primaryContact && (
+                    <a
+                      href={primaryContact === 'email' ? `mailto:${prof.email}` : `tel:${prof.phone}`}
+                      className="inline-flex items-center gap-1.5 h-7 px-3 ml-auto shrink-0 rounded-full text-[11px] font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
+                      aria-label={
+                        primaryContact === 'email'
+                          ? `Enviar correo a ${prof.name}`
+                          : `Llamar a ${prof.name}`
+                      }
+                    >
+                      {primaryContact === 'email' ? (
+                        <Mail className="w-3 h-3 shrink-0" aria-hidden="true" />
+                      ) : (
+                        <Phone className="w-3 h-3 shrink-0" aria-hidden="true" />
                       )}
-
-                      {prof.email && (
-                        <a
-                          href={`mailto:${prof.email}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:opacity-90 transition-all active:scale-95 shadow-2xs"
-                          title={`Enviar correo a ${prof.email}`}
-                          aria-label="Enviar correo al profesor"
-                        >
-                          <Mail className="w-3 h-3 shrink-0" />
-                          <span>Correo</span>
-                        </a>
-                      )}
-                    </div>
+                      <span>{primaryContact === 'email' ? 'Correo' : 'Llamar'}</span>
+                    </a>
                   )}
                 </div>
               )}
-            </div>
-          ))}
+            </Card>
+            );
+          })}
         </div>
       )}
 

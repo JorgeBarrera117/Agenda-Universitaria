@@ -194,14 +194,14 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
       {/* 3. CATÁLOGO DE ASIGNATURAS */}
       {subjects.length === 0 ? (
-        <Card padding="relaxed" className="text-center py-12 border-dashed border-slate-300 dark:border-slate-800">
-          <div className="w-12 h-12 rounded-2xl bg-cove-blue/10 dark:bg-cove-blue/20 text-cove-blue dark:text-cove-sky flex items-center justify-center mx-auto mb-2.5">
+        <Card padding="relaxed" className="text-center py-12 border-dashed">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] flex items-center justify-center mx-auto mb-2.5">
             <BookOpen className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
+          <h3 className="text-sm font-bold text-[var(--color-md-on-surface)] mb-1">
             No tienes asignaturas registradas
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 max-w-sm mx-auto">
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] mb-3 max-w-sm mx-auto">
             Registra tus materias del ciclo universitario para estructurar horarios y apuntes.
           </p>
           <Button
@@ -244,30 +244,23 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-black bg-[var(--color-md-on-surface)] text-[var(--color-md-surface)] tracking-wider">
                         {subject.code || 'ASIGNATURA'}
                       </span>
 
-                      <h3 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] group-hover:text-[#00639B] dark:group-hover:text-[#96CCFF] transition-colors leading-snug line-clamp-2 mt-0.5">
+                      <h3 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] group-hover:text-[var(--color-md-primary)] transition-colors duration-150 leading-snug line-clamp-2 mt-0.5">
                         {subject.name}
                       </h3>
                     </div>
                   </div>
 
-                  {/* Menú Contextual M3 (Kebab ⋮) para Descongestión de Tarjeta */}
+                  {/* Acciones de gestión agrupadas en el menú ⋮ para dejar una sola acción visible */}
                   <M3KebabMenu
                     items={[
                       {
-                        id: 'edit',
-                        label: 'Editar asignatura',
-                        icon: <Edit2 className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
-                        variant: 'primary',
-                        onClick: () => handleOpenEdit(subject),
-                      },
-                      {
                         id: 'docs',
                         label: `Archivos vinculados (${docCount})`,
-                        icon: <FolderOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />,
+                        icon: <FolderOpen className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                         onClick: () => setSelectedSubjectForDocs(subject),
                       },
                       ...(onNavigateToNotes
@@ -275,11 +268,17 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                             {
                               id: 'notes',
                               label: `Ver apuntes (${noteCount})`,
-                              icon: <BookOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
+                              icon: <BookOpen className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                               onClick: () => onNavigateToNotes(subject.id),
                             },
                           ]
                         : []),
+                      {
+                        id: 'edit',
+                        label: 'Editar asignatura',
+                        icon: <Edit2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                        onClick: () => handleOpenEdit(subject),
+                      },
                       {
                         id: 'delete',
                         label: 'Eliminar asignatura',
@@ -295,7 +294,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                 <div className="space-y-1">
                   {/* Docente Asignado */}
                   {prof && (
-                    <div className="flex items-center gap-1.5 p-1 px-2 rounded-lg bg-[#E2E7EF]/50 dark:bg-[#272A2F]/50 text-[#191C20] dark:text-[#E2E2E6] text-[10.5px]">
+                    <div className="flex items-center gap-1.5 p-1 px-2 rounded-lg bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)] text-[10.5px]">
                       <ProfessorAvatar
                         name={prof.name}
                         icon={prof.icon}
@@ -313,14 +312,14 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                   {(subject.classroomDefault || (subject.credits !== undefined && subject.credits > 0)) && (
                     <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
                       {subject.classroomDefault && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#E2E7EF]/60 dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF] font-medium truncate max-w-[150px]">
-                          <MapPin className="w-3 h-3 text-[#00639B] dark:text-[#96CCFF] shrink-0" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] font-medium truncate max-w-[150px]">
+                          <MapPin className="w-3 h-3 text-[var(--color-md-primary)] shrink-0" />
                           <span className="truncate">{subject.classroomDefault}</span>
                         </span>
                       )}
                       {subject.credits !== undefined && subject.credits > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FFDCC1] dark:bg-[#683D00] text-[#2E1500] dark:text-[#FFDCC1] font-bold">
-                          <Award className="w-3 h-3 text-[#8F4E00] dark:text-[#FFB77C] shrink-0" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] font-bold">
+                          <Award className="w-3 h-3 shrink-0" />
                           <span>{subject.credits} cr.</span>
                         </span>
                       )}
@@ -328,71 +327,48 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                   )}
                 </div>
 
-                {/* 3. Pie de Tarjeta: Métricas y Acción Primaria en Thumb Zone */}
-                <div className="pt-1.5 border-t border-[#C2C7CE]/30 dark:border-white/5 flex items-center justify-between gap-1.5 text-xs">
-                  <div className="flex items-center gap-1.5 text-[10.5px]">
-                    <span
-                      className="flex items-center gap-0.5 text-slate-500 dark:text-slate-400 font-medium"
-                      title={`${classCount} clases semanales`}
+                {/* 3. Pie: métricas de solo lectura + una única acción primaria en la zona del pulgar */}
+                <div className="pt-1.5 border-t border-[var(--color-md-outline-variant)] flex items-center justify-between gap-1.5 text-xs">
+                  <dl className="flex items-center gap-2.5 text-[10.5px] font-semibold text-[var(--color-md-on-surface-variant)]">
+                    <div className="flex items-center gap-0.5" title={`${classCount} clases semanales`}>
+                      <dt className="sr-only">Clases semanales</dt>
+                      <Clock className="w-3 h-3" aria-hidden="true" />
+                      <dd>{classCount}</dd>
+                    </div>
+                    <div className="flex items-center gap-0.5" title={`${docCount} archivos vinculados`}>
+                      <dt className="sr-only">Archivos vinculados</dt>
+                      <FolderOpen className="w-3 h-3" aria-hidden="true" />
+                      <dd>{docCount}</dd>
+                    </div>
+                    <div className="flex items-center gap-0.5" title={`${noteCount} apuntes`}>
+                      <dt className="sr-only">Apuntes</dt>
+                      <FileText className="w-3 h-3" aria-hidden="true" />
+                      <dd>{noteCount}</dd>
+                    </div>
+                  </dl>
+
+                  {onNavigateToNotes ? (
+                    <Button
+                      variant="primary"
+                      size="xs"
+                      onClick={() => onNavigateToNotes(subject.id)}
+                      aria-label={`Tomar apunte de ${subject.name}`}
+                      icon={<BookPlus className="w-3 h-3 stroke-[2.2]" />}
+                      className="shrink-0 ml-auto text-[11px] py-1 px-3 h-7 whitespace-nowrap"
                     >
-                      <Clock className="w-3 h-3 text-[#00639B] dark:text-[#96CCFF]" />
-                      <span>{classCount}</span>
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedSubjectForDocs(subject);
-                      }}
-                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer font-bold text-[10px]"
-                      title="Ver archivos vinculados"
+                      Tomar apunte
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="xs"
+                      onClick={() => setSelectedSubjectForDocs(subject)}
+                      icon={<FolderOpen className="w-3 h-3 stroke-[2.2]" />}
+                      className="shrink-0 ml-auto text-[11px] py-1 px-3 h-7 whitespace-nowrap"
                     >
-                      <FolderOpen className="w-2.5 h-2.5" />
-                      <span>{docCount}</span>
-                    </button>
-
-                    {onNavigateToNotes && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onNavigateToNotes(subject.id);
-                        }}
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] transition-colors cursor-pointer font-bold text-[10px]"
-                        title="Ver apuntes registrados"
-                      >
-                        <FileText className="w-2.5 h-2.5" />
-                        <span>{noteCount}</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1 shrink-0 ml-auto">
-                    {onNavigateToNotes ? (
-                      <Button
-                        variant="action-indigo"
-                        size="xs"
-                        onClick={() => onNavigateToNotes(subject.id)}
-                        title="Ver apuntes de la materia"
-                        aria-label="Ver apuntes"
-                        icon={<BookOpen className="w-3 h-3 stroke-[2.2]" />}
-                        className="text-[11px] py-1 px-3 h-7 font-bold whitespace-nowrap shadow-2xs"
-                      >
-                        Ver apuntes
-                      </Button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSubjectForDocs(subject)}
-                        className="px-3 py-1 rounded-full text-[11px] font-bold text-[#00639B] dark:text-[#92CCFF] bg-[#D0E4FF]/60 dark:bg-[#004B76]/50 hover:bg-[#D0E4FF] dark:hover:bg-[#004B76] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
-                        title="Archivos de esta asignatura"
-                      >
-                        <FolderOpen className="w-3 h-3 stroke-[2.2]" />
-                        <span>Archivos</span>
-                      </button>
-                    )}
-                  </div>
+                      Archivos
+                    </Button>
+                  )}
                 </div>
               </Card>
             );

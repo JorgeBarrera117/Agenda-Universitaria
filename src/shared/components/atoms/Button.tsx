@@ -41,30 +41,30 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isHidden = className.includes('hidden');
     const baseStyles = `${
       isHidden ? '' : 'inline-flex'
-    } items-center justify-center font-bold transition-all duration-200 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cove-sky/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed`;
+    } items-center justify-center font-bold transition-all duration-150 ease-out active:scale-[0.98] select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cove-sky/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed`;
 
     // 2. Variantes visuales semánticas Material Design 3 (Adaptativas a la paleta Material You activa)
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:shadow-sm hover:bg-[var(--color-md-primary-hover)] active:scale-95 shadow-xs',
+        'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:shadow-sm hover:bg-[var(--color-md-primary-hover)] shadow-xs',
       secondary:
-        'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:bg-[var(--color-md-secondary-container)] active:scale-95 shadow-2xs',
+        'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:bg-[var(--color-md-secondary-container)] shadow-2xs',
       outline:
-        'border-2 border-[var(--color-md-outline)] text-[var(--color-md-primary)] bg-transparent hover:bg-[var(--color-md-primary-container)]/30 active:scale-95',
+        'border-2 border-[var(--color-md-outline)] text-[var(--color-md-primary)] bg-transparent hover:bg-[var(--color-md-primary-container)]/30',
       ghost:
-        'bg-transparent text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)]/30 active:scale-95',
+        'bg-transparent text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)]/30',
       danger:
-        'bg-[#BA1A1A] dark:bg-[#FFB4AB] text-white dark:text-[#690005] hover:bg-[#93000A] dark:hover:bg-[#FFDAD6] active:scale-95 shadow-xs',
+        'bg-[#BA1A1A] dark:bg-[#FFB4AB] text-white dark:text-[#690005] hover:bg-[#93000A] dark:hover:bg-[#FFDAD6] shadow-xs',
       success:
-        'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] active:scale-95 shadow-xs',
+        'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs',
       'action-blue':
-        'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:bg-[var(--color-md-secondary-container)] active:scale-90 transition-all shadow-2xs',
+        'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:bg-[var(--color-md-secondary-container)] shadow-2xs',
       'action-emerald':
-        'bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] hover:bg-[#A6E6B8] dark:hover:bg-[#0E6838] active:scale-90 transition-all shadow-2xs',
+        'bg-[#C4EED0] dark:bg-[#0A532C] text-[#00210E] dark:text-[#C4EED0] hover:bg-[#A6E6B8] dark:hover:bg-[#0E6838] shadow-2xs',
       'action-indigo':
-        'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:bg-[var(--color-md-primary-container)] active:scale-90 transition-all shadow-2xs',
+        'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:bg-[var(--color-md-primary-container)] shadow-2xs',
       'action-rose':
-        'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:bg-[#FFB4AB] dark:hover:bg-[#BA1A1A] active:scale-90 transition-all shadow-2xs',
+        'bg-[#FFDAD6] dark:bg-[#93000A] text-[#410002] dark:text-[#FFDAD6] hover:bg-[#FFB4AB] dark:hover:bg-[#BA1A1A] shadow-2xs',
     };
 
     // 3. Tamaños calibrados Material Design 3 con Accesibilidad Visual (WCAG 2.1 AAA en Desktop)
