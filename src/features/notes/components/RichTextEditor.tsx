@@ -1,9 +1,13 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
   List,
   ListOrdered,
   Quote,
@@ -21,10 +25,19 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
-  actionsSlot?: React.ReactNode;
+  /** Texto discreto en el pie de la barra (p. ej. contador de palabras). */
+  statusSlot?: React.ReactNode;
   onEditorReady?: (editor: Editor) => void;
-  onTriggerCameraReady?: (fn: () => void) => void;
-  onTriggerGalleryReady?: (fn: () => void) => void;
+  onImageError?: (message: string) => void;
+}
+
+interface ToolbarAction {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  run: () => void;
+  isActive?: boolean;
+  disabled?: boolean;
 }
 
 // Convertir Blob a DataURL para inserción directa en el documento
@@ -37,14 +50,38 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & { onClick: () => void };
+
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled }) => {
+  const isToggle = isActive !== undefined;
+  return (
+    <button
+      type="button"
+      // Evita que el botón robe el foco: la selección y el teclado del móvil se mantienen
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      aria-pressed={isToggle ? isActive : undefined}
+      title={label}
+      className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl transition-all duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${
+        isActive
+          ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
+          : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
+      }`}
+    >
+      <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+    </button>
+  );
+};
+
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   content,
   onChange,
-  placeholder = 'Comienza a redactar tu apunte aquí...',
-  actionsSlot,
+  placeholder = 'Comienza a redactar tu apunte aquí…',
+  statusSlot,
   onEditorReady,
-  onTriggerCameraReady,
-  onTriggerGalleryReady,
+  onImageError,
 }) => {
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
@@ -52,24 +89,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
+    // Re-render en cada transacción para que los estados activos de la barra sigan al cursor
+    shouldRerenderOnTransaction: true,
     extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2],
-        },
-      }),
+      StarterKit.configure({ heading: { levels: [1, 2] } }),
       Image.configure({
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class:
-            'rounded-2xl max-w-full my-3 shadow-md border border-slate-200 block mx-auto cursor-zoom-in hover:ring-2 hover:ring-[#00639B]/50 transition-all active:scale-[0.99]',
+          class: 'rounded-2xl max-w-full my-3 block mx-auto cursor-zoom-in transition-shadow duration-150',
           title: 'Toca para ampliar y hacer zoom',
         },
       }),
-      Placeholder.configure({
-        placeholder,
-      }),
+      Placeholder.configure({ placeholder }),
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -78,17 +110,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-sm sm:text-base leading-relaxed prose dark:prose-invert max-w-none pb-20',
+          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-[15px] sm:text-base leading-relaxed max-w-none pb-24',
+        'aria-label': 'Contenido del apunte',
       },
       handleDOMEvents: {
         click: (_view, event) => {
           const target = event.target as HTMLElement;
           if (target && target.tagName === 'IMG') {
             const img = target as HTMLImageElement;
-            setZoomedImage({
-              src: img.src,
-              alt: img.alt || 'Foto del apunte',
-            });
+            setZoomedImage({ src: img.src, alt: img.alt || 'Foto del apunte' });
             return true;
           }
           return false;
@@ -98,19 +128,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   });
 
   useEffect(() => {
-    if (editor && onEditorReady) {
-      onEditorReady(editor);
-    }
+    if (editor && onEditorReady) onEditorReady(editor);
   }, [editor, onEditorReady]);
 
-  useEffect(() => {
-    onTriggerCameraReady?.(() => cameraInputRef.current?.click());
-    onTriggerGalleryReady?.(() => galleryInputRef.current?.click());
-  }, [onTriggerCameraReady, onTriggerGalleryReady]);
+  const openCamera = useCallback(() => cameraInputRef.current?.click(), []);
+  const openGallery = useCallback(() => galleryInputRef.current?.click(), []);
 
   if (!editor) return null;
 
-  // Insertar imagen comprimida exactamente en el cursor
+  // Inserta la imagen comprimida exactamente en la posición del cursor
   const handleImageInsert = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -119,247 +145,110 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       setIsProcessingImage(true);
       const { blob } = await compressImage(file);
       const dataUrl = await blobToDataUrl(blob);
-
       editor.chain().focus().setImage({ src: dataUrl, alt: file.name }).run();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error al insertar la imagen.');
+      onImageError?.(err instanceof Error ? err.message : 'No se pudo insertar la imagen.');
     } finally {
       setIsProcessingImage(false);
       if (e.target) e.target.value = '';
     }
   };
 
-  return (
-    <div className="relative w-full flex-1 flex flex-col">
-      {/* Inputs ocultos para Cámara directa y Galería */}
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleImageInsert}
-        className="hidden"
-      />
-      <input
-        ref={galleryInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleImageInsert}
-        className="hidden"
-      />
+  const chain = () => editor.chain().focus();
 
-      {/* Espacio dedicado al lienzo editable */}
+  const toolbarGroups: { label: string; actions: ToolbarAction[] }[] = [
+    {
+      label: 'Estilo de texto',
+      actions: [
+        { id: 'bold', label: 'Negrita (Ctrl+B)', icon: Bold, run: () => chain().toggleBold().run(), isActive: editor.isActive('bold') },
+        { id: 'italic', label: 'Cursiva (Ctrl+I)', icon: Italic, run: () => chain().toggleItalic().run(), isActive: editor.isActive('italic') },
+        { id: 'underline', label: 'Subrayado (Ctrl+U)', icon: Underline, run: () => chain().toggleUnderline().run(), isActive: editor.isActive('underline') },
+        { id: 'strike', label: 'Tachado', icon: Strikethrough, run: () => chain().toggleStrike().run(), isActive: editor.isActive('strike') },
+      ],
+    },
+    {
+      label: 'Encabezados',
+      actions: [
+        { id: 'h1', label: 'Título (H1)', icon: Heading1, run: () => chain().toggleHeading({ level: 1 }).run(), isActive: editor.isActive('heading', { level: 1 }) },
+        { id: 'h2', label: 'Subtítulo (H2)', icon: Heading2, run: () => chain().toggleHeading({ level: 2 }).run(), isActive: editor.isActive('heading', { level: 2 }) },
+      ],
+    },
+    {
+      label: 'Listas y citas',
+      actions: [
+        { id: 'bullet', label: 'Lista con viñetas', icon: List, run: () => chain().toggleBulletList().run(), isActive: editor.isActive('bulletList') },
+        { id: 'ordered', label: 'Lista numerada', icon: ListOrdered, run: () => chain().toggleOrderedList().run(), isActive: editor.isActive('orderedList') },
+        { id: 'quote', label: 'Cita destacada', icon: Quote, run: () => chain().toggleBlockquote().run(), isActive: editor.isActive('blockquote') },
+      ],
+    },
+    {
+      label: 'Insertar',
+      actions: [
+        { id: 'divider', label: 'Línea divisoria', icon: Minus, run: () => chain().setHorizontalRule().run() },
+      ],
+    },
+  ];
+
+  return (
+    <div className="relative flex w-full flex-1 flex-col">
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleImageInsert} className="hidden" />
+      <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleImageInsert} className="hidden" />
+
       <div
         onClick={() => {
-          if (!editor.isFocused) {
-            editor.chain().focus().run();
-          }
+          if (!editor.isFocused) editor.chain().focus().run();
         }}
-        className="flex-1 w-full flex flex-col cursor-text"
+        className="flex w-full flex-1 cursor-text flex-col"
       >
         <EditorContent
           editor={editor}
-          className="flex-1 w-full flex flex-col [&>.ProseMirror]:flex-1 [&>.ProseMirror]:w-full"
+          className="flex w-full flex-1 flex-col [&>.ProseMirror]:w-full [&>.ProseMirror]:flex-1"
         />
       </div>
 
-      {/* Barra de Herramientas Inferior Compacta Material Design 3 */}
+      {/* Barra de formato inferior, en la zona del pulgar */}
       <div
         style={{
           paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
         }}
-        className="fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-md-surface-container)] border-t border-[var(--color-md-outline-variant)] shadow-lg sm:px-6 py-1.5 pb-[max(0.35rem,env(safe-area-inset-bottom))]"
+        className="fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl sm:px-6"
       >
-        <div className="w-full flex items-center justify-between md:justify-start md:gap-1.5 overflow-x-auto scrollbar-none py-0.5">
-          {/* Bloque Formato Tipográfico: B, I, U, S */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            {/* Bold */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('bold')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs font-black'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Negrita (Ctrl+B)"
-            >
-              <span className="font-black text-xs sm:text-sm">B</span>
-            </button>
+        <div
+          role="toolbar"
+          aria-label="Formato del apunte"
+          className="mx-auto flex max-w-3xl items-center gap-1.5 overflow-x-auto py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {toolbarGroups.map((group, index) => (
+            <React.Fragment key={group.label}>
+              {index > 0 && <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />}
+              <div role="group" aria-label={group.label} className="flex shrink-0 items-center gap-1.5">
+                {group.label === 'Insertar' && (
+                  <>
+                    <ToolbarButton label="Tomar foto con la cámara" icon={Camera} onClick={openCamera} disabled={isProcessingImage} />
+                    <ToolbarButton label="Imagen de la galería" icon={ImageIcon} onClick={openGallery} disabled={isProcessingImage} />
+                  </>
+                )}
+                {group.actions.map(({ id, run, ...action }) => (
+                  <ToolbarButton key={id} {...action} onClick={run} />
+                ))}
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
 
-            {/* Italic */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('italic')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Cursiva (Ctrl+I)"
-            >
-              <span className="italic font-serif font-black text-xs sm:text-sm">I</span>
-            </button>
-
-            {/* Underline */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('underline')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Subrayado (Ctrl+U)"
-            >
-              <span className="underline font-black text-xs sm:text-sm underline-offset-2">U</span>
-            </button>
-
-            {/* Strikethrough */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('strike')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Tachado"
-            >
-              <span className="line-through font-bold text-xs sm:text-sm">S</span>
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
-
-          {/* Bloque Encabezados: H1, H2 */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('heading', { level: 1 })
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Título Grande (H1)"
-            >
-              <Heading1 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('heading', { level: 2 })
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Subtítulo (H2)"
-            >
-              <Heading2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
-
-          {/* Bloque Listas y Bloques */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('bulletList')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Lista con viñetas"
-            >
-              <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('orderedList')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Lista numerada"
-            >
-              <ListOrdered className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all active:scale-90 ${
-                editor.isActive('blockquote')
-                  ? 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
-              title="Cita destacada"
-            >
-              <Quote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              className="w-7.5 h-7.5 sm:w-8 sm:h-8 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg cursor-pointer transition-all active:scale-90"
-              title="Línea divisoria"
-            >
-              <Minus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-0.5 shrink-0" />
-
-          {/* Bloque Multimedia: Cámara y Galería */}
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              disabled={isProcessingImage}
-              onClick={() => cameraInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-[#00639B]/10 hover:bg-[#00639B]/20 text-[#00639B] dark:text-[#92CCFF] text-[11px] font-bold rounded-lg border border-[#00639B]/30 transition-all active:scale-95 cursor-pointer"
-              title="Tomar foto con la cámara"
-            >
-              <Camera className="w-3 h-3" />
-              <span className="hidden sm:inline">Cámara</span>
-            </button>
-
-            <button
-              type="button"
-              disabled={isProcessingImage}
-              onClick={() => galleryInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
-              title="Insertar imagen de la galería"
-            >
-              <ImageIcon className="w-3 h-3 text-emerald-500" />
-              <span className="hidden sm:inline">Galería</span>
-            </button>
-
-            {isProcessingImage && (
-              <span className="flex items-center gap-1 text-[10px] text-[#00639B] dark:text-[#92CCFF] font-medium ml-1">
-                <Loader2 className="w-3 h-3 animate-spin" />
-              </span>
-            )}
-          </div>
-
-          {actionsSlot && <div className="shrink-0">{actionsSlot}</div>}
+        <div className="mx-auto flex max-w-3xl items-center justify-end gap-2 px-1 pt-0.5 text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">
+          {isProcessingImage && (
+            <span className="inline-flex items-center gap-1" role="status">
+              <Loader2 className="h-3 w-3 animate-spin text-[var(--color-md-primary)]" aria-hidden="true" />
+              Procesando imagen…
+            </span>
+          )}
+          {statusSlot}
         </div>
       </div>
 
-      {/* Visor Interactivo con Zoom */}
-      {zoomedImage && (
-        <ImageZoomModal
-          src={zoomedImage.src}
-          alt={zoomedImage.alt}
-          onClose={() => setZoomedImage(null)}
-        />
-      )}
+      {zoomedImage && <ImageZoomModal src={zoomedImage.src} alt={zoomedImage.alt} onClose={() => setZoomedImage(null)} />}
     </div>
   );
 };

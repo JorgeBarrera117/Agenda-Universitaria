@@ -1,24 +1,13 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import {
-  Check,
-  ArrowLeft,
-  Undo2,
-  Redo2,
-  Plus,
-  MoreVertical,
-  Camera,
-  Image as ImageIcon,
-  Minus,
-  Quote,
-  Hash,
-  ChevronDown,
-} from 'lucide-react';
+import { Check, ArrowLeft, Undo2, Redo2, X, Loader2, AlertTriangle } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { RichTextEditor } from './RichTextEditor';
 import { Modal } from '../../../shared/components/Modal';
+import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
+import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import type { Editor } from '@tiptap/react';
 import type { Note, CreateNoteDTO } from '../types';
 
@@ -28,11 +17,15 @@ interface NoteEditorProps {
   onCancel: () => void;
 }
 
-export const NoteEditor: React.FC<NoteEditorProps> = ({
-  initialData,
-  onSubmit,
-  onCancel,
-}) => {
+const headerIconButton =
+  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--color-md-on-surface)] transition-all duration-150 ease-out hover:bg-[var(--color-md-surface-container-high)] active:scale-95 disabled:pointer-events-none disabled:opacity-35';
+
+/** Normaliza una etiqueta escrita a mano: sin "#", sin espacios extremos y en minúsculas. */
+function normalizeTag(raw: string): string {
+  return raw.replace(/^#+/, '').trim().toLowerCase();
+}
+
+export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, onCancel }) => {
   const { subjects } = useSubjects();
 
   const [title, setTitle] = useState(initialData?.title || '');
@@ -44,39 +37,26 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   }
 
   const [content, setContent] = useState(initialData?.content || '');
-  const [tagInput, setTagInput] = useState(initialData?.tags.join(', ') || '');
+  const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
+  const [tagDraft, setTagDraft] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
-  // Instancia de TipTap capturada para los botones del encabezado
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
-
-  // Menús desplegables
-  const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
-  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-
-  // Disparadores de cámara y galería (usamos refs para desacoplarlos del ciclo de renders y erradicar bucles infinitos)
-  const triggerCameraRef = useRef<(() => void) | null>(null);
-  const triggerGalleryRef = useRef<(() => void) | null>(null);
-
-  const handleTriggerCameraReady = useCallback((fn: () => void) => {
-    triggerCameraRef.current = fn;
-  }, []);
-
-  const handleTriggerGalleryReady = useCallback((fn: () => void) => {
-    triggerGalleryRef.current = fn;
-  }, []);
+  const tagInputRef = useRef<HTMLInputElement>(null);
 
   const handleEditorReady = useCallback((editor: Editor) => {
     setEditorInstance(editor);
   }, []);
 
-  const selectedSubject = useMemo(
-    () => subjects.find((s) => s.id === subjectId),
-    [subjects, subjectId]
-  );
+  // Ajusta la altura del título a su contenido (también al montarse, vía callback ref)
+  const autoSizeTitle = useCallback((el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
 
-  // Opciones de Asignaturas formateadas para M3Select
   const subjectOptions: M3SelectOption[] = useMemo(
     () =>
       subjects.map((s) => ({
@@ -89,350 +69,289 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
     [subjects]
   );
 
-  // Estadísticas del documento memoizadas
+  // Conteo sobre el texto real del documento (sin etiquetas HTML ni entidades)
   const stats = useMemo(() => {
-    const rawText = content.replace(/<[^>]*>/g, ' ').trim();
-    const words = rawText ? rawText.split(/\s+/).filter(Boolean).length : 0;
-    const chars = content.replace(/<[^>]*>/g, '').length;
-    return { words, chars };
-  }, [content]);
+    const text = (editorInstance ? editorInstance.getText() : content.replace(/<[^>]*>/g, ' ')).trim();
+    return {
+      words: text ? text.split(/\s+/).filter(Boolean).length : 0,
+      chars: text.replace(/\s+/g, ' ').length,
+    };
+  }, [content, editorInstance]);
 
-  const handleSave = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const isDirty =
+    title !== (initialData?.title || '') ||
+    subjectId !== (initialData?.subjectId || '') ||
+    content !== (initialData?.content || '') ||
+    tagDraft.trim() !== '' ||
+    tags.join('|') !== (initialData?.tags ?? []).join('|');
+
+  // Salir: si hay cambios sin guardar se pide confirmación (también con el botón físico Atrás)
+  const handleBack = () => {
+    if (showDiscardModal) {
+      setShowDiscardModal(false);
+    } else if (isDirty) {
+      setShowDiscardModal(true);
+    } else {
+      onCancel();
+    }
+  };
+
+  useBackButton(() => {
+    handleBack();
+    return true;
+  }, BACK_PRIORITY.MODAL, true);
+
+  const commitTags = (raw: string): string[] => {
+    const incoming = raw.split(',').map(normalizeTag).filter(Boolean);
+    if (incoming.length === 0) return tags;
+    const merged = [...tags];
+    for (const tag of incoming) if (!merged.includes(tag)) merged.push(tag);
+    setTags(merged);
+    setTagDraft('');
+    return merged;
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitTags(tagDraft);
+    } else if (e.key === 'Backspace' && tagDraft === '' && tags.length > 0) {
+      setTags(tags.slice(0, -1));
+    }
+  };
+
+  const handleSave = async () => {
     if (!title.trim()) {
       setError('Escribe un título para tu apunte.');
       return;
     }
     if (!subjectId) {
-      setError('Debes elegir una asignatura para clasificar este apunte.');
-      setIsOptionsModalOpen(true);
+      setError('Elige la materia de este apunte.');
       return;
     }
 
-    const cleanTags = tagInput
-      .split(',')
-      .map((t) => t.trim().toLowerCase())
-      .filter((t) => t.length > 0);
+    const finalTags = commitTags(tagDraft);
 
     try {
       setIsSubmitting(true);
       setError(null);
-      await onSubmit({
-        title: title.trim(),
-        subjectId,
-        content,
-        tags: cleanTags,
-      });
+      await onSubmit({ title: title.trim(), subjectId, content, tags: finalTags });
     } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-      else setError('Error al guardar el apunte');
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el apunte.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const [createdLabel] = useState(() =>
+    (initialData ? new Date(initialData.createdAt) : new Date()).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+    })
+  );
+
   return (
-    <div className="relative w-full min-h-[100dvh] flex-1 bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface)] flex flex-col">
-      {/* 1. Barra Superior Compacta Estilo Google Docs / Material Design 3 */}
+    <div className="relative flex min-h-[100dvh] w-full flex-1 flex-col bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)]">
+      {/* Cabecera: volver · documento y estado · deshacer, rehacer y guardar */}
       <header
         style={{
-          paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+          paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
         }}
-        className="sticky top-0 shrink-0 w-full z-40 bg-[var(--color-md-surface-container)] border-b border-[var(--color-md-outline-variant)] sm:px-6 py-2 flex items-center justify-between shadow-2xs"
+        className="sticky top-0 z-40 flex w-full shrink-0 items-center gap-1 border-b border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface)]/95 py-2 backdrop-blur-xl sm:gap-2 sm:px-6"
       >
-        {/* Lado Izquierdo: Botón Checkmark y Volver */}
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSubmitting || subjects.length === 0}
-            aria-label="Guardar apunte y finalizar"
-            title="Guardar apunte (✓)"
-            className="w-9 h-9 rounded-full bg-[#D0E4FF] text-[#001D32] dark:bg-[#004B76] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-90 flex items-center justify-center transition-all cursor-pointer ring-1 ring-[#00639B]/30 shadow-2xs disabled:opacity-40 shrink-0"
-          >
-            <Check className="w-4.5 h-4.5 stroke-[2.8]" />
-          </button>
+        <button type="button" onClick={handleBack} aria-label="Volver" className={headerIconButton}>
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        </button>
 
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Volver sin guardar"
-            title="Volver"
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-white flex items-center justify-center active:scale-90 transition-all cursor-pointer shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+        <div className="min-w-0 flex-1 px-1">
+          <p className="truncate text-sm font-bold leading-tight">
+            {title.trim() || (initialData ? 'Documento sin título' : 'Nuevo apunte')}
+          </p>
+          <p className="truncate text-[11px] font-medium text-[var(--color-md-on-surface-variant)]" aria-live="polite">
+            {isSubmitting ? 'Guardando…' : isDirty ? 'Cambios sin guardar' : 'Sin cambios'}
+          </p>
         </div>
 
-        {/* Centro: Indicador discreto del documento */}
-        <div className="text-center min-w-0 px-2 flex-1">
-          <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 truncate block">
-            {isSubmitting
-              ? 'Guardando...'
-              : title || 'Documento sin título'}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={() => editorInstance?.chain().focus().undo().run()}
+          disabled={!editorInstance || !editorInstance.can().undo()}
+          aria-label="Deshacer"
+          title="Deshacer (Ctrl+Z)"
+          className={headerIconButton}
+        >
+          <Undo2 className="h-[18px] w-[18px]" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editorInstance?.chain().focus().redo().run()}
+          disabled={!editorInstance || !editorInstance.can().redo()}
+          aria-label="Rehacer"
+          title="Rehacer (Ctrl+Y)"
+          className={headerIconButton}
+        >
+          <Redo2 className="h-[18px] w-[18px]" aria-hidden="true" />
+        </button>
 
-        {/* Lado Derecho: Deshacer, Rehacer, Insertar (+), y Menú Tres Puntos (⋮) */}
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => editorInstance?.chain().focus().undo().run()}
-            disabled={!editorInstance || !editorInstance.can().undo()}
-            title="Deshacer (Ctrl+Z)"
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white disabled:opacity-30 flex items-center justify-center active:scale-90 transition-all cursor-pointer"
-          >
-            <Undo2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => editorInstance?.chain().focus().redo().run()}
-            disabled={!editorInstance || !editorInstance.can().redo()}
-            title="Rehacer (Ctrl+Y)"
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white disabled:opacity-30 flex items-center justify-center active:scale-90 transition-all cursor-pointer"
-          >
-            <Redo2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
-
-          {/* Insertar (+) */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsInsertMenuOpen(!isInsertMenuOpen)}
-              title="Insertar elemento"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white flex items-center justify-center active:scale-90 transition-all cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
-            </button>
-
-            {/* Menú flotante de inserción */}
-            {isInsertMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsInsertMenuOpen(false)}
-                />
-                <div className="absolute right-0 top-9 w-52 bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 rounded-xl shadow-lg p-1 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsInsertMenuOpen(false);
-                      triggerCameraRef.current?.();
-                    }}
-                    className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                  >
-                    <Camera className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />
-                    <span>Tomar foto de cátedra</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsInsertMenuOpen(false);
-                      triggerGalleryRef.current?.();
-                    }}
-                    className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Imagen de galería</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsInsertMenuOpen(false);
-                      editorInstance?.chain().focus().setHorizontalRule().run();
-                    }}
-                    className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                  >
-                    <Minus className="w-3.5 h-3.5 text-[#72777F] dark:text-[#8C9199]" />
-                    <span>Línea divisoria</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsInsertMenuOpen(false);
-                      editorInstance?.chain().focus().toggleBlockquote().run();
-                    }}
-                    className="w-full px-3 py-2 text-xs font-bold text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F] rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-                  >
-                    <Quote className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Cita destacada</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Menú de Opciones (⋮) */}
-          <button
-            type="button"
-            onClick={() => setIsOptionsModalOpen(true)}
-            title="Opciones del apunte"
-            aria-label="Más opciones"
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white flex items-center justify-center active:scale-90 transition-all cursor-pointer"
-          >
-            <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          disabled={isSubmitting || subjects.length === 0}
+          className="ml-1 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-4 text-sm font-bold text-[var(--color-md-on-primary)] shadow-xs transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Check className="h-4 w-4 stroke-[2.8]" aria-hidden="true" />
+          )}
+          <span>Guardar</span>
+        </button>
       </header>
 
-      {/* Aviso Contextual */}
-      <ContextualToast
-        message={error}
-        variant="error"
-        bottomOffset="nav"
-        onClose={() => setError(null)}
-      />
+      <ContextualToast message={error} variant="error" bottomOffset="nav" onClose={() => setError(null)} />
 
-      {/* 2. Lienzo de Edición Abierto */}
+      {/* Lienzo: título y metadatos en línea, después el documento */}
       <div
         style={{
-          paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
         }}
-        className="flex-1 w-full sm:px-6 lg:px-10 pt-3 pb-16 flex flex-col"
+        className="mx-auto flex w-full max-w-3xl flex-1 flex-col pb-28 pt-4 sm:px-6"
       >
-        {/* Título integrado directamente en el lienzo */}
-        <input
-          type="text"
+        <label htmlFor="note-title" className="sr-only">
+          Título del apunte
+        </label>
+        {/* Textarea de una línea que crece: los títulos largos se ajustan en vez de cortarse */}
+        <textarea
+          id="note-title"
+          ref={autoSizeTitle}
+          rows={1}
           value={title}
           onChange={(e) => {
-            setTitle(e.target.value);
+            setTitle(e.target.value.replace(/\n/g, ' '));
             setError(null);
+            autoSizeTitle(e.target);
           }}
-          placeholder="Documento sin título..."
-          className="w-full text-xl sm:text-3xl font-black text-[var(--color-md-on-surface)] placeholder:text-[var(--color-md-on-surface-variant)] placeholder:opacity-50 border-none outline-none focus:ring-0 p-0 tracking-tight leading-tight bg-transparent mb-1.5 shrink-0"
-          required
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              editorInstance?.chain().focus('start').run();
+            }
+          }}
+          placeholder="Título del apunte"
+          autoFocus={!initialData}
+          enterKeyHint="next"
+          className="mb-3 w-full shrink-0 resize-none overflow-hidden border-none bg-transparent p-0 text-2xl font-black leading-tight tracking-tight text-[var(--color-md-on-surface)] outline-none placeholder:text-[var(--color-md-on-surface-variant)] placeholder:opacity-50 focus:ring-0 sm:text-3xl"
         />
 
-        {/* Píldora interactiva de asignatura y metadatos */}
-        <div className="flex items-center flex-wrap gap-1.5 mb-2.5 select-none shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsOptionsModalOpen(true)}
-            className={
-              selectedSubject
-                ? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow-2xs hover:opacity-90 active:scale-95 transition-all cursor-pointer'
-                : 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all cursor-pointer shadow-2xs'
-            }
-            style={{ backgroundColor: selectedSubject ? selectedSubject.color : undefined }}
-            title="Tocar para asignar o cambiar asignatura"
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                selectedSubject ? 'bg-white animate-pulse' : 'bg-amber-500'
-              }`}
-            />
-            <span>{selectedSubject?.name || 'Seleccionar materia *'}</span>
-            <ChevronDown className="w-3 h-3 opacity-80" />
-          </button>
-
-          <span className="text-[10px] sm:text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">
-            {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-          </span>
-
-          {tagInput && (
-            <span className="text-[10px] sm:text-[11px] font-medium text-[var(--color-md-on-surface-variant)] truncate max-w-[200px]">
-              • #{tagInput.split(',').map((t) => t.trim()).filter(Boolean).join(' #')}
+        <div className="mb-2 flex shrink-0 flex-wrap items-center gap-2">
+          {subjects.length === 0 ? (
+            <span className="rounded-full bg-[var(--color-md-surface-container-high)] px-3 py-1.5 text-xs font-semibold text-[var(--color-md-on-surface)]">
+              Crea una materia en la pestaña Materias para guardar apuntes
             </span>
+          ) : (
+            <M3Select
+              variant="pill"
+              value={subjectId}
+              onChange={(val) => {
+                setSubjectId(val);
+                setError(null);
+              }}
+              options={subjectOptions}
+              placeholder="Elegir materia *"
+            />
           )}
+          <span className="text-xs font-medium text-[var(--color-md-on-surface-variant)]">
+            {initialData ? `Creado el ${createdLabel}` : `Hoy, ${createdLabel}`}
+          </span>
         </div>
 
-        {/* Editor enriquecido TipTap */}
-        <div className="flex-1 w-full flex flex-col min-h-0">
+        {/* Etiquetas: píldoras editables; Enter o coma para añadir, Retroceso para quitar la última */}
+        <div
+          onClick={() => tagInputRef.current?.focus()}
+          className="mb-3 flex shrink-0 cursor-text flex-wrap items-center gap-1.5 border-b border-[var(--color-md-outline-variant)] pb-3"
+        >
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-md-secondary-container)] py-0.5 pl-2.5 pr-1 text-xs font-semibold text-[var(--color-md-on-secondary-container)]"
+            >
+              #{tag}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTags(tags.filter((t) => t !== tag));
+                }}
+                aria-label={`Quitar etiqueta ${tag}`}
+                className="flex h-5 w-5 items-center justify-center rounded-full transition-colors duration-150 hover:bg-[var(--color-md-card-bg)]"
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+              </button>
+            </span>
+          ))}
+          <label htmlFor="note-tag-input" className="sr-only">
+            Añadir etiqueta
+          </label>
+          <input
+            id="note-tag-input"
+            ref={tagInputRef}
+            type="text"
+            value={tagDraft}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.includes(',')) commitTags(value);
+              else setTagDraft(value);
+            }}
+            onKeyDown={handleTagKeyDown}
+            onBlur={() => commitTags(tagDraft)}
+            placeholder={tags.length === 0 ? '#Añadir etiqueta' : '#etiqueta'}
+            enterKeyHint="done"
+            className="min-w-[120px] flex-1 border-none bg-transparent p-0 text-xs font-medium text-[var(--color-md-on-surface)] outline-none placeholder:text-[var(--color-md-on-surface-variant)] focus:ring-0"
+          />
+        </div>
+
+        <div className="flex min-h-0 w-full flex-1 flex-col">
           <RichTextEditor
             content={content}
             onChange={setContent}
             onEditorReady={handleEditorReady}
-            onTriggerCameraReady={handleTriggerCameraReady}
-            onTriggerGalleryReady={handleTriggerGalleryReady}
-            placeholder="Comienza a redactar tu apunte aquí..."
+            onImageError={setError}
+            placeholder="Comienza a redactar tu apunte aquí…"
+            statusSlot={
+              <span aria-live="off">
+                {stats.words} {stats.words === 1 ? 'palabra' : 'palabras'} · {stats.chars}{' '}
+                {stats.chars === 1 ? 'carácter' : 'caracteres'}
+              </span>
+            }
           />
         </div>
       </div>
 
-      {/* 3. Modal de Opciones del Documento */}
-      <Modal
-        isOpen={isOptionsModalOpen}
-        onClose={() => setIsOptionsModalOpen(false)}
-        title="Opciones del Apunte"
-        maxWidth="sm"
-      >
-        <div className="space-y-3">
-          {/* Asignatura */}
-          <div>
-            <M3Select
-              label="Materia Asignada"
-              value={subjectId}
-              onChange={(newVal) => {
-                setSubjectId(newVal);
-                setError(null);
-              }}
-              options={subjectOptions}
-              placeholder="-- Selecciona una materia --"
-              required
-            />
+      <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="¿Descartar cambios?" maxWidth="sm">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]">
+            <AlertTriangle className="h-5 w-5" aria-hidden="true" />
           </div>
-
-          {/* Etiquetas */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-              Etiquetas (#Tags)
-            </label>
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#1D2024] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2">
-              <Hash className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                placeholder="resumen, parcial, formulas..."
-                className="bg-transparent text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none w-full font-medium"
-              />
-            </div>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-              Separa las palabras clave con comas.
-            </p>
-          </div>
-
-          {/* Estadísticas del Documento */}
-          <div className="p-2.5 bg-slate-50 dark:bg-[#1D2024] border border-slate-200/80 dark:border-white/5 rounded-xl space-y-1">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
-              Detalles del Documento
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <span className="text-slate-500 dark:text-slate-400">Palabras:</span>{' '}
-                <strong className="text-slate-800 dark:text-slate-200">{stats.words}</strong>
-              </div>
-              <div>
-                <span className="text-slate-500 dark:text-slate-400">Caracteres:</span>{' '}
-                <strong className="text-slate-800 dark:text-slate-200">{stats.chars}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Botones de acción del modal */}
-          <div className="flex items-center justify-between pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                setIsOptionsModalOpen(false);
-                onCancel();
-              }}
-              className="px-3 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
-            >
-              Descartar cambios
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsOptionsModalOpen(false)}
-              className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#00639B] dark:bg-[#92CCFF] dark:text-[#003353] hover:opacity-90 rounded-xl transition-colors shadow-2xs cursor-pointer"
-            >
-              Aceptar
-            </button>
-          </div>
+          <p className="text-sm text-[var(--color-md-on-surface-variant)]">
+            Tienes cambios sin guardar en este apunte. Si sales ahora, se perderán.
+          </p>
+        </div>
+        <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowDiscardModal(false);
+              onCancel();
+            }}
+          >
+            Descartar
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => setShowDiscardModal(false)}>
+            Seguir editando
+          </Button>
         </div>
       </Modal>
     </div>
