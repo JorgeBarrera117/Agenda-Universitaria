@@ -105,6 +105,45 @@ Darle al estudiante libertad creativa para que su agenda refleje su personalidad
 
 ---
 
+### 📝 FASE 5: Rediseño Ergonómico y Unificación de Formularios de Creación (UX Sheet M3)
+**Estado:** `EN EJECUCIÓN (LISTA PARA CLAUDE)`
+
+#### Objetivo
+Erradicar la fragmentación visual ("Card Soup"), las scrollbars toscas y las etiquetas en mayúsculas en los formularios de creación/edición, transformándolos en hojas continuas elegantes (*M3 Modal Sheet / Canvas*) con identidad visual integrada, tokens semánticos `--color-md-*` y ergonomía táctil óptima.
+
+#### Invariantes UX para Formularios (Reglas de Oro)
+1. **Superficie Única Continua:** Prohibido anidar tarjetas dentro de tarjetas flotando sobre el wallpaper. El formulario es una sola superficie cohesionada (`bg-[var(--md-card-surface)]` o `bg-[var(--color-md-surface-container)]`) con divisores sutiles (`border-[var(--color-md-outline-variant)]`).
+2. **Top App Bar Canónica M3:**
+   - Izquierda: Botón circular de retorno `ArrowLeft` (`w-9 h-9 rounded-full bg-[var(--color-md-surface-container-high)] active:scale-95`).
+   - Centro: Título H2 conciso (`text-base font-black`) + subtítulo contextual de una línea.
+   - Derecha: **Únicamente el botón primario de acción** (`Guardar` o `Actualizar` con `active:scale-95` y disabled mientras guarda). Prohibido duplicar botón "Cancelar" si ya existe `ArrowLeft`.
+3. **Erradicación de ALL CAPS:** Todas las etiquetas de campos deben usar *Sentence Case* limpio (`Nombre de la asignatura *`, `Código o sigla curricular`).
+4. **Hero de Identidad Visual Unificada:** Color + Ícono + Vista Previa interactiva en un solo bloque armónico superior, sin scrollbars horizontales rígidas.
+5. **Tokens Semánticos 100%:** Prohibido usar colores fijos (`#00639B`, `#FDFBFF`, etc.). Todo debe emplear `--color-md-*` y respetar los modos `oled`, `matcha`, `sunset`, `slate` y acabados de superficie (`glass`, `solid`, `bordered`).
+
+#### Tareas de Implementación (Fase 5)
+- [ ] **5.1. `SubjectForm.tsx` (Materias / Asignaturas):**
+  - Unificar en una superficie continua con Top App Bar canónica M3.
+  - Hero integrado: Avatar de la materia grande con color e ícono en vivo; paleta de colores táctiles (32-36px con selector custom integrado) y cuadrícula compacta de íconos temáticos sin scrollbar.
+  - Campos en 2 columnas para Código y Créditos.
+  - Sección de Docente Titular con `M3Select` y botón sutil `+ Nuevo`.
+- [ ] **5.2. `ScheduleSlotForm.tsx` (Horarios / Clases):**
+  - Top App Bar canónica M3.
+  - Selector de materia mediante `M3Select` con badge cromático.
+  - Selector de día en barra segmentada táctil o píldoras M3.
+  - Horario (Inicio y Fin) en 2 columnas con píldora de duración calculada en vivo (*ej. "2 h de clase"*).
+  - Segmented Button M3 para *Modalidad* (`Presencial` vs `Virtual`), con alternancia limpia de campos (Aula/Edificio vs Plataforma/Enlace).
+- [ ] **5.3. `ProfessorForm.tsx` (Profesores / Catedráticos):**
+  - Top App Bar canónica M3.
+  - Hero de Identidad con Avatar grande de profesor, paleta cromática e íconos temáticos.
+  - Bloques semánticos: *Datos Personales y Grado*, *Canales de Contacto* (Email, Teléfono, Oficina) y *Cátedras Asignadas* (multiselect de chips con color de materia).
+- [ ] **5.4. `DocumentLinkForm.tsx` (Documentos / Archivos):**
+  - Selector segmentado M3 (*Archivo Local* vs *Enlace Web*).
+  - Dropzone moderno con drag & drop, indicador de tamaño y formato visual.
+  - Selección de Asignatura mediante `M3Select`.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
