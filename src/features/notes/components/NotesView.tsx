@@ -36,6 +36,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card } from '../../../shared/components/atoms';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
+import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 
 interface NotesViewProps {
@@ -108,6 +109,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
     addImage: addImageToReadingNote,
     removeImage: removeImageFromReadingNote,
   } = useNoteImages(readingNote?.id);
+
+  const readingNoteHtml = useMemo(
+    () => (readingNote ? sanitizeNoteHtml(readingNote.content) : ''),
+    [readingNote]
+  );
 
   const [isUploadingInReader, setIsUploadingInReader] = useState(false);
   const [isReaderMenuOpen, setIsReaderMenuOpen] = useState(false);
@@ -531,7 +537,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 }
               }}
               className="prose dark:prose-invert max-w-none text-[#191C20] dark:text-[#E2E2E6] leading-relaxed text-sm sm:text-base select-text"
-              dangerouslySetInnerHTML={{ __html: readingNote.content }}
+              dangerouslySetInnerHTML={{ __html: readingNoteHtml }}
             />
 
             {/* Fotografías del Pizarrón y Diapositivas */}

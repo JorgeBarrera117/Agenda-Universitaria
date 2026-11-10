@@ -1,7 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { db } from '../db/AppDatabase';
-import type { NoteImage } from '../../features/notes/types';
+import type { Note, NoteImage } from '../../features/notes/types';
+import type { Subject } from '../../features/subjects/types';
+import type { Professor } from '../../features/professors/types';
+import type { ScheduleSlot } from '../../features/schedule/types';
 import { WidgetBridge } from '../plugins/widgetBridge';
+import { sanitizeNoteHtml } from './sanitizeHtml';
 
 // Convertir Blob a DataURL base64 para exportar en JSON
 function blobToDataUrl(blob: Blob): Promise<string> {
@@ -265,7 +269,7 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
     );
   }
 
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(cleanText);
   } catch (err: unknown) {
@@ -277,26 +281,7 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
     throw err;
   }
 
-  if (!parsed || !parsed.data || !parsed.data.subjects) {
-    throw new Error('El archivo no contiene un formato de respaldo válido de Agenda Universitaria.');
-  }
-
-  // Reconstruir los Blobs binarios desde base64
-  const restoredImages: NoteImage[] = [];
-  if (parsed.data.images && Array.isArray(parsed.data.images)) {
-    for (const raw of parsed.data.images) {
-      if (raw.dataUrl) {
-        restoredImages.push({
-          id: raw.id,
-          noteId: raw.noteId,
-          name: raw.name,
-          mimeType: raw.mimeType,
-          blob: dataUrlToBlob(raw.dataUrl),
-          createdAt: raw.createdAt,
-        });
-      }
-    }
-  }
+  const backup = parseBackupPayload(parsed);
 
   await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages], async () => {
     await db.subjects.clear();
@@ -305,12 +290,96 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
     await db.notes.clear();
     await db.noteImages.clear();
 
-    if (parsed.data.subjects?.length) await db.subjects.bulkAdd(parsed.data.subjects);
-    if (parsed.data.professors?.length) await db.professors.bulkAdd(parsed.data.professors);
-    if (parsed.data.scheduleSlots?.length) await db.scheduleSlots.bulkAdd(parsed.data.scheduleSlots);
-    if (parsed.data.notes?.length) await db.notes.bulkAdd(parsed.data.notes);
-    if (restoredImages.length) await db.noteImages.bulkAdd(restoredImages);
+    if (backup.subjects.length) await db.subjects.bulkAdd(backup.subjects);
+    if (backup.professors.length) await db.professors.bulkAdd(backup.professors);
+    if (backup.scheduleSlots.length) await db.scheduleSlots.bulkAdd(backup.scheduleSlots);
+    if (backup.notes.length) await db.notes.bulkAdd(backup.notes);
+    if (backup.images.length) await db.noteImages.bulkAdd(backup.images);
   });
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+interface ParsedBackup {
+  subjects: Subject[];
+  professors: Professor[];
+  scheduleSlots: ScheduleSlot[];
+  notes: Note[];
+  images: NoteImage[];
+}
+
+const INVALID_BACKUP_MESSAGE = 'El archivo no contiene un formato de respaldo válido de Agenda Universitaria.';
+
+// Solo se aceptan imágenes rasterizadas: un SVG podría transportar scripts.
+const SAFE_IMAGE_DATA_URL = /^data:(image\/(?:png|jpeg|webp|gif));base64,[A-Za-z0-9+/=\s]+$/;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function readRecords(data: UnknownRecord, key: string, requiredStrings: readonly string[]): UnknownRecord[] {
+  const value = data[key];
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    throw new Error(`${INVALID_BACKUP_MESSAGE} (la sección "${key}" no es una lista).`);
+  }
+  return value.map((item, index) => {
+    if (!isRecord(item) || !requiredStrings.every((field) => isString(item[field]))) {
+      throw new Error(`${INVALID_BACKUP_MESSAGE} (registro ${index + 1} de "${key}" incompleto).`);
+    }
+    return item;
+  });
+}
+
+/**
+ * Valida la forma de un respaldo antes de tocar la base de datos. El archivo puede venir de
+ * otra persona, así que el HTML de los apuntes se sanitiza y se descartan imágenes no rasterizadas.
+ */
+function parseBackupPayload(parsed: unknown): ParsedBackup {
+  if (!isRecord(parsed) || !isRecord(parsed.data) || !Array.isArray(parsed.data.subjects)) {
+    throw new Error(INVALID_BACKUP_MESSAGE);
+  }
+  const data = parsed.data;
+
+  const subjects = readRecords(data, 'subjects', ['id', 'name']) as unknown as Subject[];
+  const professors = readRecords(data, 'professors', ['id', 'name']).map((raw) => ({
+    ...raw,
+    subjectIds: Array.isArray(raw.subjectIds) ? raw.subjectIds.filter(isString) : [],
+  })) as unknown as Professor[];
+  const scheduleSlots = readRecords(data, 'scheduleSlots', ['id', 'subjectId']) as unknown as ScheduleSlot[];
+
+  const notes: Note[] = readRecords(data, 'notes', ['id', 'subjectId']).map((raw) => {
+    const now = new Date().toISOString();
+    return {
+      id: raw.id as string,
+      subjectId: raw.subjectId as string,
+      title: isString(raw.title) ? raw.title : '',
+      content: isString(raw.content) ? sanitizeNoteHtml(raw.content) : '',
+      tags: Array.isArray(raw.tags) ? raw.tags.filter(isString) : [],
+      createdAt: isString(raw.createdAt) ? raw.createdAt : now,
+      updatedAt: isString(raw.updatedAt) ? raw.updatedAt : now,
+    };
+  });
+
+  const images: NoteImage[] = [];
+  for (const raw of readRecords(data, 'images', ['id', 'noteId'])) {
+    const match = isString(raw.dataUrl) ? SAFE_IMAGE_DATA_URL.exec(raw.dataUrl) : null;
+    if (!match || !isString(raw.dataUrl)) continue;
+    images.push({
+      id: raw.id as string,
+      noteId: raw.noteId as string,
+      name: isString(raw.name) ? raw.name : 'imagen',
+      mimeType: match[1],
+      blob: dataUrlToBlob(raw.dataUrl),
+      createdAt: isString(raw.createdAt) ? raw.createdAt : new Date().toISOString(),
+    });
+  }
+
+  return { subjects, professors, scheduleSlots, notes, images };
 }
 
 /**
