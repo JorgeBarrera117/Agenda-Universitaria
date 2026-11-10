@@ -64,18 +64,18 @@ Limpiar la saturación visual en tarjetas de horarios, materias, profesores y ap
 ---
 
 ### 🧩 FASE 3: "Campus Pulse" — Bento Grid Header en el Horario
-**Estado:** `EN EJECUCIÓN (LISTA PARA CLAUDE)`
+**Estado:** `COMPLETADA`
 
 #### Objetivo
 Transformar el encabezado de `ScheduleView` en un centro de mando inteligente y juvenil que responda en tiempo real al contexto del estudiante.
 
 #### Tareas de Implementación (Fase 3)
-- [ ] **3.1. Crear hook `src/features/schedule/hooks/useCampusPulse.ts`:**
+- [x] **3.1. Crear hook `src/features/schedule/hooks/useCampusPulse.ts`:**
   - Calcular en tiempo real (actualizándose cada minuto):
     - **Clase en curso:** Materia actual, aula/modalidad, profesor, porcentaje de tiempo transcurrido (`0%` a `100%`) y minutos restantes.
     - **Próxima clase:** Si está en hora libre, cuánto falta para la siguiente cátedra del día o de mañana.
     - **Resumen de jornada:** Total de clases de hoy vs. completadas.
-- [ ] **3.2. Componente `CampusPulseBento.tsx`:**
+- [x] **3.2. Componente `CampusPulseBento.tsx`:**
   - Diseñar un bloque Bento compacto y colapsable en la parte superior de `ScheduleView` con:
     - Tarjeta principal dinámica (*En Curso Ahora* con barra de progreso viva o *Próxima Cátedra*) y botón directo `"Tomar Apunte"` / `"Ver Archivos"`.
     - Píldora de estado del día (ej. *"3 clases hoy • 1 virtual"*).
@@ -83,7 +83,7 @@ Transformar el encabezado de `ScheduleView` en un centro de mando inteligente y 
 ---
 
 ### 🎨 FASE 4: Motor de Ultra-Personalización ("Cada Agenda es Única")
-**Estado:** `EN COLA`
+**Estado:** `EN EJECUCIÓN (LISTA PARA IMPLEMENTAR)`
 
 #### Objetivo
 Darle al estudiante libertad creativa para que su agenda refleje su personalidad, combinando estética juvenil, legibilidad profesional y temas de vanguardia.
