@@ -25,6 +25,14 @@ export type WallpaperStyle =
   | 'custom'
   | 'none';
 
+/** Tono de los recordatorios: archivo en public/sounds y res/raw, o el tono del sistema. */
+export type NotificationSoundTone =
+  | 'chime_school_jp'
+  | 'bell_campus'
+  | 'marimba_gentle'
+  | 'zen_drop'
+  | 'default';
+
 export interface AppSettings {
   theme: ThemeMode;
   colorPalette: MaterialColorTheme;
@@ -48,6 +56,7 @@ export interface AppSettings {
   notifyAtClassStart: boolean;
   notify15MinBefore: boolean;
   notificationSound: boolean;
+  notificationTone: NotificationSoundTone;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -67,4 +76,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notifyAtClassStart: true,
   notify15MinBefore: true,
   notificationSound: true,
+  notificationTone: 'chime_school_jp',
 };

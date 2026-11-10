@@ -250,7 +250,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setHasPermission(granted);
     if (granted) {
       onShowToast('¡Permisos concedidos con éxito!');
-      await NotificationService.sendTestNotification();
+      await NotificationService.sendTestNotification(settings);
     } else {
       onShowToast('Permiso de notificaciones denegado en el sistema.');
     }
@@ -260,7 +260,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleTestNotification = async () => {
     setIsTestingNotification(true);
     try {
-      const sent = await NotificationService.sendTestNotification();
+      const sent = await NotificationService.sendTestNotification(settings);
       if (sent) {
         onShowToast('Notificación de prueba enviada a tu dispositivo.');
       } else {
@@ -832,6 +832,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onToggleSpecific={(key) => void handleToggleSpecificNotification(key)}
                 onRequestPermission={() => void handleRequestPermission()}
                 onTestNotification={() => void handleTestNotification()}
+                onSelectTone={(tone) => void updateSettings({ notificationTone: tone })}
               />
             )}
 

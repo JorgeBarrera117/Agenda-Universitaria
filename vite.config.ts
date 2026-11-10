@@ -64,7 +64,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}']
+        // wav: tonos de notificación para preescucha sin conexión
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,wav}']
       }
     })
   ],

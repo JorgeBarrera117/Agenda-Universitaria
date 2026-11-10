@@ -16,7 +16,6 @@ import { ViewSkeleton } from './shared/components/ViewSkeleton';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
-import { NotificationService } from './shared/services/notificationService';
 import { applyTheme, applyCardSurface, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
@@ -140,9 +139,6 @@ export function App() {
         }
       });
     }
-
-    // Inicializar canal de notificaciones nativas en Android
-    NotificationService.init().catch(console.warn);
 
     // Inicializar gestor centralizado del botón de retroceso (Android y Web)
     backButtonManager.init({

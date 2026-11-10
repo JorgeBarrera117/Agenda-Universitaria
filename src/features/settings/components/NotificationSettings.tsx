@@ -1,7 +1,8 @@
 import React from 'react';
 import { Bell, CheckCircle2, Clock, Loader2, Send, ShieldAlert, Volume2 } from 'lucide-react';
 import { M3Switch, SettingsBlock, SettingsCard, ToggleChip } from './SettingsPrimitives';
-import type { AppSettings } from '../types';
+import { NotificationTonePicker } from './NotificationTonePicker';
+import type { AppSettings, NotificationSoundTone } from '../types';
 
 type SpecificNotificationKey = 'notify15MinBefore' | 'notifyAtClassStart' | 'notificationSound';
 
@@ -13,6 +14,7 @@ interface NotificationSettingsProps {
   onToggleSpecific: (key: SpecificNotificationKey) => void;
   onRequestPermission: () => void;
   onTestNotification: () => void;
+  onSelectTone: (tone: NotificationSoundTone) => void;
 }
 
 const MOMENTS: { key: SpecificNotificationKey; label: string; icon: React.ReactNode }[] = [
@@ -29,6 +31,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   onToggleSpecific,
   onRequestPermission,
   onTestNotification,
+  onSelectTone,
 }) => (
   <SettingsCard>
     <section className="flex items-center justify-between gap-3">
@@ -95,5 +98,11 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         ))}
       </div>
     </SettingsBlock>
+
+    {settings.notificationsEnabled && settings.notificationSound && (
+      <SettingsBlock title="Tono de notificación" description="Toca ▶ para escucharlo antes de elegirlo." icon={<Volume2 className="h-4 w-4" />}>
+        <NotificationTonePicker value={settings.notificationTone} onSelect={onSelectTone} />
+      </SettingsBlock>
+    )}
   </SettingsCard>
 );

@@ -2,9 +2,29 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import type { ScheduleSlot } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
-import type { AppSettings } from '../../features/settings/types';
+import type { AppSettings, NotificationSoundTone } from '../../features/settings/types';
+import { notificationToneUrl, resolveNotificationTone } from '../../features/settings/notificationTones';
 
-const CHANNEL_ID = 'academic_schedule_channel';
+/** Prefijo de los canales de recordatorios (incluye el canal único heredado 'academic_schedule_channel'). */
+const CHANNEL_PREFIX = 'academic_schedule_';
+/**
+ * Canal sin sonido para cuando el estudiante apaga "Sonido": en Android 8+ el sonido lo decide el
+ * canal y no la notificación, así que apuntamos a un WAV mudo de res/raw conservando la vibración y
+ * el aviso emergente (con importancia baja dejaría de aparecer en pantalla).
+ */
+const SILENT_CHANNEL_ID = `${CHANNEL_PREFIX}silent`;
+const SILENT_SOUND_FILE = 'tone_silent.wav';
+
+type ToneSettings = Pick<AppSettings, 'notificationTone' | 'notificationSound'>;
+
+/** Canal y sonido que corresponden a los ajustes: un canal por tono, más el silencioso. */
+function resolveChannel(settings: ToneSettings): { channelId: string; sound: string } {
+  if (!settings.notificationSound) {
+    return { channelId: SILENT_CHANNEL_ID, sound: SILENT_SOUND_FILE };
+  }
+  const tone = resolveNotificationTone(settings.notificationTone);
+  return { channelId: `${CHANNEL_PREFIX}${tone.id}`, sound: tone.file ?? 'default' };
+}
 
 // Función hash para obtener un entero seguro de 32 bits para el id de notificación
 function generateNotificationId(slotId: string, typeSuffix: number): number {
@@ -18,32 +38,49 @@ function generateNotificationId(slotId: string, typeSuffix: number): number {
 }
 
 export class NotificationService {
-  private static isInitialized = false;
+  private static activeChannelId: string | null = null;
   private static lastNotificationHash = '';
 
   /**
-   * Inicializa el canal de notificaciones en Android
+   * Garantiza el canal Android del tono elegido. Android no permite cambiar el sonido de un canal
+   * ya creado, por eso cada tono tiene su propio id (`academic_schedule_<tono>`); los canales de
+   * otros tonos se borran para que en los ajustes del sistema solo quede el que está en uso.
    */
-  static async init(): Promise<void> {
-    if (this.isInitialized) return;
+  static async ensureNotificationChannel(tone: NotificationSoundTone, withSound = true): Promise<string> {
+    const { channelId, sound } = resolveChannel({ notificationTone: tone, notificationSound: withSound });
+    if (!Capacitor.isNativePlatform() || this.activeChannelId === channelId) return channelId;
 
-    if (Capacitor.isNativePlatform()) {
-      try {
-        await LocalNotifications.createChannel({
-          id: CHANNEL_ID,
-          name: 'Recordatorios de Cátedras y Clases',
-          description: 'Avisos de inicio de clase y recordatorios 15 minutos antes',
-          importance: 4, // HIGH: Emite sonido y aparece como alerta heads-up
-          visibility: 1, // PUBLIC: Visible en pantalla de bloqueo
-          vibration: true,
-          lights: true,
-          lightColor: '#006BBB',
-        });
-        this.isInitialized = true;
-      } catch (err) {
-        console.warn('No se pudo crear el canal de notificaciones:', err);
-      }
+    const toneInfo = resolveNotificationTone(tone);
+    try {
+      await LocalNotifications.createChannel({
+        id: channelId,
+        name: withSound ? `Recordatorios (${toneInfo.label})` : 'Recordatorios (Silencioso)',
+        description: 'Avisos de inicio de clase y recordatorios 15 minutos antes',
+        importance: 4, // HIGH: aviso emergente (heads-up)
+        visibility: 1, // PUBLIC: visible en la pantalla de bloqueo
+        // Sin `sound` Android usa el tono del sistema; con archivo, lo busca en res/raw por su nombre
+        sound: sound === 'default' ? undefined : sound,
+        vibration: true,
+        lights: true,
+        lightColor: '#006BBB',
+      });
+      this.activeChannelId = channelId;
+    } catch (err) {
+      console.warn('No se pudo crear el canal de notificaciones:', err);
+      return channelId;
     }
+
+    try {
+      const { channels } = await LocalNotifications.listChannels();
+      await Promise.all(
+        channels
+          .filter((c) => c.id.startsWith(CHANNEL_PREFIX) && c.id !== channelId)
+          .map((c) => LocalNotifications.deleteChannel({ id: c.id }))
+      );
+    } catch (err) {
+      console.warn('No se pudieron limpiar canales de notificación anteriores:', err);
+    }
+    return channelId;
   }
 
   /**
@@ -85,38 +122,45 @@ export class NotificationService {
   /**
    * Envía una notificación de prueba inmediata
    */
-  static async sendTestNotification(): Promise<boolean> {
+  static async sendTestNotification(settings: ToneSettings): Promise<boolean> {
     const hasPermission = await this.checkPermissions();
     if (!hasPermission) {
       const granted = await this.requestPermissions();
       if (!granted) return false;
     }
 
-    await this.init();
+    const { channelId, sound } = resolveChannel(settings);
 
     try {
       if (Capacitor.isNativePlatform()) {
+        await this.ensureNotificationChannel(settings.notificationTone, settings.notificationSound);
         await LocalNotifications.schedule({
           notifications: [
             {
               id: 999999,
               title: '🎓 Notificaciones Activas • Agenda Universitaria',
               body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
-              channelId: CHANNEL_ID,
+              channelId,
               smallIcon: 'ic_stat_agenda',
               largeIcon: 'ic_notification_large',
               iconColor: '#00639B',
               schedule: { at: new Date(Date.now() + 1000) }, // 1 segundo en el futuro
-              sound: 'default',
+              sound,
             },
           ],
         });
         return true;
       } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        // La API web no admite sonidos propios: se silencia el aviso y se reproduce el tono elegido
+        const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
         new Notification('🎓 Notificaciones Activas • Agenda Universitaria', {
           body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
           icon: './app-icon-claro.svg',
+          silent: toneFile !== null || !settings.notificationSound,
         });
+        if (toneFile) {
+          new Audio(notificationToneUrl(toneFile)).play().catch(() => undefined);
+        }
         return true;
       }
     } catch (err) {
@@ -138,13 +182,16 @@ export class NotificationService {
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `v2_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}`).join(',')}`;
+    const currentHash = `v3_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
     this.lastNotificationHash = currentHash;
 
-    await this.init();
+    const { channelId, sound } = resolveChannel(settings);
+    if (settings.notificationsEnabled) {
+      await this.ensureNotificationChannel(settings.notificationTone, settings.notificationSound);
+    }
 
     // 1. Limpiar notificaciones previas
     try {
@@ -201,7 +248,7 @@ export class NotificationService {
           id: generateNotificationId(slot.id, 1),
           title: `⏳ En 15 min: ${subjectName}`,
           body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}`,
-          channelId: CHANNEL_ID,
+          channelId,
           smallIcon: 'ic_stat_agenda',
           largeIcon: 'ic_notification_large',
           iconColor: subject?.color || '#00639B',
@@ -214,7 +261,7 @@ export class NotificationService {
             repeats: true,
             allowWhileIdle: true,
           },
-          sound: settings.notificationSound ? 'default' : undefined,
+          sound,
         });
       }
 
@@ -224,7 +271,7 @@ export class NotificationService {
           id: generateNotificationId(slot.id, 2),
           title: `🔔 ¡Comienza la clase de ${subjectName}!`,
           body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}`,
-          channelId: CHANNEL_ID,
+          channelId,
           smallIcon: 'ic_stat_agenda',
           largeIcon: 'ic_notification_large',
           iconColor: subject?.color || '#00639B',
@@ -237,7 +284,7 @@ export class NotificationService {
             repeats: true,
             allowWhileIdle: true,
           },
-          sound: settings.notificationSound ? 'default' : undefined,
+          sound,
         });
       }
     }
