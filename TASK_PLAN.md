@@ -144,6 +144,30 @@ Erradicar la fragmentación visual ("Card Soup"), las scrollbars toscas y las et
 
 ---
 
+### 📖 FASE 6: Rediseño Editorial y Fluidez del Lector y Editor de Apuntes (UI/UX Pro Max)
+**Estado:** `EN EJECUCIÓN (LISTA PARA IMPLEMENTAR)`
+
+#### Objetivo
+Transformar el Lector de Apuntes (`NotesView.tsx` modo `reader`) y el Editor TipTap (`NoteEditor.tsx` y `RichTextEditor.tsx`) en una experiencia de redacción y lectura de clase mundial (*Notion / Apple Notes / Craft*), aplicando inteligencia de diseño `ui-ux-pro-max`: ergonomía táctil en barra de herramientas (touch targets de 40px y espaciado mínimo de 8px), folio editorial con acabado de superficie continuo, eliminación del menú flotante artesanal en favor de `M3KebabMenu`, y recolocación canónica del botón Guardar a la derecha.
+
+#### Tareas de Implementación (Fase 6)
+- [ ] **6.1. Rediseño del Lector de Notas (`NotesView.tsx` - Modo Reader):**
+  - **Top App Bar canónica:** Botón atrás `ArrowLeft` táctil a la izquierda, título y asignatura con badge cromático en el centro, y menú contextual a la derecha migrado a `M3KebabMenu` (desacoplado con React Portal y `BACK_PRIORITY.MODAL + 5`).
+  - **Folio Editorial M3:** Contenedor unificado `.md-card` que respeta el acabado de superficie (`solid`, `glass` con `backdrop-blur-md`, `bordered`).
+  - **Jerarquía Tipográfica:** Asignatura en chip sutil + fecha legible en lenguaje natural + título H1 prominente + tags en píldoras tonales.
+  - **Galería de Fotos del Pizarrón descongestionada:** Eliminar la caja vacía punteada redundante cuando no hay fotos adjuntas; renderizar una cuadrícula limpia de miniaturas con zoom interactivo (`ImageZoomModal`) solo cuando existan fotos, y botones de acción rápida (*Cámara* y *Galería*) discretos.
+  - **Tokens M3 al 100%:** Reemplazar todos los `slate-900`, `bg-[#00639B]/15`, etc. por `--color-md-*`.
+- [ ] **6.2. Rediseño del Editor de Notas (`NoteEditor.tsx`):**
+  - **Corrección de Ergonomía en Cabecera:** Mover el botón primario `Guardar` al extremo derecho (con icono `Check` y feedback `active:scale-95`). El extremo izquierdo queda exclusivamente para `ArrowLeft` (botón de volver).
+  - **Metadatos Inline (Eliminar Modal Incómodo):** Eliminar el modal secundario "Opciones del Apunte". Integrar la selección de materia (chip interactivo `M3Select`) y las etiquetas (#tags) directamente en el encabezado del lienzo de escritura.
+  - **Contador de Palabras y Caracteres:** Métrica sutil y discreta en la barra inferior o pie del documento sin interrumpir la escritura.
+- [ ] **6.3. Rediseño de la Barra de Herramientas de Formato (`RichTextEditor.tsx`):**
+  - **Ergonomía Táctil Móvil:** Botones de formato con target táctil adecuado (mínimo 36-40px, espaciado `gap-1.5`), esquinas `rounded-xl` y feedback táctil suave.
+  - **Agrupación Visual de Herramientas:** Estilos de texto (Negrita, Cursiva, Subrayado, Tachado), Encabezados (H1, H2), Listas (Viñetas, Numeradas) e Inserción multimedia (Cámara, Galería, Divisor).
+  - **Tokens Semánticos:** Estado activo con `bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]`.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
