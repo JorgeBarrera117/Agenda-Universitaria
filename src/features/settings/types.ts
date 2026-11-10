@@ -49,6 +49,8 @@ export type NotificationSoundTone =
   | 'zen_drop'
   | 'default';
 
+export type StudentStatusMode = 'network' | 'custom';
+
 export interface AppSettings {
   theme: ThemeMode;
   colorPalette: MaterialColorTheme;
@@ -60,6 +62,12 @@ export interface AppSettings {
   studentName?: string;
   careerName?: string;
   semesterGoal?: string;
+  /** Foto de perfil recortada a 256×256 en JPEG (DataURL). */
+  studentAvatarUrl?: string;
+  /** Qué muestra la barra superior junto a la fecha: conectividad o una frase del estudiante. */
+  studentStatusMode?: StudentStatusMode;
+  /** Frase de estado personalizada (máx. 35 caracteres). */
+  studentCustomStatus?: string;
   defaultScheduleView: 'weekly' | 'daily';
   imageQuality: 'balanced' | 'high';
   visibleDays: 'mon-fri' | 'mon-sat' | 'all';
@@ -83,6 +91,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cardSurfaceStyle: 'solid',
   performanceMode: false,
   semesterName: 'Semestre 2026-I',
+  studentAvatarUrl: undefined,
+  studentStatusMode: 'network',
+  studentCustomStatus: undefined,
   defaultScheduleView: 'weekly',
   imageQuality: 'balanced',
   visibleDays: 'mon-fri',

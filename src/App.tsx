@@ -236,6 +236,9 @@ export function App() {
           onTabChange={handleTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
           studentName={settings.studentName}
+          studentAvatarUrl={settings.studentAvatarUrl}
+          studentStatusMode={settings.studentStatusMode}
+          studentCustomStatus={settings.studentCustomStatus}
           subjectCount={subjectCount}
           professorsCount={professorsCount}
           notesCount={notesCount}

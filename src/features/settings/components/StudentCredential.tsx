@@ -1,20 +1,12 @@
 import React, { useId, useState } from 'react';
 import { ChevronDown, GraduationCap, PencilLine, ShieldCheck, Target } from 'lucide-react';
 import type { AppSettings } from '../types';
+import { StudentAvatar } from './StudentAvatar';
 
 interface StudentCredentialProps {
   settings: AppSettings;
   appVersion: string;
   onEdit: () => void;
-}
-
-function initialsOf(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('');
 }
 
 /**
@@ -40,12 +32,16 @@ export const StudentCredential: React.FC<StudentCredentialProps> = ({ settings, 
         aria-controls={detailsId}
         className="flex w-full items-center gap-3 p-2.5 text-left transition-all duration-150 ease-out active:scale-[0.98] sm:p-3"
       >
-        <div
-          aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-md-primary)] text-sm font-black text-[var(--color-md-on-primary)]"
-        >
-          {name ? initialsOf(name) : <GraduationCap className="h-5 w-5" />}
-        </div>
+        <StudentAvatar
+          avatarUrl={settings.studentAvatarUrl}
+          name={name}
+          className="h-11 w-11 rounded-2xl text-sm"
+          fallback={
+            <span className="flex h-full w-full items-center justify-center bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]">
+              <GraduationCap className="h-5 w-5" />
+            </span>
+          }
+        />
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-[var(--color-md-on-surface)]">

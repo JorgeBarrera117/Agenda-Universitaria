@@ -9,6 +9,9 @@ import {
   WifiOff,
   Settings,
 } from 'lucide-react';
+import { StudentAvatar } from '../../features/settings/components/StudentAvatar';
+import { CUSTOM_STATUS_ICON, findStatusPreset } from '../../features/settings/studentIdentity';
+import type { StudentStatusMode } from '../../features/settings/types';
 
 export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes' | 'documents';
 
@@ -22,6 +25,9 @@ interface NavbarProps {
   documentsCount?: number;
   /** Nombre del perfil estudiantil; si existe, el título saluda al estudiante. */
   studentName?: string;
+  studentAvatarUrl?: string;
+  studentStatusMode?: StudentStatusMode;
+  studentCustomStatus?: string;
 }
 
 
@@ -34,8 +40,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   notesCount = 0,
   documentsCount = 0,
   studentName,
+  studentAvatarUrl,
+  studentStatusMode = 'network',
+  studentCustomStatus,
 }) => {
   const firstName = studentName?.trim().split(/\s+/)[0];
+  const customStatus = studentStatusMode === 'custom' ? studentCustomStatus?.trim() : undefined;
+  const StatusIcon = customStatus ? (findStatusPreset(customStatus)?.icon ?? CUSTOM_STATUS_ICON) : null;
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const tabsRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
@@ -127,16 +138,27 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between gap-2 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center h-14 sm:h-16 lg:h-[76px] xl:h-20 landscape:max-lg:h-14">
           {/* M3 Top App Bar Title & Campus Identity */}
           <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-3.5 min-w-0 shrink-0">
-            <div className="relative shrink-0">
-              <img
-                src="./app-icon-claro.svg"
-                alt="Logo Agenda Universitaria"
-                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 object-contain bg-white p-0.5"
+            {/* Avatar del estudiante: abre Ajustes, donde está la credencial. El punto indica la
+                conexión aunque el estado muestre una frase personalizada. */}
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              title="Ver credencial y perfil"
+              aria-label={`Ver credencial y perfil (${isOnline ? 'en línea' : 'sin conexión'})`}
+              className="relative shrink-0 rounded-2xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-md-primary)] focus-visible:ring-offset-2"
+            >
+              <StudentAvatar
+                avatarUrl={studentAvatarUrl}
+                name={studentName}
+                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 text-sm lg:text-base"
               />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-full bg-[#FFB77C] border-2 border-[#F1F4FA] dark:border-[#1D2024] flex items-center justify-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#001D32]" />
-              </div>
-            </div>
+              <span
+                aria-hidden="true"
+                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-full border-2 border-[#F1F4FA] dark:border-[#1D2024] transition-colors duration-200 ${
+                  isOnline ? 'bg-emerald-500' : 'bg-amber-500'
+                }`}
+              />
+            </button>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -150,7 +172,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex md:max-lg:hidden landscape:max-lg:hidden items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs lg:text-[13px] text-[#41474D] dark:text-[#C2C7CF] font-medium whitespace-nowrap">
                 <span className="capitalize">{capitalizedDate}</span>
                 <span>•</span>
-                {isOnline ? (
+                {customStatus && StatusIcon ? (
+                  <span
+                    className="inline-flex min-w-0 max-w-[150px] sm:max-w-[220px] items-center gap-1 rounded-full bg-[var(--color-md-primary-container)] px-2 py-px text-[11px] lg:text-xs font-semibold text-[var(--color-md-on-primary-container)]"
+                    title={customStatus}
+                  >
+                    <StatusIcon className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{customStatus}</span>
+                  </span>
+                ) : isOnline ? (
                   <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px] lg:text-xs font-semibold shrink-0">
                     <Wifi className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
                     En línea

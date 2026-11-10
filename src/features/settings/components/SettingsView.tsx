@@ -38,7 +38,7 @@ import { AboutSettings } from './AboutSettings';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
-import { StudentProfileForm } from './StudentProfileForm';
+import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
 import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, WallpaperStyle } from '../types';
 
 interface SettingsViewProps {
@@ -192,7 +192,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     onShowToast(`Acabado de tarjetas: ${option?.label ?? cardSurfaceStyle}`);
   };
 
-  const handleSaveProfile = (profile: Pick<AppSettings, 'studentName' | 'careerName' | 'semesterGoal'>) => {
+  const handleSaveProfile = (profile: ProfileFields) => {
     updateSettings({ ...settings, ...profile });
     closeSubView();
     onShowToast(profile.studentName ? `Perfil guardado. ¡Hola, ${profile.studentName.split(/\s+/)[0]}!` : 'Perfil guardado.');
@@ -812,6 +812,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   studentName: settings.studentName,
                   careerName: settings.careerName,
                   semesterGoal: settings.semesterGoal,
+                  studentAvatarUrl: settings.studentAvatarUrl,
+                  studentStatusMode: settings.studentStatusMode,
+                  studentCustomStatus: settings.studentCustomStatus,
                 }}
                 onSave={handleSaveProfile}
               />
