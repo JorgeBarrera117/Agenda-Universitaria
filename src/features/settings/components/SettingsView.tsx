@@ -17,7 +17,6 @@ import {
   Check,
   Send,
   Heart,
-  Palette,
   Sparkles,
   Image as ImageIcon,
   Sliders,
@@ -38,6 +37,7 @@ import {
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import { StudentCredential } from './StudentCredential';
+import { ThemeStudio } from './ThemeStudio';
 import { StudentProfileForm } from './StudentProfileForm';
 import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, WallpaperStyle } from '../types';
 
@@ -58,7 +58,7 @@ type SettingsCategory =
 const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: string }[] = [
   { id: 'solid', label: 'Sólido', description: 'Superficie limpia y opaca' },
   { id: 'glass', label: 'Cristal', description: 'Translúcido sobre el papel tapiz' },
-  { id: 'bordered', label: 'Bordes', description: 'Plano, sin sombra, alto contraste' },
+  { id: 'bordered', label: 'Bordeado', description: 'Plano, sin sombra, alto contraste' },
 ];
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -554,268 +554,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
             {activeSubView === 'appearance' && (
               <div className="bg-[var(--color-md-card-bg)] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[var(--color-md-outline-variant)] space-y-4">
-                {/* 1. Modo de Luminosidad (Claro / Oscuro / Sistema) */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 pb-1.5 border-b border-[var(--color-md-outline-variant)]">
-                    <Sun className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />
-                    <span className="text-xs font-bold text-[var(--color-md-on-surface)]">
-                      Modo de Luminosidad
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    {/* Modo Claro */}
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange('light')}
-                      className={`p-2.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
-                        settings.theme === 'light'
-                          ? 'bg-[var(--color-md-primary-container)] border-[var(--color-md-primary)] text-[var(--color-md-on-primary-container)] shadow-2xs'
-                          : 'bg-[var(--color-md-surface-container)] border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
-                      }`}
-                    >
-                      <div
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-transform ${
-                          settings.theme === 'light'
-                            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-2xs scale-105'
-                            : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)]'
-                        }`}
-                      >
-                        <Sun className="w-4 h-4" />
-                      </div>
-                      <span className="font-extrabold text-xs">Claro</span>
-                      {settings.theme === 'light' && (
-                        <div className="w-3.5 h-3.5 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center text-[9px]">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                      )}
-                    </button>
-
-                    {/* Modo Oscuro */}
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange('dark')}
-                      className={`p-2.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
-                        settings.theme === 'dark'
-                          ? 'bg-[var(--color-md-primary-container)] border-[var(--color-md-primary)] text-[var(--color-md-on-primary-container)] shadow-2xs'
-                          : 'bg-[var(--color-md-surface-container)] border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
-                      }`}
-                    >
-                      <div
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-transform ${
-                          settings.theme === 'dark'
-                            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-2xs scale-105'
-                            : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)]'
-                        }`}
-                      >
-                        <Moon className="w-4 h-4" />
-                      </div>
-                      <span className="font-extrabold text-xs">Oscuro</span>
-                      {settings.theme === 'dark' && (
-                        <div className="w-3.5 h-3.5 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center text-[9px]">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                      )}
-                    </button>
-
-                    {/* Automático (Sistema) */}
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange('system')}
-                      className={`p-2.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 relative ${
-                        settings.theme === 'system'
-                          ? 'bg-[var(--color-md-primary-container)] border-[var(--color-md-primary)] text-[var(--color-md-on-primary-container)] shadow-2xs'
-                          : 'bg-[var(--color-md-surface-container)] border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
-                      }`}
-                    >
-                      <div
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-transform ${
-                          settings.theme === 'system'
-                            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-2xs scale-105'
-                            : 'bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)]'
-                        }`}
-                      >
-                        <Monitor className="w-4 h-4" />
-                      </div>
-                      <span className="font-extrabold text-xs">Auto</span>
-                      {settings.theme === 'system' && (
-                        <div className="w-3.5 h-3.5 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center text-[9px]">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* 2. Paleta de Color Dinámica (Material You) con Radio Buttons Compactos */}
-                <div className="pt-3 border-t border-[var(--color-md-outline-variant)] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Palette className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />
-                      <span className="text-xs font-bold text-[var(--color-md-on-surface)]">
-                        Color del Tema (Material You)
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-bold text-[var(--color-md-primary)]">
-                      {(MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).name}
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug">
-                    Selecciona una paleta cromática para adaptar toda la interfaz con contraste accesible:
-                  </p>
-
-                  <div
-                    role="radiogroup"
-                    aria-label="Paletas de color del tema"
-                    className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-0.5"
-                  >
-                    {(Object.keys(MATERIAL_COLOR_PALETTES) as MaterialColorTheme[]).map((paletteKey) => {
-                      const pal = MATERIAL_COLOR_PALETTES[paletteKey];
-                      const currentPalette = settings.colorPalette || 'default';
-                      const isSelected = currentPalette === paletteKey;
-                      const isDark =
-                        settings.theme === 'dark' ||
-                        (settings.theme === 'system' &&
-                          typeof window !== 'undefined' &&
-                          window.matchMedia('(prefers-color-scheme: dark)').matches);
-                      const tokenSet = isDark ? pal.dark : pal.light;
-
-                      return (
-                        <label
-                          key={paletteKey}
-                          style={{
-                            backgroundColor: tokenSet.surface,
-                            borderColor: isSelected ? tokenSet.primary : tokenSet.outlineVariant,
-                          }}
-                          className={`p-2.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-2 relative text-left select-none ${
-                            isSelected
-                              ? 'shadow-2xs ring-2 ring-current/20'
-                              : 'hover:opacity-95 shadow-2xs'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="colorPalette"
-                            value={paletteKey}
-                            checked={isSelected}
-                            onChange={() => handleColorPaletteChange(paletteKey)}
-                            className="sr-only"
-                          />
-
-                          {/* Fila Superior: Muestra Circular + Radio Button Canónico M3 */}
-                          <div className="flex items-center justify-between w-full">
-                            <span
-                              className="w-5 h-5 rounded-full shrink-0 shadow-2xs ring-1 ring-white/60 dark:ring-black/40"
-                              style={{ backgroundColor: tokenSet.primary }}
-                            />
-
-                            {/* Indicador Visual de Radio Button */}
-                            <span
-                              className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
-                              style={{
-                                borderColor: isSelected ? tokenSet.primary : tokenSet.outline,
-                              }}
-                            >
-                              {isSelected && (
-                                <span
-                                  className="w-2 h-2 rounded-full animate-in zoom-in-75 duration-150"
-                                  style={{ backgroundColor: tokenSet.primary }}
-                                />
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Fila Central: Nombre Completo de la Paleta */}
-                          <div className="min-w-0 flex-1">
-                            <span
-                              className="text-xs font-extrabold leading-snug line-clamp-1 block truncate"
-                              style={{ color: tokenSet.onSurface }}
-                            >
-                              {pal.name}
-                            </span>
-                          </div>
-
-                          {/* Fila Inferior: Barra de Armonía Cromática M3 */}
-                          <div className="flex items-center gap-1 w-full pt-0.5">
-                            <div
-                              title="Color Primario"
-                              className="h-1.5 flex-1 rounded-full shadow-2xs"
-                              style={{ backgroundColor: tokenSet.primary }}
-                            />
-                            <div
-                              title="Contenedor Primario"
-                              className="h-1.5 flex-1 rounded-full shadow-2xs"
-                              style={{ backgroundColor: tokenSet.primaryContainer }}
-                            />
-                            <div
-                              title="Superficie de Tarjeta"
-                              className="h-1.5 flex-1 rounded-full border border-black/10 dark:border-white/10"
-                              style={{ backgroundColor: tokenSet.cardBg }}
-                            />
-                            <div
-                              title="Contenedor Secundario"
-                              className="h-1.5 flex-1 rounded-full"
-                              style={{ backgroundColor: tokenSet.secondaryContainer }}
-                            />
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 2.5 Acabado de tarjetas: sólido, cristal o bordes */}
-                <div className="pt-3 border-t border-[var(--color-md-outline-variant)] space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Layers className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />
-                    <span className="text-xs font-bold text-[var(--color-md-on-surface)]">Acabado de tarjetas</span>
-                  </div>
-                  <div role="radiogroup" aria-label="Acabado de tarjetas" className="grid grid-cols-3 gap-2">
-                    {CARD_SURFACE_OPTIONS.map((option) => {
-                      const isSelected = settings.cardSurfaceStyle === option.id;
-                      return (
-                        <label
-                          key={option.id}
-                          className={`flex cursor-pointer flex-col gap-2 rounded-xl border-2 p-2 transition-all duration-150 ease-out active:scale-[0.98] sm:rounded-2xl ${
-                            isSelected
-                              ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-                              : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="cardSurfaceStyle"
-                            value={option.id}
-                            checked={isSelected}
-                            onChange={() => handleCardSurfaceChange(option.id)}
-                            className="sr-only"
-                          />
-                          {/* Muestra en miniatura del acabado sobre un fondo con patrón */}
-                          <span
-                            aria-hidden="true"
-                            className="relative block h-10 overflow-hidden rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-md-primary)_0_6px,var(--color-md-primary-container)_6px_12px)]"
-                          >
-                            <span
-                              className={`absolute inset-x-2 inset-y-1.5 rounded-md ${
-                                option.id === 'solid'
-                                  ? 'bg-[var(--color-md-card-bg)] shadow-sm'
-                                  : option.id === 'glass'
-                                    ? 'bg-[var(--color-md-card-bg)]/55 backdrop-blur-sm'
-                                    : 'bg-[var(--color-md-card-bg)] border-[1.5px] border-[var(--color-md-outline)]'
-                              }`}
-                            />
-                          </span>
-                          <span className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-extrabold">{option.label}</span>
-                            {isSelected && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
-                          </span>
-                          <span className="hidden text-[10.5px] leading-snug sm:block">{option.description}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
+                {/* 1-2. Modo de luminosidad, paleta Material You y acabado de tarjetas */}
+                <ThemeStudio
+                  settings={settings}
+                  onThemeChange={handleThemeChange}
+                  onPaletteChange={handleColorPaletteChange}
+                  onCardSurfaceChange={handleCardSurfaceChange}
+                />
 
                 {/* 3. Estudio de Papel Tapiz Adaptativo (Wallpaper Studio Compacto) */}
                 <div className="pt-3 border-t border-[var(--color-md-outline-variant)] space-y-3">
