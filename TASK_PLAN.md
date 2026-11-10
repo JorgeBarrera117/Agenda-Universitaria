@@ -197,6 +197,41 @@ Dotar a toda la aplicación de fluidez visual nativa (60-120 FPS sin caídas de 
 - [x] **7.5. Fluidez en Barras de Navegación (`BottomNav.tsx` y `Navbar.tsx`):**
   - Transición fluida del indicador de píldora activa entre pestañas.
 
+---
+
+### 🎨 FASE 8: Rediseño Ergonómico de Apariencia y Personalización M3 (Theme Studio)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Descongestionar la subvista de **Apariencia y Tema** (`src/features/settings/components/SettingsView.tsx`), reduciendo drásticamente el desplazamiento vertical (scroll bloat de más de 600px a menos de 280px) mediante controles canónicos de Material Design 3 (`SegmentedControl`), fichas de paleta cromática ultracompactas de 44px de altura con swatches de doble tono, y un selector estilizado de acabados de tarjeta.
+
+#### Problema Detectado (Auditoría UX / UI)
+1. **Modo de Luminosidad:** 3 tarjetas cuadradas gigantes (alto ~85px) con contenedores redundantes para iconos y checkmarks, malgastando el 25% del primer pantallazo móvil.
+2. **Saturación en Paletas Material You:** 12 tarjetas masivas en rejilla de 2 columnas (`grid-cols-2`). Cada una tiene punto de color, radio button, título y 4 barras cromáticas. Ocupa más de 550px de altura y se siente pesada, tosca y abultada.
+3. **Acabado de Tarjetas:** 3 tarjetas con patrones de rayas diagonales que duplican controles segmentados.
+
+#### Invariantes UX para la Fase 8
+1. **Ergonomía Táctil Móvil:** Todo control interactivo debe mantener un target táctil $\ge 40$px (WCAG 2.1 AA) sin abultar innecesariamente la pantalla.
+2. **Tokens Semánticos 100%:** Mantener el soporte para paletas reactivas `--color-md-*`, modo oscuro OLED `#000000` y acabados de superficie (`solid`, `glass`, `bordered`).
+3. **Feedback Táctil:** Micro-interacciones `active:scale-[0.98]` y animaciones M3 suaves de 150ms.
+
+#### Tareas de Implementación (Fase 8)
+- [ ] **8.1. Modo de Luminosidad con `SegmentedControl`:**
+  - Reemplazar las 3 tarjetas cuadradas por el componente `SegmentedControl` (`src/shared/components/form/SegmentedControl.tsx`):
+    - Opciones: `Claro` (icono `Sun`), `Oscuro` (icono `Moon`) y `Auto` (icono `Monitor`).
+    - Altura compacta de 42px con píldora activa animada.
+- [ ] **8.2. Fichas de Paletas Cromáticas Compactas (Material You):**
+  - Sustituir las 12 tarjetas masivas por una cuadrícula ergonómica de fichas compactas de 44px de altura (2 columnas en móviles estrechos, 3 columnas en pantallas estándar `grid-cols-2 sm:grid-cols-3`):
+    - Cada ficha contiene un doble círculo cromático armonioso (aro exterior `primaryContainer` con núcleo central `primary`), el nombre de la paleta en `text-xs font-bold truncate`, y un checkmark discreto al estar activa.
+    - Eliminar las 4 barritas inferiores redundantes y los radio buttons flotantes.
+    - Añadir al encabezado una píldora resumen en vivo: `[ ● {Nombre de la Paleta} · {Modo} ]`.
+- [ ] **8.3. Selector de Acabado de Tarjetas (`cardSurfaceStyle`):**
+  - Unificar las opciones (`Sólido`, `Cristal`, `Bordeado`) en un `SegmentedControl` estilizado de 40px con iconos semánticos (`Layers`, `Sparkles`, `Frame`) o mini-tarjetas de previsualización compacta sin rayas estridentes.
+- [ ] **8.4. Verificación y Calidad:**
+  - Ejecutar `npm run build` (`tsc -b && vite build`) y `npm run lint` (`oxlint`) garantizando cero errores.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
