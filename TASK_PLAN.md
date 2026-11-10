@@ -200,7 +200,7 @@ Dotar a toda la aplicación de fluidez visual nativa (60-120 FPS sin caídas de 
 ---
 
 ### 🎨 FASE 8: Rediseño Ergonómico Integral del Módulo de Ajustes (M3 Settings Studio)
-**Estado:** `LISTA PARA IMPLEMENTAR`
+**Estado:** `COMPLETADA (Commit 018afbe)`
 
 #### Objetivo
 Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/features/settings/components/SettingsView.tsx`) y **todas sus subvistas** (`appearance`, `profile`, `schedule`, `notifications`, `media`, `backup`, `about`), erradicando los 59 colores hardcodeados (`#00639B`, `#FDFBFF`, `#D0E4FF`), reduciendo el scroll bloat vertical a más de la mitad mediante controles canónicos de Material Design 3 (`SegmentedControl`), eliminando etiquetas en mayúsculas sostenidas y dotando a las subvistas de transiciones de salida fluidas (`useExitTransition`).
@@ -233,37 +233,78 @@ Modernizar y descongestionar exhaustivamente la pantalla de **Ajustes** (`src/fe
 4. **Fluidez de Transición:** Sincronizar retorno a la lista de ajustes con `useExitTransition` (salida coordinada sin saltos a 0ms).
 
 #### Tareas de Implementación (Fase 8)
-- [ ] **8.1. Subvista de Apariencia y Tema (`appearance`):**
+- [x] **8.1. Subvista de Apariencia y Tema (`appearance`):**
   - Modo de Luminosidad con `SegmentedControl` (Claro, Oscuro, Auto) de 42px de altura.
   - Rejilla ergonómica de 12 paletas Material You con fichas compactas de 44px de altura (`grid-cols-2 sm:grid-cols-3`): doble círculo cromático armonioso (aro exterior `primaryContainer` con núcleo central `primary`), nombre de la paleta en `text-xs font-bold truncate` y checkmark discreto al estar activa.
   - Píldora resumen en vivo en el encabezado: `[ ● {Nombre de la Paleta} · {Modo} ]`.
   - Acabado de tarjetas con `SegmentedControl` estilizado de 40px con iconos semánticos (`Layers`, `Sparkles`, `Frame`).
   - Wallpaper Studio compacto con miniaturas limpias de 36px.
-- [ ] **8.2. Subvista de Semestre y Horario (`schedule`):**
+- [x] **8.2. Subvista de Semestre y Horario (`schedule`):**
   - Erradicar todos los `#00639B`, `#FDFBFF`, `#D0E4FF`. Migrar al 100% a `--color-md-*`.
   - Reemplazar botones de "Vista Predeterminada" por `SegmentedControl` (`Semanal` con icono `Layers` vs `Por Día` con icono `Calendar`).
   - Reemplazar botones de "Días de Cursada" por `SegmentedControl` (`Lun - Vie`, `Lun - Sáb`, `Toda la semana`).
   - Input de Semestre con `formInputClass` y botón `Guardar` con token `--color-md-primary` y `active:scale-95`.
   - Cambiar etiquetas ALL CAPS a Sentence Case descansado (`Periodo lectivo actual`, `Vista predeterminada`).
-- [ ] **8.3. Subvista de Notificaciones y Avisos (`notifications`):**
+- [x] **8.3. Subvista de Notificaciones y Avisos (`notifications`):**
   - Migrar al 100% a tokens semánticos `--color-md-*`.
   - Switch M3 canónico con colores reactivos al tema.
   - Banner de permisos y botón de test con estilo M3 elevado.
   - Píldoras de momentos de aviso (15m antes, al iniciar, sonido) como chips M3 compactos con checkmark integrado.
-- [ ] **8.4. Subvista de Fotografías y Pizarras (`media`):**
+- [x] **8.4. Subvista de Fotografías y Pizarras (`media`):**
   - Migrar al 100% a tokens semánticos `--color-md-*`.
   - Selector de resolución (720p vs 1080p) mediante `SegmentedControl` ergonómico con texto explicativo secundario.
-- [ ] **8.5. Subvista de Datos y Copias de Seguridad (`backup` / `BackupSection.tsx`):**
+- [x] **8.5. Subvista de Datos y Copias de Seguridad (`backup` / `BackupSection.tsx`):**
   - Erradicar `#FDFBFF` y `#1D2024`. Usar `--color-md-card-bg`, `--color-md-outline-variant`, `--color-md-primary`.
   - Tarjetas de acciones limpias agrupadas (Exportar a Descargas, Compartir, Copiar JSON / Importar Archivo, Pegar JSON).
-- [ ] **8.6. Subvista de Acerca de la Agenda (`about`):**
+- [x] **8.6. Subvista de Acerca de la Agenda (`about`):**
   - Migrar al 100% a tokens semánticos `--color-md-*`.
   - Folio M3 con avatar de la app, versión dinámica, garantía offline-first y créditos del desarrollador.
-- [ ] **8.7. Limpieza en Menú Raíz y Transiciones de Subvistas:**
+- [x] **8.7. Limpieza en Menú Raíz y Transiciones de Subvistas:**
   - Reemplazar los colores hardcodeados de las tarjetas del menú raíz (`activeSubView === null`) por tokens `--color-md-*`.
   - Integrar `useExitTransition` al pulsar la flecha atrás de la subvista para que vuelva suavemente a la lista de ajustes.
-- [ ] **8.8. Verificación y Calidad:**
+- [x] **8.8. Verificación y Calidad:**
   - Ejecutar `npm run build` (`tsc -b && vite build`) y `npm run lint` (`oxlint`) garantizando cero errores.
+
+---
+
+### 🛡️ FASE 9: Selector de Color Canónico M3 y Sistema Global de Legibilidad de Fondos (Readability & Wallpaper Scrim)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+1. **Eliminar el selector de color nativo arcaico de Android:** Reemplazar `<input type="color">` en `IdentityPicker.tsx` por un modal canónico de Material Design 3 (`M3ColorPickerModal.tsx`) con paleta de tonos armónicos, ajuste de matiz y entrada hexadecimal, eliminando el diálogo anticuado del sistema operativo.
+2. **Garantizar 100% de legibilidad tipográfica sobre cualquier papel tapiz:** Resolver la pérdida de contraste en textos flotantes huérfanos (títulos de encabezado, subtítulos y etiquetas de sección) en **Horario**, **Materias**, **Profesores**, **Apuntes**, **Archivos** y **Ajustes**, mediante un velo de legibilidad adaptativo en `AppWallpaper.tsx` y cápsulas/chips tonales protectores con *backdrop-blur*.
+
+#### Problemas Detectados (Evidencia en Capturas)
+1. **Selector de Color Tocho (Imagen 1):** El botón `+` en la fila de colores invoca `<input type="color">`, lo que en Android WebView abre un cuadro de diálogo del sistema operativo ("Seleccionar color", 8 cajas neón, Cancelar/Establecer) totalmente desalineado del estilo de la app.
+2. **Ilegibilidad en Encabezados y Subtítulos (Imágenes 2, 3, 4, 5):**
+   - En *Profesores* (Img 2): "Contactos Docentes", subtítulo y "DIRECTORIO ALFABÉTICO (5 CATEDRÁTICOS)" flotan desnudos sobre el fondo ilustrado.
+   - En *Horario* (Img 3): "Horario Académico", badge del semestre y subtítulo se funden con los colores vivos de la ilustración.
+   - En *Archivos* (Img 4): "Archivos y Documentos", chips de tipos ("Tipo: Todos | PDFs...") y la tarjeta vacía con borde punteado (`bg-[#F1F4FA]/30`) son transparentes e ilegibles.
+   - En *Ajustes* (Img 5): Encabezado "Ajustes" y los títulos de grupo ("Preferencias de estudio", "Notificaciones y medios", "Almacenamiento y sistema") se pierden por completo sobre el tapiz.
+
+#### Tareas de Implementación (Fase 9)
+- [ ] **9.1. Componente Canónico `M3ColorPickerModal.tsx`:**
+  - Crear `src/shared/components/form/M3ColorPickerModal.tsx` utilizando el `Modal` M3 existente.
+  - Contenido:
+    - Avatar/Vista previa grande con el color seleccionado y código HEX.
+    - Cuadrícula de 24 tonos armónicos seleccionados (Material You hues: pasteles, vibrantes y profundos).
+    - Slider continuo de matiz cromático (arcoíris) + input de texto hexadecimal con prefijo `#`.
+    - Botones de acción: `Cancelar` y `Aplicar color`.
+  - Integrar en `IdentityPicker.tsx` sustituyendo el `<input type="color">` por la apertura de este modal.
+- [ ] **9.2. Velo de Legibilidad Adaptativo en `AppWallpaper.tsx`:**
+  - En `src/shared/components/AppWallpaper.tsx`, para `wallpaperStyle === 'custom'`, añadir una capa de contraste/atenuación sutil:
+    - En modo oscuro: velo de superficie oscura `bg-black/40` o `bg-[var(--color-md-surface)]/50` para atenuar fondos brillantes y asegurar contraste $\ge 4.5:1$ (WCAG AA).
+    - En modo claro: velo de superficie clara `bg-white/45` o `bg-[var(--color-md-surface)]/60`.
+- [ ] **9.3. Protección de Encabezados de Pantalla (Header Scrim Capsule):**
+  - En los encabezados de `ScheduleView.tsx`, `SubjectsView.tsx`, `ProfessorsView.tsx`, `NotesView.tsx`, `DocumentsView.tsx` y `SettingsView.tsx`:
+    - Añadir una clase de protección o contenedor con respaldo sutil: `bg-[var(--color-md-surface)]/65 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-[var(--color-md-outline-variant)]/30 shadow-2xs` o una cápsula semitranslúcida que garantice legibilidad absoluta de los títulos H1/H2 y sus subtítulos.
+- [ ] **9.4. Cápsulas y Chips Tonales para Etiquetas de Sección:**
+  - `ProfessorsView.tsx`: Envolver "Directorio Alfabético • X Catedráticos" en un chip tonal: `inline-flex px-3 py-1 rounded-full bg-[var(--color-md-surface-container)]/85 backdrop-blur-sm border border-[var(--color-md-outline-variant)]/50 text-[11px] font-bold text-[var(--color-md-on-surface-variant)] shadow-2xs`.
+  - `DocumentsView.tsx`: Envolver la barra de tipos ("Tipo: Todos | PDFs...") en un contenedor con `bg-[var(--color-md-surface-container)]/85 backdrop-blur-md rounded-xl p-1 border border-[var(--color-md-outline-variant)]/50`.
+  - `DocumentsView.tsx`: Estado vacío ("Aún no has vinculado ningún documento...") con `bg-[var(--md-card-surface)]/90 backdrop-blur-md border border-[var(--color-md-outline-variant)]` para máxima nitidez.
+  - `SettingsPrimitives.tsx` (`SettingsGroup`): Envolver los títulos de sección en un chip o cápsula tonal: `inline-flex px-2.5 py-0.5 rounded-md bg-[var(--color-md-surface-container-high)]/85 backdrop-blur-sm border border-[var(--color-md-outline-variant)]/40 text-xs font-bold text-[var(--color-md-on-surface-variant)]`.
+- [ ] **9.5. Verificación y Compilación:**
+  - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
 
 ---
 
