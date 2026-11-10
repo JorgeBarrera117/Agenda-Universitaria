@@ -6,32 +6,60 @@
  * Eslogan: "POR Y PARA LOS ESTUDIANTES"
  * ==============================================================================
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
 import { AppWallpaper } from './shared/components/AppWallpaper';
+import { BackgroundSyncManager } from './shared/components/BackgroundSyncManager';
+import { ViewSkeleton } from './shared/components/ViewSkeleton';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
-import { SubjectsView } from './features/subjects/components/SubjectsView';
-import { ProfessorsView } from './features/professors/components/ProfessorsView';
-import { NotesView } from './features/notes/components/NotesView';
-import { DocumentsView } from './features/documents/components/DocumentsView';
-import { SettingsView } from './features/settings/components/SettingsView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
-import { useSubjects } from './features/subjects/hooks/useSubjects';
-import { useSubjectDocuments } from './features/subjects/hooks/useSubjectDocuments';
-import { useSchedule } from './features/schedule/hooks/useSchedule';
-import { useProfessors } from './features/professors/hooks/useProfessors';
-import { useNotes } from './features/notes/hooks/useNotes';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { NotificationService } from './shared/services/notificationService';
 import { applyTheme, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
+import { useTabCounts } from './shared/hooks/useTabCounts';
 import { backButtonManager } from './shared/services/backButtonManager';
-import { WidgetSyncService } from './shared/services/widgetSyncService';
 
 const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
+
+// El Horario es la vista crítica de arranque y se importa de forma estática.
+// Las demás se cargan bajo demanda y se precargan cuando el navegador queda ocioso.
+const loadSubjectsView = () => import('./features/subjects/components/SubjectsView');
+const loadProfessorsView = () => import('./features/professors/components/ProfessorsView');
+const loadNotesView = () => import('./features/notes/components/NotesView');
+const loadDocumentsView = () => import('./features/documents/components/DocumentsView');
+const loadSettingsView = () => import('./features/settings/components/SettingsView');
+
+const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: m.SubjectsView })));
+const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: m.ProfessorsView })));
+const NotesView = lazy(() => loadNotesView().then((m) => ({ default: m.NotesView })));
+const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: m.DocumentsView })));
+const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
+
+const SECONDARY_VIEW_LOADERS = [
+  loadSubjectsView,
+  loadProfessorsView,
+  loadNotesView,
+  loadDocumentsView,
+  loadSettingsView,
+];
+
+function preloadSecondaryViewsWhenIdle(): () => void {
+  const preload = () => {
+    for (const load of SECONDARY_VIEW_LOADERS) {
+      load().catch(() => undefined);
+    }
+  };
+  if (typeof window.requestIdleCallback === 'function') {
+    const handle = window.requestIdleCallback(preload, { timeout: 4000 });
+    return () => window.cancelIdleCallback(handle);
+  }
+  const timer = setTimeout(preload, 1500);
+  return () => clearTimeout(timer);
+}
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('schedule');
@@ -73,12 +101,17 @@ export function App() {
 
   const isAnyEditorActive = activeEditorTab === activeTab;
 
-  const { subjects } = useSubjects();
-  const { slots } = useSchedule();
-  const { professors } = useProfessors();
-  const { notes } = useNotes();
-  const { documents: allDocuments } = useSubjectDocuments();
+  // Pestañas ya visitadas: se montan la primera vez que se abren y luego se conservan
+  // ocultas (patrón Keep-Alive) para no perder su estado al cambiar de pestaña.
+  const [mountedTabs, setMountedTabs] = useState<ReadonlySet<TabType>>(() => new Set<TabType>(['schedule']));
+  if (!mountedTabs.has(activeTab)) {
+    setMountedTabs(new Set(mountedTabs).add(activeTab));
+  }
+
+  const { subjectCount, professorsCount, notesCount, documentsCount } = useTabCounts();
   const { settings } = useAppSettings();
+
+  useEffect(() => preloadSecondaryViewsWhenIdle(), []);
 
   // Sincronizar tema de apariencia (claro, oscuro o sistema) y paleta dinámica Material You
   useEffect(() => {
@@ -124,34 +157,6 @@ export function App() {
     }
     return false;
   }, BACK_PRIORITY.TAB, activeTab !== 'schedule' && !isSettingsOpen);
-
-  // Sincronizar automáticamente recordatorios locales (con debounce de 600ms para agrupar cargas reactivas)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (settings.notificationsEnabled && slots.length > 0) {
-        NotificationService.syncScheduleNotifications(slots, subjects, settings).catch(console.warn);
-      }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [
-    slots,
-    subjects,
-    settings.notificationsEnabled,
-    settings.notify15MinBefore,
-    settings.notifyAtClassStart,
-    settings.notificationSound,
-  ]);
-
-  // Sincronizar automáticamente el Widget de la Pantalla de Inicio de Android (con debounce de 600ms para optimizar CPU y batería)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      WidgetSyncService.syncWidgetData(slots, subjects, professors, notes, {
-        theme: settings.theme,
-        colorPalette: settings.colorPalette,
-      }).catch(console.warn);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [slots, subjects, professors, notes, settings.theme, settings.colorPalette]);
 
   const showToast = (message: string) => {
     if (toastTimerRef.current) {
@@ -215,16 +220,19 @@ export function App() {
       {/* Papel Tapiz Adaptativo al Tema (Fijo en GPU, z-0) */}
       <AppWallpaper />
 
+      {/* Sincronización de notificaciones y widget Android, aislada del árbol visual */}
+      <BackgroundSyncManager />
+
       {/* Barra de navegación superior de Campus (Oculta al crear apuntes, formularios o en Ajustes) */}
       {!isAnyEditorActive && !isSettingsOpen && (
         <Navbar
           activeTab={activeTab}
           onTabChange={handleTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          subjectCount={subjects.length}
-          professorsCount={professors.length}
-          notesCount={notes.length}
-          documentsCount={allDocuments.length}
+          subjectCount={subjectCount}
+          professorsCount={professorsCount}
+          notesCount={notesCount}
+          documentsCount={documentsCount}
         />
       )}
 
@@ -256,10 +264,12 @@ export function App() {
       >
         {isSettingsOpen ? (
           <div className="m3-view-enter flex-1">
-            <SettingsView
-              onBack={() => setIsSettingsOpen(false)}
-              onShowToast={showToast}
-            />
+            <Suspense fallback={<ViewSkeleton />}>
+              <SettingsView
+                onBack={() => setIsSettingsOpen(false)}
+                onShowToast={showToast}
+              />
+            </Suspense>
           </div>
         ) : (
           <div className="flex-1 w-full min-w-0">
@@ -271,30 +281,46 @@ export function App() {
               />
             </div>
             <div className={activeTab === 'subjects' ? tabEnterClass : 'hidden'}>
-              <SubjectsView
-                onNavigateToNotes={handleNavigateToNotesFromSchedule}
-                onEditorActiveChange={handleSubjectsEditorChange}
-                isActive={activeTab === 'subjects'}
-              />
+              {mountedTabs.has('subjects') && (
+                <Suspense fallback={<ViewSkeleton />}>
+                  <SubjectsView
+                    onNavigateToNotes={handleNavigateToNotesFromSchedule}
+                    onEditorActiveChange={handleSubjectsEditorChange}
+                    isActive={activeTab === 'subjects'}
+                  />
+                </Suspense>
+              )}
             </div>
             <div className={activeTab === 'professors' ? tabEnterClass : 'hidden'}>
-              <ProfessorsView
-                onEditorActiveChange={handleProfessorsEditorChange}
-                isActive={activeTab === 'professors'}
-              />
+              {mountedTabs.has('professors') && (
+                <Suspense fallback={<ViewSkeleton />}>
+                  <ProfessorsView
+                    onEditorActiveChange={handleProfessorsEditorChange}
+                    isActive={activeTab === 'professors'}
+                  />
+                </Suspense>
+              )}
             </div>
             <div className={activeTab === 'notes' ? tabEnterClass : 'hidden'}>
-              <NotesView
-                initialSubjectFilterId={selectedSubjectForNotes}
-                onEditorActiveChange={handleNotesEditorChange}
-                isActive={activeTab === 'notes'}
-              />
+              {mountedTabs.has('notes') && (
+                <Suspense fallback={<ViewSkeleton />}>
+                  <NotesView
+                    initialSubjectFilterId={selectedSubjectForNotes}
+                    onEditorActiveChange={handleNotesEditorChange}
+                    isActive={activeTab === 'notes'}
+                  />
+                </Suspense>
+              )}
             </div>
             <div className={activeTab === 'documents' ? tabEnterClass : 'hidden'}>
-              <DocumentsView
-                isActive={activeTab === 'documents'}
-                onEditorActiveChange={handleDocumentsEditorChange}
-              />
+              {mountedTabs.has('documents') && (
+                <Suspense fallback={<ViewSkeleton />}>
+                  <DocumentsView
+                    isActive={activeTab === 'documents'}
+                    onEditorActiveChange={handleDocumentsEditorChange}
+                  />
+                </Suspense>
+              )}
             </div>
           </div>
         )}
@@ -305,10 +331,10 @@ export function App() {
         <BottomNav
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          subjectCount={subjects.length}
-          professorsCount={professors.length}
-          notesCount={notes.length}
-          documentsCount={allDocuments.length}
+          subjectCount={subjectCount}
+          professorsCount={professorsCount}
+          notesCount={notesCount}
+          documentsCount={documentsCount}
         />
       )}
     </div>

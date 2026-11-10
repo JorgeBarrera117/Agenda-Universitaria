@@ -33,6 +33,33 @@ const STORAGE_KEY = 'agenda_subject_documents_metadata_v1';
 const DB_NAME = 'AgendaDocsCacheDB';
 const STORE_NAME = 'blobs';
 
+// Los metadatos viven en localStorage (no en Dexie), así que cada instancia del hook carga su
+// propia copia. Este evento avisa a los demás consumidores (p. ej. los contadores de pestañas).
+export const DOCUMENTS_CHANGED_EVENT = 'agenda_documents_updated';
+
+function writeStoredDocuments(docs: SubjectDocumentItem[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+  window.dispatchEvent(new Event(DOCUMENTS_CHANGED_EVENT));
+}
+
+let cachedRaw: string | null = null;
+let cachedCount = 0;
+
+/** Total de documentos guardados; solo vuelve a parsear el JSON cuando su texto cambia. */
+export function readStoredDocumentsCount(): number {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw !== cachedRaw) {
+      cachedRaw = raw;
+      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      cachedCount = Array.isArray(parsed) ? parsed.length : 0;
+    }
+    return cachedCount;
+  } catch {
+    return 0;
+  }
+}
+
 // Inicializador de base de datos aislada para blobs sin alterar la DB principal
 function openDocsDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -129,7 +156,7 @@ export function useSubjectDocuments(subjectId?: string) {
     const raw = localStorage.getItem(STORAGE_KEY);
     const allDocs: SubjectDocumentItem[] = raw ? JSON.parse(raw) : [];
     allDocs.push(newDoc);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allDocs));
+    writeStoredDocuments(allDocs);
 
     loadDocuments();
     return newDoc;
@@ -156,7 +183,7 @@ export function useSubjectDocuments(subjectId?: string) {
     const raw = localStorage.getItem(STORAGE_KEY);
     const allDocs: SubjectDocumentItem[] = raw ? JSON.parse(raw) : [];
     allDocs.push(newDoc);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allDocs));
+    writeStoredDocuments(allDocs);
 
     loadDocuments();
     return newDoc;
@@ -222,7 +249,7 @@ export function useSubjectDocuments(subjectId?: string) {
     const raw = localStorage.getItem(STORAGE_KEY);
     const allDocs: SubjectDocumentItem[] = raw ? JSON.parse(raw) : [];
     const filtered = allDocs.filter((d) => d.id !== docId);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    writeStoredDocuments(filtered);
     loadDocuments();
   };
 
@@ -242,7 +269,7 @@ export function useSubjectDocuments(subjectId?: string) {
     const raw = localStorage.getItem(STORAGE_KEY);
     const allDocs: SubjectDocumentItem[] = raw ? JSON.parse(raw) : [];
     const updated = allDocs.map((d) => (d.id === docId ? { ...d, subjectId: newSubjectId } : d));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    writeStoredDocuments(updated);
     loadDocuments();
   };
 

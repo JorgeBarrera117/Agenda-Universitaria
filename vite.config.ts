@@ -69,17 +69,21 @@ export default defineConfig({
     })
   ],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) return 'vendor';
-            if (id.includes('dexie')) return 'db';
-            if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
-            if (id.includes('react-markdown') || id.includes('remark-gfm')) return 'markdown';
-          }
-        }
-      }
-    }
+        // Rolldown mete en el chunk de un grupo también las dependencias de sus módulos. Con el
+        // antiguo manualChunks, react-dom y jsx-runtime acababan dentro de 'editor' (vía @tiptap/react)
+        // y TipTap se precargaba al arrancar aunque NotesView sea lazy. Con prioridades, 'vendor'
+        // y 'db' reclaman sus módulos antes que los grupos de carga diferida.
+        codeSplitting: {
+          groups: [
+            { name: 'vendor', test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/, priority: 4 },
+            { name: 'db', test: /[\\/]node_modules[\\/](dexie|dexie-react-hooks)[\\/]/, priority: 3 },
+            { name: 'editor', test: /[\\/]node_modules[\\/](@tiptap|prosemirror-[^\\/]+)[\\/]/, priority: 2 },
+            { name: 'markdown', test: /[\\/]node_modules[\\/](react-markdown|remark-gfm)[\\/]/, priority: 2 },
+          ],
+        },
+      },
+    },
   }
 });
