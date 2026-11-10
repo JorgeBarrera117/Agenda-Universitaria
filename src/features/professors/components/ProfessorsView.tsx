@@ -25,6 +25,7 @@ import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
+import { HEADER_SCRIM_CLASS, TONAL_CHIP_CLASS } from '../../../shared/styles/surfaces';
 
 interface ProfessorsViewProps {
   onEditorActiveChange?: (isActive: boolean) => void;
@@ -131,17 +132,17 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   return (
     <div className="space-y-3.5 w-full">
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-[var(--color-md-on-surface)] tracking-tight">
               Contactos Docentes
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
               {professors.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
             Directorio de catedráticos, cubículos y horarios de asesoría.
           </p>
         </div>
@@ -214,12 +215,12 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
       {/* Subtítulo de Sección */}
       <div className="flex items-center justify-between px-1 pt-0.5">
-        <span className="text-[10px] sm:text-[11px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider">
-          Directorio Alfabético • {filteredProfessors.length}{' '}
-          {filteredProfessors.length === 1 ? 'Catedrático' : 'Catedráticos'}
+        <span className={TONAL_CHIP_CLASS}>
+          Directorio alfabético · {filteredProfessors.length}{' '}
+          {filteredProfessors.length === 1 ? 'catedrático' : 'catedráticos'}
         </span>
         {searchQuery && (
-          <span className="text-[10px] sm:text-[11px] text-[#00639B] dark:text-[#92CCFF] font-semibold">
+          <span className={`${TONAL_CHIP_CLASS} text-[var(--color-md-primary)]`}>
             Filtrando resultados
           </span>
         )}

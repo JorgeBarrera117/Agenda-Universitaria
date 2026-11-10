@@ -35,6 +35,7 @@ import { ScheduleSettings } from './ScheduleSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { MediaSettings } from './MediaSettings';
 import { AboutSettings } from './AboutSettings';
+import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
 import { StudentProfileForm } from './StudentProfileForm';
@@ -297,7 +298,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {activeSubView === null ? (
           <div className="space-y-3 m3-tab-enter-left">
             {/* Cabecera Principal Compacta */}
-            <div className="flex items-center justify-between pb-0.5">
+            <div className={`flex items-center justify-between ${HEADER_SCRIM_CLASS}`}>
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
@@ -384,7 +385,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
              ========================================================================= */
           <div className={`space-y-3 ${subViewExit.isClosing ? 'm3-sheet-exit' : 'm3-tab-enter-right'}`}>
             {/* Cabecera de la Sub-Página Compacta */}
-            <div className="flex items-center justify-between pb-0.5">
+            <div className={`flex items-center justify-between ${HEADER_SCRIM_CLASS}`}>
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"

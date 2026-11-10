@@ -39,6 +39,7 @@ import {
   type ScheduleSlot,
   type CreateScheduleSlotDTO,
 } from '../types';
+import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
@@ -192,17 +193,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   return (
     <div className="flex flex-col gap-3 sm:gap-3.5">
       {/* 1. ENCABEZADO DEL APARTADO (Compacto y Predecible) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-2xl font-black text-[var(--color-md-on-surface)] tracking-tight">
               Horario Académico
             </h2>
             <Badge variant="primary" size="sm">
               {settings.semesterName}
             </Badge>
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-[11px] sm:text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
             Planificación de bloques lectivos, aulas y cátedras universitarias.
           </p>
         </div>

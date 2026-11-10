@@ -76,9 +76,11 @@ class BackButtonManager {
   public register(registration: BackHandlerRegistration): () => void {
     // Evitar registros duplicados con el mismo ID
     this.handlers = this.handlers.filter((h) => h.id !== registration.id);
-    this.handlers.push(registration);
+    // Al inicio: con prioridades iguales gana la capa registrada más recientemente (LIFO),
+    // p. ej. un diálogo abierto sobre un formulario que usa la misma prioridad.
+    this.handlers.unshift(registration);
 
-    // Mantener la pila ordenada de mayor a menor prioridad
+    // Mantener la pila ordenada de mayor a menor prioridad (sort es estable: respeta el LIFO en empates)
     this.handlers.sort((a, b) => b.priority - a.priority);
 
     return () => {

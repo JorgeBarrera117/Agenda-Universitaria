@@ -27,6 +27,7 @@ import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
+import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 
 interface SubjectsViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
@@ -113,17 +114,17 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   return (
     <div className="space-y-3 sm:space-y-3.5">
       {/* 1. ENCABEZADO DEL APARTADO (Compacto) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-2xl font-black text-[var(--color-md-on-surface)] tracking-tight">
               Plan de Asignaturas
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
               {subjects.length}
             </span>
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-[11px] sm:text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
             Catálogo curricular que estructura tus horarios, apuntes y docentes.
           </p>
         </div>

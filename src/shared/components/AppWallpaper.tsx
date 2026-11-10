@@ -244,6 +244,9 @@ export const AppWallpaper: React.FC = () => {
             className="absolute inset-0"
           />
         )}
+        {/* Velo de legibilidad: una foto puede tener zonas muy claras u oscuras bajo el texto.
+            Se usa el color de superficie del tema (negro puro en OLED, crema en Matcha…) */}
+        <div className="absolute inset-0 bg-[var(--color-md-surface)]/45 dark:bg-[var(--color-md-surface)]/50" />
       </div>
     );
   }

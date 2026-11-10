@@ -28,6 +28,7 @@ import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { DocumentLinkForm } from './DocumentLinkForm';
 import { DocumentDetailView } from './DocumentDetailView';
 import { DocumentReassignView } from './DocumentReassignView';
+import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 
 interface DocumentsViewProps {
   isActive?: boolean;
@@ -327,17 +328,17 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   return (
     <div className="space-y-3.5 w-full animate-in fade-in duration-200">
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-[var(--color-md-on-surface)] tracking-tight">
               Archivos y Documentos
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
               {stats.totalCount} {stats.totalCount === 1 ? 'archivo' : 'archivos'} • {stats.totalBytesFormatted}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
             Presentaciones, guías PDF, documentos Word y enlaces por materia.
           </p>
         </div>
@@ -443,8 +444,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         </div>
 
         {/* Chips de Categoría de Formato */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar select-none text-[10px] sm:text-[11px] font-bold">
-          <span className="text-[#72777F] dark:text-[#8C9199] shrink-0 mr-0.5 flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 p-1 backdrop-blur-md select-none text-[11px] font-bold [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <span className="text-[var(--color-md-on-surface-variant)] shrink-0 mx-1 flex items-center gap-1">
             <Filter className="w-3 h-3" /> Tipo:
           </span>
 
@@ -460,10 +461,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               key={f.id}
               type="button"
               onClick={() => setSelectedFormatFilter(f.id as FormatFilterType)}
-              className={`px-2 py-0.5 rounded-full transition-all shrink-0 cursor-pointer ${
+              aria-pressed={selectedFormatFilter === f.id}
+              className={`min-h-[32px] px-3 rounded-lg transition-all duration-150 ease-out shrink-0 cursor-pointer active:scale-95 ${
                 selectedFormatFilter === f.id
-                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] font-black shadow-2xs'
-                  : 'bg-transparent text-[#72777F] dark:text-[#8C9199] hover:bg-black/5 dark:hover:bg-white/5'
+                  ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
+                  : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
               }`}
             >
               {f.label}
@@ -474,16 +476,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
       {/* 3. Listado de Archivos en Rejilla M3 */}
       {filteredAndSortedDocs.length === 0 ? (
-        <div className="text-center py-12 px-4 rounded-2xl sm:rounded-3xl border-2 border-dashed border-[#C2C7CE]/60 dark:border-[#42474E]/60 space-y-2.5 bg-[#F1F4FA]/30 dark:bg-[#1D2024]/30">
-          <div className="w-11 h-11 rounded-2xl bg-[#E2E7EF] dark:bg-[#272A2F] text-[#00639B] dark:text-[#92CCFF] flex items-center justify-center mx-auto shadow-2xs">
+        <div className="text-center py-12 px-4 rounded-2xl sm:rounded-3xl border border-[var(--color-md-outline-variant)] space-y-2.5 bg-[var(--md-card-surface)]/90 backdrop-blur-md shadow-2xs">
+          <div className="w-11 h-11 rounded-2xl bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] flex items-center justify-center mx-auto shadow-2xs">
             <FolderOpen className="w-5 h-5 stroke-[1.8]" />
           </div>
-          <h3 className="text-sm font-bold text-[#191C20] dark:text-[#E2E2E6]">
+          <h3 className="text-sm font-bold text-[var(--color-md-on-surface)]">
             {documents.length === 0
               ? 'Aún no has vinculado ningún documento'
               : 'No se encontraron archivos con los filtros actuales'}
           </h3>
-          <p className="text-xs text-[#72777F] dark:text-[#8C9199] max-w-md mx-auto leading-relaxed">
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] max-w-md mx-auto leading-relaxed">
             {documents.length === 0
               ? 'Vincula diapositivas, documentos Word, guías PDF o enlaces web para organizarlos por materia.'
               : 'Prueba cambiando la asignatura seleccionada o borrando la búsqueda.'}

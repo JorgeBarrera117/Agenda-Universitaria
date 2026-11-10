@@ -36,6 +36,7 @@ import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExit
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
+import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 
 interface NotesViewProps {
   initialSubjectFilterId?: string;
@@ -615,17 +616,17 @@ export const NotesView: React.FC<NotesViewProps> = ({
   return (
     <div className="space-y-3.5 w-full m3-view-enter">
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-[var(--color-md-on-surface)] tracking-tight">
               Cuaderno de Apuntes
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
               {notes.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
             Notas de cátedra, fotos de pizarrón y fórmulas por asignatura.
           </p>
         </div>

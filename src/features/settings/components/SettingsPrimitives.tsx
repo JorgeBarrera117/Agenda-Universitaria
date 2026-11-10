@@ -32,7 +32,9 @@ export const SettingsBlock: React.FC<{
 /** Grupo del menú raíz: etiqueta de sección y lista continua de filas. */
 export const SettingsGroup: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <section className="space-y-1.5" aria-label={title}>
-    <h2 className="px-2 text-xs font-semibold text-[var(--color-md-on-surface-variant)]">{title}</h2>
+    <h2 className="ml-1 inline-flex rounded-md border border-[var(--color-md-outline-variant)]/40 bg-[var(--color-md-surface-container-high)]/85 px-2.5 py-0.5 text-xs font-bold text-[var(--color-md-on-surface-variant)] backdrop-blur-sm">
+      {title}
+    </h2>
     <div className="md-card divide-y divide-[var(--color-md-outline-variant)] overflow-hidden rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] shadow-2xs sm:rounded-3xl">
       {children}
     </div>

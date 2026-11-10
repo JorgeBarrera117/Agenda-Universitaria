@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, Plus } from 'lucide-react';
+import { M3ColorPickerModal } from './M3ColorPickerModal';
 
 export interface IdentityIconOption {
   id: string;
@@ -36,6 +37,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
   onIconChange,
 }) => {
   const isCustomColor = !colors.some((c) => c.toLowerCase() === color.toLowerCase());
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   return (
     <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start">
@@ -73,9 +75,13 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
                 </button>
               );
             })}
-            <label
-              title="Color personalizado"
-              className={`relative flex h-[34px] w-[34px] cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed transition-all duration-150 ease-out hover:scale-105 ${
+            <button
+              type="button"
+              onClick={() => setIsPickerOpen(true)}
+              aria-label={isCustomColor ? `Color personalizado ${color}. Cambiar` : 'Elegir color personalizado'}
+              aria-haspopup="dialog"
+              aria-pressed={isCustomColor}
+              className={`flex h-[34px] w-[34px] items-center justify-center rounded-full border-2 border-dashed transition-all duration-150 ease-out hover:scale-105 active:scale-95 ${
                 isCustomColor
                   ? 'border-transparent ring-2 ring-[var(--color-md-on-surface)] ring-offset-2 ring-offset-[var(--color-md-card-bg)]'
                   : 'border-[var(--color-md-outline)] bg-[var(--color-md-surface-container-high)]'
@@ -86,14 +92,13 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
                 className={`h-4 w-4 ${isCustomColor ? 'text-white drop-shadow' : 'text-[var(--color-md-on-surface-variant)]'}`}
                 aria-hidden="true"
               />
-              <span className="sr-only">Elegir color personalizado</span>
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => onColorChange(e.target.value)}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </label>
+            </button>
+            <M3ColorPickerModal
+              isOpen={isPickerOpen}
+              initialColor={color}
+              onClose={() => setIsPickerOpen(false)}
+              onApply={onColorChange}
+            />
           </div>
         </fieldset>
 
