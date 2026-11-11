@@ -16,6 +16,8 @@ import {
   X,
   Copy,
   Info,
+  Share2,
+  FileDown,
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -28,6 +30,14 @@ import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
+import { ImportNoteModal } from './ImportNoteModal';
+import {
+  AGNOTE_EXTENSION,
+  AGNOTE_MIME_TYPE,
+  exportNoteToAgnote,
+  parseAgnoteContent,
+  type NoteSharePackage,
+} from '../services/noteShareService';
 import { db } from '../../../shared/db/AppDatabase';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card } from '../../../shared/components/atoms';
@@ -141,6 +151,32 @@ export const NotesView: React.FC<NotesViewProps> = ({
   const showReaderToast = (msg: string) => {
     setReaderToast(msg);
     setTimeout(() => setReaderToast(null), 3000);
+  };
+
+  // Compartir e importar apuntes (.agnote)
+  const [importPackage, setImportPackage] = useState<NoteSharePackage | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleShareNote = async (note: Note) => {
+    try {
+      const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
+      const result = await exportNoteToAgnote(note, subject);
+      // En Android abre la hoja de compartir del sistema; en la web descarga el archivo
+      if (result.method === 'download') showReaderToast(`Apunte descargado: ${result.fileName}`);
+    } catch (err) {
+      showReaderToast(err instanceof Error ? err.message : 'No se pudo compartir el apunte.');
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      setImportPackage(parseAgnoteContent(await file.text()));
+    } catch (err) {
+      showReaderToast(err instanceof Error ? err.message : 'No se pudo abrir el archivo.');
+    }
   };
 
   // Notificar al layout principal si estamos en modo editor o lector para maximizar pantalla
@@ -382,6 +418,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 onClick: () => setIsDetailsModalOpen(true),
               },
               {
+                id: 'share',
+                label: 'Compartir apunte',
+                icon: <Share2 className="h-4 w-4 text-[var(--color-md-primary)]" />,
+                onClick: () => void handleShareNote(readingNote),
+              },
+              {
                 id: 'delete',
                 label: 'Eliminar apunte',
                 icon: <Trash2 className="h-4 w-4" />,
@@ -592,6 +634,25 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // 3. Vista de Galería de Documentos (M3 High Density)
   return (
     <div className="space-y-3.5 w-full m3-view-enter">
+      <ContextualToast message={readerToast} bottomOffset="nav" onClose={() => setReaderToast(null)} />
+      {importPackage && (
+        <ImportNoteModal
+          key={`${importPackage.exportedAt}-${importPackage.note.title}`}
+          sharePackage={importPackage}
+          onClose={() => setImportPackage(null)}
+          onImported={({ title, subjectName }) => {
+            setImportPackage(null);
+            showReaderToast(`«${title}» se guardó en ${subjectName}.`);
+          }}
+        />
+      )}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept={`${AGNOTE_EXTENSION},${AGNOTE_MIME_TYPE},application/json,application/octet-stream`}
+        onChange={(e) => void handleImportFile(e)}
+        className="hidden"
+      />
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
@@ -607,6 +668,17 @@ export const NotesView: React.FC<NotesViewProps> = ({
             Notas de cátedra, fotos de pizarrón y fórmulas por asignatura.
           </p>
         </div>
+        <div className="flex shrink-0 items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<FileDown className="w-4 h-4" />}
+          onClick={() => importInputRef.current?.click()}
+          title="Importar un apunte compartido (.agnote)"
+          className="whitespace-nowrap active:scale-95"
+        >
+          Importar
+        </Button>
         <div
           className={`hidden sm:block shrink-0 transition-all duration-300 ease-out origin-right ${
             isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
@@ -621,6 +693,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           >
             Nuevo Apunte
           </Button>
+        </div>
         </div>
       </div>
 
@@ -815,6 +888,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
                         onClick: () => handleOpenEdit(note),
                       },
                       {
+                        id: 'share',
+                        label: 'Compartir apunte',
+                        icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                        onClick: () => void handleShareNote(note),
+                      },
+                      {
                         id: 'delete',
                         label: 'Eliminar apunte',
                         icon: <Trash2 className="w-3.5 h-3.5" />,
@@ -966,6 +1045,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
                         label: 'Editar apunte',
                         icon: <Edit2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />,
                         onClick: () => handleOpenEdit(note),
+                      },
+                      {
+                        id: 'share',
+                        label: 'Compartir apunte',
+                        icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                        onClick: () => void handleShareNote(note),
                       },
                       {
                         id: 'delete',

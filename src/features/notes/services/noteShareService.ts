@@ -3,7 +3,10 @@ import { APP_INFO } from '../../../shared/constants/appInfo';
 import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
 import { SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from '../../../shared/utils/dataUrl';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
+import { db } from '../../../shared/db/AppDatabase';
+import { subjectRepository } from '../../subjects/repositories/subjectRepository';
 import { noteImageRepository } from '../repositories/noteImageRepository';
+import { noteRepository } from '../repositories/noteRepository';
 import type { Subject } from '../../subjects/types';
 import type { Note } from '../types';
 
@@ -233,5 +236,71 @@ export function agnoteAttachmentBlobs(sharePackage: NoteSharePackage): { name: s
   return sharePackage.attachments.map((attachment) => {
     const blob = dataUrlToBlob(attachment.dataUrl);
     return { name: attachment.name, blob, mimeType: blob.type };
+  });
+}
+
+/** Nombre comparable: sin tildes, mayúsculas ni espacios extra ("Cálculo  I" ≈ "calculo i"). */
+function comparableName(value: string): string {
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/** Materia local equivalente a la de origen: primero por código, después por nombre. */
+export function findMatchingSubject<T extends Pick<Subject, 'id' | 'name' | 'code'>>(
+  subjects: readonly T[],
+  origin: NoteShareSubject | null
+): T | undefined {
+  if (!origin) return undefined;
+  const code = origin.code ? comparableName(origin.code) : '';
+  if (code) {
+    const byCode = subjects.find((s) => s.code && comparableName(s.code) === code);
+    if (byCode) return byCode;
+  }
+  const name = comparableName(origin.name);
+  return subjects.find((s) => comparableName(s.name) === name);
+}
+
+export type AgnoteImportTarget =
+  | { kind: 'existing'; subjectId: string }
+  | { kind: 'create'; name: string; code?: string; color: string };
+
+/**
+ * Guarda un apunte compartido en la base de datos local: crea la materia si hace falta, el apunte
+ * y sus fotos adjuntas en una sola transacción (si algo falla no queda un apunte a medias).
+ * El paquete ya viene validado y sanitizado por parseAgnoteContent.
+ */
+export async function importAgnotePackage(
+  sharePackage: NoteSharePackage,
+  target: AgnoteImportTarget,
+  tags: string[]
+): Promise<{ note: Note; subjectId: string; createdSubject: boolean }> {
+  const attachments = agnoteAttachmentBlobs(sharePackage);
+  // db.professors también: subjectRepository.create abre su propia transacción anidada sobre
+  // subjects y professors, y Dexie exige que el padre incluya todas las tablas que usan sus hijas
+  return db.transaction('rw', [db.subjects, db.professors, db.notes, db.noteImages], async () => {
+    let subjectId: string;
+    if (target.kind === 'existing') {
+      if (!(await subjectRepository.getById(target.subjectId))) {
+        throw new Error('La materia elegida ya no existe.');
+      }
+      subjectId = target.subjectId;
+    } else {
+      const subject = await subjectRepository.create({
+        name: target.name.trim().slice(0, MAX_SUBJECT_NAME_LENGTH) || 'Apuntes compartidos',
+        ...(target.code ? { code: target.code } : {}),
+        color: target.color,
+      });
+      subjectId = subject.id;
+    }
+
+    const note = await noteRepository.create({
+      subjectId,
+      title: sharePackage.note.title,
+      content: sharePackage.note.content,
+      tags,
+    });
+    for (const attachment of attachments) {
+      await noteImageRepository.addBlob(note.id, attachment.name, attachment.blob, attachment.mimeType);
+    }
+    return { note, subjectId, createdSubject: target.kind === 'create' };
   });
 }

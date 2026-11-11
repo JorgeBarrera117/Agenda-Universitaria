@@ -1,4 +1,4 @@
-import { registerPlugin } from '@capacitor/core';
+import { registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 
 export interface WidgetBridgePlugin {
   updateWidgetData(options: { dataJson: string }): Promise<{ success: boolean }>;
@@ -24,6 +24,11 @@ export interface WidgetBridgePlugin {
    * WhatsApp). Solo acepta URI que Android entregó en ese intent; cualquier otro se rechaza.
    */
   readContentUri(options: { uri: string }): Promise<{ content: string; displayName?: string }>;
+  /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */
+  addListener(
+    eventName: 'incomingFile',
+    listener: (event: { uri: string; mimeType?: string }) => void
+  ): Promise<PluginListenerHandle>;
 }
 
 /**

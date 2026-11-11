@@ -434,11 +434,55 @@ public class WidgetBridgePlugin extends Plugin {
      */
     private static final Set<String> ALLOWED_INCOMING_URIS = Collections.synchronizedSet(new HashSet<>());
 
-    /** MainActivity registra aquí el URI del intent VIEW/SEND que abrió la app. */
+    /** Registra el URI del intent VIEW/SEND que abrió la app (único que readContentUri leerá). */
     public static void registerIncomingUri(Uri uri) {
         if (uri != null) {
             ALLOWED_INCOMING_URIS.add(uri.toString());
         }
+    }
+
+    private static final String EXTRA_INCOMING_HANDLED = "agenda_incoming_handled";
+
+    /** App abierta en frío desde un archivo: el intent de lanzamiento trae el URI. */
+    @Override
+    public void load() {
+        super.load();
+        handleIncomingIntent(getActivity().getIntent());
+    }
+
+    /** App ya abierta (launchMode singleTask): el archivo llega como intent nuevo. */
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        handleIncomingIntent(intent);
+    }
+
+    /**
+     * Entrega al frontend el archivo con el que se abrió la app (p. ej. un .agnote tocado en
+     * WhatsApp) con el evento "incomingFile". Se retiene hasta que JS añade el listener, porque en
+     * un arranque en frío el intent llega antes de que React esté montado.
+     */
+    @SuppressWarnings("deprecation")
+    private void handleIncomingIntent(Intent intent) {
+        if (intent == null || intent.getBooleanExtra(EXTRA_INCOMING_HANDLED, false)) {
+            return;
+        }
+        Uri uri = null;
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            uri = intent.getData();
+        } else if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        }
+        if (uri == null) {
+            return;
+        }
+        intent.putExtra(EXTRA_INCOMING_HANDLED, true);
+        registerIncomingUri(uri);
+
+        JSObject data = new JSObject();
+        data.put("uri", uri.toString());
+        data.put("mimeType", intent.getType());
+        notifyListeners("incomingFile", data, true);
     }
 
     /** Comparte un apunte empaquetado (.agnote) por WhatsApp, Telegram, Drive, etc. */

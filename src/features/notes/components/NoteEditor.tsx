@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { Check, ArrowLeft, Undo2, Redo2, X, Loader2, AlertTriangle } from 'lucide-react';
+import { Check, ArrowLeft, Undo2, Redo2, X, Loader2, AlertTriangle, Share2 } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { RichTextEditor } from './RichTextEditor';
@@ -11,6 +11,7 @@ import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButto
 import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
 import type { Editor } from '@tiptap/react';
 import type { Note, CreateNoteDTO } from '../types';
+import { exportNoteToAgnote } from '../services/noteShareService';
 
 interface NoteEditorProps {
   initialData?: Note;
@@ -123,6 +124,36 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     }
   };
 
+  // Compartir lo que se ve en pantalla (aunque no esté guardado) como archivo .agnote
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const handleShare = async () => {
+    if (!title.trim() && !content.trim()) {
+      setError('Escribe algo en el apunte antes de compartirlo.');
+      return;
+    }
+    setIsSharing(true);
+    try {
+      const now = new Date().toISOString();
+      const draft: Note = {
+        // Con el id real se incluyen también las fotos adjuntas del apunte guardado
+        id: initialData?.id ?? 'borrador',
+        subjectId,
+        title: title.trim() || 'Apunte',
+        content,
+        tags: commitTags(tagDraft),
+        createdAt: initialData?.createdAt ?? now,
+        updatedAt: now,
+      };
+      const result = await exportNoteToAgnote(draft, subjects.find((s) => s.id === subjectId));
+      if (result.method === 'download') setShareNotice(`Apunte descargado: ${result.fileName}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo compartir el apunte.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!title.trim()) {
       setError('Escribe un título para tu apunte.');
@@ -200,6 +231,20 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
         >
           <Redo2 className="h-[18px] w-[18px]" aria-hidden="true" />
         </button>
+        <button
+          type="button"
+          onClick={() => void handleShare()}
+          disabled={isSharing}
+          aria-label="Compartir apunte"
+          title="Compartir apunte (.agnote)"
+          className={headerIconButton}
+        >
+          {isSharing ? (
+            <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden="true" />
+          ) : (
+            <Share2 className="h-[18px] w-[18px]" aria-hidden="true" />
+          )}
+        </button>
 
         <button
           type="button"
@@ -217,6 +262,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
       </header>
 
       <ContextualToast message={error} variant="error" bottomOffset="nav" onClose={() => setError(null)} />
+      <ContextualToast message={shareNotice} bottomOffset="nav" onClose={() => setShareNotice(null)} />
 
       {/* Lienzo: título y metadatos en línea, después el documento */}
       <div

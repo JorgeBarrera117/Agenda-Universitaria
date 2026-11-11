@@ -21,6 +21,7 @@ import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
 import { backButtonManager } from './shared/services/backButtonManager';
+import { useIncomingAgnote } from './features/notes/hooks/useIncomingAgnote';
 
 const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
 
@@ -35,6 +36,10 @@ const loadSettingsView = () => import('./features/settings/components/SettingsVi
 const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: m.SubjectsView })));
 const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: m.ProfessorsView })));
 const NotesView = lazy(() => loadNotesView().then((m) => ({ default: m.NotesView })));
+// Solo se carga cuando llega un apunte compartido (.agnote) desde otra app
+const ImportNoteModal = lazy(() =>
+  import('./features/notes/components/ImportNoteModal').then((m) => ({ default: m.ImportNoteModal }))
+);
 const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: m.DocumentsView })));
 const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
 
@@ -131,6 +136,16 @@ export function App() {
     applyPerformanceMode(settings.performanceMode);
   }, [settings.performanceMode]);
 
+  const showToast = useCallback((message: string) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToastMessage(message);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+      toastTimerRef.current = null;
+    }, 3500);
+  }, []);
 
   useEffect(() => {
     // Si la base de datos local está vacía, sembrar ejemplos universitarios
@@ -151,7 +166,7 @@ export function App() {
         showToast('Presiona de nuevo para salir de la aplicación');
       },
     });
-  }, []);
+  }, [showToast]);
 
   // Al estar en cualquier pestaña secundaria (Materias, Profesores o Apuntes),
   // presionar "Atrás" regresa al Horario principal en lugar de cerrar la app.
@@ -164,16 +179,8 @@ export function App() {
     return false;
   }, BACK_PRIORITY.TAB, activeTab !== 'schedule' && !isSettingsOpen);
 
-  const showToast = (message: string) => {
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
-    }
-    setToastMessage(message);
-    toastTimerRef.current = setTimeout(() => {
-      setToastMessage(null);
-      toastTimerRef.current = null;
-    }, 3500);
-  };
+  // Apunte .agnote abierto desde WhatsApp u otra app (Android): se ofrece importarlo
+  const { incoming: incomingAgnote, clearIncoming } = useIncomingAgnote(showToast);
 
   const handleTabChange = useCallback((tab: TabType) => {
     if (tab !== 'notes') {
@@ -244,6 +251,21 @@ export function App() {
           notesCount={notesCount}
           documentsCount={documentsCount}
         />
+      )}
+
+      {incomingAgnote && (
+        <Suspense fallback={null}>
+          <ImportNoteModal
+            key={`${incomingAgnote.exportedAt}-${incomingAgnote.note.title}`}
+            sharePackage={incomingAgnote}
+            onClose={clearIncoming}
+            onImported={({ title, subjectName }) => {
+              clearIncoming();
+              handleTabChange('notes');
+              showToast(`«${title}» se guardó en ${subjectName}.`);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Notificación Toast Contextual Centrada y Translúcida */}
