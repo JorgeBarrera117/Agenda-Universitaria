@@ -2,6 +2,8 @@ package com.agenda.universitaria;
 
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.ClipDescription;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +14,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.inputmethod.InputMethodInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
@@ -191,6 +195,134 @@ public class WidgetBridgePlugin extends Plugin {
             call.resolve(ret);
         } catch (Exception e) {
             call.reject("Error al compartir archivo: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void copyImageToClipboard(PluginCall call) {
+        String base64Data = call.getString("base64Data");
+        if (base64Data == null || base64Data.trim().isEmpty()) {
+            call.reject("No hay datos de imagen para copiar.");
+            return;
+        }
+
+        try {
+            String mimeType = call.getString("mimeType");
+            if (base64Data.startsWith("data:")) {
+                int commaIndex = base64Data.indexOf(",");
+                if (commaIndex != -1) {
+                    String header = base64Data.substring(5, commaIndex);
+                    if (header.contains(";")) {
+                        mimeType = header.substring(0, header.indexOf(";"));
+                    }
+                    base64Data = base64Data.substring(commaIndex + 1);
+                }
+            }
+            // Solo formatos de imagen que WhatsApp y los teclados aceptan; cualquier otro valor
+            // recibido desde JS (p. ej. "text/html") se trata como PNG
+            if (!"image/jpeg".equals(mimeType) && !"image/png".equals(mimeType)) {
+                mimeType = "image/png";
+            }
+
+            byte[] imageBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+
+            Context context = getContext();
+            File clipDir = new File(context.getCacheDir(), "shared_clip");
+            if (!clipDir.exists()) {
+                clipDir.mkdirs();
+            }
+
+            // Nombre único por copia: el historial del portapapeles (p. ej. el de GBoard) guarda los
+            // URI anteriores; si siempre se sobrescribiera el mismo archivo, todas esas entradas
+            // mostrarían la última foto. Se conservan solo las 5 copias más recientes.
+            String extension = "image/jpeg".equals(mimeType) ? ".jpg" : ".png";
+            File[] previous = clipDir.listFiles();
+            if (previous != null && previous.length >= 5) {
+                java.util.Arrays.sort(previous, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
+                for (int i = 0; i <= previous.length - 5; i++) {
+                    //noinspection ResultOfMethodCallIgnored
+                    previous[i].delete();
+                }
+            }
+            File clipFile = new File(clipDir, "clipboard_image_" + System.currentTimeMillis() + extension);
+            try (FileOutputStream fos = new FileOutputStream(clipFile)) {
+                fos.write(imageBytes);
+                fos.flush();
+            }
+
+            Uri contentUri = FileProvider.getUriForFile(
+                context,
+                context.getPackageName() + ".fileprovider",
+                clipFile
+            );
+
+            // ClipData explícito con mimeType y comodín image/* para compatibilidad con teclados (GBoard)
+            // y aplicaciones de mensajería (WhatsApp, Telegram)
+            ClipDescription description = new ClipDescription(
+                "Image",
+                new String[]{ mimeType, "image/*", ClipDescription.MIMETYPE_TEXT_URILIST }
+            );
+            ClipData.Item item = new ClipData.Item(contentUri);
+            ClipData clipData = new ClipData(description, item);
+
+            // Pre-conceder permisos explícitos de lectura a apps de envío (WhatsApp, Telegram) y teclados (GBoard)
+            try {
+                Intent sendIntent = new Intent(Intent.ACTION_SEND);
+                sendIntent.setType(mimeType);
+                List<ResolveInfo> targets = context.getPackageManager()
+                    .queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                for (ResolveInfo target : targets) {
+                    context.grantUriPermission(
+                        target.activityInfo.packageName,
+                        contentUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    );
+                }
+            } catch (Exception ignored) {
+            }
+
+            try {
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    List<InputMethodInfo> imis = imm.getEnabledInputMethodList();
+                    for (InputMethodInfo imi : imis) {
+                        context.grantUriPermission(
+                            imi.getPackageName(),
+                            contentUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        );
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+
+            final String finalMimeType = mimeType;
+            getActivity().runOnUiThread(() -> {
+                try {
+                    // Feedback háptico nativo del sistema
+                    try {
+                        getActivity().getWindow().getDecorView().performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+                    } catch (Exception ignored) {
+                    }
+
+                    ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboard != null) {
+                        clipboard.setPrimaryClip(clipData);
+
+                        JSObject ret = new JSObject();
+                        ret.put("success", true);
+                        ret.put("mimeType", finalMimeType);
+                        call.resolve(ret);
+                    } else {
+                        call.reject("No se pudo obtener el servicio de portapapeles del sistema.");
+                    }
+                } catch (Exception ex) {
+                    call.reject("Error al asignar al portapapeles: " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception e) {
+            call.reject("Error al procesar la imagen para el portapapeles: " + e.getMessage());
         }
     }
 

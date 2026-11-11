@@ -11,6 +11,10 @@ export interface WidgetBridgePlugin {
     base64Data: string;
     mimeType?: string;
   }): Promise<{ success: boolean; mimeType?: string }>;
+  copyImageToClipboard(options: {
+    base64Data: string;
+    mimeType?: string;
+  }): Promise<{ success: boolean; mimeType?: string }>;
 }
 
 /**

@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import { compressImage } from '../utils/imageCompression';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
+import { Capacitor } from '@capacitor/core';
+import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
 
 interface RichTextEditorProps {
   content: string;
@@ -88,21 +90,43 @@ async function dataUrlToPngBlob(src: string): Promise<Blob> {
 }
 
 /**
- * Copia la foto al portapapeles del sistema solo como PNG, para pegarla en WhatsApp u otra app.
- * En Android el portapapeles guarda un único elemento: si además llevara HTML, algunas apps
- * pegarían el código en vez de la foto. La conversión va como promesa dentro del ClipboardItem
- * para que write() se llame en el mismo toque del usuario (si se esperara antes, el navegador
- * podría rechazarlo por falta de gesto). Devuelve false si el WebView no lo permite.
+ * Copia la imagen al portapapeles del sistema (WhatsApp, Telegram, Word de escritorio, etc.).
+ * - En Android nativo (Capacitor): invoca WidgetBridgePlugin para generar un archivo en caché
+ *   con FileProvider y asignarlo en el ClipboardManager de Android con ClipData de tipo image/*.
+ *   Esto permite que WhatsApp y GBoard reconozcan inmediatamente la imagen para pegarla.
+ * - En PC / Web: usa navigator.clipboard.write con un ClipboardItem de tipo image/png.
  */
 async function copyImageToSystemClipboard(imageSrc: string): Promise<boolean> {
-  if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) return false;
-  try {
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToPngBlob(imageSrc) })]);
-    return true;
-  } catch (err) {
-    console.warn('Error al copiar imagen al portapapeles del sistema:', err);
-    return false;
+  // 1. Entorno nativo Android / iOS (Capacitor)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      // WhatsApp y los teclados aceptan JPEG/PNG; el compresor puede producir WebP: se pasa a PNG
+      const isJpeg = /^data:image\/jpe?g[;,]/i.test(imageSrc);
+      const isPng = /^data:image\/png[;,]/i.test(imageSrc);
+      const base64 = isJpeg || isPng ? imageSrc : await blobToDataUrl(await dataUrlToPngBlob(imageSrc));
+      const mimeType = isJpeg ? 'image/jpeg' : 'image/png';
+
+      const res = await WidgetBridge.copyImageToClipboard({
+        base64Data: base64,
+        mimeType,
+      });
+      if (res?.success) return true;
+    } catch (err) {
+      console.warn('Error en puente nativo de portapapeles:', err);
+    }
   }
+
+  // 2. Entorno Web / PC (Chrome, Edge, Firefox, Word de escritorio)
+  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToPngBlob(imageSrc) })]);
+      return true;
+    } catch (err) {
+      console.warn('Error al copiar imagen en portapapeles web:', err);
+    }
+  }
+
+  return false;
 }
 
 type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & { onClick: () => void };
@@ -185,6 +209,98 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const timer = window.setTimeout(() => setNotice(null), 2600);
     return () => window.clearTimeout(timer);
   }, [notice]);
+
+  /**
+   * Pulsación prolongada (420 ms) sobre una foto: la selecciona y la copia al portapapeles del
+   * sistema. Va antes del "return null" porque los hooks deben llamarse siempre en el mismo orden.
+   */
+  useEffect(() => {
+    if (!editor) return;
+    const dom = editor.view.dom;
+    const LONG_PRESS_MS = 420;
+    const MOVE_TOLERANCE_PX = 10;
+
+    let longPressTimer: number | undefined;
+    let startCoords: { x: number; y: number } | null = null;
+    // Momento del último toque sobre una foto: solo se bloquea el menú contextual que provoca un
+    // dedo; el clic derecho del ratón en PC conserva su menú habitual
+    let lastImageTouchAt = 0;
+
+    const cancelTimer = () => {
+      window.clearTimeout(longPressTimer);
+      longPressTimer = undefined;
+    };
+
+    const copyPressedImage = async (img: HTMLImageElement) => {
+      // En Android la vibración la hace el puente nativo; en la web, la Vibration API
+      if (!Capacitor.isNativePlatform()) navigator.vibrate?.(50);
+
+      // Selecciona exactamente la foto pulsada (aunque haya copias iguales en el apunte)
+      const { state, view } = editor;
+      const pos = view.posAtDOM(img, 0);
+      const imagePos = [pos, pos - 1].find((p) => p >= 0 && state.doc.nodeAt(p)?.type.name === 'image');
+      if (imagePos !== undefined) {
+        view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, imagePos)));
+        view.focus();
+      }
+
+      setImageClip({ src: img.src, alt: img.alt || undefined });
+      setNotice({ id: Date.now(), text: 'Copiando imagen…' });
+      const ok = await copyImageToSystemClipboard(img.src);
+      setNotice({
+        id: Date.now(),
+        text: ok
+          ? 'Imagen copiada. Ya puedes pegarla en WhatsApp u otra app.'
+          : 'Imagen copiada. Toca «Pegar imagen» para ponerla en otro lugar del apunte.',
+      });
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      const img = (e.target as HTMLElement | null)?.closest('img');
+      if (!img || e.touches.length !== 1) return;
+      lastImageTouchAt = Date.now();
+      startCoords = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      cancelTimer();
+      longPressTimer = window.setTimeout(() => {
+        longPressTimer = undefined;
+        void copyPressedImage(img);
+      }, LONG_PRESS_MS);
+    };
+
+    // Si el dedo se desplaza es un scroll, no una pulsación prolongada
+    const onTouchMove = (e: TouchEvent) => {
+      if (longPressTimer === undefined || !startCoords) return;
+      const dx = e.touches[0].clientX - startCoords.x;
+      const dy = e.touches[0].clientY - startCoords.y;
+      if (Math.hypot(dx, dy) > MOVE_TOLERANCE_PX) cancelTimer();
+    };
+
+    const onContextMenu = (e: MouseEvent) => {
+      const img = (e.target as HTMLElement | null)?.closest('img');
+      if (!img || Date.now() - lastImageTouchAt > 1500) return;
+      // Menú nativo del WebView sobre la foto: se sustituye por la copia de la app
+      e.preventDefault();
+      e.stopPropagation();
+      if (longPressTimer !== undefined) {
+        cancelTimer();
+        void copyPressedImage(img);
+      }
+    };
+
+    dom.addEventListener('touchstart', onTouchStart, { passive: true });
+    dom.addEventListener('touchmove', onTouchMove, { passive: true });
+    dom.addEventListener('touchend', cancelTimer);
+    dom.addEventListener('touchcancel', cancelTimer);
+    dom.addEventListener('contextmenu', onContextMenu);
+    return () => {
+      cancelTimer();
+      dom.removeEventListener('touchstart', onTouchStart);
+      dom.removeEventListener('touchmove', onTouchMove);
+      dom.removeEventListener('touchend', cancelTimer);
+      dom.removeEventListener('touchcancel', cancelTimer);
+      dom.removeEventListener('contextmenu', onContextMenu);
+    };
+  }, [editor]);
 
   const openCamera = useCallback(() => cameraInputRef.current?.click(), []);
   const openGallery = useCallback(() => galleryInputRef.current?.click(), []);
@@ -272,12 +388,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const clip = currentImageClip();
     if (!clip) return;
     setImageClip(clip);
-    // write() se inicia antes de borrar, todavía dentro del toque del usuario
+    const verb = removeAfter ? 'cortada' : 'copiada';
+    // La copia arranca dentro del toque (en la web lo exige el navegador) y la foto se borra ya:
+    // si se borrara tras el await, un toque en otro sitio cambiaría la selección y se borraría
+    // otro contenido
     const systemCopy = copyImageToSystemClipboard(clip.src);
     if (removeAfter) chain().deleteSelection().run();
-    const verb = removeAfter ? 'cortada' : 'copiada';
-    // Aviso inmediato; se completa cuando el sistema confirma (o no) la copia
-    showNotice(`Imagen ${verb}.`);
+    showNotice('Copiando imagen…');
     showNotice(
       (await systemCopy)
         ? `Imagen ${verb}. Ya puedes pegarla en WhatsApp u otra app.`
