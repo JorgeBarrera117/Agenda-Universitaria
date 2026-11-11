@@ -55,7 +55,6 @@ type SettingsCategory =
   | 'media'
   | 'backup'
   | 'about'
-  | 'updates'
   | 'profile';
 
 const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
@@ -65,7 +64,6 @@ const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
   media: 'Fotografías y pizarras',
   backup: 'Datos y copias de seguridad',
   about: 'Acerca de la agenda',
-  updates: 'Actualizaciones',
   profile: 'Perfil estudiantil',
 };
 
@@ -381,29 +379,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={typeof storageEstimate.usedMB === 'number' ? `${storageEstimate.usedMB.toFixed(1)} MB` : 'Local'}
                 onClick={() => setActiveSubView('backup')}
               />
+              {/* Las actualizaciones viven dentro de "Acerca de": si hay una versión nueva (p. ej.
+                  porque se pospuso el aviso), la fila lo indica con la insignia */}
               <SettingsRow
-                icon={<Sparkles className="h-4 w-4" />}
-                title="Actualizaciones"
+                icon={updateResult?.status === 'available' ? <Sparkles className="h-4 w-4" /> : <Info className="h-4 w-4" />}
+                title="Acerca de la agenda"
                 subtitle={
                   updateResult?.status === 'available'
                     ? `Nueva versión ${updateResult.info.latestVersion} disponible`
-                    : 'Buscar nuevas versiones de la app'
+                    : 'Versión, actualizaciones y créditos'
                 }
-                value={
-                  updateResult?.status === 'available'
-                    ? 'Nueva'
-                    : updateResult?.status === 'up-to-date'
-                      ? 'Al día'
-                      : undefined
-                }
+                value={updateResult?.status === 'available' ? 'Nueva versión' : `v${APP_INFO.version}`}
                 valueTone={updateResult?.status === 'available' ? 'active' : 'neutral'}
-                onClick={() => setActiveSubView('updates')}
-              />
-              <SettingsRow
-                icon={<Info className="h-4 w-4" />}
-                title="Acerca de la agenda"
-                subtitle="Créditos, privacidad y versión"
-                value={`v${APP_INFO.version}`}
                 onClick={() => setActiveSubView('about')}
               />
             </SettingsGroup>
@@ -883,12 +870,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
             )}
 
-            {/* ---------------- SUB-VISTA 6: ACERCA DE LA AGENDA ---------------- */}
-            {activeSubView === 'about' && <AboutSettings />}
-
-            {/* ---------------- SUB-VISTA 7: ACTUALIZACIONES ---------------- */}
-            {activeSubView === 'updates' && (
-              <UpdateSettings initialResult={updateResult} onResult={setUpdateResult} onShowToast={onShowToast} />
+            {/* ---------------- SUB-VISTA 6: ACERCA DE LA AGENDA (con actualizaciones) ---------------- */}
+            {activeSubView === 'about' && (
+              <>
+                <AboutSettings />
+                <UpdateSettings initialResult={updateResult} onResult={setUpdateResult} onShowToast={onShowToast} />
+              </>
             )}
           </div>
         )}
