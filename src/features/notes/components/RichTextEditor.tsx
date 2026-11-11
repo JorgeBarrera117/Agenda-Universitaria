@@ -67,11 +67,11 @@ interface ImageClip {
   alt?: string;
 }
 
-function escapeHtmlAttr(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/** El portapapeles del sistema solo admite imágenes PNG: se re-codifica la foto (JPEG/WebP). */
+/**
+ * El portapapeles del sistema (y WhatsApp al pegar) solo acepta PNG: se re-codifica la foto
+ * (JPEG/WebP). Se decodifica con <img> y no con fetch(): el CSP (connect-src 'self' https:)
+ * bloquea fetch sobre URLs data:, mientras que img-src sí las permite.
+ */
 async function dataUrlToPngBlob(src: string): Promise<Blob> {
   const img = new window.Image();
   img.src = src;
@@ -88,19 +88,21 @@ async function dataUrlToPngBlob(src: string): Promise<Blob> {
 }
 
 /**
- * Copia la foto al portapapeles del sistema como HTML (TipTap la vuelve a pegar como imagen) y
- * como PNG (para pegarla en otras apps). Es un extra: si el WebView no lo permite, el botón
- * "Pegar imagen" del editor usa el búfer interno.
+ * Copia la foto al portapapeles del sistema solo como PNG, para pegarla en WhatsApp u otra app.
+ * En Android el portapapeles guarda un único elemento: si además llevara HTML, algunas apps
+ * pegarían el código en vez de la foto. La conversión va como promesa dentro del ClipboardItem
+ * para que write() se llame en el mismo toque del usuario (si se esperara antes, el navegador
+ * podría rechazarlo por falta de gesto). Devuelve false si el WebView no lo permite.
  */
-async function writeImageToSystemClipboard(clip: ImageClip): Promise<void> {
-  if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) return;
-  const html = `<img src="${clip.src}" alt="${escapeHtmlAttr(clip.alt ?? '')}">`;
-  await navigator.clipboard.write([
-    new ClipboardItem({
-      'text/html': new Blob([html], { type: 'text/html' }),
-      'image/png': dataUrlToPngBlob(clip.src),
-    }),
-  ]);
+async function copyImageToSystemClipboard(imageSrc: string): Promise<boolean> {
+  if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) return false;
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToPngBlob(imageSrc) })]);
+    return true;
+  } catch (err) {
+    console.warn('Error al copiar imagen al portapapeles del sistema:', err);
+    return false;
+  }
 }
 
 type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & { onClick: () => void };
@@ -262,16 +264,24 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     view.focus();
   };
 
-  const copySelectedImage = (removeAfter: boolean) => {
+  /**
+   * Copiar/cortar: la foto va al portapapeles del sistema (WhatsApp, otras apps) y además a un
+   * búfer interno para "Pegar imagen" dentro del editor. El aviso dice la verdad sobre dónde quedó.
+   */
+  const copySelectedImage = async (removeAfter: boolean) => {
     const clip = currentImageClip();
     if (!clip) return;
     setImageClip(clip);
-    writeImageToSystemClipboard(clip).catch(() => undefined);
+    // write() se inicia antes de borrar, todavía dentro del toque del usuario
+    const systemCopy = copyImageToSystemClipboard(clip.src);
     if (removeAfter) chain().deleteSelection().run();
+    const verb = removeAfter ? 'cortada' : 'copiada';
+    // Aviso inmediato; se completa cuando el sistema confirma (o no) la copia
+    showNotice(`Imagen ${verb}.`);
     showNotice(
-      removeAfter
-        ? 'Imagen cortada. Toca «Pegar imagen» donde quieras ponerla.'
-        : 'Imagen copiada. Toca «Pegar imagen» donde quieras duplicarla.'
+      (await systemCopy)
+        ? `Imagen ${verb}. Ya puedes pegarla en WhatsApp u otra app.`
+        : `Imagen ${verb}. Toca «Pegar imagen» para ponerla en otro lugar del apunte.`
     );
   };
 
@@ -289,8 +299,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
     { id: 'up', label: 'Mover arriba', icon: ArrowUp, run: () => moveSelectedImage(-1), disabled: !canMoveUp },
     { id: 'down', label: 'Mover abajo', icon: ArrowDown, run: () => moveSelectedImage(1), disabled: !canMoveDown },
-    { id: 'copy', label: 'Copiar imagen', icon: Copy, run: () => copySelectedImage(false) },
-    { id: 'cut', label: 'Cortar imagen', icon: Scissors, run: () => copySelectedImage(true) },
+    { id: 'copy', label: 'Copiar imagen', icon: Copy, run: () => void copySelectedImage(false) },
+    { id: 'cut', label: 'Cortar imagen', icon: Scissors, run: () => void copySelectedImage(true) },
     {
       id: 'delete',
       label: 'Eliminar imagen',
