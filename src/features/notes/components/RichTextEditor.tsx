@@ -68,12 +68,24 @@ interface ImageClip {
 /** Archivos de imagen de un pegado o arrastre (algunos WebView solo los exponen en items). */
 function imageFilesFrom(data: DataTransfer | null): File[] {
   if (!data) return [];
-  const files = Array.from(data.files).filter((file) => file.type.startsWith('image/'));
+  // Los archivos vacíos (0 bytes) se descartan: no hay imagen que insertar
+  const files = Array.from(data.files).filter((file) => file.type.startsWith('image/') && file.size > 0);
   if (files.length > 0) return files;
   return Array.from(data.items)
     .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
     .map((item) => item.getAsFile())
-    .filter((file): file is File => file !== null);
+    .filter((file): file is File => file !== null && file.size > 0);
+}
+
+/**
+ * ¿El pegado trae una imagen del portapapeles de Android? Puede llegar como archivo, como lista
+ * de URI o como el texto "content://…" del FileProvider, según la versión del WebView.
+ */
+function pasteLooksLikeImage(data: DataTransfer | null): boolean {
+  if (!data) return false;
+  if (Array.from(data.items).some((item) => item.type.startsWith('image/'))) return true;
+  if (data.types.includes('text/uri-list')) return true;
+  return /^content:\/\/\S+$/i.test(data.getData('text/plain').trim());
 }
 
 /**
@@ -180,11 +192,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     setIsProcessingImage(true);
     try {
       for (const [index, file] of files.entries()) {
-        const { blob } = await compressImage(file);
-        insertImageInView(view, await blobToDataUrl(blob), file.name || 'Imagen pegada', index === 0 ? pos : undefined);
+        try {
+          const { blob } = await compressImage(file);
+          insertImageInView(view, await blobToDataUrl(blob), file.name || 'Imagen pegada', index === 0 ? pos : undefined);
+        } catch (err: unknown) {
+          // El tipo y el tamaño de lo recibido permiten diagnosticar el fallo desde una captura
+          const reason = err instanceof Error ? err.message : String(err);
+          const kb = Math.max(1, Math.round(file.size / 1024));
+          onImageError?.(`No se pudo insertar la imagen: ${reason} (${file.type || 'sin tipo'}, ${kb} KB).`);
+        }
       }
-    } catch (err: unknown) {
-      onImageError?.(err instanceof Error ? err.message : 'No se pudo insertar la imagen.');
     } finally {
       setIsProcessingImage(false);
     }
@@ -218,6 +235,23 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       // Sin handleDOMEvents.click: tocar una foto la selecciona para editarla; el zoom es un botón
       handlePaste: (view, event) => {
         const files = imageFilesFrom(event.clipboardData);
+        // En Android el archivo que arma el WebView puede llegar vacío o dañado: se lee la imagen
+        // real del portapapeles con el puente nativo y el del evento queda como respaldo
+        if (Capacitor.isNativePlatform() && pasteLooksLikeImage(event.clipboardData)) {
+          event.preventDefault();
+          void (async () => {
+            let native: File | null = null;
+            try {
+              native = await readImageFromSystemClipboard();
+            } catch (err) {
+              console.warn('Lectura nativa del portapapeles:', err);
+            }
+            if (native) await insertImageFiles(view, [native]);
+            else if (files.length > 0) await insertImageFiles(view, files);
+            else onImageError?.('No hay ninguna imagen en el portapapeles.');
+          })();
+          return true;
+        }
         if (files.length === 0) return false;
         event.preventDefault();
         void insertImageFiles(view, files);

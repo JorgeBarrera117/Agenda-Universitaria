@@ -35,12 +35,13 @@ export async function compressImage(
             }
           }
         };
-        img.onerror = (e) => {
+        img.onerror = () => {
           if (fallbackUrl) {
             URL.revokeObjectURL(fallbackUrl);
             fallbackUrl = null;
           }
-          reject(e);
+          // El evento de error no describe el fallo: se rechaza con un Error legible
+          reject(new Error('el archivo no es una imagen que se pueda abrir'));
         };
         img.src = fallbackUrl;
       });
