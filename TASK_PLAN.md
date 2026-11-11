@@ -539,6 +539,71 @@ Cuando el estudiante inserta o pega una imagen en el editor TipTap/ProseMirror, 
 
 ---
 
+### ✂️ FASE 14: Acciones Contextuales y Reorganización de Imágenes en Apuntes (Mover, Copiar, Cortar, Eliminar)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Permitir al estudiante interactuar de forma intuitiva con las imágenes insertadas en el editor de notas (`RichTextEditor.tsx` / `NoteEditor.tsx`): poder moverlas arriba o abajo entre párrafos, cortarlas, copiarlas al portapapeles, eliminarlas con un toque o arrastrarlas (*drag & drop*), eliminando el bloqueo actual donde al tocar la imagen solo se abría el modal de zoom a pantalla completa sin permitir ninguna acción de edición.
+
+#### Diagnóstico Técnico
+En `RichTextEditor.tsx`, el listener `handleDOMEvents.click` interceptaba todo clic sobre etiquetas `IMG` y ejecutaba `return true;`, abriendo inmediatamente el `ImageZoomModal`. Esto robaba el evento al motor TipTap/ProseMirror, impidiendo seleccionar el nodo de imagen (`NodeSelection`) y bloqueando cualquier acción de teclado (`Ctrl+C`, `Ctrl+X`, `Backspace`) o reordenamiento táctil. Además, `Image` carecía de `draggable: true`.
+
+#### Tareas de Implementación (Fase 14)
+- [ ] **14.1. Habilitar Arrastre y Selección de Nodo en TipTap (`RichTextEditor.tsx`):**
+  - Configurar `Image.configure({ inline: false, allowBase64: true, draggable: true })`.
+  - Reemplazar la intercepción agresiva de `click`: al pulsar una imagen en modo edición, seleccionarla mediante `NodeSelection` y resaltarla con un borde activo (`ring-2 ring-[var(--color-md-primary)] rounded-2xl`).
+- [ ] **14.2. Barra Flotante de Acciones de Imagen (Image Context Bubble Toolbar):**
+  - Renderizar una barra de herramientas flotante compacta anclada a la imagen seleccionada o en la parte inferior:
+    - ✂️ **Cortar:** Copia el DataURL de la imagen al portapapeles y la borra del documento (`editor.chain().focus().deleteSelection().run()`).
+    - 📋 **Copiar:** Copia la imagen al portapapeles para poder pegarla en otra posición o documento.
+    - ⬆️ **Mover arriba:** Desplaza el bloque de imagen antes del párrafo anterior.
+    - ⬇️ **Mover abajo:** Desplaza el bloque de imagen después del párrafo siguiente.
+    - 🗑️ **Eliminar:** Borra la imagen seleccionada.
+    - 🔍 **Ampliar / Zoom:** Abre el modal de zoom a pantalla completa si el usuario desea inspeccionar detalles.
+- [ ] **14.3. Verificación y Compilación:**
+  - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
+
+---
+
+### 🛡️ FASE 15: Corrección de Permisos FileProvider y Compartición Nativa en WhatsApp (Fix 0 kB • BIN)
+**Estado:** `LISTA PARA IMPLEMENTAR`
+
+#### Objetivo
+Solucionar el fallo en Android al compartir copias de seguridad de la agenda por WhatsApp, Telegram o Gmail, donde el archivo aparece como `0 kB • BIN` con un signo de exclamación rojo y el mensaje de error *"No se envió tu mensaje"*.
+
+#### Diagnóstico Técnico del Fallo en Android (Causa Raíz)
+En `WidgetBridgePlugin.java` (`shareJsonFile`), el archivo se escribe correctamente en la caché del dispositivo y se genera su URI mediante `FileProvider.getUriForFile`. Sin embargo:
+1. `sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri)` asigna el URI a los extras, pero en Android 7.0+ (y estrictamente desde Android 10+), `FLAG_GRANT_READ_URI_PERMISSION` **solo se propaga al Chooser y a la app receptora si el URI está presente en el `ClipData` del Intent**.
+2. Al no llamar a `sendIntent.setClipData(ClipData.newUri(...))`, Android no otorga el permiso temporal de lectura a WhatsApp.
+3. Cuando WhatsApp intenta leer el contenido del URI con `ContentResolver.openInputStream()`, recibe un error de permisos (`SecurityException`), lee 0 bytes y genera un archivo vacío de `0 kB • BIN` que no puede subir a sus servidores.
+
+#### Tareas de Implementación (Fase 15)
+- [ ] **15.1. Corrección de ClipData y Permisos Explícitos en `WidgetBridgePlugin.java`:**
+  - En `WidgetBridgePlugin.java` (método `shareJsonFile`):
+    - Añadir `ClipData`:
+      ```java
+      ClipData clipData = ClipData.newUri(context.getContentResolver(), fileName, fileUri);
+      sendIntent.setClipData(clipData);
+      ```
+    - Otorgar el flag de lectura al Chooser:
+      ```java
+      chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      ```
+    - Conceder permisos de lectura explícitos a todos los paquetes destino del Chooser:
+      ```java
+      List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY);
+      for (ResolveInfo resolveInfo : resInfoList) {
+          String packageName = resolveInfo.activityInfo.packageName;
+          context.grantUriPermission(packageName, fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      }
+      ```
+- [ ] **15.2. Mapeo Seguro de MIME Type:**
+  - Asegurar que el intent use `sendIntent.setDataAndType(fileUri, "application/json")` o mantenga `sendIntent.setType("application/json")` con fallback seguro para que WhatsApp identifique el archivo como documento JSON legítimo.
+- [ ] **15.3. Verificación y Compilación:**
+  - Ejecutar `npm run build` y compilar la APK de Android para verificar que WhatsApp envíe el respaldo con su tamaño real (ej. `320 kB • JSON`) sin errores.
+
+---
+
 ## 🤝 3. Flujo de Trabajo para Claude
 
 1. **Lectura:** Lee este archivo `TASK_PLAN.md` al inicio de cada tarea.
