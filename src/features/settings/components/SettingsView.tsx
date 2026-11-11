@@ -36,7 +36,7 @@ import { NotificationSettings } from './NotificationSettings';
 import { MediaSettings } from './MediaSettings';
 import { AboutSettings } from './AboutSettings';
 import { UpdateSettings } from './UpdateSettings';
-import { getLastUpdateCheck, type UpdateCheckResult } from '../../../shared/services/updateService';
+import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
@@ -84,6 +84,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [activeSubView, setActiveSubView] = useState<SettingsCategory | null>(null);
   // Último resultado de la comprobación de versiones (la del arranque o la manual de la subvista)
   const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(() => getLastUpdateCheck());
+  useEffect(() => {
+    const onChecked = (event: Event) => setUpdateResult((event as CustomEvent<UpdateCheckResult>).detail);
+    window.addEventListener(UPDATE_CHECK_EVENT, onChecked);
+    return () => window.removeEventListener(UPDATE_CHECK_EVENT, onChecked);
+  }, []);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isTestingNotification, setIsTestingNotification] = useState(false);
 
@@ -389,7 +394,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     ? `Nueva versión ${updateResult.info.latestVersion} disponible`
                     : 'Versión, actualizaciones y créditos'
                 }
-                value={updateResult?.status === 'available' ? 'Nueva versión' : `v${APP_INFO.version}`}
+                value={updateResult?.status === 'available' ? 'Nueva' : `v${APP_INFO.version}`}
                 valueTone={updateResult?.status === 'available' ? 'active' : 'neutral'}
                 onClick={() => setActiveSubView('about')}
               />

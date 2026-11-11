@@ -112,6 +112,15 @@ async function fetchManifest(url: string): Promise<UpdateInfo> {
 /** Último resultado en esta sesión (el aviso de inicio y Ajustes comparten la consulta). */
 let lastCheckResult: UpdateCheckResult | null = null;
 
+/** Evento con cada resultado nuevo: Ajustes se actualiza aunque se abriera antes de terminar la consulta. */
+export const UPDATE_CHECK_EVENT = 'agenda-update-checked';
+
+function remember(result: UpdateCheckResult): UpdateCheckResult {
+  lastCheckResult = result;
+  window.dispatchEvent(new CustomEvent<UpdateCheckResult>(UPDATE_CHECK_EVENT, { detail: result }));
+  return result;
+}
+
 export function getLastUpdateCheck(): UpdateCheckResult | null {
   return lastCheckResult;
 }
@@ -138,8 +147,7 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
         info,
         currentVersion,
       };
-      lastCheckResult = result;
-      return result;
+      return remember(result);
     } catch (err) {
       console.warn(`No se pudo consultar ${source}:`, err);
     }
@@ -149,8 +157,7 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
     message: 'No se pudo comprobar la conexión. La app funciona en modo sin conexión.',
     currentVersion,
   };
-  lastCheckResult = result;
-  return result;
+  return remember(result);
 }
 
 /** Fecha "12 nov 2026" a partir de "2026-11-12" sin desfases de zona horaria. */
