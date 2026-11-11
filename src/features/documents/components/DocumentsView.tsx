@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   RefreshCw,
   FolderPlus,
+  Share2,
 } from 'lucide-react';
 import { useSubjectDocuments, type SubjectDocumentItem } from '../../subjects/hooks/useSubjectDocuments';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -43,7 +44,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   isActive = true,
   onEditorActiveChange,
 }) => {
-  const { documents, addLocalDocument, addExternalLink, openDocument, deleteDocument, reassignSubject } =
+  const { documents, addLocalDocument, addExternalLink, openDocument, shareDocument, deleteDocument, reassignSubject } =
     useSubjectDocuments();
   const { subjects } = useSubjects();
   const isScrolled = useScrollCollapse(48);
@@ -227,6 +228,18 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       });
   }, [documents, searchQuery, selectedSubjectFilter, selectedFormatFilter, sortBy, subjectsMap]);
 
+  // Compartir documento: archivo real (Android) o enlace; avisa solo cuando no se ve la hoja del sistema
+  const handleShareDoc = async (doc: SubjectDocumentItem) => {
+    try {
+      setActionError(null);
+      const outcome = await shareDocument(doc);
+      if (outcome === 'copied') showDocToast('Enlace copiado al portapapeles');
+      if (outcome === 'downloaded') showDocToast('Archivo descargado para que lo adjuntes');
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'No se pudo compartir el archivo.');
+    }
+  };
+
   // Abrir documento con manejo de estados
   const handleOpenDoc = async (doc: SubjectDocumentItem) => {
     try {
@@ -273,10 +286,25 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     );
   }
 
+  // Aviso compartido por la lista y la ficha técnica (antes solo existía en la lista, así que los
+  // mensajes de la ficha —copiar, compartir— no se veían)
+  const docToastElement = (
+    <ContextualToast
+      message={docToast || actionError}
+      bottomOffset="nav"
+      onClose={() => {
+        setDocToast(null);
+        setActionError(null);
+      }}
+    />
+  );
+
   // 2. APARTADO INDEPENDIENTE A PANTALLA COMPLETA: FICHA TÉCNICA
   if (viewMode === 'details' && selectedDoc) {
     const docSubject = subjectsMap.get(selectedDoc.subjectId);
     return (
+      <>
+      {docToastElement}
       <DocumentDetailView
         document={selectedDoc}
         subject={docSubject}
@@ -287,6 +315,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         onOpen={async (doc) => {
           await handleOpenDoc(doc);
         }}
+        onShare={handleShareDoc}
         onRequestReassign={(doc) => {
           setSelectedDoc(doc);
           setViewMode('reassign');
@@ -299,6 +328,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         }}
         onShowToast={showDocToast}
       />
+      </>
     );
   }
 
@@ -553,6 +583,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                         onClick: () => handleOpenDoc(doc),
                       },
                       {
+                        id: 'share',
+                        label: 'Compartir archivo',
+                        icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                        onClick: () => void handleShareDoc(doc),
+                      },
+                      {
                         id: 'details',
                         label: 'Ficha técnica y ruta',
                         icon: <Info className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
@@ -628,14 +664,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       )}
 
       {/* Notificación Contextual */}
-      <ContextualToast
-        message={docToast || actionError}
-        bottomOffset="nav"
-        onClose={() => {
-          setDocToast(null);
-          setActionError(null);
-        }}
-      />
+      {docToastElement}
 
       {/* Botón Flotante Compacto (visible solo en modo lista) */}
       {isActive && viewMode === 'list' && (

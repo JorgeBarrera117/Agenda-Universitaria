@@ -16,6 +16,7 @@ import {
   Table,
   File,
   Loader2,
+  Share2,
 } from 'lucide-react';
 import type { SubjectDocumentItem } from '../../subjects/hooks/useSubjectDocuments';
 import type { Subject } from '../../subjects/types';
@@ -27,6 +28,7 @@ export interface DocumentDetailViewProps {
   subject?: Subject;
   onBack: () => void;
   onOpen: (doc: SubjectDocumentItem) => Promise<void>;
+  onShare: (doc: SubjectDocumentItem) => Promise<void>;
   onRequestReassign: (doc: SubjectDocumentItem) => void;
   onDelete: (doc: SubjectDocumentItem) => void;
   onShowToast: (msg: string) => void;
@@ -37,12 +39,14 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
   subject,
   onBack,
   onOpen,
+  onShare,
   onRequestReassign,
   onDelete,
   onShowToast,
 }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isOpening, setIsOpening] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -67,6 +71,15 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
     onShowToast('Información copiada al portapapeles');
     if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     copyTimerRef.current = setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleShareClick = async () => {
+    setIsSharing(true);
+    try {
+      await onShare(doc);
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const handleOpenClick = async () => {
@@ -209,6 +222,18 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
             </div>
           </div>
 
+          {/* Acciones: Compartir (secundario) y Abrir (principal), juntas a la derecha en PC */}
+          <div className="flex flex-col-reverse sm:flex-row gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => void handleShareClick()}
+            disabled={isSharing}
+            className="w-full sm:w-auto min-h-[48px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-xs sm:text-sm font-extrabold border border-[var(--color-md-outline)] text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)] active:scale-[0.98] transition-[transform,background-color] cursor-pointer shrink-0 disabled:opacity-60"
+          >
+            {isSharing ? <Loader2 className="w-4.5 h-4.5 animate-spin" /> : <Share2 className="w-4.5 h-4.5" />}
+            <span>{doc.isExternalLink ? 'Compartir enlace' : 'Compartir archivo'}</span>
+          </button>
+
           {/* Botón Principal: Abrir Documento (48px de altura ergonómica) */}
           <button
             type="button"
@@ -228,6 +253,7 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
               </>
             )}
           </button>
+          </div>
         </div>
       </div>
 

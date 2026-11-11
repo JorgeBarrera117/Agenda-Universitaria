@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
+import { isShareCanceled, shareText, type ShareOutcome } from '../../../shared/utils/shareText';
 
 // Helper para convertir Blob a base64 puro (sin prefijo data:...)
 function blobToBase64(blob: Blob): Promise<string> {
@@ -36,6 +37,16 @@ const STORE_NAME = 'blobs';
 // Los metadatos viven en localStorage (no en Dexie), así que cada instancia del hook carga su
 // propia copia. Este evento avisa a los demás consumidores (p. ej. los contadores de pestañas).
 export const DOCUMENTS_CHANGED_EVENT = 'agenda_documents_updated';
+
+/** Resultado de compartir un documento: igual que shareText, más la descarga como último recurso. */
+export type DocumentShareOutcome = ShareOutcome | 'downloaded';
+
+/** Nombre con extensión: quien lo recibe (y Android) necesita saber qué tipo de archivo es. */
+function shareFileName(doc: SubjectDocumentItem): string {
+  const ext = doc.fileExtension?.toLowerCase();
+  if (!ext || ext === 'bin' || doc.name.toLowerCase().endsWith(`.${ext}`)) return doc.name;
+  return `${doc.name}.${ext}`;
+}
 
 function writeStoredDocuments(docs: SubjectDocumentItem[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
@@ -243,6 +254,53 @@ export function useSubjectDocuments(subjectId?: string) {
     }, 60000);
   };
 
+  /**
+   * Comparte un documento hacia WhatsApp, Gmail, Telegram…
+   * - Enlace externo: título y URL como texto (hoja nativa en Android, Web Share o portapapeles).
+   * - Archivo local en Android: el binario real por el puente nativo (FileProvider).
+   * - Archivo local en la web: Web Share con archivos si el navegador lo admite; si no, se descarga.
+   */
+  const shareDocument = async (doc: SubjectDocumentItem): Promise<DocumentShareOutcome> => {
+    if (doc.isExternalLink && doc.externalUrl) {
+      return shareText({ title: doc.name, text: `${doc.name}\n${doc.externalUrl}` });
+    }
+
+    const blob = await getBlob(doc.id);
+    if (!blob) {
+      throw new Error('El archivo no está disponible en la caché local.');
+    }
+    const fileName = shareFileName(doc);
+    const mimeType = doc.mimeType || blob.type || 'application/octet-stream';
+
+    if (Capacitor.isNativePlatform()) {
+      const base64Data = await blobToBase64(blob);
+      await WidgetBridge.shareFile({ fileName, base64Data, mimeType });
+      return 'shared';
+    }
+
+    const file = new File([blob], fileName, { type: mimeType });
+    if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: doc.name });
+        return 'shared';
+      } catch (err) {
+        if (isShareCanceled(err)) return 'canceled';
+        console.warn('Web Share API con archivos:', err);
+      }
+    }
+
+    // Último recurso (PC sin Web Share): descargar para adjuntarlo a mano
+    const objectUrl = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    return 'downloaded';
+  };
+
   // Eliminar acceso directo
   const deleteDocument = async (docId: string) => {
     await deleteBlob(docId);
@@ -290,6 +348,7 @@ export function useSubjectDocuments(subjectId?: string) {
     addLocalDocument,
     addExternalLink,
     openDocument,
+    shareDocument,
     deleteDocument,
     reassignSubject,
     getDocumentCountForSubject,

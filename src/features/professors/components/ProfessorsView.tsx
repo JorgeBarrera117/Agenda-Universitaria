@@ -12,6 +12,7 @@ import {
   Search,
   X,
   ChevronRight,
+  Share2,
 } from 'lucide-react';
 import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -26,6 +27,8 @@ import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 import { HEADER_SCRIM_CLASS, TONAL_CHIP_CLASS } from '../../../shared/styles/surfaces';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
+import { shareProfessorContact } from '../services/professorShareService';
 
 interface ProfessorsViewProps {
   onEditorActiveChange?: (isActive: boolean) => void;
@@ -105,6 +108,30 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
     });
   }, [professors, searchQuery, subjectMap]);
 
+  // Avisos breves (p. ej. tras copiar un contacto al portapapeles)
+  const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+  const showToast = (text: string) => setToast((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
+
+  // Compartir contacto: hoja de compartir del sistema o, si no hay, portapapeles
+  const handleShareProfessor = async (prof: Professor) => {
+    const subjectNames = (prof.subjectIds || [])
+      .map((sid) => subjectMap.get(sid)?.name)
+      .filter((name): name is string => Boolean(name));
+    try {
+      const outcome = await shareProfessorContact(prof, subjectNames);
+      if (outcome === 'copied') {
+        showToast('Información de contacto copiada al portapapeles para enviar por WhatsApp');
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'No se pudo compartir el contacto.');
+    }
+  };
+
   // Lista memoizada de profesores con datos de asesoría o cubículo para el modal
   const professorsWithAdvisories = useMemo(
     () => professors.filter((p) => p.office || p.notes),
@@ -131,6 +158,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
   return (
     <div className="space-y-3.5 w-full">
+      <ContextualToast message={toast?.text ?? null} bottomOffset="nav" onClose={() => setToast(null)} />
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
@@ -327,6 +355,12 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                           },
                         ]
                       : []),
+                    {
+                      id: 'share',
+                      label: 'Compartir contacto',
+                      icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                      onClick: () => void handleShareProfessor(prof),
+                    },
                     {
                       id: 'edit',
                       label: 'Editar catedrático',

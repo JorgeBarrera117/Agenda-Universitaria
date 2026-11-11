@@ -523,6 +523,42 @@ public class WidgetBridgePlugin extends Plugin {
         }
     }
 
+    private static final int MAX_SHARE_TEXT_LENGTH = 20000;
+
+    /**
+     * Comparte texto (un enlace, los datos de un docente…) por la hoja de compartir de Android.
+     * Hace falta porque el WebView de Android no implementa navigator.share (Web Share API).
+     */
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        String text = call.getString("text");
+        if (text == null || text.trim().isEmpty()) {
+            call.reject("No hay nada que compartir.");
+            return;
+        }
+        if (text.length() > MAX_SHARE_TEXT_LENGTH) {
+            text = text.substring(0, MAX_SHARE_TEXT_LENGTH);
+        }
+        String title = call.getString("title", "");
+        try {
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.setType("text/plain");
+            sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+            if (title != null && !title.trim().isEmpty()) {
+                sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+            }
+            Intent chooser = Intent.createChooser(sendIntent, "Compartir con");
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(chooser);
+
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Error al compartir: " + e.getMessage());
+        }
+    }
+
     private static final String AGNOTE_DEFAULT_MIME = "application/vnd.agenda-universitaria.note+json";
     private static final int MAX_INCOMING_FILE_BYTES = 40 * 1024 * 1024;
 

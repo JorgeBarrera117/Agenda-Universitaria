@@ -34,6 +34,8 @@ export interface WidgetBridgePlugin {
     fileName: string;
     mimeType?: string;
   }): Promise<{ success: boolean; mimeType?: string }>;
+  /** Comparte texto (enlace, contacto…) por la hoja de compartir de Android (el WebView no tiene navigator.share). */
+  shareText(options: { text: string; title?: string }): Promise<{ success: boolean }>;
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */
