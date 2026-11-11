@@ -1,11 +1,11 @@
 {
-  "latestVersion": "1.7.10.39",
-  "releaseDate": "2026-11-12",
+  "latestVersion": "1.7.10.40",
+  "releaseDate": "2026-11-11",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Soporte para compartir e importar apuntes (.agnote)",
-    "Copiado nativo de imágenes a WhatsApp y redes sociales",
-    "Optimización de fluidez general en dispositivos móviles"
+    "Comparte archivos de tus materias (PDF, Word, imágenes…) por WhatsApp, Gmail o Drive",
+    "Comparte el contacto de tus catedráticos con un toque",
+    "Las actualizaciones ahora están en Ajustes → Acerca de la agenda"
   ]
 }
