@@ -31,7 +31,11 @@ import {
 import { compressImage } from '../utils/imageCompression';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { Capacitor } from '@capacitor/core';
-import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
+import {
+  blobToDataUrl,
+  copyImageToSystemClipboard,
+  type ImageCopyResult,
+} from '../../../shared/utils/imageClipboard';
 
 interface RichTextEditorProps {
   content: string;
@@ -54,79 +58,16 @@ interface ToolbarAction {
   disabled?: boolean;
 }
 
-// Convertir Blob a DataURL para inserción directa en el documento
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 interface ImageClip {
   src: string;
   alt?: string;
 }
 
-/**
- * El portapapeles del sistema (y WhatsApp al pegar) solo acepta PNG: se re-codifica la foto
- * (JPEG/WebP). Se decodifica con <img> y no con fetch(): el CSP (connect-src 'self' https:)
- * bloquea fetch sobre URLs data:, mientras que img-src sí las permite.
- */
-async function dataUrlToPngBlob(src: string): Promise<Blob> {
-  const img = new window.Image();
-  img.src = src;
-  await img.decode();
-  const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  canvas.getContext('2d')?.drawImage(img, 0, 0);
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-  canvas.width = 0;
-  canvas.height = 0;
-  if (!blob) throw new Error('No se pudo convertir la imagen.');
-  return blob;
-}
-
-/**
- * Copia la imagen al portapapeles del sistema (WhatsApp, Telegram, Word de escritorio, etc.).
- * - En Android nativo (Capacitor): invoca WidgetBridgePlugin para generar un archivo en caché
- *   con FileProvider y asignarlo en el ClipboardManager de Android con ClipData de tipo image/*.
- *   Esto permite que WhatsApp y GBoard reconozcan inmediatamente la imagen para pegarla.
- * - En PC / Web: usa navigator.clipboard.write con un ClipboardItem de tipo image/png.
- */
-async function copyImageToSystemClipboard(imageSrc: string): Promise<boolean> {
-  // 1. Entorno nativo Android / iOS (Capacitor)
-  if (Capacitor.isNativePlatform()) {
-    try {
-      // WhatsApp y los teclados aceptan JPEG/PNG; el compresor puede producir WebP: se pasa a PNG
-      const isJpeg = /^data:image\/jpe?g[;,]/i.test(imageSrc);
-      const isPng = /^data:image\/png[;,]/i.test(imageSrc);
-      const base64 = isJpeg || isPng ? imageSrc : await blobToDataUrl(await dataUrlToPngBlob(imageSrc));
-      const mimeType = isJpeg ? 'image/jpeg' : 'image/png';
-
-      const res = await WidgetBridge.copyImageToClipboard({
-        base64Data: base64,
-        mimeType,
-      });
-      if (res?.success) return true;
-    } catch (err) {
-      console.warn('Error en puente nativo de portapapeles:', err);
-    }
-  }
-
-  // 2. Entorno Web / PC (Chrome, Edge, Firefox, Word de escritorio)
-  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToPngBlob(imageSrc) })]);
-      return true;
-    } catch (err) {
-      console.warn('Error al copiar imagen en portapapeles web:', err);
-    }
-  }
-
-  return false;
+/** Aviso tras copiar/cortar: dice dónde quedó la foto y, si falló, por qué. */
+function copyNoticeText(verb: string, result: ImageCopyResult): string {
+  return result.ok
+    ? `Imagen ${verb}. Ya puedes pegarla en WhatsApp u otra app.`
+    : `Imagen ${verb} solo en el apunte (${result.error ?? "error desconocido"}). Usa «Pegar imagen».`;
 }
 
 type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & { onClick: () => void };
@@ -206,7 +147,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   useEffect(() => {
     if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 2600);
+    const timer = window.setTimeout(() => setNotice(null), 4000);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
@@ -246,13 +187,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       setImageClip({ src: img.src, alt: img.alt || undefined });
       setNotice({ id: Date.now(), text: 'Copiando imagen…' });
-      const ok = await copyImageToSystemClipboard(img.src);
-      setNotice({
-        id: Date.now(),
-        text: ok
-          ? 'Imagen copiada. Ya puedes pegarla en WhatsApp u otra app.'
-          : 'Imagen copiada. Toca «Pegar imagen» para ponerla en otro lugar del apunte.',
-      });
+      const result = await copyImageToSystemClipboard(img.src);
+      setNotice({ id: Date.now(), text: copyNoticeText('copiada', result) });
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -395,11 +331,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const systemCopy = copyImageToSystemClipboard(clip.src);
     if (removeAfter) chain().deleteSelection().run();
     showNotice('Copiando imagen…');
-    showNotice(
-      (await systemCopy)
-        ? `Imagen ${verb}. Ya puedes pegarla en WhatsApp u otra app.`
-        : `Imagen ${verb}. Toca «Pegar imagen» para ponerla en otro lugar del apunte.`
-    );
+    showNotice(copyNoticeText(verb, await systemCopy));
   };
 
   const deselectImage = placeCursorAfterImage;
@@ -543,7 +475,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
         <div className="mx-auto flex max-w-3xl items-center justify-end gap-2 px-1 pt-0.5 text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">
           {notice && (
-            <span className="mr-auto truncate text-[var(--color-md-on-surface)]" role="status">
+            <span className="mr-auto line-clamp-2 text-[var(--color-md-on-surface)]" role="status">
               {notice.text}
             </span>
           )}

@@ -1,5 +1,7 @@
 package com.agenda.universitaria;
 
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -7,11 +9,13 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
+import java.io.File;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WidgetBridgePlugin.class);
+        clearStaleServiceWorkerOnUpdate();
         super.onCreate(savedInstanceState);
 
         // 1. Permitir que la ventana use el espacio del notch/cámara en formato horizontal (elimina la franja gris izquierda)
@@ -62,5 +66,44 @@ public class MainActivity extends BridgeActivity {
             });
             content.requestApplyInsets();
         }
+    }
+
+    /**
+     * Al instalar un APK nuevo, los datos del WebView sobreviven y un service worker de la PWA
+     * registrado por una versión anterior seguiría sirviendo su JavaScript antiguo. Cuando cambia
+     * versionCode se borra SOLO la carpeta "Service Worker" del WebView (registros y CacheStorage),
+     * antes de crearlo. IndexedDB y Local Storage (apuntes, fotos, ajustes) están en otras carpetas.
+     */
+    private void clearStaleServiceWorkerOnUpdate() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            long versionCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                ? info.getLongVersionCode()
+                : info.versionCode;
+            SharedPreferences prefs = getSharedPreferences("agenda_app_meta", MODE_PRIVATE);
+            if (prefs.getLong("last_version_code", -1L) == versionCode) {
+                return;
+            }
+            File dataDir = new File(getApplicationInfo().dataDir);
+            deleteRecursively(new File(dataDir, "app_webview/Default/Service Worker"));
+            deleteRecursively(new File(dataDir, "app_webview/Service Worker"));
+            prefs.edit().putLong("last_version_code", versionCode).apply();
+        } catch (Exception ignored) {
+            // Si falla, el código JS (registerServiceWorker.ts) retira el service worker igualmente
+        }
+    }
+
+    private static void deleteRecursively(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+        File[] children = file.listFiles();
+        if (children != null) {
+            for (File child : children) {
+                deleteRecursively(child);
+            }
+        }
+        //noinspection ResultOfMethodCallIgnored
+        file.delete();
     }
 }

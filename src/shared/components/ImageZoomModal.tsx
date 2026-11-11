@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Copy, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../hooks/useBackButton';
+import { copyImageToSystemClipboard } from '../utils/imageClipboard';
+
+const LONG_PRESS_MS = 450;
+const MOVE_TOLERANCE_PX = 10;
 
 export interface ImageZoomModalProps {
   src: string;
@@ -25,6 +30,40 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
   const initialPinchDistRef = useRef<number | null>(null);
   const initialScaleRef = useRef(1);
   const lastTapRef = useRef<number>(0);
+
+  // Copiar al portapapeles del teléfono: pulsación prolongada o botón "Copiar"
+  const [copyStatus, setCopyStatus] = useState<{ id: number; text: string } | null>(null);
+  const [isCopying, setIsCopying] = useState(false);
+  const longPressTimerRef = useRef<number | undefined>(undefined);
+  const longPressFiredRef = useRef(false);
+  const touchStartPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (!copyStatus) return;
+    const timer = window.setTimeout(() => setCopyStatus(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [copyStatus]);
+
+  useEffect(() => () => window.clearTimeout(longPressTimerRef.current), []);
+
+  const copyImage = async () => {
+    if (isCopying) return;
+    setIsCopying(true);
+    setCopyStatus({ id: Date.now(), text: 'Copiando imagen…' });
+    const result = await copyImageToSystemClipboard(src);
+    setIsCopying(false);
+    setCopyStatus({
+      id: Date.now(),
+      text: result.ok
+        ? 'Imagen copiada. Ya puedes pegarla en WhatsApp u otra app.'
+        : `No se pudo copiar la imagen (${result.error ?? 'error desconocido'}).`,
+    });
+  };
+
+  const cancelLongPress = () => {
+    window.clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = undefined;
+  };
 
   // Resetear posición y escala
   const handleReset = () => {
@@ -91,6 +130,18 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
   // Gestos táctiles en móvil (Pellizco, arrastre y toque simple/doble)
   const handleTouchStart = (e: React.TouchEvent) => {
     hasMovedRef.current = false;
+    longPressFiredRef.current = false;
+    cancelLongPress();
+    if (e.touches.length === 1) {
+      touchStartPointRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      longPressTimerRef.current = window.setTimeout(() => {
+        longPressTimerRef.current = undefined;
+        longPressFiredRef.current = true;
+        // En Android vibra el puente nativo al copiar; en la web, la Vibration API
+        if (!Capacitor.isNativePlatform()) navigator.vibrate?.(50);
+        void copyImage();
+      }, LONG_PRESS_MS);
+    }
     if (e.touches.length === 2) {
       // Iniciar pellizco con 2 dedos
       const dist = Math.hypot(
@@ -111,6 +162,14 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    const start = touchStartPointRef.current;
+    const moved =
+      e.touches.length !== 1 ||
+      !start ||
+      Math.hypot(e.touches[0].clientX - start.x, e.touches[0].clientY - start.y) > MOVE_TOLERANCE_PX;
+    if (moved) cancelLongPress();
+    // Un temblor del dedo no cuenta como arrastre (no debe anular el toque simple)
+    if (!moved) return;
     hasMovedRef.current = true;
     if (e.touches.length === 2 && initialPinchDistRef.current !== null) {
       // Zoom por pellizco
@@ -134,6 +193,11 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
   const handleTouchEnd = (e: React.TouchEvent) => {
     setIsDragging(false);
     initialPinchDistRef.current = null;
+    cancelLongPress();
+    if (longPressFiredRef.current) {
+      longPressFiredRef.current = false;
+      return;
+    }
 
     // Detectar toque simple vs doble toque cuando no hubo arrastre
     if (!hasMovedRef.current && e.changedTouches.length === 1) {
@@ -188,6 +252,9 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={(e) => {
+          if (longPressTimerRef.current !== undefined || longPressFiredRef.current) e.preventDefault();
+        }}
       >
         <img
           src={src}
@@ -201,6 +268,15 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
           }}
         />
       </div>
+
+      {copyStatus && (
+        <div
+          role="status"
+          className="absolute top-16 left-1/2 -translate-x-1/2 z-50 max-w-[90vw] rounded-2xl border border-white/20 bg-black/80 px-4 py-2 text-center text-xs font-semibold text-white shadow-2xl backdrop-blur-md"
+        >
+          {copyStatus.text}
+        </div>
+      )}
 
       {/* Botón Flotante para Cerrar en la esquina superior derecha */}
       <div
@@ -227,6 +303,19 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({
         }`}
       >
         <div className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 bg-black/75 border border-white/20 rounded-2xl backdrop-blur-md shadow-2xl text-white">
+          {/* Copiar al portapapeles del teléfono */}
+          <button
+            type="button"
+            onClick={() => void copyImage()}
+            disabled={isCopying}
+            aria-label="Copiar imagen"
+            className="p-2 hover:bg-white/20 active:scale-90 disabled:opacity-40 rounded-xl transition-all cursor-pointer"
+            title="Copiar imagen (o mantén pulsada la foto)"
+          >
+            <Copy className="w-4 h-4" />
+          </button>
+          <span className="h-5 w-px bg-white/20" aria-hidden="true" />
+
           {/* Zoom Out */}
           <button
             type="button"

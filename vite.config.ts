@@ -41,6 +41,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Se registra a mano en main.tsx solo en la web: dentro del APK el service worker serviría
+      // el JavaScript de la versión anterior tras cada actualización (ver registerServiceWorker.ts)
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'Agenda Universitaria',
