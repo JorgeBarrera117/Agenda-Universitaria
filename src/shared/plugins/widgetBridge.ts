@@ -36,12 +36,28 @@ export interface WidgetBridgePlugin {
   }): Promise<{ success: boolean; mimeType?: string }>;
   /** Comparte texto (enlace, contacto…) por la hoja de compartir de Android (el WebView no tiene navigator.share). */
   shareText(options: { text: string; title?: string }): Promise<{ success: boolean }>;
+  /** ¿Puede la app abrir el instalador? (Android 8+: permiso "Instalar apps desconocidas"). */
+  canInstallPackages(): Promise<{ allowed: boolean }>;
+  /** Abre los ajustes del sistema para conceder ese permiso a esta app. */
+  openInstallPermissionSettings(): Promise<void>;
+  /**
+   * Descarga el APK de una versión publicada (solo GitHub Releases del proyecto) y lo verifica:
+   * huella SHA-256, mismo paquete y versión más nueva. Emite "updateDownloadProgress".
+   */
+  downloadUpdate(options: { url: string; sha256: string }): Promise<{ success: boolean; versionName?: string; sizeBytes?: number }>;
+  /** Abre el instalador con el APK verificado; rechaza con code "INSTALL_PERMISSION" si falta el permiso. */
+  installDownloadedUpdate(): Promise<void>;
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */
   addListener(
     eventName: 'incomingFile',
     listener: (event: { uri: string; mimeType?: string }) => void
+  ): Promise<PluginListenerHandle>;
+  /** Progreso de downloadUpdate; percent es -1 si el servidor no informa el tamaño. */
+  addListener(
+    eventName: 'updateDownloadProgress',
+    listener: (event: { downloaded: number; total: number; percent: number }) => void
   ): Promise<PluginListenerHandle>;
 }
 

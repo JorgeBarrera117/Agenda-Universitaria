@@ -37,6 +37,10 @@ export interface UpdateInfo {
   latestVersion: string;
   releaseDate?: string;
   apkUrl?: string;
+  /** Enlace directo al APK (releases/download/…) para actualizar desde la propia app. */
+  apkDownloadUrl?: string;
+  /** Huella SHA-256 del APK: la app no instala nada que no coincida. */
+  apkSha256?: string;
   webUrl?: string;
   highlights: string[];
 }
@@ -91,6 +95,14 @@ export function parseVersionManifest(raw: unknown): UpdateInfo {
     latestVersion: latestVersion.replace(/^v/i, ''),
     releaseDate,
     apkUrl: url(data.apkUrl),
+    // Descarga directa solo desde los releases del repositorio y siempre con su huella SHA-256
+    apkDownloadUrl:
+      typeof data.apkDownloadUrl === 'string' &&
+      /^https:\/\/github\.com\/jorgebarrera117\/agenda-universitaria\/releases\/download\/[^?#]+\.apk$/i.test(data.apkDownloadUrl)
+        ? data.apkDownloadUrl
+        : undefined,
+    apkSha256:
+      typeof data.apkSha256 === 'string' && /^[a-f0-9]{64}$/i.test(data.apkSha256) ? data.apkSha256.toLowerCase() : undefined,
     webUrl: url(data.webUrl),
     highlights,
   };
@@ -214,4 +226,68 @@ export async function openDownloadUrl(url: string): Promise<void> {
     return;
   }
   window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+/** ¿Se puede actualizar sin salir de la app? Android, con enlace directo al APK y su huella. */
+export function canInstallInApp(info: UpdateInfo): boolean {
+  return Capacitor.isNativePlatform() && Boolean(info.apkDownloadUrl && info.apkSha256);
+}
+
+/** Error al instalar porque Android aún no permite que la app instale actualizaciones. */
+export class InstallPermissionError extends Error {
+  constructor() {
+    super('Permite que Agenda Universitaria instale actualizaciones y vuelve a intentarlo.');
+    this.name = 'InstallPermissionError';
+  }
+}
+
+function isInstallPermissionRejection(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 'INSTALL_PERMISSION';
+}
+
+/**
+ * Descarga el APK dentro de la app (con progreso) y lo deja verificado. El puente nativo comprueba
+ * la huella SHA-256, que sea esta app y que sea una versión más nueva antes de aceptarlo.
+ */
+export async function downloadUpdateInApp(info: UpdateInfo, onProgress: (percent: number | null) => void): Promise<void> {
+  if (!info.apkDownloadUrl || !info.apkSha256) {
+    throw new Error('Esta versión no permite actualizar desde la app.');
+  }
+  const { apkDownloadUrl: url, apkSha256: sha256 } = info;
+  try {
+    const handle = await WidgetBridge.addListener('updateDownloadProgress', ({ percent }) => {
+      onProgress(percent >= 0 ? percent : null);
+    });
+    try {
+      await WidgetBridge.downloadUpdate({ url, sha256 });
+    } finally {
+      await handle.remove();
+    }
+  } catch (err) {
+    // Capacitor responde en inglés si el puente nativo no existe (p. ej. en el navegador)
+    if (typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 'UNIMPLEMENTED') {
+      throw new Error('Este dispositivo no permite descargar la actualización desde la app.');
+    }
+    throw err;
+  }
+}
+
+/** ¿Android ya permite que la app instale actualizaciones? */
+export async function hasInstallPermission(): Promise<boolean> {
+  return (await WidgetBridge.canInstallPackages()).allowed;
+}
+
+/** Lleva a los ajustes del sistema donde se concede "Instalar apps desconocidas" a esta app. */
+export function openInstallPermissionSettings(): Promise<void> {
+  return WidgetBridge.openInstallPermissionSettings();
+}
+
+/** Abre el instalador de Android con el APK descargado. */
+export async function installDownloadedUpdate(): Promise<void> {
+  try {
+    await WidgetBridge.installDownloadedUpdate();
+  } catch (err) {
+    if (isInstallPermissionRejection(err)) throw new InstallPermissionError();
+    throw err;
+  }
 }

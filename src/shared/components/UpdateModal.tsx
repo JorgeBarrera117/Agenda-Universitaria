@@ -1,21 +1,24 @@
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Check, Download, ExternalLink, Sparkles } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './atoms';
+import { UpdateInstallActions } from './UpdateInstallActions';
 import { APP_INFO } from '../constants/appInfo';
-import { formatReleaseDate, type UpdateInfo } from '../services/updateService';
+import { canInstallInApp, formatReleaseDate, type UpdateInfo } from '../services/updateService';
 
 interface UpdateModalProps {
   info: UpdateInfo;
+  /** Abrir la página de descarga (web, o si la descarga dentro de la app no está disponible o falla). */
   onDownload: () => void;
   /** "Más tarde" (o cerrar): no se vuelve a mostrar hoy para esta versión. */
   onLater: () => void;
 }
 
-/** Aviso de nueva versión al abrir la app: novedades, descargar o posponer hasta mañana. */
+/** Aviso de nueva versión al abrir la app: novedades, descargar e instalar o posponer hasta mañana. */
 export const UpdateModal: React.FC<UpdateModalProps> = ({ info, onDownload, onLater }) => {
   const isNative = Capacitor.isNativePlatform();
+  const inApp = canInstallInApp(info);
   const releaseDate = formatReleaseDate(info.releaseDate);
 
   return (
@@ -47,27 +50,17 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ info, onDownload, onLa
 
         {isNative && (
           <p className="rounded-xl bg-[var(--color-md-surface-container)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">
-            Se abrirá GitHub para descargar el APK. Instálalo encima de la app actual: tus materias y apuntes se conservan.
+            {inApp
+              ? 'Se descarga dentro de la app y se abre el instalador de Android. Tus materias y apuntes se conservan.'
+              : 'Se abrirá GitHub para descargar el APK. Instálalo encima de la app actual: tus materias y apuntes se conservan.'}
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <UpdateInstallActions info={info} onOpenPage={onDownload} />
+
+        <div className="flex justify-end border-t border-[var(--color-md-outline-variant)] pt-3">
           <Button variant="ghost" size="sm" onClick={onLater}>
             Más tarde
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            icon={
-              isNative ? (
-                <Download className="h-4 w-4" aria-hidden="true" />
-              ) : (
-                <ExternalLink className="h-4 w-4" aria-hidden="true" />
-              )
-            }
-            onClick={onDownload}
-          >
-            {isNative ? 'Descargar actualización' : 'Abrir la nueva versión'}
           </Button>
         </div>
       </div>

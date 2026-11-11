@@ -8,6 +8,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
@@ -16,6 +17,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.provider.Settings;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
@@ -556,6 +558,202 @@ public class WidgetBridgePlugin extends Plugin {
             call.resolve(ret);
         } catch (Exception e) {
             call.reject("Error al compartir: " + e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Actualización desde la app: descargar el APK, verificarlo y abrir el instalador de Android
+    // ---------------------------------------------------------------------------------------
+
+    private static final String UPDATE_URL_PREFIX = "https://github.com/jorgebarrera117/agenda-universitaria/releases/download/";
+    private static final long MAX_UPDATE_BYTES = 150L * 1024 * 1024;
+    private static final String UPDATE_APK_NAME = "agenda-update.apk";
+
+    /** APK descargado y verificado, listo para instalar (solo uno a la vez). */
+    private File pendingUpdateApk;
+
+    /** ¿La app puede abrir el instalador? En Android 8+ requiere "Instalar apps desconocidas". */
+    @PluginMethod
+    public void canInstallPackages(PluginCall call) {
+        boolean allowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+            || getContext().getPackageManager().canRequestPackageInstalls();
+        JSObject ret = new JSObject();
+        ret.put("allowed", allowed);
+        call.resolve(ret);
+    }
+
+    /** Abre los ajustes del sistema para permitir que esta app instale actualizaciones. */
+    @PluginMethod
+    public void openInstallPermissionSettings(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            call.resolve();
+            return;
+        }
+        try {
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                Uri.parse("package:" + getContext().getPackageName())
+            );
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("No se pudieron abrir los ajustes de instalación: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Descarga el APK de una versión publicada en GitHub Releases y lo verifica antes de ofrecer
+     * instalarlo:
+     * 1. Solo desde https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/…
+     *    (GitHub redirige al almacenamiento de archivos; HttpURLConnection sigue esa redirección).
+     * 2. Huella SHA-256 igual a la publicada en version.json: un archivo alterado o incompleto se borra.
+     * 3. Que sea esta misma app (mismo paquete) y una versión más nueva que la instalada.
+     * La firma la comprueba Android al instalar: solo acepta una actualización firmada con la misma llave.
+     * Emite "updateDownloadProgress" con { downloaded, total, percent }.
+     */
+    @PluginMethod
+    public void downloadUpdate(PluginCall call) {
+        String url = call.getString("url");
+        String expectedSha256 = call.getString("sha256", "");
+        if (url == null || !url.toLowerCase().startsWith(UPDATE_URL_PREFIX) || !url.toLowerCase().endsWith(".apk")) {
+            call.reject("El enlace de la actualización no es de confianza.");
+            return;
+        }
+        if (expectedSha256 == null || !expectedSha256.toLowerCase().matches("^[a-f0-9]{64}$")) {
+            call.reject("Falta la huella de seguridad (SHA-256) de la actualización.");
+            return;
+        }
+
+        Context context = getContext();
+        new Thread(() -> {
+            File dir = new File(context.getCacheDir(), "updates");
+            File apk = new File(dir, UPDATE_APK_NAME);
+            java.net.HttpURLConnection connection = null;
+            try {
+                if (!dir.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    dir.mkdirs();
+                }
+                //noinspection ResultOfMethodCallIgnored
+                apk.delete();
+                pendingUpdateApk = null;
+
+                connection = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+                connection.setInstanceFollowRedirects(true);
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(30000);
+                int status = connection.getResponseCode();
+                if (status != java.net.HttpURLConnection.HTTP_OK) {
+                    call.reject("El servidor respondió " + status + " al descargar la actualización.");
+                    return;
+                }
+                // La redirección debe seguir en https (HttpURLConnection no cambia de protocolo, pero se comprueba)
+                if (!"https".equalsIgnoreCase(connection.getURL().getProtocol())) {
+                    call.reject("La descarga no usa una conexión segura.");
+                    return;
+                }
+
+                long total = connection.getContentLengthLong();
+                if (total > MAX_UPDATE_BYTES) {
+                    call.reject("La actualización es demasiado grande.");
+                    return;
+                }
+
+                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                long downloaded = 0;
+                int lastPercent = -1;
+                try (InputStream in = connection.getInputStream(); FileOutputStream out = new FileOutputStream(apk)) {
+                    byte[] buffer = new byte[64 * 1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        downloaded += read;
+                        if (downloaded > MAX_UPDATE_BYTES) {
+                            throw new java.io.IOException("La actualización es demasiado grande.");
+                        }
+                        out.write(buffer, 0, read);
+                        digest.update(buffer, 0, read);
+                        int percent = total > 0 ? (int) (downloaded * 100 / total) : -1;
+                        if (percent != lastPercent) {
+                            lastPercent = percent;
+                            JSObject progress = new JSObject();
+                            progress.put("downloaded", downloaded);
+                            progress.put("total", total);
+                            progress.put("percent", percent);
+                            notifyListeners("updateDownloadProgress", progress);
+                        }
+                    }
+                }
+
+                StringBuilder hex = new StringBuilder();
+                for (byte b : digest.digest()) {
+                    hex.append(String.format("%02x", b));
+                }
+                if (!hex.toString().equalsIgnoreCase(expectedSha256)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    apk.delete();
+                    call.reject("La actualización descargada no coincide con la publicada (huella SHA-256 distinta). Inténtalo de nuevo.");
+                    return;
+                }
+
+                PackageManager pm = context.getPackageManager();
+                PackageInfo archive = pm.getPackageArchiveInfo(apk.getAbsolutePath(), 0);
+                PackageInfo installed = pm.getPackageInfo(context.getPackageName(), 0);
+                if (archive == null || !context.getPackageName().equals(archive.packageName)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    apk.delete();
+                    call.reject("El archivo descargado no es una actualización de esta app.");
+                    return;
+                }
+                long archiveCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? archive.getLongVersionCode() : archive.versionCode;
+                long installedCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? installed.getLongVersionCode() : installed.versionCode;
+                if (archiveCode <= installedCode) {
+                    //noinspection ResultOfMethodCallIgnored
+                    apk.delete();
+                    call.reject("La versión descargada no es más nueva que la instalada.");
+                    return;
+                }
+
+                pendingUpdateApk = apk;
+                JSObject ret = new JSObject();
+                ret.put("success", true);
+                ret.put("versionName", archive.versionName);
+                ret.put("sizeBytes", downloaded);
+                call.resolve(ret);
+            } catch (Exception e) {
+                //noinspection ResultOfMethodCallIgnored
+                apk.delete();
+                call.reject("No se pudo descargar la actualización: " + e.getMessage());
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }).start();
+    }
+
+    /** Abre el instalador de Android con el APK ya descargado y verificado por downloadUpdate. */
+    @PluginMethod
+    public void installDownloadedUpdate(PluginCall call) {
+        File apk = pendingUpdateApk;
+        if (apk == null || !apk.exists()) {
+            call.reject("No hay ninguna actualización descargada.");
+            return;
+        }
+        Context context = getContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.getPackageManager().canRequestPackageInstalls()) {
+            call.reject("Falta el permiso para instalar actualizaciones.", "INSTALL_PERMISSION");
+            return;
+        }
+        try {
+            Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", apk);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("No se pudo abrir el instalador: " + e.getMessage());
         }
     }
 

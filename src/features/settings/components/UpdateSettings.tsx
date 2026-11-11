@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Check, Download, ExternalLink, RotateCcw, Sparkles, WifiOff } from 'lucide-react';
+import { Check, RotateCcw, Sparkles, WifiOff } from 'lucide-react';
 import { APP_INFO } from '../../../shared/constants/appInfo';
+import { UpdateInstallActions } from '../../../shared/components/UpdateInstallActions';
 import {
+  canInstallInApp,
   checkForUpdates,
   formatReleaseDate,
   openDownloadUrl,
@@ -114,23 +116,21 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
               </ul>
             )}
 
-            {downloadUrl ? (
-              <button
-                type="button"
-                onClick={() => void handleDownload(downloadUrl)}
-                className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-4 text-sm font-bold text-[var(--color-md-on-primary)] shadow-xs transition-[transform,background-color] duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-[0.98]"
-              >
-                {isNative ? <Download className="h-4 w-4" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />}
-                {isNative ? 'Descargar e instalar' : 'Abrir la nueva versión'}
-              </button>
+            {downloadUrl || canInstallInApp(result.info) ? (
+              <>
+                {/* Descarga e instalación dentro de la app (Android) o página de descarga como alternativa */}
+                <UpdateInstallActions
+                  info={result.info}
+                  onOpenPage={() => (downloadUrl ? void handleDownload(downloadUrl) : undefined)}
+                />
+                {isNative && !canInstallInApp(result.info) && (
+                  <p className="text-[11px] leading-relaxed opacity-90">
+                    Se abrirá GitHub para descargar el APK. Instálalo encima de la app actual: tus materias y apuntes se conservan.
+                  </p>
+                )}
+              </>
             ) : (
               <p className="text-[11px]">La descarga todavía no está disponible. Vuelve a intentarlo más tarde.</p>
-            )}
-
-            {isNative && downloadUrl && (
-              <p className="text-[11px] leading-relaxed opacity-90">
-                Se abrirá GitHub para descargar el APK. Instálalo encima de la app actual: tus materias y apuntes se conservan.
-              </p>
             )}
           </section>
         )}
