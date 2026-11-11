@@ -109,6 +109,13 @@ async function fetchManifest(url: string): Promise<UpdateInfo> {
   }
 }
 
+/** Último resultado en esta sesión (el aviso de inicio y Ajustes comparten la consulta). */
+let lastCheckResult: UpdateCheckResult | null = null;
+
+export function getLastUpdateCheck(): UpdateCheckResult | null {
+  return lastCheckResult;
+}
+
 /**
  * Consulta si hay una versión más nueva (tiempo límite de 4 s por intento). Nunca lanza: devuelve
  * status 'error' sin conexión o si el manifiesto no se pudo leer.
@@ -126,20 +133,33 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
   for (const source of sources) {
     try {
       const info = await fetchManifest(source);
-      return {
+      const result: UpdateCheckResult = {
         status: isNewerVersion(info.latestVersion, currentVersion) ? 'available' : 'up-to-date',
         info,
         currentVersion,
       };
+      lastCheckResult = result;
+      return result;
     } catch (err) {
       console.warn(`No se pudo consultar ${source}:`, err);
     }
   }
-  return {
+  const result: UpdateCheckResult = {
     status: 'error',
     message: 'No se pudo comprobar la conexión. La app funciona en modo sin conexión.',
     currentVersion,
   };
+  lastCheckResult = result;
+  return result;
+}
+
+/** Fecha "12 nov 2026" a partir de "2026-11-12" sin desfases de zona horaria. */
+export function formatReleaseDate(isoDate?: string): string | null {
+  if (!isoDate) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate);
+  const date = match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function todayKey(): string {

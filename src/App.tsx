@@ -22,6 +22,7 @@ import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { useIncomingAgnote } from './features/notes/hooks/useIncomingAgnote';
+import type { UpdateInfo } from './shared/services/updateService';
 
 const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
 
@@ -36,6 +37,10 @@ const loadSettingsView = () => import('./features/settings/components/SettingsVi
 const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: m.SubjectsView })));
 const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: m.ProfessorsView })));
 const NotesView = lazy(() => loadNotesView().then((m) => ({ default: m.NotesView })));
+// Solo se carga si hay una versión nueva que anunciar
+const UpdateModal = lazy(() =>
+  import('./shared/components/UpdateModal').then((m) => ({ default: m.UpdateModal }))
+);
 // Solo se carga cuando llega un apunte compartido (.agnote) desde otra app
 const ImportNoteModal = lazy(() =>
   import('./features/notes/components/ImportNoteModal').then((m) => ({ default: m.ImportNoteModal }))
@@ -182,6 +187,51 @@ export function App() {
   // Apunte .agnote abierto desde WhatsApp u otra app (Android): se ofrece importarlo
   const { incoming: incomingAgnote, clearIncoming } = useIncomingAgnote(showToast);
 
+  // Aviso de nueva versión: 3 s después de abrir (sin competir con el arranque), solo con
+  // conexión y si el usuario no lo pospuso hoy para esa misma versión. El servicio se carga
+  // de forma diferida para no sumar peso al arranque.
+  const [pendingUpdate, setPendingUpdate] = useState<UpdateInfo | null>(null);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (!navigator.onLine) return;
+      void import('./shared/services/updateService').then(async (updates) => {
+        const result = await updates.checkForUpdates();
+        if (
+          result.status === 'available' &&
+          updates.updateUrlFor(result.info) &&
+          !updates.isUpdateDismissedToday(result.info.latestVersion)
+        ) {
+          setPendingUpdate(result.info);
+        }
+      });
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const closeUpdateForToday = useCallback(() => {
+    if (pendingUpdate) {
+      const version = pendingUpdate.latestVersion;
+      void import('./shared/services/updateService').then((updates) => updates.dismissUpdateForToday(version));
+    }
+    setPendingUpdate(null);
+  }, [pendingUpdate]);
+
+  const downloadPendingUpdate = useCallback(() => {
+    if (!pendingUpdate) return;
+    const info = pendingUpdate;
+    // Tras abrir la descarga tampoco se insiste hoy: el usuario puede estar instalándola
+    closeUpdateForToday();
+    void import('./shared/services/updateService').then(async (updates) => {
+      const url = updates.updateUrlFor(info);
+      if (!url) return;
+      try {
+        await updates.openDownloadUrl(url);
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : 'No se pudo abrir la descarga.');
+      }
+    });
+  }, [pendingUpdate, closeUpdateForToday, showToast]);
+
   const handleTabChange = useCallback((tab: TabType) => {
     if (tab !== 'notes') {
       setSelectedSubjectForNotes(undefined);
@@ -251,6 +301,12 @@ export function App() {
           notesCount={notesCount}
           documentsCount={documentsCount}
         />
+      )}
+
+      {pendingUpdate && !incomingAgnote && (
+        <Suspense fallback={null}>
+          <UpdateModal info={pendingUpdate} onDownload={downloadPendingUpdate} onLater={closeUpdateForToday} />
+        </Suspense>
       )}
 
       {incomingAgnote && (

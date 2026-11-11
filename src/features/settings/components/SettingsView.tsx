@@ -35,6 +35,8 @@ import { ScheduleSettings } from './ScheduleSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { MediaSettings } from './MediaSettings';
 import { AboutSettings } from './AboutSettings';
+import { UpdateSettings } from './UpdateSettings';
+import { getLastUpdateCheck, type UpdateCheckResult } from '../../../shared/services/updateService';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
@@ -53,6 +55,7 @@ type SettingsCategory =
   | 'media'
   | 'backup'
   | 'about'
+  | 'updates'
   | 'profile';
 
 const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
@@ -62,6 +65,7 @@ const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
   media: 'Fotografías y pizarras',
   backup: 'Datos y copias de seguridad',
   about: 'Acerca de la agenda',
+  updates: 'Actualizaciones',
   profile: 'Perfil estudiantil',
 };
 
@@ -80,6 +84,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const { slots } = useSchedule();
 
   const [activeSubView, setActiveSubView] = useState<SettingsCategory | null>(null);
+  // Último resultado de la comprobación de versiones (la del arranque o la manual de la subvista)
+  const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(() => getLastUpdateCheck());
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isTestingNotification, setIsTestingNotification] = useState(false);
 
@@ -374,6 +380,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 subtitle="Exportar e importar el respaldo JSON"
                 value={typeof storageEstimate.usedMB === 'number' ? `${storageEstimate.usedMB.toFixed(1)} MB` : 'Local'}
                 onClick={() => setActiveSubView('backup')}
+              />
+              <SettingsRow
+                icon={<Sparkles className="h-4 w-4" />}
+                title="Actualizaciones"
+                subtitle={
+                  updateResult?.status === 'available'
+                    ? `Nueva versión ${updateResult.info.latestVersion} disponible`
+                    : 'Buscar nuevas versiones de la app'
+                }
+                value={
+                  updateResult?.status === 'available'
+                    ? 'Nueva'
+                    : updateResult?.status === 'up-to-date'
+                      ? 'Al día'
+                      : undefined
+                }
+                valueTone={updateResult?.status === 'available' ? 'active' : 'neutral'}
+                onClick={() => setActiveSubView('updates')}
               />
               <SettingsRow
                 icon={<Info className="h-4 w-4" />}
@@ -861,6 +885,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* ---------------- SUB-VISTA 6: ACERCA DE LA AGENDA ---------------- */}
             {activeSubView === 'about' && <AboutSettings />}
+
+            {/* ---------------- SUB-VISTA 7: ACTUALIZACIONES ---------------- */}
+            {activeSubView === 'updates' && (
+              <UpdateSettings initialResult={updateResult} onResult={setUpdateResult} onShowToast={onShowToast} />
+            )}
           </div>
         )}
       </div>
