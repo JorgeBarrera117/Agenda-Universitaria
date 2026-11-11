@@ -604,6 +604,32 @@ public class WidgetBridgePlugin extends Plugin {
         }).start();
     }
 
+    /**
+     * Abre un enlace en el navegador del sistema (descarga de actualizaciones). Solo https: el
+     * frontend ya filtra los dominios de confianza, y aquí se rechaza cualquier otro esquema
+     * (intent:, file:, javascript:…) por si llegara uno.
+     */
+    @PluginMethod
+    public void openExternalUrl(PluginCall call) {
+        String url = call.getString("url");
+        Uri uri = url == null ? null : Uri.parse(url);
+        if (uri == null || !"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
+            call.reject("Solo se pueden abrir enlaces https.");
+            return;
+        }
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("No hay ningún navegador para abrir el enlace: " + e.getMessage());
+        }
+    }
+
     @PluginMethod
     public void exportJsonFile(PluginCall call) {
         String content = call.getString("content");

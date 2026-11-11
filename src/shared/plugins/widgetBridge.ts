@@ -24,6 +24,8 @@ export interface WidgetBridgePlugin {
    * WhatsApp). Solo acepta URI que Android entregó en ese intent; cualquier otro se rechaza.
    */
   readContentUri(options: { uri: string }): Promise<{ content: string; displayName?: string }>;
+  /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
+  openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */
   addListener(
     eventName: 'incomingFile',
