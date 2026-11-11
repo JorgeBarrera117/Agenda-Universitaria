@@ -37,6 +37,7 @@ import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
+import { notePlainText, parseNotePreview, type NotePreviewData } from '../utils/notePreview';
 
 interface NotesViewProps {
   initialSubjectFilterId?: string;
@@ -258,35 +259,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
     }
   };
 
-  // Helper para purgar markdown, KaTeX y HTML de los fragmentos de vista previa
-  const cleanSnippetPreview = (rawContent: string): string => {
-    if (!rawContent) return '';
-    const truncated = rawContent.length > 1000 ? rawContent.slice(0, 1000) : rawContent;
-    const cleaned = truncated
-      .replace(/<img[^>]*>/gi, ' [Imagen] ')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\$\$[\s\S]*?\$\$/g, ' [Fórmula] ')
-      .replace(/\$([^$]+)\$/g, '$1')
-      .replace(/#{1,6}\s+/g, '')
-      .replace(/(\*\*|__)(.*?)\1/g, '$2')
-      .replace(/(\*|_)(.*?)\1/g, '$2')
-      .replace(/~~(.*?)~~/g, '$1')
-      .replace(/^>\s+/gm, '')
-      .replace(/^[*+-]\s+/gm, '')
-      .replace(/^\d+\.\s+/gm, '')
-      .replace(/```[\s\S]*?```/g, ' [Código] ')
-      .replace(/`([^`]+)`/g, '$1')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    return cleaned || 'Documento sin contenido escrito aún.';
-  };
-
-  // Pre-calcular y memoizar los extractos limpios de cada nota
-  const snippetsById = useMemo(() => {
-    const map: Record<string, string> = {};
+  // Portada y extracto limpio de cada nota, recalculados solo cuando cambian las notas
+  const previewsById = useMemo(() => {
+    const map: Record<string, NotePreviewData> = {};
     for (const note of notes) {
-      map[note.id] = cleanSnippetPreview(note.content);
+      map[note.id] = parseNotePreview(note.content);
     }
     return map;
   }, [notes]);
@@ -307,8 +284,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
   const handleCopyText = async () => {
     if (!readingNote) return;
     try {
-      const clean = cleanSnippetPreview(readingNote.content);
-      const textToCopy = `${readingNote.title}\n\n${clean}`;
+      const clean = notePlainText(readingNote.content);
+      const textToCopy = clean ? `${readingNote.title}\n\n${clean}` : readingNote.title;
       await navigator.clipboard.writeText(textToCopy);
       showReaderToast('Contenido copiado al portapapeles');
     } catch (e) {
@@ -318,7 +295,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // Estadísticas del documento
   const getNoteStats = (note: Note) => {
-    const text = cleanSnippetPreview(note.content);
+    const text = notePlainText(note.content);
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     const chars = text.length;
     return { words, chars };
@@ -792,7 +769,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           {sortedNotes.map((note) => {
             const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;
-            const snippet = snippetsById[note.id] ?? '';
+            const preview = previewsById[note.id] ?? parseNotePreview(note.content);
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
               month: 'short',
@@ -848,35 +825,66 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   />
                 </div>
 
-                {/* Hoja de Papel en Miniatura Descongestionada */}
-                <div className="aspect-[4/3] rounded-xl bg-white dark:bg-slate-100 border border-slate-200/80 p-2 overflow-hidden text-slate-800 shadow-2xs my-2 flex flex-col justify-between select-none relative group-hover:border-[#00639B]/40 transition-colors">
-                  <div className="space-y-1">
-                    <div className="w-1/2 h-1 rounded-full bg-slate-300 dark:bg-slate-400 mb-1" />
-                    <p className="text-[9px] text-slate-600 leading-tight line-clamp-3 font-sans">
-                      {snippet}
-                    </p>
-                  </div>
-
-                  {/* Pie de la Hoja de Papel */}
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                    {imageCount > 0 ? (
-                      <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
-                        <Camera className="w-2.5 h-2.5" />
+                {preview.coverImageUrl ? (
+                  /* Portada: primera foto del apunte con el extracto superpuesto */
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 my-2 shadow-2xs group-hover:border-[#00639B]/40 transition-colors">
+                    <img
+                      src={preview.coverImageUrl}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                      className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                    />
+                    {imageCount > 0 && (
+                      <span className="absolute top-1 left-1 inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-800 bg-amber-50/95 px-1 py-0.5 rounded shadow-2xs">
+                        <Camera className="w-2.5 h-2.5" aria-hidden="true" />
                         <span>{imageCount}</span>
                       </span>
-                    ) : (
-                      <div />
                     )}
+                    {preview.hasText && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 pt-4">
+                        <p className="text-[9px] text-white/95 leading-tight line-clamp-1 font-medium drop-shadow-xs">
+                          {preview.cleanText}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Hoja de papel en miniatura con el extracto en texto plano */
+                  <div className="aspect-[4/3] rounded-xl bg-white dark:bg-slate-100 border border-slate-200/80 p-2 overflow-hidden text-slate-800 shadow-2xs my-2 flex flex-col justify-between select-none relative group-hover:border-[#00639B]/40 transition-colors">
+                    <div className="space-y-1 min-h-0">
+                      <div className="w-1/2 h-1 rounded-full bg-slate-300 dark:bg-slate-400 mb-1" />
+                      <p
+                        className={`text-[9.5px] leading-snug line-clamp-4 font-sans ${
+                          preview.hasText ? 'text-slate-600 dark:text-slate-700' : 'italic text-slate-400 dark:text-slate-500'
+                        }`}
+                      >
+                        {preview.cleanText}
+                      </p>
+                    </div>
 
-                    <div
-                      className="w-4 h-4 rounded flex items-center justify-center text-white shadow-2xs shrink-0"
-                      style={{ backgroundColor: subject?.color || '#00639B' }}
-                      title={subject?.name || 'Materia'}
-                    >
-                      <SubjectIcon icon={subject?.icon} className="w-2.5 h-2.5 text-white" />
+                    {/* Pie de la hoja: fotos adjuntas y materia */}
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                      {imageCount > 0 ? (
+                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
+                          <Camera className="w-2.5 h-2.5" aria-hidden="true" />
+                          <span>{imageCount}</span>
+                        </span>
+                      ) : (
+                        <div />
+                      )}
+
+                      <div
+                        className="w-4 h-4 rounded flex items-center justify-center text-white shadow-2xs shrink-0"
+                        style={{ backgroundColor: subject?.color || '#00639B' }}
+                        title={subject?.name || 'Materia'}
+                      >
+                        <SubjectIcon icon={subject?.icon} className="w-2.5 h-2.5 text-white" />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Pie de la Tarjeta */}
                 <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
