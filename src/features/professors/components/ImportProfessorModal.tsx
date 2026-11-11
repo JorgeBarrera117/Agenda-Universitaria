@@ -124,7 +124,7 @@ export const ImportProfessorModal: React.FC<ImportProfessorModalProps> = ({ shar
     return (
       <p className="flex items-start gap-1.5 text-[11px] font-semibold text-amber-800 dark:text-amber-200">
         <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        Esta materia tiene a {previous}; pasará a {professor.name}.
+        Hoy la tiene asignada {previous}; al guardar pasará a este contacto.
       </p>
     );
   };

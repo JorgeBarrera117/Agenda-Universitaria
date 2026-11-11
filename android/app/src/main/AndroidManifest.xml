@@ -38,12 +38,14 @@
             <!-- Apuntes compartidos (.agnote). WhatsApp y Drive entregan URI content:// SIN el
                  nombre del archivo, así que se filtra por tipo MIME: el propio de la app y, como
                  respaldo, los genéricos con los que algunas apps reetiquetan archivos desconocidos.
-                 Lo que llega se valida en JS (parseAgnoteContent) antes de mostrar nada. -->
+                 Lo que llega se valida en JS (parseAgnoteContent / parseAgcontactContent) antes de
+                 mostrar nada. Sirve igual para los contactos de catedráticos (.agcontact). -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/vnd.agenda-universitaria.note+json" />
+                <data android:mimeType="application/vnd.agenda-universitaria.contact+json" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -63,6 +65,9 @@
                 <data android:pathPattern=".*\\.agnote" />
                 <data android:pathPattern=".*\\..*\\.agnote" />
                 <data android:pathPattern=".*\\..*\\..*\\.agnote" />
+                <data android:pathPattern=".*\\.agcontact" />
+                <data android:pathPattern=".*\\..*\\.agcontact" />
+                <data android:pathPattern=".*\\..*\\..*\\.agcontact" />
             </intent-filter>
 
         </activity>

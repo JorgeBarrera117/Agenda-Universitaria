@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
+  Import,
+  MessageSquareText,
   Plus,
   Edit2,
   Trash2,
@@ -28,7 +31,19 @@ import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 import { HEADER_SCRIM_CLASS, TONAL_CHIP_CLASS } from '../../../shared/styles/surfaces';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
-import { shareProfessorContact } from '../services/professorShareService';
+import {
+  AGCONTACT_EXTENSION,
+  AGCONTACT_MIME_TYPE,
+  exportProfessorToAgcontact,
+  parseAgcontactContent,
+  shareProfessorContact,
+  type ProfessorSharePackage,
+} from '../services/professorShareService';
+import { professorImportedMessage } from '../utils/importMessage';
+import { ImportProfessorModal } from './ImportProfessorModal';
+
+/** Tope antes de leer un archivo elegido a mano (un .agcontact real pesa unos pocos KB). */
+const MAX_AGCONTACT_FILE_BYTES = 1024 * 1024;
 
 interface ProfessorsViewProps {
   onEditorActiveChange?: (isActive: boolean) => void;
@@ -132,6 +147,38 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
     }
   };
 
+  // Compartir como archivo .agcontact: quien lo recibe lo abre directo en su agenda
+  const handleShareAgcontact = async (prof: Professor) => {
+    const subjectNames = (prof.subjectIds || [])
+      .map((sid) => subjectMap.get(sid)?.name)
+      .filter((name): name is string => Boolean(name));
+    try {
+      const result = await exportProfessorToAgcontact(prof, subjectNames);
+      if (result.method === 'download') showToast(`Se descargó «${result.fileName}».`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'No se pudo compartir el contacto.');
+    }
+  };
+
+  // Importar un .agcontact elegido desde el almacenamiento del dispositivo
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importPackage, setImportPackage] = useState<ProfessorSharePackage | null>(null);
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Se vacía para poder elegir el mismo archivo otra vez
+    event.target.value = '';
+    if (!file) return;
+    try {
+      if (file.size > MAX_AGCONTACT_FILE_BYTES) {
+        throw new Error('El archivo es demasiado grande para ser un contacto compartido.');
+      }
+      setImportPackage(parseAgcontactContent(await file.text()));
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'No se pudo abrir el archivo.');
+    }
+  };
+
   // Lista memoizada de profesores con datos de asesoría o cubículo para el modal
   const professorsWithAdvisories = useMemo(
     () => professors.filter((p) => p.office || p.notes),
@@ -175,19 +222,40 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           </p>
         </div>
         <div
-          className={`hidden sm:block shrink-0 origin-right transition-all duration-200 ${
-            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+          className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 ${
+            isScrolled ? 'sm:scale-75 sm:opacity-0 sm:pointer-events-none' : 'scale-100 opacity-100'
           }`}
         >
+          {/* En Android se abre el selector sin filtro: los .agcontact guardados desde WhatsApp
+              suelen figurar como "archivo desconocido" y un filtro por tipo los ocultaría. */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={Capacitor.isNativePlatform() ? undefined : `${AGCONTACT_EXTENSION},${AGCONTACT_MIME_TYPE},application/json`}
+            className="hidden"
+            onChange={(e) => void handleImportFile(e)}
+          />
           <Button
-            variant="primary"
+            variant="secondary"
             size="sm"
-            icon={<UserPlus className="w-4 h-4 stroke-[2.3]" />}
-            onClick={handleOpenCreate}
-            className="shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 active:scale-95 whitespace-nowrap"
+            icon={<Import className="w-4 h-4 stroke-[2.3]" />}
+            onClick={() => fileInputRef.current?.click()}
+            className="active:scale-95 whitespace-nowrap"
           >
-            Registrar Catedrático
+            Importar (.agcontact)
           </Button>
+          {/* En móvil se registra con el botón flotante */}
+          <div className="hidden sm:block">
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<UserPlus className="w-4 h-4 stroke-[2.3]" />}
+              onClick={handleOpenCreate}
+              className="shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 active:scale-95 whitespace-nowrap"
+            >
+              Registrar Catedrático
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -356,9 +424,15 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                         ]
                       : []),
                     {
-                      id: 'share',
-                      label: 'Compartir contacto',
+                      id: 'share-agcontact',
+                      label: 'Compartir (.agcontact)',
                       icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                      onClick: () => void handleShareAgcontact(prof),
+                    },
+                    {
+                      id: 'share',
+                      label: 'Compartir como texto',
+                      icon: <MessageSquareText className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                       onClick: () => void handleShareProfessor(prof),
                     },
                     {
@@ -510,6 +584,19 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           </div>
         </div>
       </Modal>
+
+      {/* Vista previa de un .agcontact importado a mano */}
+      {importPackage && (
+        <ImportProfessorModal
+          key={`${importPackage.exportedAt}-${importPackage.professor.name}`}
+          sharePackage={importPackage}
+          onClose={() => setImportPackage(null)}
+          onImported={(result) => {
+            setImportPackage(null);
+            showToast(professorImportedMessage(result));
+          }}
+        />
+      )}
 
       {/* Botón Flotante Reubicable */}
       {isActive && (

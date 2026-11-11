@@ -21,7 +21,8 @@ import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
 import { backButtonManager } from './shared/services/backButtonManager';
-import { useIncomingAgnote } from './features/notes/hooks/useIncomingAgnote';
+import { useIncomingSharedFile } from './shared/hooks/useIncomingSharedFile';
+import { professorImportedMessage } from './features/professors/utils/importMessage';
 import type { UpdateInfo } from './shared/services/updateService';
 
 const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
@@ -44,6 +45,10 @@ const UpdateModal = lazy(() =>
 // Solo se carga cuando llega un apunte compartido (.agnote) desde otra app
 const ImportNoteModal = lazy(() =>
   import('./features/notes/components/ImportNoteModal').then((m) => ({ default: m.ImportNoteModal }))
+);
+// Solo se carga cuando llega un contacto de catedrático compartido (.agcontact)
+const ImportProfessorModal = lazy(() =>
+  import('./features/professors/components/ImportProfessorModal').then((m) => ({ default: m.ImportProfessorModal }))
 );
 const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: m.DocumentsView })));
 const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
@@ -184,8 +189,9 @@ export function App() {
     return false;
   }, BACK_PRIORITY.TAB, activeTab !== 'schedule' && !isSettingsOpen);
 
-  // Apunte .agnote abierto desde WhatsApp u otra app (Android): se ofrece importarlo
-  const { incoming: incomingAgnote, clearIncoming } = useIncomingAgnote(showToast);
+  // Apunte (.agnote) o contacto (.agcontact) abierto desde WhatsApp u otra app (Android):
+  // se ofrece importarlo con su modal
+  const { incoming, clearIncoming } = useIncomingSharedFile(showToast);
 
   // Aviso de nueva versión: 3 s después de abrir (sin competir con el arranque), solo con
   // conexión y si el usuario no lo pospuso hoy para esa misma versión. El servicio se carga
@@ -303,22 +309,37 @@ export function App() {
         />
       )}
 
-      {pendingUpdate && !incomingAgnote && (
+      {pendingUpdate && !incoming && (
         <Suspense fallback={null}>
           <UpdateModal info={pendingUpdate} onDownload={downloadPendingUpdate} onLater={closeUpdateForToday} />
         </Suspense>
       )}
 
-      {incomingAgnote && (
+      {incoming?.kind === 'note' && (
         <Suspense fallback={null}>
           <ImportNoteModal
-            key={`${incomingAgnote.exportedAt}-${incomingAgnote.note.title}`}
-            sharePackage={incomingAgnote}
+            key={`${incoming.sharePackage.exportedAt}-${incoming.sharePackage.note.title}`}
+            sharePackage={incoming.sharePackage}
             onClose={clearIncoming}
             onImported={({ title, subjectName }) => {
               clearIncoming();
               handleTabChange('notes');
               showToast(`«${title}» se guardó en ${subjectName}.`);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {incoming?.kind === 'contact' && (
+        <Suspense fallback={null}>
+          <ImportProfessorModal
+            key={`${incoming.sharePackage.exportedAt}-${incoming.sharePackage.professor.name}`}
+            sharePackage={incoming.sharePackage}
+            onClose={clearIncoming}
+            onImported={(result) => {
+              clearIncoming();
+              handleTabChange('professors');
+              showToast(professorImportedMessage(result));
             }}
           />
         </Suspense>
