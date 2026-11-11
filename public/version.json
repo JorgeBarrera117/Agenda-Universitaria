@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.41",
+  "latestVersion": "1.7.10.42",
   "releaseDate": "2026-11-11",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.41/Agenda-Universitaria-v1.7.10.41.apk",
-  "apkSha256": "cebe9cf5f182e94d545ea68d092f61852900e7f723220472d5fd3a977feb05f7",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.42/Agenda-Universitaria-v1.7.10.42.apk",
+  "apkSha256": "4ff36128b674ff778722944ccf19359bdcb445bf9325fb0c34c6b5fa6ea09cf4",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Actualiza sin salir de la app: toca «Descargar e instalar» y listo",
-    "La descarga muestra su progreso y se verifica antes de instalar",
-    "Tus materias, catedráticos y apuntes se conservan al actualizar"
+    "Comparte catedráticos como archivo .agcontact por WhatsApp",
+    "Ábrelo con un toque y elige a qué materias vincularlo",
+    "Nuevo botón «Importar (.agcontact)» en Profesores"
   ]
 }
