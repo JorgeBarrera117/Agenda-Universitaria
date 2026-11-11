@@ -326,6 +326,96 @@ public class WidgetBridgePlugin extends Plugin {
         }
     }
 
+    /** Tamaño máximo que se lee del portapapeles (una foto de cámara rara vez supera los 15 MB). */
+    private static final int MAX_CLIPBOARD_IMAGE_BYTES = 20 * 1024 * 1024;
+
+    /**
+     * Devuelve la imagen que hay en el portapapeles de Android (copiada en esta app, WhatsApp,
+     * Chrome…) como data URL. El WebView no siempre la entrega en el evento "paste", así que el
+     * botón "Pegar imagen" del editor la pide aquí. El portapapeles se consulta en el hilo de UI
+     * (Android 10+ solo lo permite a la app en primer plano) y el archivo se lee en otro hilo.
+     */
+    @PluginMethod
+    public void readImageFromClipboard(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            try {
+                Context context = getContext();
+                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = clipboard != null ? clipboard.getPrimaryClip() : null;
+                if (clip == null || clip.getItemCount() == 0) {
+                    resolveNoClipboardImage(call);
+                    return;
+                }
+
+                Uri imageUri = null;
+                String imageMime = null;
+                for (int i = 0; i < clip.getItemCount() && imageUri == null; i++) {
+                    Uri uri = clip.getItemAt(i).getUri();
+                    if (uri == null) continue;
+                    String type = context.getContentResolver().getType(uri);
+                    if (type == null && clip.getDescription() != null) {
+                        for (int m = 0; m < clip.getDescription().getMimeTypeCount(); m++) {
+                            String candidate = clip.getDescription().getMimeType(m);
+                            if (candidate != null && candidate.startsWith("image/") && !candidate.equals("image/*")) {
+                                type = candidate;
+                                break;
+                            }
+                        }
+                    }
+                    if (type != null && type.startsWith("image/")) {
+                        imageUri = uri;
+                        imageMime = type.equals("image/*") ? "image/png" : type;
+                    }
+                }
+                if (imageUri == null) {
+                    resolveNoClipboardImage(call);
+                    return;
+                }
+
+                final Uri finalUri = imageUri;
+                final String finalMime = imageMime;
+                new Thread(() -> {
+                    try (InputStream in = context.getContentResolver().openInputStream(finalUri)) {
+                        if (in == null) {
+                            call.reject("No se pudo abrir la imagen del portapapeles.");
+                            return;
+                        }
+                        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                        byte[] buffer = new byte[16 * 1024];
+                        int read;
+                        int total = 0;
+                        while ((read = in.read(buffer)) != -1) {
+                            total += read;
+                            if (total > MAX_CLIPBOARD_IMAGE_BYTES) {
+                                call.reject("La imagen del portapapeles es demasiado grande.");
+                                return;
+                            }
+                            out.write(buffer, 0, read);
+                        }
+                        String base64 = android.util.Base64.encodeToString(out.toByteArray(), android.util.Base64.NO_WRAP);
+                        JSObject ret = new JSObject();
+                        ret.put("hasImage", true);
+                        ret.put("mimeType", finalMime);
+                        ret.put("dataUrl", "data:" + finalMime + ";base64," + base64);
+                        call.resolve(ret);
+                    } catch (SecurityException se) {
+                        call.reject("Android no dio permiso para leer la imagen copiada.");
+                    } catch (Exception ex) {
+                        call.reject("Error al leer la imagen del portapapeles: " + ex.getMessage());
+                    }
+                }).start();
+            } catch (Exception e) {
+                call.reject("Error al consultar el portapapeles: " + e.getMessage());
+            }
+        });
+    }
+
+    private static void resolveNoClipboardImage(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("hasImage", false);
+        call.resolve(ret);
+    }
+
     @PluginMethod
     public void exportJsonFile(PluginCall call) {
         String content = call.getString("content");

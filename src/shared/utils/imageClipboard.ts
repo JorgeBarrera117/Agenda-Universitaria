@@ -37,6 +37,29 @@ export async function imageSrcToPngBlob(src: string): Promise<Blob> {
   return blob;
 }
 
+/** Convierte un data URL en File sin fetch() (el CSP bloquea fetch sobre data:). */
+export function dataUrlToFile(dataUrl: string, baseName: string): File {
+  const [header, base64 = ''] = dataUrl.split(',', 2);
+  const mimeType = /^data:([^;,]+)/.exec(header)?.[1] ?? 'image/png';
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const extension = mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'png';
+  return new File([bytes], `${baseName}.${extension}`, { type: mimeType });
+}
+
+/**
+ * Imagen que hay ahora en el portapapeles del teléfono (copiada en la app, WhatsApp, Chrome…).
+ * Solo en Android: allí el WebView no siempre entrega la imagen en el evento de pegar, así que se
+ * lee con el puente nativo. Devuelve null si no hay imagen o fuera de Android.
+ */
+export async function readImageFromSystemClipboard(): Promise<File | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  const res = await WidgetBridge.readImageFromClipboard();
+  if (!res?.hasImage || !res.dataUrl) return null;
+  return dataUrlToFile(res.dataUrl, 'imagen-pegada');
+}
+
 function errorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'object' && err && 'message' in err) return String((err as { message: unknown }).message);

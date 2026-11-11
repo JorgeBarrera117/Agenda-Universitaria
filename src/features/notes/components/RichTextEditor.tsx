@@ -5,6 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { NodeSelection, Selection } from '@tiptap/pm/state';
+import type { EditorView } from '@tiptap/pm/view';
 import {
   ArrowDown,
   ArrowUp,
@@ -34,6 +35,7 @@ import { Capacitor } from '@capacitor/core';
 import {
   blobToDataUrl,
   copyImageToSystemClipboard,
+  readImageFromSystemClipboard,
   type ImageCopyResult,
 } from '../../../shared/utils/imageClipboard';
 
@@ -61,6 +63,63 @@ interface ToolbarAction {
 interface ImageClip {
   src: string;
   alt?: string;
+}
+
+/** Archivos de imagen de un pegado o arrastre (algunos WebView solo los exponen en items). */
+function imageFilesFrom(data: DataTransfer | null): File[] {
+  if (!data) return [];
+  const files = Array.from(data.files).filter((file) => file.type.startsWith('image/'));
+  if (files.length > 0) return files;
+  return Array.from(data.items)
+    .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => file !== null);
+}
+
+/**
+ * Inserta una imagen en la selección (o en `pos`, al soltar un arrastre) y deja el cursor en el
+ * párrafo de debajo, creándolo si hace falta: si la imagen quedara seleccionada, lo siguiente que
+ * se escribiera la reemplazaría.
+ */
+function insertImageInView(view: EditorView, src: string, alt: string, pos?: number): void {
+  const { state } = view;
+  const imageType = state.schema.nodes.image;
+  if (!imageType) return;
+  const node = imageType.create({ src, alt });
+  const tr = state.tr;
+  const target = pos ?? (state.selection.empty ? state.selection.from : undefined);
+  const $target = target === undefined ? null : state.doc.resolve(target);
+  if (!$target || !$target.parent.isTextblock) {
+    if (target === undefined) tr.replaceSelectionWith(node, false);
+    else tr.insert(target, node);
+  } else if ($target.parent.content.size === 0) {
+    // Párrafo vacío: la foto lo sustituye en vez de dejar un hueco encima
+    tr.replaceWith($target.before(), $target.after(), node);
+  } else if ($target.parentOffset === 0) {
+    tr.insert($target.before(), node);
+  } else if ($target.parentOffset === $target.parent.content.size) {
+    tr.insert($target.after(), node);
+  } else {
+    // En medio del texto: se divide el párrafo
+    tr.insert(target as number, node);
+  }
+
+  // ProseMirror conserva la instancia del nodo insertado: se localiza para situar el cursor debajo
+  let after = -1;
+  tr.doc.descendants((child, childPos) => {
+    if (after >= 0) return false;
+    if (child === node) {
+      after = childPos + child.nodeSize;
+      return false;
+    }
+    return true;
+  });
+  if (after >= 0) {
+    if (!tr.doc.resolve(after).nodeAfter) tr.insert(after, state.schema.nodes.paragraph.create());
+    tr.setSelection(Selection.near(tr.doc.resolve(after), 1));
+  }
+  view.dispatch(tr.scrollIntoView());
+  view.focus();
 }
 
 /** Aviso tras copiar/cortar: dice dónde quedó la foto y, si falló, por qué. */
@@ -112,6 +171,25 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Comprime e inserta fotos que llegan como archivo (pegar, arrastrar o el botón "Pegar imagen").
+   * TipTap solo sabe pegar imágenes que vienen como HTML; las del portapapeles de Android llegan
+   * como archivo y antes se ignoraban.
+   */
+  const insertImageFiles = async (view: EditorView, files: File[], pos?: number) => {
+    setIsProcessingImage(true);
+    try {
+      for (const [index, file] of files.entries()) {
+        const { blob } = await compressImage(file);
+        insertImageInView(view, await blobToDataUrl(blob), file.name || 'Imagen pegada', index === 0 ? pos : undefined);
+      }
+    } catch (err: unknown) {
+      onImageError?.(err instanceof Error ? err.message : 'No se pudo insertar la imagen.');
+    } finally {
+      setIsProcessingImage(false);
+    }
+  };
+
   const editor = useEditor({
     // Re-render en cada transacción para que los estados activos de la barra sigan al cursor
     shouldRerenderOnTransaction: true,
@@ -138,6 +216,23 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         'aria-label': 'Contenido del apunte',
       },
       // Sin handleDOMEvents.click: tocar una foto la selecciona para editarla; el zoom es un botón
+      handlePaste: (view, event) => {
+        const files = imageFilesFrom(event.clipboardData);
+        if (files.length === 0) return false;
+        event.preventDefault();
+        void insertImageFiles(view, files);
+        return true;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        // Mover una foto dentro del apunte lo resuelve ProseMirror; aquí solo archivos externos
+        if (moved) return false;
+        const files = imageFilesFrom(event.dataTransfer);
+        if (files.length === 0) return false;
+        event.preventDefault();
+        const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+        void insertImageFiles(view, files, pos);
+        return true;
+      },
     },
   });
 
@@ -266,22 +361,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     if (!file) return;
 
     try {
-      setIsProcessingImage(true);
-      const { blob } = await compressImage(file);
-      const dataUrl = await blobToDataUrl(blob);
-      editor.chain().focus().setImage({ src: dataUrl, alt: file.name }).run();
-      placeCursorAfterImage();
-    } catch (err: unknown) {
-      onImageError?.(err instanceof Error ? err.message : 'No se pudo insertar la imagen.');
+      await insertImageFiles(editor.view, [file]);
     } finally {
-      setIsProcessingImage(false);
       if (e.target) e.target.value = '';
     }
   };
 
   const chain = () => editor.chain().focus();
 
-  const showNotice = (text: string) => setNotice({ id: Date.now(), text });
+  const showNotice = (text: string) => setNotice((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
 
   // Imagen seleccionada (NodeSelection) y si tiene hermanos para moverla
   const { selection } = editor.state;
@@ -335,6 +423,25 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   const deselectImage = placeCursorAfterImage;
+
+  const pasteImage = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const file = await readImageFromSystemClipboard();
+        if (file) {
+          await insertImageFiles(editor.view, [file]);
+          return;
+        }
+      } catch (err) {
+        console.warn('No se pudo leer el portapapeles del teléfono:', err);
+      }
+    }
+    if (imageClip) {
+      insertImageInView(editor.view, imageClip.src, imageClip.alt ?? 'Imagen');
+      return;
+    }
+    showNotice('No hay ninguna imagen en el portapapeles. Copia una foto primero.');
+  };
 
   const imageActions: ToolbarAction[] = [
     {
@@ -390,18 +497,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       label: 'Insertar',
       actions: [
         { id: 'divider', label: 'Línea divisoria', icon: Minus, run: () => chain().setHorizontalRule().run() },
-        ...(imageClip
-          ? [
-              {
-                id: 'paste-image',
-                label: 'Pegar imagen',
-                icon: ClipboardPaste,
-                run: () => {
-                  chain().setImage({ src: imageClip.src, alt: imageClip.alt }).run();
-                  placeCursorAfterImage();
-                },
-              },
-            ]
+        // En Android siempre visible: lee el portapapeles del teléfono (fotos copiadas aquí o en
+        // otra app); en la web, solo cuando hay una foto copiada dentro del editor
+        ...(imageClip || Capacitor.isNativePlatform()
+          ? [{ id: 'paste-image', label: 'Pegar imagen', icon: ClipboardPaste, run: () => void pasteImage(), disabled: isProcessingImage }]
           : []),
       ],
     },

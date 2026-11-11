@@ -15,6 +15,8 @@ export interface WidgetBridgePlugin {
     base64Data: string;
     mimeType?: string;
   }): Promise<{ success: boolean; mimeType?: string }>;
+  /** Lee la imagen del portapapeles de Android (copiada en esta u otra app) como data URL. */
+  readImageFromClipboard(): Promise<{ hasImage: boolean; dataUrl?: string; mimeType?: string }>;
 }
 
 /**
