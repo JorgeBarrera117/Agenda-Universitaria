@@ -1,11 +1,13 @@
 {
-  "latestVersion": "1.7.10.40",
+  "latestVersion": "1.7.10.41",
   "releaseDate": "2026-11-11",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.41/Agenda-Universitaria-v1.7.10.41.apk",
+  "apkSha256": "cebe9cf5f182e94d545ea68d092f61852900e7f723220472d5fd3a977feb05f7",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Comparte archivos de tus materias (PDF, Word, imágenes…) por WhatsApp, Gmail o Drive",
-    "Comparte el contacto de tus catedráticos con un toque",
-    "Las actualizaciones ahora están en Ajustes → Acerca de la agenda"
+    "Actualiza sin salir de la app: toca «Descargar e instalar» y listo",
+    "La descarga muestra su progreso y se verifica antes de instalar",
+    "Tus materias, catedráticos y apuntes se conservan al actualizar"
   ]
 }
