@@ -552,13 +552,16 @@ En `RichTextEditor.tsx`, el listener `handleDOMEvents.click` interceptaba todo c
 - [ ] **14.1. Habilitar Arrastre y Selección de Nodo en TipTap (`RichTextEditor.tsx`):**
   - Configurar `Image.configure({ inline: false, allowBase64: true, draggable: true })`.
   - Reemplazar la intercepción agresiva de `click`: al pulsar una imagen en modo edición, seleccionarla mediante `NodeSelection` y resaltarla con un borde activo (`ring-2 ring-[var(--color-md-primary)] rounded-2xl`).
-- [ ] **14.2. Barra Flotante de Acciones de Imagen (Image Context Bubble Toolbar):**
+- [ ] **14.2. Barra Flotante de Acciones de Imagen e Interoperabilidad con el Portapapeles del Sistema:**
+  - Implementar helper `copyImageToSystemClipboard(imageSrc: string)`:
+    - Convierte el DataURL / Blob a `image/png` mediante un `<canvas>` en memoria (formato estándar universal aceptado por la API `navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])`).
+    - Al escribir el Blob binario en el portapapeles del sistema operativo, el usuario puede pegar la imagen directamente como foto en WhatsApp, Telegram, Microsoft Word, Gmail o cualquier app externa.
   - Renderizar una barra de herramientas flotante compacta anclada a la imagen seleccionada o en la parte inferior:
-    - ✂️ **Cortar:** Copia el DataURL de la imagen al portapapeles y la borra del documento (`editor.chain().focus().deleteSelection().run()`).
-    - 📋 **Copiar:** Copia la imagen al portapapeles para poder pegarla en otra posición o documento.
+    - ✂️ **Cortar:** Copia el blob binario de la imagen al portapapeles del sistema (`copyImageToSystemClipboard`) y la borra del documento (`editor.chain().focus().deleteSelection().run()`). Muestra toast *"Imagen cortada al portapapeles"*.
+    - 📋 **Copiar:** Copia el blob binario de la imagen al portapapeles del sistema. Muestra toast *"Imagen copiada. Puedes pegarla en WhatsApp u otra app"*.
     - ⬆️ **Mover arriba:** Desplaza el bloque de imagen antes del párrafo anterior.
     - ⬇️ **Mover abajo:** Desplaza el bloque de imagen después del párrafo siguiente.
-    - 🗑️ **Eliminar:** Borra la imagen seleccionada.
+    - 🗑️ **Eliminar:** Borra la imagen seleccionada (`deleteSelection()`).
     - 🔍 **Ampliar / Zoom:** Abre el modal de zoom a pantalla completa si el usuario desea inspeccionar detalles.
 - [ ] **14.3. Verificación y Compilación:**
   - Ejecutar `npm run build` y `npm run lint` asegurando 0 errores.
