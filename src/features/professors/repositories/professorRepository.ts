@@ -9,6 +9,26 @@ export interface IProfessorRepository {
   delete(id: string): Promise<void>;
 }
 
+/**
+ * Asigna la materia al docente. Una materia tiene un solo docente: si ya tenía otro, se quita de
+ * la lista de ese docente para que la materia no aparezca en las dos tarjetas.
+ * Debe llamarse dentro de una transacción sobre professors y subjects.
+ */
+async function assignSubjectTo(subjectId: string, professorId: string): Promise<void> {
+  const subject = await db.subjects.get(subjectId);
+  if (!subject) return;
+  const previousId = subject.professorId;
+  if (previousId && previousId !== professorId) {
+    const previous = await db.professors.get(previousId);
+    if (previous && (previous.subjectIds || []).includes(subjectId)) {
+      await db.professors.update(previousId, {
+        subjectIds: (previous.subjectIds || []).filter((sid) => sid !== subjectId),
+      });
+    }
+  }
+  await db.subjects.update(subjectId, { professorId });
+}
+
 export class DexieProfessorRepository implements IProfessorRepository {
   async getAll(): Promise<Professor[]> {
     return db.professors.toArray();
@@ -31,7 +51,7 @@ export class DexieProfessorRepository implements IProfessorRepository {
       // Sincronización bidireccional: asignar este docente a las materias seleccionadas
       if (professor.subjectIds && professor.subjectIds.length > 0) {
         for (const subjectId of professor.subjectIds) {
-          await db.subjects.update(subjectId, { professorId: professor.id });
+          await assignSubjectTo(subjectId, professor.id);
         }
       }
     });
@@ -54,7 +74,7 @@ export class DexieProfessorRepository implements IProfessorRepository {
 
         // Asignar a las materias seleccionadas
         for (const sid of data.subjectIds) {
-          await db.subjects.update(sid, { professorId: id });
+          await assignSubjectTo(sid, id);
         }
       }
     });

@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
 import { SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from '../../../shared/utils/dataUrl';
+import { comparableName } from '../../../shared/utils/comparableName';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import { db } from '../../../shared/db/AppDatabase';
 import { subjectRepository } from '../../subjects/repositories/subjectRepository';
@@ -237,11 +238,6 @@ export function agnoteAttachmentBlobs(sharePackage: NoteSharePackage): { name: s
     const blob = dataUrlToBlob(attachment.dataUrl);
     return { name: attachment.name, blob, mimeType: blob.type };
   });
-}
-
-/** Nombre comparable: sin tildes, mayúsculas ni espacios extra ("Cálculo  I" ≈ "calculo i"). */
-function comparableName(value: string): string {
-  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 /** Materia local equivalente a la de origen: primero por código, después por nombre. */
