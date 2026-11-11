@@ -14,7 +14,7 @@
 export const APP_INFO = {
   name: 'Agenda Universitaria',
   shortName: 'AgendaUni',
-  version: '1.7.10.37',
+  version: '1.7.10.38',
   author: 'Jorge I. Barrera V.',
   slogan: 'POR Y PARA LOS ESTUDIANTES',
   description:
