@@ -1,6 +1,7 @@
 package com.agenda.universitaria;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -129,10 +130,20 @@ public class WidgetBridgePlugin extends Plugin {
             return;
         }
 
+        // El nombre llega desde JavaScript: solo se usa su último segmento para que "../" no
+        // escriba fuera de la caché, y se fuerza la extensión .json (WhatsApp muestra el tipo por ella)
+        String safeName = new File(fileName).getName().replaceAll("[^A-Za-z0-9._-]", "_");
+        if (safeName.isEmpty() || safeName.startsWith(".")) {
+            safeName = "agenda_universitaria_backup.json";
+        }
+        if (!safeName.toLowerCase().endsWith(".json")) {
+            safeName = safeName + ".json";
+        }
+
         try {
             Context context = getContext();
             File cacheDir = context.getCacheDir();
-            File shareFile = new File(cacheDir, fileName);
+            File shareFile = new File(cacheDir, safeName);
             try (FileOutputStream fos = new FileOutputStream(shareFile)) {
                 fos.write(content.getBytes(StandardCharsets.UTF_8));
                 fos.flush();
@@ -150,8 +161,29 @@ public class WidgetBridgePlugin extends Plugin {
             sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Copia de Seguridad - Agenda Universitaria");
             sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
+            // 1. El permiso temporal de lectura viaja con el ClipData. createChooser solo copia al
+            //    selector el ClipData y los flags que el intent destino ya tenga; si el URI va solo en
+            //    EXTRA_STREAM, la app elegida (WhatsApp, Gmail…) no puede abrirlo y envía 0 kB.
+            sendIntent.setClipData(ClipData.newUri(context.getContentResolver(), safeName, fileUri));
+
             Intent chooser = Intent.createChooser(sendIntent, "Guardar o compartir copia de seguridad");
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            // 2. Respaldo para lanzadores que no propagan el ClipData: permiso explícito a cada app
+            //    capaz de recibir el archivo. Se consulta sendIntent (consultar el chooser solo
+            //    devuelve el selector del sistema); en Android 11+ la lista depende de <queries>
+            //    en AndroidManifest.xml.
+            List<ResolveInfo> targets = context.getPackageManager()
+                .queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY);
+            for (ResolveInfo target : targets) {
+                context.grantUriPermission(
+                    target.activityInfo.packageName,
+                    fileUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                );
+            }
+
             context.startActivity(chooser);
 
             JSObject ret = new JSObject();
