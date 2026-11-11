@@ -17,6 +17,13 @@ export interface WidgetBridgePlugin {
   }): Promise<{ success: boolean; mimeType?: string }>;
   /** Lee la imagen del portapapeles de Android (copiada en esta u otra app) como data URL. */
   readImageFromClipboard(): Promise<{ hasImage: boolean; dataUrl?: string; mimeType?: string }>;
+  /** Comparte un apunte .agnote por la hoja de compartir de Android (WhatsApp, Telegram, Drive…). */
+  shareAgnoteFile(options: { content: string; fileName: string; mimeType?: string }): Promise<{ success: boolean }>;
+  /**
+   * Lee como texto un archivo recibido al abrir la app desde otra (p. ej. un .agnote tocado en
+   * WhatsApp). Solo acepta URI que Android entregó en ese intent; cualquier otro se rechaza.
+   */
+  readContentUri(options: { uri: string }): Promise<{ content: string; displayName?: string }>;
 }
 
 /**

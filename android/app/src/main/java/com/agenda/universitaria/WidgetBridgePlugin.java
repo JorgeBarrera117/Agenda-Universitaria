@@ -10,10 +10,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
@@ -35,7 +37,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @CapacitorPlugin(name = "WidgetBridge")
 public class WidgetBridgePlugin extends Plugin {
@@ -153,42 +158,13 @@ public class WidgetBridgePlugin extends Plugin {
                 fos.flush();
             }
 
-            Uri fileUri = FileProvider.getUriForFile(
+            shareCacheFile(
                 context,
-                context.getPackageName() + ".fileprovider",
-                shareFile
+                shareFile,
+                "application/json",
+                "Copia de Seguridad - Agenda Universitaria",
+                "Guardar o compartir copia de seguridad"
             );
-
-            Intent sendIntent = new Intent(Intent.ACTION_SEND);
-            sendIntent.setType("application/json");
-            sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Copia de Seguridad - Agenda Universitaria");
-            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            // 1. El permiso temporal de lectura viaja con el ClipData. createChooser solo copia al
-            //    selector el ClipData y los flags que el intent destino ya tenga; si el URI va solo en
-            //    EXTRA_STREAM, la app elegida (WhatsApp, Gmail…) no puede abrirlo y envía 0 kB.
-            sendIntent.setClipData(ClipData.newUri(context.getContentResolver(), safeName, fileUri));
-
-            Intent chooser = Intent.createChooser(sendIntent, "Guardar o compartir copia de seguridad");
-            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            // 2. Respaldo para lanzadores que no propagan el ClipData: permiso explícito a cada app
-            //    capaz de recibir el archivo. Se consulta sendIntent (consultar el chooser solo
-            //    devuelve el selector del sistema); en Android 11+ la lista depende de <queries>
-            //    en AndroidManifest.xml.
-            List<ResolveInfo> targets = context.getPackageManager()
-                .queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY);
-            for (ResolveInfo target : targets) {
-                context.grantUriPermission(
-                    target.activityInfo.packageName,
-                    fileUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                );
-            }
-
-            context.startActivity(chooser);
 
             JSObject ret = new JSObject();
             ret.put("success", true);
@@ -414,6 +390,174 @@ public class WidgetBridgePlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("hasImage", false);
         call.resolve(ret);
+    }
+
+    /**
+     * Comparte un archivo de la caché por la hoja de compartir de Android.
+     * 1. El permiso temporal de lectura viaja con el ClipData: createChooser solo copia al selector el
+     *    ClipData y los flags que el intent destino ya tenga; si el URI fuera solo en EXTRA_STREAM, la
+     *    app elegida (WhatsApp, Gmail…) no podría abrirlo y enviaría 0 kB.
+     * 2. Respaldo para lanzadores que no propagan el ClipData: permiso explícito a cada app capaz de
+     *    recibir el archivo (se consulta sendIntent, no el chooser; en Android 11+ la lista depende de
+     *    <queries> en AndroidManifest.xml).
+     */
+    private static void shareCacheFile(Context context, File file, String mimeType, String subject, String chooserTitle) {
+        Uri fileUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file);
+
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType(mimeType);
+        sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        sendIntent.setClipData(ClipData.newUri(context.getContentResolver(), file.getName(), fileUri));
+
+        Intent chooser = Intent.createChooser(sendIntent, chooserTitle);
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        List<ResolveInfo> targets = context.getPackageManager()
+            .queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        for (ResolveInfo target : targets) {
+            context.grantUriPermission(target.activityInfo.packageName, fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+
+        context.startActivity(chooser);
+    }
+
+    private static final String AGNOTE_DEFAULT_MIME = "application/vnd.agenda-universitaria.note+json";
+    private static final int MAX_INCOMING_FILE_BYTES = 40 * 1024 * 1024;
+
+    /**
+     * URI que Android entregó al abrir la app desde otra (p. ej. un .agnote tocado en WhatsApp).
+     * readContentUri solo lee estos: si aceptara cualquier URI, un fallo de XSS podría usarlo para
+     * leer archivos a los que la app tiene acceso.
+     */
+    private static final Set<String> ALLOWED_INCOMING_URIS = Collections.synchronizedSet(new HashSet<>());
+
+    /** MainActivity registra aquí el URI del intent VIEW/SEND que abrió la app. */
+    public static void registerIncomingUri(Uri uri) {
+        if (uri != null) {
+            ALLOWED_INCOMING_URIS.add(uri.toString());
+        }
+    }
+
+    /** Comparte un apunte empaquetado (.agnote) por WhatsApp, Telegram, Drive, etc. */
+    @PluginMethod
+    public void shareAgnoteFile(PluginCall call) {
+        String content = call.getString("content");
+        if (content == null || content.isEmpty()) {
+            call.reject("El apunte a compartir está vacío.");
+            return;
+        }
+
+        String mimeType = call.getString("mimeType", AGNOTE_DEFAULT_MIME);
+        if (mimeType == null || !mimeType.matches("^application/[a-z0-9.+-]+$")) {
+            mimeType = AGNOTE_DEFAULT_MIME;
+        }
+
+        // Solo el último segmento del nombre (nada de "../") y siempre con extensión .agnote
+        String safeName = new File(call.getString("fileName", "apunte.agnote")).getName()
+            .replaceAll("[^A-Za-z0-9._-]", "_");
+        if (safeName.isEmpty() || safeName.startsWith(".")) {
+            safeName = "apunte.agnote";
+        }
+        if (!safeName.toLowerCase().endsWith(".agnote")) {
+            safeName = safeName + ".agnote";
+        }
+
+        try {
+            Context context = getContext();
+            File dir = new File(context.getCacheDir(), "shared_notes");
+            if (!dir.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                dir.mkdirs();
+            }
+            // Se conservan los 5 más recientes: la app destino puede estar leyendo uno anterior
+            File[] previous = dir.listFiles();
+            if (previous != null && previous.length >= 5) {
+                java.util.Arrays.sort(previous, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
+                for (int i = 0; i <= previous.length - 5; i++) {
+                    //noinspection ResultOfMethodCallIgnored
+                    previous[i].delete();
+                }
+            }
+
+            File shareFile = new File(dir, safeName);
+            try (FileOutputStream fos = new FileOutputStream(shareFile)) {
+                fos.write(content.getBytes(StandardCharsets.UTF_8));
+                fos.flush();
+            }
+
+            shareCacheFile(context, shareFile, mimeType, "Apunte - Agenda Universitaria", "Compartir apunte");
+
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Error al compartir el apunte: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lee como texto UTF-8 un archivo recibido en el intent que abrió la app. Se lee en un hilo
+     * aparte y con tope de tamaño; devuelve también el nombre visible del archivo si lo hay.
+     */
+    @PluginMethod
+    public void readContentUri(PluginCall call) {
+        String uriString = call.getString("uri");
+        if (uriString == null || !ALLOWED_INCOMING_URIS.contains(uriString)) {
+            call.reject("Solo se pueden leer archivos recibidos al abrir la app.");
+            return;
+        }
+        Uri uri = Uri.parse(uriString);
+        String scheme = uri.getScheme();
+        if (!"content".equals(scheme) && !"file".equals(scheme)) {
+            call.reject("Tipo de enlace de archivo no admitido.");
+            return;
+        }
+
+        Context context = getContext();
+        new Thread(() -> {
+            try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+                if (in == null) {
+                    call.reject("No se pudo abrir el archivo recibido.");
+                    return;
+                }
+                java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                byte[] buffer = new byte[16 * 1024];
+                int read;
+                int total = 0;
+                while ((read = in.read(buffer)) != -1) {
+                    total += read;
+                    if (total > MAX_INCOMING_FILE_BYTES) {
+                        call.reject("El archivo recibido es demasiado grande.");
+                        return;
+                    }
+                    out.write(buffer, 0, read);
+                }
+
+                String displayName = uri.getLastPathSegment();
+                if ("content".equals(scheme)) {
+                    try (Cursor cursor = context.getContentResolver()
+                        .query(uri, new String[]{ OpenableColumns.DISPLAY_NAME }, null, null, null)) {
+                        if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) {
+                            displayName = cursor.getString(0);
+                        }
+                    } catch (Exception ignored) {
+                        // Algunos proveedores no exponen el nombre: se usa el último segmento del URI
+                    }
+                }
+
+                JSObject ret = new JSObject();
+                ret.put("content", new String(out.toByteArray(), StandardCharsets.UTF_8));
+                ret.put("displayName", displayName);
+                call.resolve(ret);
+            } catch (SecurityException se) {
+                call.reject("Android no dio permiso para leer el archivo recibido.");
+            } catch (Exception e) {
+                call.reject("Error al leer el archivo recibido: " + e.getMessage());
+            }
+        }).start();
     }
 
     @PluginMethod

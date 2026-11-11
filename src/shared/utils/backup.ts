@@ -6,29 +6,7 @@ import type { Professor } from '../../features/professors/types';
 import type { ScheduleSlot } from '../../features/schedule/types';
 import { WidgetBridge } from '../plugins/widgetBridge';
 import { sanitizeNoteHtml } from './sanitizeHtml';
-
-// Convertir Blob a DataURL base64 para exportar en JSON
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-// Convertir DataURL base64 de vuelta a Blob al importar
-function dataUrlToBlob(dataUrl: string): Blob {
-  const parts = dataUrl.split(',');
-  const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
-  const binaryStr = atob(parts[1]);
-  const len = binaryStr.length;
-  const u8arr = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    u8arr[i] = binaryStr.charCodeAt(i);
-  }
-  return new Blob([u8arr], { type: mime });
-}
+import { SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from './dataUrl';
 
 export interface ExportResult {
   method: 'downloads' | 'share' | 'file-picker' | 'clipboard' | 'download';
@@ -309,9 +287,6 @@ interface ParsedBackup {
 }
 
 const INVALID_BACKUP_MESSAGE = 'El archivo no contiene un formato de respaldo válido de Agenda Universitaria.';
-
-// Solo se aceptan imágenes rasterizadas: un SVG podría transportar scripts.
-const SAFE_IMAGE_DATA_URL = /^data:(image\/(?:png|jpeg|webp|gif));base64,[A-Za-z0-9+/=\s]+$/;
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
