@@ -24,6 +24,16 @@ export interface WidgetBridgePlugin {
    * WhatsApp). Solo acepta URI que Android entregó en ese intent; cualquier otro se rechaza.
    */
   readContentUri(options: { uri: string }): Promise<{ content: string; displayName?: string }>;
+  /**
+   * Comparte un archivo con su contenido real (PDF, DOCX, imágenes, ZIP…) por la hoja de compartir
+   * de Android. base64Data admite base64 plano o un data URL; si mimeType falta o no es válido,
+   * se deduce de la extensión de fileName.
+   */
+  shareFile(options: {
+    base64Data: string;
+    fileName: string;
+    mimeType?: string;
+  }): Promise<{ success: boolean; mimeType?: string }>;
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */

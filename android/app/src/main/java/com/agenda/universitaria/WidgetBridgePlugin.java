@@ -212,14 +212,7 @@ public class WidgetBridgePlugin extends Plugin {
             // URI anteriores; si siempre se sobrescribiera el mismo archivo, todas esas entradas
             // mostrarían la última foto. Se conservan solo las 5 copias más recientes.
             String extension = "image/jpeg".equals(mimeType) ? ".jpg" : ".png";
-            File[] previous = clipDir.listFiles();
-            if (previous != null && previous.length >= 5) {
-                java.util.Arrays.sort(previous, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
-                for (int i = 0; i <= previous.length - 5; i++) {
-                    //noinspection ResultOfMethodCallIgnored
-                    previous[i].delete();
-                }
-            }
+            pruneOldestFiles(clipDir, 5);
             File clipFile = new File(clipDir, "clipboard_image_" + System.currentTimeMillis() + extension);
             try (FileOutputStream fos = new FileOutputStream(clipFile)) {
                 fos.write(imageBytes);
@@ -424,6 +417,112 @@ public class WidgetBridgePlugin extends Plugin {
         context.startActivity(chooser);
     }
 
+    /**
+     * Deja en la carpeta como mucho (keep - 1) archivos, borrando los más antiguos, para que tras
+     * escribir el nuevo queden "keep". Se conservan varios porque la app destino (WhatsApp, Gmail…)
+     * puede seguir leyendo uno anterior mientras el usuario comparte otro.
+     */
+    private static void pruneOldestFiles(File dir, int keep) {
+        File[] previous = dir.listFiles();
+        if (previous == null || previous.length < keep) {
+            return;
+        }
+        java.util.Arrays.sort(previous, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
+        for (int i = 0; i <= previous.length - keep; i++) {
+            //noinspection ResultOfMethodCallIgnored
+            previous[i].delete();
+        }
+    }
+
+    /**
+     * Nombre visible seguro para un archivo que llega desde JS: solo el último segmento (nada de
+     * "../"), sin caracteres prohibidos ni de control, sin punto inicial y con un máximo de 120
+     * caracteres conservando la extensión. Mantiene tildes y espacios: es el nombre que verá el
+     * destinatario en WhatsApp o Gmail.
+     */
+    private static String safeDisplayFileName(String fileName) {
+        String name = new File(fileName == null ? "" : fileName).getName()
+            .replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_")
+            .trim();
+        while (name.startsWith(".")) {
+            name = name.substring(1);
+        }
+        if (name.isEmpty()) {
+            name = "archivo";
+        }
+        if (name.length() > 120) {
+            int dot = name.lastIndexOf('.');
+            String ext = dot > 0 && name.length() - dot <= 10 ? name.substring(dot) : "";
+            name = name.substring(0, 120 - ext.length()) + ext;
+        }
+        return name;
+    }
+
+    /**
+     * Comparte un archivo (PDF, DOCX, PPTX, XLSX, imágenes, ZIP…) con su contenido real por la hoja
+     * de compartir de Android. Llega en base64 desde el frontend (los documentos viven como Blob en
+     * IndexedDB), se escribe en cache/shared_docs y se comparte con FileProvider, ClipData y permisos
+     * explícitos (ver shareCacheFile), para que WhatsApp o Gmail no reciban un archivo de 0 kB.
+     */
+    @PluginMethod
+    public void shareFile(PluginCall call) {
+        String base64Data = call.getString("base64Data");
+        if (base64Data == null || base64Data.isEmpty()) {
+            call.reject("El archivo no tiene contenido.");
+            return;
+        }
+        // Se admite tanto base64 plano como un data URL completo
+        if (base64Data.startsWith("data:")) {
+            int comma = base64Data.indexOf(',');
+            base64Data = comma >= 0 ? base64Data.substring(comma + 1) : "";
+        }
+
+        String safeName = safeDisplayFileName(call.getString("fileName", "archivo"));
+
+        byte[] bytes;
+        try {
+            bytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+        } catch (IllegalArgumentException e) {
+            call.reject("El contenido del archivo no es válido.");
+            return;
+        }
+        if (bytes.length == 0) {
+            call.reject("El archivo está vacío.");
+            return;
+        }
+
+        try {
+            Context context = getContext();
+            File dir = new File(context.getCacheDir(), "shared_docs");
+            if (!dir.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                dir.mkdirs();
+            }
+            pruneOldestFiles(dir, 10);
+
+            File shareFile = new File(dir, safeName);
+            try (FileOutputStream fos = new FileOutputStream(shareFile)) {
+                fos.write(bytes);
+                fos.flush();
+            }
+
+            // Sin tipo fiable desde JS (vacío o con formato raro) se deduce de la extensión
+            String providedMime = call.getString("mimeType");
+            if (providedMime != null && !providedMime.toLowerCase().matches("^[a-z0-9.+-]+/[a-z0-9.+-]+$")) {
+                providedMime = null;
+            }
+            String resolvedMimeType = resolveMimeType(safeName, providedMime);
+            shareCacheFile(context, shareFile, resolvedMimeType, safeName, "Compartir archivo con");
+
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            ret.put("mimeType", resolvedMimeType);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Error al compartir el archivo: " + e.getMessage());
+        }
+    }
+
     private static final String AGNOTE_DEFAULT_MIME = "application/vnd.agenda-universitaria.note+json";
     private static final int MAX_INCOMING_FILE_BYTES = 40 * 1024 * 1024;
 
@@ -517,14 +616,7 @@ public class WidgetBridgePlugin extends Plugin {
                 dir.mkdirs();
             }
             // Se conservan los 5 más recientes: la app destino puede estar leyendo uno anterior
-            File[] previous = dir.listFiles();
-            if (previous != null && previous.length >= 5) {
-                java.util.Arrays.sort(previous, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
-                for (int i = 0; i <= previous.length - 5; i++) {
-                    //noinspection ResultOfMethodCallIgnored
-                    previous[i].delete();
-                }
-            }
+            pruneOldestFiles(dir, 5);
 
             File shareFile = new File(dir, safeName);
             try (FileOutputStream fos = new FileOutputStream(shareFile)) {
