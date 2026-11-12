@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.54',
+    date: '2026-11-12',
+    title: 'Más colores y tu propia paleta',
+    changes: [
+      { kind: 'nuevo', text: '10 paletas nuevas en Ajustes → Apariencia y tema: Coral Tropical, Mostaza Retro, Lima Neón, Menta Fresca, Cielo Glaciar, Índigo Nocturno, Orquídea, Mocha Café, Arena del Desierto y Piedra Cálida.' },
+      { kind: 'nuevo', text: '«Crea tu paleta»: elige cualquier color, mira cómo queda en claro y oscuro, y la app calcula el resto. Aparece como «Tu paleta» y también colorea el widget.' },
+      { kind: 'mejora', text: 'La barra superior, el selector Semana/Día y la lista de Profesores ahora siguen los colores de la paleta elegida.' },
+    ],
+  },
+  {
     version: '1.7.10.53',
     date: '2026-11-12',
     title: 'Novedades dentro de la app',
