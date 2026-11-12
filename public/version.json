@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.50",
+  "latestVersion": "1.7.10.51",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.50/Agenda-Universitaria-v1.7.10.50.apk",
-  "apkSha256": "7303afb356084fc9a9bf7a9164938311964e343e43bccad3754d6c40531424de",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.51/Agenda-Universitaria-v1.7.10.51.apk",
+  "apkSha256": "ad3bb3c64af371081817b5add013fc0760357a9ce8d803b2d65e3d191800cd6f",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Cada materia muestra su ícono personalizado en lugar de un punto de color",
-    "Se nota al leer un apunte, en Profesores y en la ficha del catedrático",
-    "También al elegir las materias de un catedrático"
+    "Encabezados fijos sin fondo cuadrado: solo la cápsula redondeada",
+    "Al quedar fija, la cápsula gana opacidad y sombra",
+    "En Ajustes, formularios, apuntes y fichas"
   ]
 }
