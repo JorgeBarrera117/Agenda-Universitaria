@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.57',
+    date: '2026-11-12',
+    title: 'Selector de color propio',
+    changes: [
+      { kind: 'mejora', text: 'El gotero de «Crea tu paleta» abre el selector de color de la app en vez del de Android.' },
+      { kind: 'nuevo', text: 'El selector tiene un cuadro de intensidad y brillo para llegar a cualquier color, además del matiz, tonos sugeridos y el código HEX.' },
+      { kind: 'mejora', text: 'El color de las materias usa el mismo selector mejorado.' },
+    ],
+  },
+  {
     version: '1.7.10.56',
     date: '2026-11-12',
     title: 'Tu paleta, a tu manera',
