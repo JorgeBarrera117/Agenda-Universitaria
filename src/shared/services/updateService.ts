@@ -195,9 +195,13 @@ export function isUpdateDismissedToday(version: string): boolean {
   }
 }
 
-/** Enlace de la actualización según la plataforma: el APK en Android, la web en el navegador. */
+/**
+ * Enlace de la actualización según la plataforma: el APK en Android, la página de versiones (donde
+ * está el .exe) en la computadora y la web en el navegador.
+ */
 export function updateUrlFor(info: UpdateInfo): string | undefined {
-  return Capacitor.isNativePlatform() ? (info.apkUrl ?? info.webUrl) : (info.webUrl ?? info.apkUrl);
+  const isDesktop = typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
+  return Capacitor.isNativePlatform() || isDesktop ? (info.apkUrl ?? info.webUrl) : (info.webUrl ?? info.apkUrl);
 }
 
 /**

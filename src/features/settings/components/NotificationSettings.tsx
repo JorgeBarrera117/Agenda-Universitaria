@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bell, CheckCircle2, Clock, Loader2, Send, ShieldAlert, Volume2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Bell, CheckCircle2, Clock, ExternalLink, Loader2, Monitor, Send, ShieldAlert, Volume2 } from 'lucide-react';
 import { M3Switch, SettingsBlock, SettingsCard, ToggleChip } from './SettingsPrimitives';
 import { NotificationTonePicker } from './NotificationTonePicker';
 import type { AppSettings, NotificationSoundTone } from '../types';
@@ -23,6 +23,57 @@ const MOMENTS: { key: SpecificNotificationKey; label: string; icon: React.ReactN
   { key: 'notificationSound', label: 'Sonido', icon: <Volume2 className="h-4 w-4" /> },
 ];
 
+/**
+ * Solo en la versión de escritorio: abrir la app con Windows (oculta en la bandeja) para que los
+ * recordatorios lleguen aunque no la abras, y acceso a los ajustes de notificaciones de Windows.
+ */
+const DesktopNotificationOptions: React.FC = () => {
+  const desktop = window.electronAPI;
+  const [launchAtLogin, setLaunchAtLogin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!desktop?.getLaunchAtLogin) return;
+    let active = true;
+    void desktop.getLaunchAtLogin().then((enabled) => {
+      if (active) setLaunchAtLogin(enabled);
+    });
+    return () => {
+      active = false;
+    };
+  }, [desktop]);
+
+  if (!desktop?.getLaunchAtLogin) return null;
+
+  return (
+    <SettingsBlock
+      title="En esta computadora"
+      description="Al cerrar la ventana, la app sigue en la bandeja del sistema (junto al reloj) para avisarte."
+      icon={<Monitor className="h-4 w-4" />}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Iniciar con Windows</p>
+          <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">Se abre oculta al encender la computadora.</p>
+        </div>
+        <M3Switch
+          checked={launchAtLogin ?? false}
+          disabled={launchAtLogin === null}
+          onChange={(enabled) => void desktop.setLaunchAtLogin(enabled).then(setLaunchAtLogin)}
+          label="Iniciar con Windows"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => void desktop.openNotificationSettings()}
+        className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-md-primary)] hover:underline"
+      >
+        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+        Ajustes de notificaciones de Windows
+      </button>
+    </SettingsBlock>
+  );
+};
+
 export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   settings,
   hasPermission,
@@ -37,7 +88,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     <section className="flex items-center justify-between gap-3">
       <div className="min-w-0">
         <h3 className="text-sm font-bold text-[var(--color-md-on-surface)]">Recordatorios de clases</h3>
-        <p className="text-xs text-[var(--color-md-on-surface-variant)]">Alertas locales en tu teléfono antes de cada materia.</p>
+        <p className="text-xs text-[var(--color-md-on-surface-variant)]">Alertas locales en este dispositivo antes de cada materia.</p>
       </div>
       <M3Switch checked={settings.notificationsEnabled} onChange={onToggleNotifications} label="Recordatorios de clases" />
     </section>
@@ -104,5 +155,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         <NotificationTonePicker value={settings.notificationTone} onSelect={onSelectTone} />
       </SettingsBlock>
     )}
+
+    <DesktopNotificationOptions />
   </SettingsCard>
 );

@@ -1,7 +1,7 @@
 {
   "name": "agenda-universitaria",
   "private": true,
-  "version": "1.7.10.23",
+  "version": "1.7.10.57",
   "description": "Agenda Universitaria PWA - POR Y PARA LOS ESTUDIANTES",
   "author": "Jorge I. Barrera V.",
   "type": "module",
@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env NODE_ENV=development electron electron/main.cjs\"",
     "electron:build": "npm run build && electron-builder --win",
-    "electron:pack": "npm run build && electron-builder --win --dir"
+    "electron:pack": "npm run build && electron-builder --win --dir",
+    "electron:portable": "npm run build && electron-builder --win portable"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
@@ -74,6 +75,12 @@
     "win": {
       "target": [
         {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
           "target": "nsis",
           "arch": [
             "x64"
@@ -88,9 +95,12 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Agenda Universitaria",
-      "artifactName": "${productName}-Setup-v1.7.10.23.${ext}",
+      "artifactName": "${productName}-Setup-v1.7.10.57.${ext}",
       "include": "electron/installer.nsh",
       "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "Agenda-Universitaria-Portable-v1.7.10.57.${ext}"
     }
   }
 }

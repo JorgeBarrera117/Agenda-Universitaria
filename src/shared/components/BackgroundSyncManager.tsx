@@ -8,6 +8,7 @@ import { NotificationService } from '../services/notificationService';
 import { WidgetSyncService } from '../services/widgetSyncService';
 
 const SYNC_DEBOUNCE_MS = 600;
+const DESKTOP_PERMISSION_ASKED_KEY = 'agenda_desktop_notification_asked';
 
 /**
  * Componente sin UI que mantiene sincronizados los recordatorios locales y el widget de Android.
@@ -30,6 +31,34 @@ export function BackgroundSyncManager(): null {
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [slots, subjects, settings]);
+
+  // Escritorio: en el primer arranque la app pide permiso para avisar (como Android). Solo una vez;
+  // después se puede conceder desde Ajustes → Notificaciones.
+  useEffect(() => {
+    if (!window.electronAPI || !settings.notificationsEnabled) return;
+    try {
+      if (localStorage.getItem(DESKTOP_PERMISSION_ASKED_KEY)) return;
+    } catch {
+      return;
+    }
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DESKTOP_PERMISSION_ASKED_KEY, '1');
+      } catch {
+        // Sin almacenamiento la pregunta podría repetirse; no es grave
+      }
+      void NotificationService.checkPermissions().then((granted) => (granted ? true : NotificationService.requestPermissions()));
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [settings.notificationsEnabled]);
+
+  // Escritorio: el aviso de Windows sale en silencio y aquí suena el tono elegido
+  const { notificationSound, notificationTone } = settings;
+  useEffect(() => {
+    const desktop = window.electronAPI;
+    if (!desktop?.onReminderFired) return;
+    return desktop.onReminderFired(() => NotificationService.playTone({ notificationSound, notificationTone }));
+  }, [notificationSound, notificationTone]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

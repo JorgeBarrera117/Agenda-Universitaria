@@ -259,7 +259,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         }
       }
       const res = await NotificationService.syncScheduleNotifications(slots, subjects, updated);
-      onShowToast(res.scheduledCount > 0 ? `${res.scheduledCount} recordatorios programados en tu celular.` : 'Recordatorios activados.');
+      onShowToast(res.scheduledCount > 0 ? `${res.scheduledCount} recordatorios programados en este dispositivo.` : 'Recordatorios activados.');
     } else {
       await NotificationService.syncScheduleNotifications(slots, subjects, updated);
       onShowToast('Recordatorios desactivados.');
@@ -295,7 +295,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       if (sent) {
         onShowToast('Notificación de prueba enviada a tu dispositivo.');
       } else {
-        onShowToast('Debes conceder permisos de notificación en tu teléfono.');
+        onShowToast('Debes conceder permisos de notificación en este dispositivo.');
       }
     } finally {
       setIsTestingNotification(false);

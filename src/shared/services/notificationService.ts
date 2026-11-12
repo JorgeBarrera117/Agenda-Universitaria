@@ -4,6 +4,7 @@ import type { ScheduleSlot } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { AppSettings, NotificationSoundTone } from '../../features/settings/types';
 import { notificationToneUrl, resolveNotificationTone } from '../../features/settings/notificationTones';
+import type { ElectronReminder } from '../../electron';
 
 /** Prefijo de los canales de recordatorios (incluye el canal único heredado 'academic_schedule_channel'). */
 const CHANNEL_PREFIX = 'academic_schedule_';
@@ -26,6 +27,50 @@ function resolveChannel(settings: ToneSettings): { channelId: string; sound: str
   return { channelId: `${CHANNEL_PREFIX}${tone.id}`, sound: tone.file ?? 'default' };
 }
 
+/** Versión de escritorio (Electron): sus avisos los muestra y programa el proceso principal. */
+const desktopApi = () => (typeof window !== 'undefined' ? window.electronAPI : undefined);
+
+/** Textos comunes de los recordatorios de una clase (Android y escritorio). */
+function describeSlot(slot: ScheduleSlot, subjects: Subject[]) {
+  const subject = subjects.find((s) => s.id === slot.subjectId);
+  const subjectName = subject?.name || 'Asignatura Universitaria';
+  const codeTag = subject?.code ? `[${subject.code}] ` : '';
+  const locationText =
+    slot.modality === 'virtual'
+      ? `Modalidad Virtual (${slot.classroom || 'En Línea'})`
+      : `Aula: ${slot.classroom || 'Sin asignar'}${slot.building ? ` • ${slot.building}` : ''}`;
+  return {
+    subject,
+    before: { title: `⏳ En 15 min: ${subjectName}`, body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}` },
+    start: { title: `🔔 ¡Comienza la clase de ${subjectName}!`, body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}` },
+  };
+}
+
+/** Recordatorios semanales para el escritorio (día 1 = lunes … 7 = domingo, como el horario). */
+function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[], settings: AppSettings): ElectronReminder[] {
+  if (!settings.notificationsEnabled) return [];
+  // El aviso de Windows sale en silencio y la app reproduce el tono elegido
+  const playTone = settings.notificationSound && Boolean(resolveNotificationTone(settings.notificationTone).file);
+  const reminders: ElectronReminder[] = [];
+  for (const slot of slots) {
+    const texts = describeSlot(slot, subjects);
+    const [startH, startM] = (slot.startTime || '08:00').split(':').map(Number);
+    if (settings.notify15MinBefore) {
+      let minutes = startH * 60 + startM - 15;
+      let weekday: number = slot.dayOfWeek;
+      if (minutes < 0) {
+        minutes += 24 * 60;
+        weekday = weekday === 1 ? 7 : weekday - 1;
+      }
+      reminders.push({ id: generateNotificationId(slot.id, 1), weekday, hour: Math.floor(minutes / 60), minute: minutes % 60, ...texts.before, playTone });
+    }
+    if (settings.notifyAtClassStart) {
+      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone });
+    }
+  }
+  return reminders;
+}
+
 // Función hash para obtener un entero seguro de 32 bits para el id de notificación
 function generateNotificationId(slotId: string, typeSuffix: number): number {
   let hash = 0;
@@ -40,6 +85,12 @@ function generateNotificationId(slotId: string, typeSuffix: number): number {
 export class NotificationService {
   private static activeChannelId: string | null = null;
   private static lastNotificationHash = '';
+
+  /** Reproduce el tono elegido (web y escritorio, donde el aviso del sistema no admite sonidos propios). */
+  static playTone(settings: ToneSettings): void {
+    const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
+    if (toneFile) new Audio(notificationToneUrl(toneFile)).play().catch(() => undefined);
+  }
 
   /**
    * Garantiza el canal Android del tono elegido. Android no permite cambiar el sonido de un canal
@@ -150,6 +201,15 @@ export class NotificationService {
           ],
         });
         return true;
+      } else if (desktopApi()?.showNotification) {
+        const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
+        const shown = await desktopApi()!.showNotification({
+          title: '🎓 Notificaciones Activas • Agenda Universitaria',
+          body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
+          silent: toneFile !== null || !settings.notificationSound,
+        });
+        if (shown) this.playTone(settings);
+        return shown;
       } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         // La API web no admite sonidos propios: se silencia el aviso y se reproduce el tono elegido
         const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
@@ -178,7 +238,12 @@ export class NotificationService {
     settings: AppSettings
   ): Promise<{ scheduledCount: number }> {
     if (!Capacitor.isNativePlatform()) {
-      return { scheduledCount: 0 };
+      // Escritorio: el proceso principal guarda la lista y avisa a su hora (también con la ventana
+      // cerrada); el permiso lo comprueba al momento de avisar
+      const desktop = desktopApi();
+      return desktop?.syncReminders
+        ? desktop.syncReminders(buildDesktopReminders(slots, subjects, settings))
+        : { scheduledCount: 0 };
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
@@ -213,15 +278,7 @@ export class NotificationService {
     const notificationsToSchedule = [];
 
     for (const slot of slots) {
-      const subject = subjects.find((s) => s.id === slot.subjectId);
-      const subjectName = subject?.name || 'Asignatura Universitaria';
-      const codeTag = subject?.code ? `[${subject.code}] ` : '';
-
-      // Ubicación física o virtual
-      const locationText =
-        slot.modality === 'virtual'
-          ? `Modalidad Virtual (${slot.classroom || 'En Línea'})`
-          : `Aula: ${slot.classroom || 'Sin asignar'}${slot.building ? ` • ${slot.building}` : ''}`;
+      const { subject, before, start } = describeSlot(slot, subjects);
 
       // Mapeo de DayOfWeek (1=Lun ... 7=Dom) a Capacitor Weekday (1=Dom, 2=Lun ... 7=Sab)
       const capacitorWeekday = (slot.dayOfWeek % 7) + 1;
@@ -246,8 +303,7 @@ export class NotificationService {
 
         notificationsToSchedule.push({
           id: generateNotificationId(slot.id, 1),
-          title: `⏳ En 15 min: ${subjectName}`,
-          body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}`,
+          ...before,
           channelId,
           smallIcon: 'ic_stat_agenda',
           largeIcon: 'ic_notification_large',
@@ -269,8 +325,7 @@ export class NotificationService {
       if (settings.notifyAtClassStart) {
         notificationsToSchedule.push({
           id: generateNotificationId(slot.id, 2),
-          title: `🔔 ¡Comienza la clase de ${subjectName}!`,
-          body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}`,
+          ...start,
           channelId,
           smallIcon: 'ic_stat_agenda',
           largeIcon: 'ic_notification_large',
