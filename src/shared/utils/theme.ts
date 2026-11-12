@@ -18,6 +18,14 @@ export interface ThemeTokenSet {
   primaryContainer: string;
   /** Texto/ícono sobre contenedor primario */
   onPrimaryContainer: string;
+  /**
+   * Acento (opcional): botón flotante e indicador de la pestaña activa. Las paletas que no lo
+   * traen usan el principal, así se ven igual que antes; la paleta propia puede elegir otro color.
+   */
+  accent?: string;
+  onAccent?: string;
+  accentContainer?: string;
+  onAccentContainer?: string;
   /** Contenedor secundario (Acentos, Barras de menú, Badges tonales) */
   secondaryContainer: string;
   /** Texto/ícono sobre contenedor secundario */
@@ -567,7 +575,9 @@ const TOKEN_KEYS: readonly (keyof ThemeTokenSet)[] = [
 function isValidTokenSet(tokens: unknown): tokens is ThemeTokenSet {
   if (typeof tokens !== 'object' || tokens === null) return false;
   const record = tokens as Record<string, unknown>;
-  return TOKEN_KEYS.every((key) => typeof record[key] === 'string' && /^#[0-9a-f]{6}$/i.test(record[key] as string));
+  const isHex = (value: unknown) => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+  const OPTIONAL_KEYS = ['accent', 'onAccent', 'accentContainer', 'onAccentContainer'] as const;
+  return TOKEN_KEYS.every((key) => isHex(record[key])) && OPTIONAL_KEYS.every((key) => record[key] === undefined || isHex(record[key]));
 }
 
 export function isValidCustomPalette(custom: CustomPaletteSettings | undefined): custom is CustomPaletteSettings {
@@ -637,6 +647,10 @@ export function applyTheme(
   root.style.setProperty('--color-md-on-primary', tokens.onPrimary);
   root.style.setProperty('--color-md-primary-container', tokens.primaryContainer);
   root.style.setProperty('--color-md-on-primary-container', tokens.onPrimaryContainer);
+  root.style.setProperty('--color-md-accent', tokens.accent ?? tokens.primary);
+  root.style.setProperty('--color-md-on-accent', tokens.onAccent ?? tokens.onPrimary);
+  root.style.setProperty('--color-md-accent-container', tokens.accentContainer ?? tokens.primaryContainer);
+  root.style.setProperty('--color-md-on-accent-container', tokens.onAccentContainer ?? tokens.onPrimaryContainer);
   root.style.setProperty('--color-md-secondary-container', tokens.secondaryContainer);
   root.style.setProperty('--color-md-on-secondary-container', tokens.onSecondaryContainer);
   root.style.setProperty('--color-md-surface', tokens.surface);

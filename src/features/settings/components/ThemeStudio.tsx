@@ -207,7 +207,17 @@ export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
               Elige un color y la app calcula el resto para claro y oscuro.
             </p>
             <CustomPaletteCreator
-              initialSeed={creatorSeed}
+              initialRecipe={
+                // La receta guardada; las paletas de 1.7.10.54 (solo color) o una nueva parten del estilo equilibrado
+                (customPalette?.recipe && /^#[0-9a-f]{6}$/i.test(customPalette.recipe.seed) ? customPalette.recipe : null) ?? {
+                  seed: creatorSeed,
+                  style: 'balanced',
+                  accent: null,
+                  backgroundTint: 'neutral',
+                  backgroundSource: 'primary',
+                  backgroundColor: null,
+                }
+              }
               isActive={currentPalette === 'custom'}
               onApply={onCustomPaletteApply}
             />

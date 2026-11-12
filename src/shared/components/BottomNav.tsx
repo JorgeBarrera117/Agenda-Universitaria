@@ -67,7 +67,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 {/* Capa de Píldora Animada (GPU transform: scaleX + opacity) */}
                 <span
                   aria-hidden="true"
-                  className={`absolute inset-0 rounded-full bg-[var(--color-md-primary-container)] transition-[transform,opacity] duration-200 ease-out ${
+                  className={`absolute inset-0 rounded-full bg-[var(--color-md-accent-container)] transition-[transform,opacity] duration-200 ease-out ${
                     isActive
                       ? 'scale-x-100 scale-y-100 opacity-100 shadow-2xs'
                       : 'scale-x-[0.35] scale-y-75 opacity-0 group-hover:opacity-25 group-hover:scale-x-75 group-active:opacity-45 group-active:scale-x-90'
@@ -77,7 +77,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 <Icon
                   className={`relative z-10 w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ease-out ${
                     isActive
-                      ? 'stroke-[2.4] scale-110 -translate-y-[0.5px] text-[var(--color-md-on-primary-container)]'
+                      ? 'stroke-[2.4] scale-110 -translate-y-[0.5px] text-[var(--color-md-on-accent-container)]'
                       : 'stroke-[1.8] scale-100 translate-y-0 text-[var(--color-md-on-surface-variant)] group-active:scale-90'
                   }`}
                 />

@@ -22,9 +22,31 @@ export type PresetPalette =
 /** 'custom' = la paleta creada por el estudiante a partir de su color (ver customPalette). */
 export type MaterialColorTheme = PresetPalette | 'custom';
 
-/** Paleta propia: el color elegido y los tokens ya calculados (la app no recalcula al arrancar). */
+/** Receta de color de Material You con la que se calcula la paleta propia. */
+export type PaletteStyle = 'balanced' | 'vibrant' | 'expressive' | 'fidelity' | 'monochrome';
+/** Cuánto color lleva el fondo (superficies, tarjetas, barras). */
+export type BackgroundTint = 'neutral' | 'soft' | 'strong';
+/** De qué color toma su tono el fondo. */
+export type BackgroundSource = 'primary' | 'accent' | 'custom';
+
+/** Lo que el estudiante eligió: se guarda para poder volver a editar la paleta tal como la dejó. */
+export interface PaletteRecipe {
+  /** Color principal (#RRGGBB). */
+  seed: string;
+  style: PaletteStyle;
+  /** Color de acento; null = automático (lo decide el estilo). */
+  accent: string | null;
+  backgroundTint: BackgroundTint;
+  backgroundSource: BackgroundSource;
+  /** Solo cuando backgroundSource es 'custom'. */
+  backgroundColor: string | null;
+}
+
+/** Paleta propia: la receta y los tokens ya calculados (la app no recalcula al arrancar). */
 export interface CustomPaletteSettings {
   seed: string;
+  /** Ausente en las paletas creadas en 1.7.10.54 (solo tenían el color principal). */
+  recipe?: PaletteRecipe;
   light: ThemeTokenSet;
   dark: ThemeTokenSet;
 }

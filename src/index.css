@@ -20,6 +20,10 @@
   --color-md-on-primary: #FFFFFF;
   --color-md-primary-container: #D0E4FF;
   --color-md-on-primary-container: #001D32;
+  --color-md-accent: #00639B;
+  --color-md-on-accent: #FFFFFF;
+  --color-md-accent-container: #D0E4FF;
+  --color-md-on-accent-container: #001D32;
   --color-md-secondary-container: #E2E7EF;
   --color-md-on-secondary-container: #191C20;
   --color-md-surface: #F8FAFC;

@@ -204,7 +204,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span
               ref={indicatorRef}
               aria-hidden="true"
-              className="pointer-events-none absolute left-0 top-0 rounded-full bg-[var(--color-md-primary-container)] opacity-0 shadow-xs data-[ready=true]:transition-[transform,opacity] data-[ready=true]:duration-200 data-[ready=true]:ease-out motion-reduce:transition-none"
+              className="pointer-events-none absolute left-0 top-0 rounded-full bg-[var(--color-md-accent-container)] opacity-0 shadow-xs data-[ready=true]:transition-[transform,opacity] data-[ready=true]:duration-200 data-[ready=true]:ease-out motion-reduce:transition-none"
             />
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -220,7 +220,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => onTabChange(item.id)}
                   className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-[15px] whitespace-nowrap relative z-10 transition-all duration-200 ease-out active:scale-95 cursor-pointer select-none ${
                     isActive
-                      ? 'text-[var(--color-md-on-primary-container)] font-bold'
+                      ? 'text-[var(--color-md-on-accent-container)] font-bold'
                       : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/5 font-medium'
                   }`}
                 >
@@ -234,7 +234,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span
                       className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
                         isActive
-                          ? 'bg-[var(--color-md-on-primary-container)] text-[var(--color-md-primary-container)]'
+                          ? 'bg-[var(--color-md-on-accent-container)] text-[var(--color-md-accent-container)]'
                           : 'bg-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface)]'
                       }`}
                     >
