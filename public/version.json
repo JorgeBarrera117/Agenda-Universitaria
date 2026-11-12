@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.56",
+  "latestVersion": "1.7.10.57",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.56/Agenda-Universitaria-v1.7.10.56.apk",
-  "apkSha256": "8a3ebffd953af6be8c418a3204d8010ed9234c01c5cb08d02c0fba688cb4fb14",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.57/Agenda-Universitaria-v1.7.10.57.apk",
+  "apkSha256": "13c0919cf21d76a4524f82e990859cd3c9149c0eb5f2bc62d2189fff6f5317e4",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Crea tu paleta con tres colores: Principal, Acento y Fondo",
-    "Cinco estilos: Equilibrado, Vibrante, Expresivo, Fiel y Monocromo",
-    "El acento colorea el botón flotante, la pestaña activa y las etiquetas"
+    "Selector de color propio de la app, en vez del de Android",
+    "Cuadro de intensidad y brillo para elegir cualquier color",
+    "El color de las materias usa el mismo selector mejorado"
   ]
 }
