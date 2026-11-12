@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Plus,
-  Search,
   Edit2,
   Trash2,
   FileText,
@@ -13,7 +12,6 @@ import {
   LayoutGrid,
   List as ListIcon,
   ArrowUpDown,
-  X,
   Copy,
   Info,
   Share2,
@@ -26,6 +24,7 @@ import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
+import { SearchField } from '../../../shared/components/SearchField';
 import { M3Select } from '../../../shared/components/M3Select';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
@@ -700,25 +699,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
       {/* 2. Barra de Búsqueda: se queda fija bajo el Navbar al hacer scroll */}
       <StickyToolbar>
-        <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-10 sm:h-11 px-3.5 sm:px-4 shadow-2xs transition-all">
-          <Search className="w-4 h-4 text-[#43474E] dark:text-[#C3C7D0] mr-2.5 shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar documentos, fórmulas, pizarras o #etiquetas..."
-            className="w-full bg-transparent text-xs sm:text-sm text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#43474E] dark:placeholder:text-[#8C9199] outline-none font-medium"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="p-1 rounded-full text-[#43474E] hover:text-[#191C20] dark:text-[#C3C7D0] dark:hover:text-[#E2E2E6] hover:bg-[#1D2024]/10 dark:hover:bg-[#E2E2E6]/10 transition-colors ml-1 cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        <SearchField
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar apuntes o #etiquetas…"
+          ariaLabel="Buscar apuntes por título, contenido o #etiqueta"
+        />
       </StickyToolbar>
 
       {/* Píldoras de Materias Compactas */}

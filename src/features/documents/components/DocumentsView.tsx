@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
-  Search,
-  X,
   FileText,
   Table,
   Presentation,
@@ -23,6 +21,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select } from '../../../shared/components/M3Select';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
+import { SearchField } from '../../../shared/components/SearchField';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
@@ -391,27 +390,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
           filtros porque un elemento sticky solo se queda pegado mientras su contenedor esté visible */}
       <StickyToolbar>
         <div className="flex items-center gap-2">
-          {/* Campo de Búsqueda */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#72777F] dark:text-[#8C9199]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre o código de materia..."
-              className="w-full pl-9 pr-9 h-10 sm:h-11 rounded-full bg-[#E2E7EF]/70 dark:bg-[#272A2F]/70 border border-[#C2C7CE]/60 dark:border-[#42474E]/60 text-xs sm:text-sm text-[#191C20] dark:text-[#E2E2E6] placeholder-[#72777F] dark:placeholder-[#8C9199] focus:outline-none focus:ring-2 focus:ring-[#00639B]/40 transition-all"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#C2C7CE]/50 dark:bg-[#42474E]/50 flex items-center justify-center text-[#191C20] dark:text-[#E2E2E6] hover:bg-[#C2C7CE] transition-colors"
-                aria-label="Limpiar búsqueda"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </div>
+          {/* Campo de Búsqueda (mismo componente que Profesores y Apuntes) */}
+          <SearchField
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Buscar archivos…"
+            ariaLabel="Buscar archivos por nombre o por materia"
+            className="flex-1"
+          />
 
           {/* Selector de Ordenamiento M3 */}
           <M3Select<SortByType>

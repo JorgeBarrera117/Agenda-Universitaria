@@ -11,8 +11,6 @@ import {
   Users,
   UserPlus,
   CalendarCheck,
-  Search,
-  X,
   ChevronRight,
   Share2,
 } from 'lucide-react';
@@ -30,6 +28,7 @@ import type { Professor, CreateProfessorDTO } from '../types';
 import { HEADER_SCRIM_CLASS, TONAL_CHIP_CLASS } from '../../../shared/styles/surfaces';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
+import { SearchField } from '../../../shared/components/SearchField';
 import {
   AGCONTACT_EXTENSION,
   AGCONTACT_MIME_TYPE,
@@ -264,28 +263,12 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
       {/* 3. Barra de Búsqueda: se queda fija bajo el Navbar al hacer scroll */}
       <StickyToolbar>
-        <div className="relative flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-10 sm:h-11 px-3.5 sm:px-4 shadow-2xs transition-all">
-          <div className="pr-2.5 text-[#43474E] dark:text-[#C3C7D0]">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por nombre, cubículo, materia o correo..."
-            className="w-full py-1.5 pr-8 text-xs sm:text-sm bg-transparent text-[#191C20] dark:text-[#E2E2E6] placeholder:text-[#43474E] dark:placeholder:text-[#8C9199] outline-none font-medium"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 p-1 rounded-full text-[#43474E] hover:text-[#191C20] dark:text-[#C3C7D0] dark:hover:text-[#E2E2E6] hover:bg-[#1D2024]/10 dark:hover:bg-[#E2E2E6]/10 transition-colors"
-              aria-label="Limpiar búsqueda"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        <SearchField
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar por nombre, materia o cubículo…"
+          ariaLabel="Buscar catedráticos por nombre, materia, cubículo o correo"
+        />
       </StickyToolbar>
 
       {/* Subtítulo de Sección */}
