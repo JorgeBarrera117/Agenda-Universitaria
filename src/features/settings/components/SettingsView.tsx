@@ -815,6 +815,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onSaveSemester={handleSaveSemester}
                 onViewModeChange={handleViewModeChange}
                 onVisibleDaysChange={handleVisibleDaysChange}
+                onShowToast={onShowToast}
               />
             )}
 

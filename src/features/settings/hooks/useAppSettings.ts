@@ -22,20 +22,27 @@ export function useAppSettings() {
     percent: number;
   }>({ usedMB: 0, quotaMB: 0, percent: 0 });
 
-  // Guardar en localStorage ante cambios y notificar a todas las instancias
+  // Guardar en localStorage ante cambios y notificar a todas las instancias.
+  // Se guarda de inmediato, fuera de setSettings: si el componente que llama se desmonta en ese
+  // mismo momento (p. ej. un modal que se cierra al terminar), React descarta su actualización
+  // pendiente y el guardado se perdería. La base es lo guardado (fuente común a todas las
+  // instancias); si localStorage no está disponible, el estado de esta instancia.
   const updateSettings = (partial: Partial<AppSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...partial };
-      try {
-        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
-        window.dispatchEvent(
-          new CustomEvent('agenda_settings_updated', { detail: updated })
-        );
-      } catch (e) {
-        console.error('Error saving settings to localStorage:', e);
-      }
-      return updated;
-    });
+    let base: AppSettings = settings;
+    try {
+      const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (stored) base = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+    } catch {
+      // Sin acceso al almacenamiento: se usa el estado en memoria
+    }
+    const updated: AppSettings = { ...base, ...partial };
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error saving settings to localStorage:', e);
+    }
+    setSettings(updated);
+    window.dispatchEvent(new CustomEvent('agenda_settings_updated', { detail: updated }));
   };
 
   // Escuchar actualizaciones reactivas entre componentes y pestañas

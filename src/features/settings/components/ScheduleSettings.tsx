@@ -1,8 +1,9 @@
-import React from 'react';
-import { Calendar, CalendarRange, Layers, Save } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, CalendarRange, GraduationCap, Layers, Save } from 'lucide-react';
 import { SegmentedControl, formInputClass, type SegmentedOption } from '../../../shared/components/form';
 import { SettingsBlock, SettingsCard } from './SettingsPrimitives';
 import type { AppSettings } from '../types';
+import { NewSemesterWizardModal } from './NewSemesterWizardModal';
 
 interface ScheduleSettingsProps {
   settings: AppSettings;
@@ -11,6 +12,7 @@ interface ScheduleSettingsProps {
   onSaveSemester: () => void;
   onViewModeChange: (view: AppSettings['defaultScheduleView']) => void;
   onVisibleDaysChange: (days: AppSettings['visibleDays']) => void;
+  onShowToast: (message: string) => void;
 }
 
 const VIEW_OPTIONS: SegmentedOption<AppSettings['defaultScheduleView']>[] = [
@@ -31,7 +33,9 @@ export const ScheduleSettings: React.FC<ScheduleSettingsProps> = ({
   onSaveSemester,
   onViewModeChange,
   onVisibleDaysChange,
+  onShowToast,
 }) => {
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const hasChanges = semesterInput.trim() !== '' && semesterInput.trim() !== settings.semesterName;
 
   return (
@@ -69,6 +73,34 @@ export const ScheduleSettings: React.FC<ScheduleSettingsProps> = ({
           </button>
         </form>
       </SettingsBlock>
+
+      {/* Cierre del semestre: abre el asistente (respaldo → nuevo nombre → opciones) */}
+      <SettingsBlock
+        title="Transición de ciclo académico"
+        description="¿Terminaste el semestre? Archiva las materias cursadas, conserva todos tus apuntes y prepara tu horario para el nuevo período."
+        icon={<GraduationCap className="h-4 w-4" aria-hidden="true" />}
+      >
+        <button
+          type="button"
+          onClick={() => setIsWizardOpen(true)}
+          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] px-4 text-sm font-bold text-[var(--color-md-on-primary-container)] shadow-2xs transition-all duration-150 ease-out hover:bg-[var(--color-md-secondary-container)] active:scale-[0.98]"
+        >
+          <GraduationCap className="h-4 w-4" aria-hidden="true" />
+          Finalizar semestre actual
+        </button>
+      </SettingsBlock>
+
+      {/* Se monta solo al abrirse: cada vez empieza desde el paso 1 */}
+      {isWizardOpen && (
+        <NewSemesterWizardModal
+          isOpen
+          onClose={() => setIsWizardOpen(false)}
+          onCompleted={() => {
+            setIsWizardOpen(false);
+            onShowToast('¡Bienvenido al nuevo ciclo lectivo! Tu horario está listo.');
+          }}
+        />
+      )}
 
       <SettingsBlock title="Vista predeterminada" description="Cómo se abre el horario al iniciar la app.">
         <SegmentedControl

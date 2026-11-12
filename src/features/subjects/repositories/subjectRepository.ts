@@ -7,6 +7,8 @@ export interface ISubjectRepository {
   create(data: CreateSubjectDTO): Promise<Subject>;
   update(id: string, data: UpdateSubjectDTO): Promise<void>;
   delete(id: string): Promise<void>;
+  /** Archiva las materias en curso con el semestre en que se cursaron. Devuelve cuántas archivó. */
+  archiveActive(semester: string): Promise<number>;
 }
 
 export class DexieSubjectRepository implements ISubjectRepository {
@@ -94,6 +96,12 @@ export class DexieSubjectRepository implements ISubjectRepository {
 
       await db.subjects.delete(id);
     });
+  }
+
+  async archiveActive(semester: string): Promise<number> {
+    // Solo cambia la marca y el semestre: sus apuntes (note.subjectId), archivos y docente
+    // siguen apuntando a la misma materia
+    return db.subjects.filter((subject) => !subject.isArchived).modify({ isArchived: true, semester });
   }
 }
 

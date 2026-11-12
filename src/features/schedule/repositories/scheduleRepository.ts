@@ -8,6 +8,8 @@ export interface IScheduleRepository {
   create(data: CreateScheduleSlotDTO): Promise<ScheduleSlot>;
   update(id: string, data: UpdateScheduleSlotDTO): Promise<void>;
   delete(id: string): Promise<void>;
+  /** Quita todas las clases del horario semanal. Devuelve cuántas quitó. */
+  clearAll(): Promise<number>;
   checkOverlap(slot: { dayOfWeek: DayOfWeek; startTime: string; endTime: string }, excludeId?: string): Promise<ScheduleSlot | undefined>;
 }
 
@@ -87,6 +89,12 @@ export class DexieScheduleRepository implements IScheduleRepository {
 
   async delete(id: string): Promise<void> {
     await db.scheduleSlots.delete(id);
+  }
+
+  async clearAll(): Promise<number> {
+    const count = await db.scheduleSlots.count();
+    await db.scheduleSlots.clear();
+    return count;
   }
 }
 
