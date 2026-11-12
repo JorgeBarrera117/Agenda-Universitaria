@@ -29,6 +29,7 @@ import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 import { HEADER_SCRIM_CLASS, TONAL_CHIP_CLASS } from '../../../shared/styles/surfaces';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
+import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import {
   AGCONTACT_EXTENSION,
   AGCONTACT_MIME_TYPE,
@@ -261,8 +262,8 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         </button>
       </div>
 
-      {/* 3. Barra de Búsqueda Compacta (M3 Search Bar) */}
-      <div className="relative">
+      {/* 3. Barra de Búsqueda: se queda fija bajo el Navbar al hacer scroll */}
+      <StickyToolbar>
         <div className="relative flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-10 sm:h-11 px-3.5 sm:px-4 shadow-2xs transition-all">
           <div className="pr-2.5 text-[#43474E] dark:text-[#C3C7D0]">
             <Search className="w-4 h-4" />
@@ -285,7 +286,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
             </button>
           )}
         </div>
-      </div>
+      </StickyToolbar>
 
       {/* Subtítulo de Sección */}
       <div className="flex items-center justify-between px-1 pt-0.5">

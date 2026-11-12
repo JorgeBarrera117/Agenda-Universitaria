@@ -401,7 +401,9 @@ export function App() {
                 paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
               }
         }
-        className={`relative z-10 flex-1 flex flex-col w-full mx-auto overflow-x-hidden touch-pan-y ${
+        // overflow-x-clip (no hidden): recorta el desborde horizontal sin crear un contenedor de
+        // scroll, que anularía el position: sticky de las barras de búsqueda (StickyToolbar)
+        className={`relative z-10 flex-1 flex flex-col w-full mx-auto overflow-x-clip touch-pan-y ${
           isAnyEditorActive && activeTab === 'notes'
             ? 'p-0'
             : isAnyEditorActive || isSettingsOpen

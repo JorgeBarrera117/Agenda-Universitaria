@@ -22,6 +22,7 @@ import { useSubjectDocuments, type SubjectDocumentItem } from '../../subjects/ho
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select } from '../../../shared/components/M3Select';
+import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
@@ -386,8 +387,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         </button>
       </div>
 
-      {/* 2. Barra de Búsqueda, Ordenamiento y Filtros Descongestionada */}
-      <div className="space-y-2.5">
+      {/* 2. Búsqueda y orden: fijos bajo el Navbar al hacer scroll. Van fuera del bloque de
+          filtros porque un elemento sticky solo se queda pegado mientras su contenedor esté visible */}
+      <StickyToolbar>
         <div className="flex items-center gap-2">
           {/* Campo de Búsqueda */}
           <div className="relative flex-1">
@@ -426,7 +428,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
             ]}
           />
         </div>
+      </StickyToolbar>
 
+      {/* Filtros por materia y por tipo */}
+      <div className="space-y-2.5">
         {/* Chips Horizontales de Asignaturas */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar select-none">
           <button

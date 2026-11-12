@@ -25,6 +25,7 @@ import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
+import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { M3Select } from '../../../shared/components/M3Select';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
@@ -697,8 +698,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
       </div>
 
-      {/* 2. Barra de Búsqueda Compacta (M3 Search Bar) */}
-      <div className="relative">
+      {/* 2. Barra de Búsqueda: se queda fija bajo el Navbar al hacer scroll */}
+      <StickyToolbar>
         <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] border border-transparent focus-within:border-[#00639B] dark:focus-within:border-[#92CCFF] focus-within:ring-2 focus-within:ring-[#00639B]/20 rounded-full h-10 sm:h-11 px-3.5 sm:px-4 shadow-2xs transition-all">
           <Search className="w-4 h-4 text-[#43474E] dark:text-[#C3C7D0] mr-2.5 shrink-0" />
           <input
@@ -718,7 +719,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
             </button>
           )}
         </div>
-      </div>
+      </StickyToolbar>
 
       {/* Píldoras de Materias Compactas */}
       <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible py-0.5 px-0.5 scrollbar-none select-none">
