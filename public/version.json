@@ -1,12 +1,13 @@
 {
-  "latestVersion": "1.7.10.53",
+  "latestVersion": "1.7.10.54",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.53/Agenda-Universitaria-v1.7.10.53.apk",
-  "apkSha256": "96eedae162818d418b0a27c53380a7503074cf66572dd3df0fc1632cd454dda4",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.54/Agenda-Universitaria-v1.7.10.54.apk",
+  "apkSha256": "16c011eff164fd175ecc0c157e2a6994a8c49e0283638a5634c176be92c1c13a",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Consulta lo que trajo cada versión en Ajustes → Acerca de la agenda, también sin internet",
-    "Después de actualizar, un aviso «Lo nuevo» te cuenta qué cambió (una sola vez)"
+    "10 paletas de color nuevas en Ajustes → Apariencia y tema",
+    "Crea tu propia paleta a partir de cualquier color (también colorea el widget)",
+    "La barra superior y más pantallas siguen la paleta elegida"
   ]
 }
