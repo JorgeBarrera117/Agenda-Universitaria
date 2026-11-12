@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.51",
+  "latestVersion": "1.7.10.52",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.51/Agenda-Universitaria-v1.7.10.51.apk",
-  "apkSha256": "ad3bb3c64af371081817b5add013fc0760357a9ce8d803b2d65e3d191800cd6f",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.52/Agenda-Universitaria-v1.7.10.52.apk",
+  "apkSha256": "7bc8c49e639ba293e4b1664d2cf303efb5501ea75bf80fb2ccf7f5bd6776b479",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Encabezados fijos sin fondo cuadrado: solo la cápsula redondeada",
-    "Al quedar fija, la cápsula gana opacidad y sombra",
-    "En Ajustes, formularios, apuntes y fichas"
+    "Finaliza el semestre desde Ajustes con respaldo automático",
+    "Tus materias pasan al historial con todos sus apuntes y archivos",
+    "Nuevas pestañas en Materias: En curso e Historial"
   ]
 }
