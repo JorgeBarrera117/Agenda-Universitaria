@@ -285,28 +285,28 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                 padding="compact"
                 accentColor={subject.color}
                 interactive
-                className="flex flex-col justify-between gap-2.5 group"
+                className="flex flex-col gap-2.5 group"
               >
-                {/* 1. Cabecera: Ícono + Código + Nombre + Botones de Acción */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-2xs shrink-0 ring-1 ring-white/20"
-                      style={{ backgroundColor: subject.color }}
-                      title={subject.name}
-                    >
-                      <SubjectIcon icon={subject.icon} className="w-4 h-4 text-white" />
-                    </div>
+                {/* Nivel 1 · Identidad: ícono, nombre (protagonista) y código como dato secundario */}
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-2xs shrink-0 ring-1 ring-white/20"
+                    style={{ backgroundColor: subject.color }}
+                    aria-hidden="true"
+                  >
+                    <SubjectIcon icon={subject.icon} className="w-5 h-5 text-white" />
+                  </div>
 
-                    <div className="min-w-0 flex-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-black bg-[var(--color-md-on-surface)] text-[var(--color-md-surface)] tracking-wider">
-                        {subject.code || 'ASIGNATURA'}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] group-hover:text-[var(--color-md-primary)] transition-colors duration-150 leading-snug line-clamp-2">
+                      {subject.name}
+                    </h3>
+                    {subject.code && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] mt-0.5">
+                        <span className="sr-only">Código: </span>
+                        {subject.code}
                       </span>
-
-                      <h3 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] group-hover:text-[var(--color-md-primary)] transition-colors duration-150 leading-snug line-clamp-2 mt-0.5">
-                        {subject.name}
-                      </h3>
-                    </div>
+                    )}
                   </div>
 
                   {/* Acciones de gestión agrupadas en el menú ⋮ para dejar una sola acción visible */}
@@ -351,45 +351,44 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                   />
                 </div>
 
-                {/* 2. Chips Académicos Condicionales */}
-                <div className="space-y-1">
-                  {/* Docente Asignado */}
-                  {prof && (
-                    <div className="flex items-center gap-1.5 p-1 px-2 rounded-lg bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)] text-[10.5px]">
-                      <ProfessorAvatar
-                        name={prof.name}
-                        icon={prof.icon}
-                        color={prof.color}
-                        size="xs"
-                        className="shrink-0"
-                      />
-                      <span className="font-semibold truncate">
-                        {prof.name}
+                {/* Nivel 2 · Docente titular: entidad clara, sin caja que la encierre */}
+                {prof && (
+                  <div className="flex items-center gap-2 py-0.5 text-xs text-[var(--color-md-on-surface)]">
+                    <ProfessorAvatar
+                      name={prof.name}
+                      icon={prof.icon}
+                      color={prof.color}
+                      size="select"
+                      className="shrink-0"
+                    />
+                    <span className="font-semibold truncate">
+                      <span className="sr-only">Docente: </span>
+                      {prof.name}
+                    </span>
+                  </div>
+                )}
+
+                {/* Nivel 3 · Coordenadas académicas: aula y créditos en chips tonales */}
+                {(subject.classroomDefault || (subject.credits !== undefined && subject.credits > 0)) && (
+                  <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                    {subject.classroomDefault && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] font-medium min-w-0 max-w-full">
+                        <MapPin className="w-3.5 h-3.5 text-[var(--color-md-primary)] shrink-0" aria-hidden="true" />
+                        <span className="sr-only">Aula: </span>
+                        <span className="truncate">{subject.classroomDefault}</span>
                       </span>
-                    </div>
-                  )}
+                    )}
+                    {subject.credits !== undefined && subject.credits > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] font-semibold">
+                        <Award className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                        <span>{subject.credits} cr.</span>
+                      </span>
+                    )}
+                  </div>
+                )}
 
-                  {/* Fila Chips: Aula + Créditos */}
-                  {(subject.classroomDefault || (subject.credits !== undefined && subject.credits > 0)) && (
-                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                      {subject.classroomDefault && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] font-medium truncate max-w-[150px]">
-                          <MapPin className="w-3 h-3 text-[var(--color-md-primary)] shrink-0" />
-                          <span className="truncate">{subject.classroomDefault}</span>
-                        </span>
-                      )}
-                      {subject.credits !== undefined && subject.credits > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] font-bold">
-                          <Award className="w-3 h-3 shrink-0" />
-                          <span>{subject.credits} cr.</span>
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Pie: métricas de solo lectura + una única acción primaria en la zona del pulgar */}
-                <div className="pt-1.5 border-t border-[var(--color-md-outline-variant)] flex items-center justify-between gap-1.5 text-xs">
+                {/* Nivel 4 · Pie anclado abajo: métricas de solo lectura + acción en la zona del pulgar */}
+                <div className="mt-auto pt-2 border-t border-[var(--color-md-outline-variant)] flex items-center justify-between gap-1.5 text-xs">
                   <dl className="flex items-center gap-2.5 text-[10.5px] font-semibold text-[var(--color-md-on-surface-variant)]">
                     <div className="flex items-center gap-0.5" title={`${classCount} clases semanales`}>
                       <dt className="sr-only">Clases semanales</dt>

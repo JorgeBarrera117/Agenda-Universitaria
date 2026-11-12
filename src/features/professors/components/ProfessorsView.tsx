@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
@@ -346,45 +345,42 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
               key={prof.id}
               padding="compact"
               interactive
-              className="content-auto flex flex-col justify-between gap-2 group"
+              className="content-auto flex flex-col gap-2.5 group"
             >
-              {/* Fila Superior: Avatar + Nombre + Micro-acciones de Edición/Borrado */}
-              <div className="flex items-start justify-between gap-2.5">
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <ProfessorAvatar
-                    name={prof.name}
-                    icon={prof.icon}
-                    color={prof.color}
-                    size="contact"
-                    shape="circle"
-                    className="shrink-0 ring-1 ring-white/60 dark:ring-white/10 shadow-2xs mt-0.5"
-                  />
+              {/* Cabecera: nombre del docente protagonista y, debajo, las materias que imparte */}
+              <div className="flex items-start gap-3">
+                <ProfessorAvatar
+                  name={prof.name}
+                  icon={prof.icon}
+                  color={prof.color}
+                  size="contact"
+                  shape="circle"
+                  className="shrink-0 ring-1 ring-white/60 dark:ring-white/10 shadow-2xs"
+                />
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] leading-tight break-words group-hover:text-[var(--color-md-primary)] transition-colors duration-150">
-                      {prof.name}
-                    </h3>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] leading-tight break-words group-hover:text-[var(--color-md-primary)] transition-colors duration-150">
+                    {prof.name}
+                  </h3>
 
-                    {/* Materias vinculadas */}
-                    {(prof.subjectIds || []).length > 0 && (
-                      <div className="flex items-center flex-wrap gap-1 mt-1">
-                        {(prof.subjectIds || []).map((sid) => {
-                          const sub = subjectMap.get(sid);
-                          if (!sub) return null;
-                          return (
-                            <span
-                              key={sid}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-white shadow-2xs max-w-full"
-                              style={{ backgroundColor: sub.color }}
-                            >
-                              <SubjectIcon icon={sub.icon} className="w-2.5 h-2.5 shrink-0" />
-                              <span className="truncate max-w-[140px] sm:max-w-[200px]">{sub.name}</span>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  {/* Materias: chips tonales suaves; el color de la materia queda en un punto */}
+                  {(prof.subjectIds || []).length > 0 && (
+                    <ul className="flex items-center flex-wrap gap-1 mt-1.5" aria-label="Materias que imparte">
+                      {(prof.subjectIds || []).map((sid) => {
+                        const sub = subjectMap.get(sid);
+                        if (!sub) return null;
+                        return (
+                          <li
+                            key={sid}
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] max-w-full"
+                          >
+                            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: sub.color }} aria-hidden="true" />
+                            <span className="truncate max-w-[160px] sm:max-w-[220px]">{sub.name}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
 
                 {/* Acciones secundarias y de gestión agrupadas en el menú ⋮ */}
@@ -431,43 +427,45 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                 />
               </div>
 
-              {/* Fila inferior: datos de solo lectura + una única acción de contacto */}
-              {(prof.office || prof.notes || primaryContact) && (
-                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-[var(--color-md-outline-variant)]">
-                  <div className="flex items-center flex-wrap gap-1 min-w-0 text-[10px] font-medium">
-                    {prof.office && (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-0.5 rounded-md max-w-full">
-                        <MapPin className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
-                        <span className="truncate max-w-[130px] sm:max-w-[180px]">{prof.office}</span>
+              {/* Cuerpo: cubículo y asesorías en renglones legibles (sin truncar a la mitad) */}
+              {(prof.office || prof.notes) && (
+                <ul className="space-y-1.5 text-xs text-[var(--color-md-on-surface)]">
+                  {prof.office && (
+                    <li className="flex items-start gap-2">
+                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                      <span className="min-w-0 break-words">
+                        <span className="sr-only">Cubículo: </span>
+                        {prof.office}
                       </span>
-                    )}
-
-                    {prof.notes && (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-0.5 rounded-md max-w-full">
-                        <CalendarCheck className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
-                        <span className="truncate max-w-[130px] sm:max-w-[180px]">{prof.notes}</span>
-                      </span>
-                    )}
-                  </div>
-
-                  {primaryContact && (
-                    <a
-                      href={primaryContact === 'email' ? `mailto:${prof.email}` : `tel:${prof.phone}`}
-                      className="inline-flex items-center gap-1.5 h-7 px-3 ml-auto shrink-0 rounded-full text-[11px] font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
-                      aria-label={
-                        primaryContact === 'email'
-                          ? `Enviar correo a ${prof.name}`
-                          : `Llamar a ${prof.name}`
-                      }
-                    >
-                      {primaryContact === 'email' ? (
-                        <Mail className="w-3 h-3 shrink-0" aria-hidden="true" />
-                      ) : (
-                        <Phone className="w-3 h-3 shrink-0" aria-hidden="true" />
-                      )}
-                      <span>{primaryContact === 'email' ? 'Correo' : 'Llamar'}</span>
-                    </a>
+                    </li>
                   )}
+                  {prof.notes && (
+                    <li className="flex items-start gap-2">
+                      <CalendarCheck className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                      <span className="min-w-0 break-words whitespace-pre-line line-clamp-3 text-[var(--color-md-on-surface-variant)]">
+                        <span className="sr-only">Asesorías: </span>
+                        {prof.notes}
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              )}
+
+              {/* Pie anclado abajo: una única acción de contacto en la zona del pulgar */}
+              {primaryContact && (
+                <div className="mt-auto flex items-center justify-end pt-2 border-t border-[var(--color-md-outline-variant)]">
+                  <a
+                    href={primaryContact === 'email' ? `mailto:${prof.email}` : `tel:${prof.phone}`}
+                    className="inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
+                    aria-label={primaryContact === 'email' ? `Enviar correo a ${prof.name}` : `Llamar a ${prof.name}`}
+                  >
+                    {primaryContact === 'email' ? (
+                      <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    ) : (
+                      <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    )}
+                    <span>{primaryContact === 'email' ? 'Correo' : 'Llamar'}</span>
+                  </a>
                 </div>
               )}
             </Card>

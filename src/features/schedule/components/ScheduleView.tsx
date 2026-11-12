@@ -609,7 +609,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-2.5">
             {daySlots.map((slot) => {
               const subject = getSubjectById(slot.subjectId);
-              const professor = getProfessorById(slot.professorId);
+              // La clase puede tener su propio docente; si no, se muestra el titular de la materia
+              const professor = getProfessorById(slot.professorId ?? subject?.professorId);
               const isNow =
                 selectedDay === currentDayOfWeek &&
                 nowTimeString >= slot.startTime &&
@@ -621,35 +622,54 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   padding="compact"
                   accentColor={isNow ? undefined : subject?.color}
                   interactive
-                  className={`content-auto flex flex-col justify-between gap-2.5 ${
+                  className={`content-auto flex flex-col gap-2.5 ${
                     isNow ? 'border-emerald-500 ring-2 ring-emerald-400/40' : ''
                   }`}
                 >
-                  {/* Cabecera: Ícono + Código + Título + Acciones */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-2xs shrink-0"
-                        style={{ backgroundColor: subject?.color || '#2481cc' }}
-                      >
-                        <SubjectIcon icon={subject?.icon} className="w-4 h-4 text-white" />
-                      </div>
+                  {/* Cabecera: materia protagonista, código/estado debajo y docente justo después */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-2xs shrink-0"
+                      style={{ backgroundColor: subject?.color || '#2481cc' }}
+                      aria-hidden="true"
+                    >
+                      <SubjectIcon icon={subject?.icon} className="w-5 h-5 text-white" />
+                    </div>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-mono font-black bg-[var(--color-md-on-surface)] text-[var(--color-md-surface)]">
-                            {subject?.code || 'CLASE'}
-                          </span>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] leading-tight line-clamp-2">
+                        {subject?.name || 'Materia'}
+                      </h4>
+                      {(subject?.code || isNow) && (
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                          {subject?.code && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
+                              <span className="sr-only">Código: </span>
+                              {subject.code}
+                            </span>
+                          )}
                           {isNow && (
                             <Badge variant="success" size="xs" className="motion-safe:animate-pulse">
                               EN CURSO
                             </Badge>
                           )}
                         </div>
-                        <h4 className="text-xs sm:text-sm font-black text-[var(--color-md-on-surface)] truncate leading-tight mt-0.5">
-                          {subject?.name || 'Materia'}
-                        </h4>
-                      </div>
+                      )}
+                      {professor && (
+                        <div className="flex items-center gap-1.5 text-xs text-[var(--color-md-on-surface-variant)] mt-1.5">
+                          <ProfessorAvatar
+                            name={professor.name}
+                            icon={professor.icon}
+                            color={professor.color}
+                            size="select"
+                            className="shrink-0"
+                          />
+                          <span className="font-medium truncate">
+                            <span className="sr-only">Docente: </span>
+                            {professor.name}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Gestión en el menú ⋮; "Tomar apunte" ya es la acción visible del pie */}
@@ -672,48 +692,30 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     />
                   </div>
 
-                  {/* Fila Horario y Ubicación */}
+                  {/* Horario destacado + modalidad o aula */}
                   <div className="flex items-center gap-1.5 flex-wrap text-xs">
-                    <span className="inline-flex items-center gap-1 font-mono font-bold text-[var(--color-md-on-primary-container)] bg-[var(--color-md-primary-container)] px-2 py-0.5 rounded-lg text-[10.5px]">
-                      <Clock className="w-3 h-3" aria-hidden="true" />
+                    <span className="inline-flex items-center gap-1 font-mono font-bold text-[11px] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] px-2.5 py-1 rounded-lg">
+                      <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                       {slot.startTime} - {slot.endTime}
                     </span>
 
                     {isSlotVirtual(slot) ? (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                        <Laptop className="w-3 h-3" aria-hidden="true" />
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-1 rounded-lg text-[11px] font-semibold">
+                        <Laptop className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>Virtual</span>
                       </span>
                     ) : slot.classroom ? (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-0.5 rounded-lg text-[10px] font-semibold truncate">
-                        <MapPin className="w-3 h-3" aria-hidden="true" />
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-1 rounded-lg text-[11px] font-medium min-w-0 max-w-full">
+                        <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                        <span className="sr-only">Aula: </span>
                         <span className="truncate">{slot.classroom}</span>
                       </span>
                     ) : null}
                   </div>
 
-                  {/* Pie: docente + única acción primaria */}
-                  <div className="pt-1.5 border-t border-[var(--color-md-outline-variant)] flex items-center justify-between gap-2 text-xs">
-                    {professor ? (
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <ProfessorAvatar
-                          name={professor.name}
-                          icon={professor.icon}
-                          color={professor.color}
-                          size="xs"
-                          className="shrink-0"
-                        />
-                        <span className="font-semibold text-[var(--color-md-on-surface)] truncate text-[10.5px]">
-                          {professor.name}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-[10px] text-[var(--color-md-on-surface-variant)] italic">
-                        Sin docente
-                      </span>
-                    )}
-
-                    {onNavigateToNotes && (
+                  {/* Pie anclado abajo: la acción principal en la zona del pulgar */}
+                  {onNavigateToNotes && (
+                    <div className="mt-auto pt-2 border-t border-[var(--color-md-outline-variant)] flex items-center justify-end">
                       <Button
                         variant="primary"
                         size="xs"
@@ -724,8 +726,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       >
                         Tomar apunte
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </Card>
               );
             })}
