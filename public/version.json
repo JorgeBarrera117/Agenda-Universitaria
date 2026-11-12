@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.48",
+  "latestVersion": "1.7.10.49",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.48/Agenda-Universitaria-v1.7.10.48.apk",
-  "apkSha256": "47c3b893fe77e7997190479913d63af59dab7dc2cbb51d71de50b7fb9622d63b",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.49/Agenda-Universitaria-v1.7.10.49.apk",
+  "apkSha256": "4032274235b5a3a91e9d46b9e1f0ab96b0027f411ea775c771006aea9a0756a0",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Ficha técnica de cada materia: horario, catedrático, apuntes y archivos",
-    "Ficha de contacto de cada catedrático: llamar, escribir y asesorías",
-    "Toca una clase en el Horario para ver la ficha de su materia"
+    "Las fichas de materia y catedrático se cierran con una animación suave",
+    "Funciona con la flecha y con el botón atrás del teléfono",
+    "Sin saltos al tocar dos veces seguidas"
   ]
 }
