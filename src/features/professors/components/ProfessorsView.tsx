@@ -18,6 +18,7 @@ import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
+import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
@@ -449,7 +450,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                             key={sid}
                             className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] max-w-full"
                           >
-                            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: sub.color }} aria-hidden="true" />
+                            <SubjectBadge icon={sub.icon} color={sub.color} size="xs" />
                             <span className="truncate max-w-[160px] sm:max-w-[220px]">{sub.name}</span>
                           </li>
                         );

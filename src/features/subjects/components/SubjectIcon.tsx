@@ -122,10 +122,15 @@ export const SubjectIcon: React.FC<SubjectIconProps> = ({ icon, className = 'w-4
 export interface SubjectBadgeProps {
   icon?: string;
   color?: string;
-  size?: 'select' | 'sm' | 'md' | 'lg';
+  /** xs (16px) para chips y subtítulos junto a texto pequeño. */
+  size?: 'xs' | 'select' | 'sm' | 'md' | 'lg';
   className?: string;
 }
 
+/**
+ * Ícono personalizado de la materia sobre su color. Es decorativo (el nombre de la materia va
+ * siempre al lado) y es un <span> para poder ir dentro de párrafos y chips.
+ */
 export const SubjectBadge: React.FC<SubjectBadgeProps> = ({
   icon,
   color = '#00639B',
@@ -133,19 +138,21 @@ export const SubjectBadge: React.FC<SubjectBadgeProps> = ({
   className = '',
 }) => {
   const sizeStyles = {
-    select: { box: 'w-6 h-6', shape: 'rounded-lg', icon: 'w-3.5 h-3.5' },
-    sm: { box: 'w-5 h-5', shape: 'rounded-lg', icon: 'w-3 h-3' },
-    md: { box: 'w-8 h-8', shape: 'rounded-xl', icon: 'w-4 h-4' },
-    lg: { box: 'w-10 h-10', shape: 'rounded-2xl', icon: 'w-5 h-5' },
+    xs: { box: 'w-4 h-4', shape: 'rounded-[5px]', icon: 'w-2.5 h-2.5', depth: 'shadow-2xs' },
+    select: { box: 'w-6 h-6', shape: 'rounded-lg', icon: 'w-3.5 h-3.5', depth: 'shadow-md ring-2 ring-white/20' },
+    sm: { box: 'w-5 h-5', shape: 'rounded-lg', icon: 'w-3 h-3', depth: 'shadow-md ring-2 ring-white/20' },
+    md: { box: 'w-8 h-8', shape: 'rounded-xl', icon: 'w-4 h-4', depth: 'shadow-md ring-2 ring-white/20' },
+    lg: { box: 'w-10 h-10', shape: 'rounded-2xl', icon: 'w-5 h-5', depth: 'shadow-md ring-2 ring-white/20' },
   }[size];
 
   return (
-    <div
+    <span
       style={{ backgroundColor: color }}
-      className={`${sizeStyles.box} ${sizeStyles.shape} text-white flex items-center justify-center shadow-md ring-2 ring-white/20 shrink-0 select-none overflow-hidden ${className}`}
+      aria-hidden="true"
+      className={`${sizeStyles.box} ${sizeStyles.shape} ${sizeStyles.depth} text-white flex items-center justify-center shrink-0 select-none overflow-hidden ${className}`}
     >
       {renderSubjectGlyph(icon, sizeStyles.icon)}
-    </div>
+    </span>
   );
 };
 

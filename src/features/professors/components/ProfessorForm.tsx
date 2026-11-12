@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import type { Professor, CreateProfessorDTO } from '../types';
 import { PROFESSOR_ICONS, PROFESSOR_PRESET_COLORS, renderProfessorGlyph } from './ProfessorAvatar';
+import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import {
   FormSheet,
   FormSection,
@@ -175,7 +176,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
                       : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
                   }`}
                 >
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: sub.color }} aria-hidden="true" />
+                  <SubjectBadge icon={sub.icon} color={sub.color} size="sm" />
                   <span className="truncate">{sub.name}</span>
                   {isSelected && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
                 </button>

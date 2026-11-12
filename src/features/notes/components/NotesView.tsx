@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { SubjectIcon } from '../../subjects/components/SubjectIcon';
+import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
@@ -362,11 +362,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           title={readingNote.title || 'Documento sin título'}
           subtitle={
             <span className="flex items-center gap-1.5">
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: readingSubject?.color }}
-                aria-hidden="true"
-              />
+              {readingSubject && <SubjectBadge icon={readingSubject.icon} color={readingSubject.color} size="xs" />}
               <span className="truncate">{readingSubject?.name || 'Sin materia'}</span>
             </span>
           }

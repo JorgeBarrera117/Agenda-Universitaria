@@ -182,7 +182,7 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
                     key={subject.id}
                     className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-0.5 text-[10.5px] font-semibold text-[var(--color-md-on-surface-variant)]"
                   >
-                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: subject.color }} aria-hidden="true" />
+                    <SubjectBadge icon={subject.icon} color={subject.color} size="xs" />
                     <span className="truncate">{subject.name}</span>
                   </li>
                 ))}
