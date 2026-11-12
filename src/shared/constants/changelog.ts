@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.55',
+    date: '2026-11-12',
+    title: 'Apariencia más ordenada',
+    changes: [
+      { kind: 'mejora', text: 'Apariencia y tema está dividida en tres bloques: Color, Fondo y Tarjetas y rendimiento.' },
+      { kind: 'mejora', text: 'Las paletas se muestran como círculos de color; el «+» al final abre «Crea tu paleta».' },
+      { kind: 'mejora', text: 'Los controles finos del papel tapiz (intensidad, escala y desenfoque) quedan dentro de «Ajustar fondo».' },
+    ],
+  },
+  {
     version: '1.7.10.54',
     date: '2026-11-12',
     title: 'Más colores y tu propia paleta',
