@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.42",
+  "latestVersion": "1.7.10.43",
   "releaseDate": "2026-11-11",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.42/Agenda-Universitaria-v1.7.10.42.apk",
-  "apkSha256": "4ff36128b674ff778722944ccf19359bdcb445bf9325fb0c34c6b5fa6ea09cf4",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.43/Agenda-Universitaria-v1.7.10.43.apk",
+  "apkSha256": "28dc70fbeb05f84c27f61694fd636c27d4ff4aedb42e8a895b703a7ff87f00ef",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Comparte catedráticos como archivo .agcontact por WhatsApp",
-    "Ábrelo con un toque y elige a qué materias vincularlo",
-    "Nuevo botón «Importar (.agcontact)» en Profesores"
+    "Comparte una materia con su horario (.agclass) por WhatsApp",
+    "Comparte tu horario completo (.agschedule) con tu grupo",
+    "Antes de importar ves qué se agrega y qué choca con tu horario"
   ]
 }
