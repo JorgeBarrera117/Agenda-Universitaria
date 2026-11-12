@@ -40,18 +40,29 @@ import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
-import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
+import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
+import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
+import { SubjectDetailView } from './SubjectDetailView';
 
 interface SubjectsViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
   onEditorActiveChange?: (isActive: boolean) => void;
   isActive?: boolean;
+  /** Petición de App para abrir la ficha de una materia (desde el Horario o una ficha docente). */
+  detailRequest?: DetailRequest | null;
+  /** Abrir la ficha de un catedrático (pestaña Profesores) recordando cómo volver. */
+  onOpenProfessorDetail?: (professorId: string, from?: DetailReturn) => void;
+  /** Al cerrar una ficha a la que se llegó desde otra pestaña: volver ahí. */
+  onReturnFromDetail?: (to: DetailReturn) => void;
 }
 
 export const SubjectsView: React.FC<SubjectsViewProps> = ({
   onNavigateToNotes,
   onEditorActiveChange,
   isActive = true,
+  detailRequest,
+  onOpenProfessorDetail,
+  onReturnFromDetail,
 }) => {
   const { subjects, addSubject, updateSubject, removeSubject } = useSubjects();
   const { professors } = useProfessors();
@@ -65,12 +76,20 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   const [selectedSubjectForDocs, setSelectedSubjectForDocs] = useState<Subject | null>(null);
   const { getDocumentCountForSubject } = useSubjectDocuments();
 
+  // Ficha de detalle abierta (por id: así refleja al momento lo que se edite)
+  const detail = useDetailSelection('subject', detailRequest, onReturnFromDetail);
+  const selectedSubject = detail.selectedId ? subjects.find((s) => s.id === detail.selectedId) : undefined;
+  const professorOf = (subject: Subject) =>
+    professors.find((p) => p.id === subject.professorId || (p.subjectIds || []).includes(subject.id));
+
+  // Formulario o ficha a pantalla completa: App oculta el Navbar y la barra inferior
+  const isFullScreen = isModalOpen || selectedSubject !== undefined;
   useEffect(() => {
-    onEditorActiveChange?.(isModalOpen);
+    onEditorActiveChange?.(isFullScreen);
     return () => {
       onEditorActiveChange?.(false);
     };
-  }, [isModalOpen, onEditorActiveChange]);
+  }, [isFullScreen, onEditorActiveChange]);
 
   // Estadísticas del semestre memoizadas para rendimiento
   const totalCredits = useMemo(
@@ -101,6 +120,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   const confirmDelete = async () => {
     if (subjectToDelete) {
       await removeSubject(subjectToDelete.id);
+      // Si se eliminó desde su ficha, la ficha ya no tiene qué mostrar: se vuelve al catálogo
+      if (subjectToDelete.id === detail.selectedId) detail.dismiss();
       setSubjectToDelete(null);
     }
   };
@@ -133,6 +154,52 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
     onError: showToast,
   });
 
+  // Diálogos y avisos que se usan tanto en el catálogo como en la ficha
+  const sharedOverlays = (
+    <>
+      {/* Modal Confirmar Eliminación */}
+      <Modal
+        isOpen={subjectToDelete !== null}
+        onClose={() => setSubjectToDelete(null)}
+        title="¿Dar de Baja Asignatura?"
+        maxWidth="sm"
+      >
+        <div className="space-y-3">
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+            Estás a punto de dar de baja <strong className="text-slate-900 dark:text-white">{subjectToDelete?.name}</strong>. Esta acción eliminará permanentemente sus horarios y apuntes asociados en la base de datos local.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={() => setSubjectToDelete(null)}
+              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-3.5 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
+            >
+              Confirmar baja
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal Documentos y Recursos de la Asignatura */}
+      <SubjectDocumentsModal
+        subject={selectedSubjectForDocs}
+        isOpen={selectedSubjectForDocs !== null}
+        onClose={() => setSelectedSubjectForDocs(null)}
+      />
+
+      <ContextualToast
+        message={toast?.text ?? null}
+        bottomOffset={selectedSubject ? 'compact' : 'nav'}
+        onClose={() => setToast(null)}
+      />
+    </>
+  );
+
   // Vista de Edición / Creación Dedicada a Pantalla Completa
   if (isModalOpen) {
     return (
@@ -149,6 +216,42 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           />
         </ErrorBoundary>
       </div>
+    );
+  }
+
+  // Ficha técnica de la asignatura a pantalla completa
+  if (selectedSubject) {
+    const professor = professorOf(selectedSubject);
+    return (
+      <>
+        <SubjectDetailView
+          subject={selectedSubject}
+          professor={professor}
+          slots={slots.filter((s) => s.subjectId === selectedSubject.id)}
+          noteCount={notes.filter((n) => n.subjectId === selectedSubject.id).length}
+          docCount={getDocumentCountForSubject(selectedSubject.id)}
+          onBack={detail.close}
+          onEdit={() => handleOpenEdit(selectedSubject)}
+          onDelete={() => setSubjectToDelete(selectedSubject)}
+          onShareAgclass={() => void handleShareAgclass(selectedSubject)}
+          onNavigateToNotes={(subjectId) => {
+            // Se sale de la ficha: en Apuntes vuelve a verse el Navbar
+            detail.dismiss();
+            onNavigateToNotes?.(subjectId);
+          }}
+          onNavigateToDocs={(subject) => setSelectedSubjectForDocs(subject)}
+          onSelectProfessor={
+            onOpenProfessorDetail
+              ? (prof) => {
+                  const from = detail.returnPoint('subjects');
+                  detail.dismiss();
+                  onOpenProfessorDetail(prof.id, from);
+                }
+              : undefined
+          }
+        />
+        {sharedOverlays}
+      </>
     );
   }
 
@@ -299,7 +402,11 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] group-hover:text-[var(--color-md-primary)] transition-colors duration-150 leading-snug line-clamp-2">
-                      {subject.name}
+                      {/* Toda la tarjeta abre la ficha técnica */}
+                      <button type="button" onClick={() => detail.open(subject.id)} className={STRETCHED_CARD_BUTTON_CLASS}>
+                        {subject.name}
+                        <span className="sr-only"> · ver ficha</span>
+                      </button>
                     </h3>
                     {subject.code && (
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] mt-0.5">
@@ -311,6 +418,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
                   {/* Acciones de gestión agrupadas en el menú ⋮ para dejar una sola acción visible */}
                   <M3KebabMenu
+                    className={ABOVE_STRETCHED_CLASS}
                     items={[
                       {
                         id: 'docs',
@@ -414,7 +522,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                       onClick={() => onNavigateToNotes(subject.id)}
                       aria-label={`Tomar apunte de ${subject.name}`}
                       icon={<BookPlus className="w-3 h-3 stroke-[2.2]" />}
-                      className="shrink-0 ml-auto text-[11px] py-1 px-3 h-7 whitespace-nowrap"
+                      className={`${ABOVE_STRETCHED_CLASS} shrink-0 ml-auto text-[11px] py-1 px-3 h-7 whitespace-nowrap`}
                     >
                       Tomar apunte
                     </Button>
@@ -424,7 +532,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                       size="xs"
                       onClick={() => setSelectedSubjectForDocs(subject)}
                       icon={<FolderOpen className="w-3 h-3 stroke-[2.2]" />}
-                      className="shrink-0 ml-auto text-[11px] py-1 px-3 h-7 whitespace-nowrap"
+                      className={`${ABOVE_STRETCHED_CLASS} shrink-0 ml-auto text-[11px] py-1 px-3 h-7 whitespace-nowrap`}
                     >
                       Archivos
                     </Button>
@@ -436,40 +544,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </div>
       )}
 
-      {/* Modal Confirmar Eliminación */}
-      <Modal
-        isOpen={subjectToDelete !== null}
-        onClose={() => setSubjectToDelete(null)}
-        title="¿Dar de Baja Asignatura?"
-        maxWidth="sm"
-      >
-        <div className="space-y-3">
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-            Estás a punto de dar de baja <strong className="text-slate-900 dark:text-white">{subjectToDelete?.name}</strong>. Esta acción eliminará permanentemente sus horarios y apuntes asociados en la base de datos local.
-          </p>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={() => setSubjectToDelete(null)}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 rounded-xl transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={confirmDelete}
-              className="px-3.5 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
-            >
-              Confirmar baja
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal Documentos y Recursos de la Asignatura */}
-      <SubjectDocumentsModal
-        subject={selectedSubjectForDocs}
-        isOpen={selectedSubjectForDocs !== null}
-        onClose={() => setSelectedSubjectForDocs(null)}
-      />
+      {sharedOverlays}
 
       {/* Vista previa de un .agclass importado a mano */}
       {importPackage && (
@@ -483,8 +558,6 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           }}
         />
       )}
-
-      <ContextualToast message={toast?.text ?? null} bottomOffset="nav" onClose={() => setToast(null)} />
 
       {/* Botón Flotante Reubicable (FAB) */}
       {isActive && (

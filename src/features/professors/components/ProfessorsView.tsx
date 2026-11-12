@@ -25,7 +25,14 @@ import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
-import { HEADER_SCRIM_CLASS, TONAL_CHIP_CLASS } from '../../../shared/styles/surfaces';
+import {
+  ABOVE_STRETCHED_CLASS,
+  HEADER_SCRIM_CLASS,
+  STRETCHED_CARD_BUTTON_CLASS,
+  TONAL_CHIP_CLASS,
+} from '../../../shared/styles/surfaces';
+import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
+import { ProfessorDetailView } from './ProfessorDetailView';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { SearchField } from '../../../shared/components/SearchField';
@@ -44,11 +51,20 @@ import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
 interface ProfessorsViewProps {
   onEditorActiveChange?: (isActive: boolean) => void;
   isActive?: boolean;
+  /** Petición de App para abrir la ficha de un catedrático (desde la ficha de una materia). */
+  detailRequest?: DetailRequest | null;
+  /** Abrir la ficha técnica de una materia (pestaña Materias) recordando cómo volver. */
+  onOpenSubjectDetail?: (subjectId: string, from?: DetailReturn) => void;
+  /** Al cerrar una ficha a la que se llegó desde otra pestaña: volver ahí. */
+  onReturnFromDetail?: (to: DetailReturn) => void;
 }
 
 export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   onEditorActiveChange,
   isActive = true,
+  detailRequest,
+  onOpenSubjectDetail,
+  onReturnFromDetail,
 }) => {
   const { professors, addProfessor, updateProfessor, removeProfessor } = useProfessors();
   const { subjects } = useSubjects();
@@ -63,12 +79,23 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   // Mapa de materias para búsqueda O(1)
   const subjectMap = useMemo(() => new Map(subjects.map((s) => [s.id, s])), [subjects]);
 
+  // Ficha de detalle abierta (por id: así refleja al momento lo que se edite)
+  const detail = useDetailSelection('professor', detailRequest, onReturnFromDetail);
+  const selectedProfessor = detail.selectedId ? professors.find((p) => p.id === detail.selectedId) : undefined;
+  /** Materias que imparte: las de su lista y las que lo tienen como titular. */
+  const subjectsOf = (prof: Professor) => {
+    const ids = new Set(prof.subjectIds || []);
+    return subjects.filter((s) => ids.has(s.id) || s.professorId === prof.id);
+  };
+
+  // Formulario o ficha a pantalla completa: App oculta el Navbar y la barra inferior
+  const isFullScreen = isModalOpen || selectedProfessor !== undefined;
   useEffect(() => {
-    onEditorActiveChange?.(isModalOpen);
+    onEditorActiveChange?.(isFullScreen);
     return () => {
       onEditorActiveChange?.(false);
     };
-  }, [isModalOpen, onEditorActiveChange]);
+  }, [isFullScreen, onEditorActiveChange]);
 
   const handleOpenCreate = () => {
     setEditingProfessor(undefined);
@@ -92,6 +119,8 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   const confirmDelete = async () => {
     if (profToDelete) {
       await removeProfessor(profToDelete.id);
+      // Si se eliminó desde su ficha, se vuelve al directorio
+      if (profToDelete.id === detail.selectedId) detail.dismiss();
       setProfToDelete(null);
     }
   };
@@ -171,6 +200,36 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
     [professors]
   );
 
+  // Confirmación de borrado: se usa en el directorio y en la ficha
+  const deleteModal = (
+    <Modal
+      isOpen={profToDelete !== null}
+      onClose={() => setProfToDelete(null)}
+      title="¿Eliminar Catedrático?"
+      maxWidth="sm"
+    >
+      <div className="space-y-3">
+        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+          ¿Deseas desvincular a <strong className="text-slate-900 dark:text-white">{profToDelete?.name}</strong>? Sus materias y apuntes no sufrirán cambios.
+        </p>
+        <div className="flex justify-end gap-2.5 pt-2">
+          <button
+            onClick={() => setProfToDelete(null)}
+            className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={confirmDelete}
+            className="px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+
   // Vista de Edición / Creación Dedicada a Pantalla Completa
   if (isModalOpen) {
     return (
@@ -186,6 +245,34 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           />
         </ErrorBoundary>
       </div>
+    );
+  }
+
+  // Ficha de contacto del catedrático a pantalla completa
+  if (selectedProfessor) {
+    return (
+      <>
+        <ProfessorDetailView
+          professor={selectedProfessor}
+          subjects={subjectsOf(selectedProfessor)}
+          onBack={detail.close}
+          onEdit={() => handleOpenEdit(selectedProfessor)}
+          onDelete={() => setProfToDelete(selectedProfessor)}
+          onShareAgcontact={() => void handleShareAgcontact(selectedProfessor)}
+          onShareText={() => void handleShareProfessor(selectedProfessor)}
+          onSelectSubject={
+            onOpenSubjectDetail
+              ? (subject) => {
+                  const from = detail.returnPoint('professors');
+                  detail.dismiss();
+                  onOpenSubjectDetail(subject.id, from);
+                }
+              : undefined
+          }
+        />
+        {deleteModal}
+        <ContextualToast message={toast?.text ?? null} bottomOffset="compact" onClose={() => setToast(null)} />
+      </>
     );
   }
 
@@ -344,7 +431,11 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] leading-tight break-words group-hover:text-[var(--color-md-primary)] transition-colors duration-150">
-                    {prof.name}
+                    {/* Toda la tarjeta abre la ficha de contacto */}
+                    <button type="button" onClick={() => detail.open(prof.id)} className={STRETCHED_CARD_BUTTON_CLASS}>
+                      {prof.name}
+                      <span className="sr-only"> · ver ficha</span>
+                    </button>
                   </h3>
 
                   {/* Materias: chips tonales suaves; el color de la materia queda en un punto */}
@@ -369,6 +460,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
                 {/* Acciones secundarias y de gestión agrupadas en el menú ⋮ */}
                 <M3KebabMenu
+                  className={ABOVE_STRETCHED_CLASS}
                   items={[
                     ...(prof.phone && primaryContact !== 'phone'
                       ? [
@@ -440,7 +532,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                 <div className="mt-auto flex items-center justify-end pt-2 border-t border-[var(--color-md-outline-variant)]">
                   <a
                     href={primaryContact === 'email' ? `mailto:${prof.email}` : `tel:${prof.phone}`}
-                    className="inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
+                    className="relative z-10 inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
                     aria-label={primaryContact === 'email' ? `Enviar correo a ${prof.name}` : `Llamar a ${prof.name}`}
                   >
                     {primaryContact === 'email' ? (
@@ -518,33 +610,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         </div>
       </Modal>
 
-      {/* Modal Confirmar Eliminación */}
-      <Modal
-        isOpen={profToDelete !== null}
-        onClose={() => setProfToDelete(null)}
-        title="¿Eliminar Catedrático?"
-        maxWidth="sm"
-      >
-        <div className="space-y-3">
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-            ¿Deseas desvincular a <strong className="text-slate-900 dark:text-white">{profToDelete?.name}</strong>? Sus materias y apuntes no sufrirán cambios.
-          </p>
-          <div className="flex justify-end gap-2.5 pt-2">
-            <button
-              onClick={() => setProfToDelete(null)}
-              className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={confirmDelete}
-              className="px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
-            >
-              Confirmar
-            </button>
-          </div>
-        </div>
-      </Modal>
+      {deleteModal}
 
       {/* Vista previa de un .agcontact importado a mano */}
       {importPackage && (

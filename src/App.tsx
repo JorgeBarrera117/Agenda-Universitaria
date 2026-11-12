@@ -22,6 +22,7 @@ import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { useIncomingSharedFile } from './shared/hooks/useIncomingSharedFile';
+import { DETAIL_TAB, type DetailRequest, type DetailReturn, type DetailTarget } from './shared/navigation/detailNavigation';
 import { professorImportedMessage } from './features/professors/utils/importMessage';
 import { scheduleImportedMessage, subjectImportedMessage } from './features/schedule/utils/importMessages';
 import type { UpdateInfo } from './shared/services/updateService';
@@ -260,6 +261,39 @@ export function App() {
     setIsSettingsOpen(false);
   }, []);
 
+  // Fichas de detalle entre pestañas (Horario → materia → catedrático → …). La petición lleva
+  // a dónde volver; la pestaña destino la atiende y, al cerrar la ficha, llama a returnFromDetail
+  const [detailRequest, setDetailRequest] = useState<DetailRequest | null>(null);
+  const detailNonceRef = useRef(0);
+  const openDetail = useCallback(
+    (target: DetailTarget, returnTo?: DetailReturn) => {
+      detailNonceRef.current += 1;
+      setDetailRequest({ ...target, nonce: detailNonceRef.current, returnTo });
+      handleTabChange(DETAIL_TAB[target.kind]);
+    },
+    [handleTabChange]
+  );
+  const returnFromDetail = useCallback(
+    (to: DetailReturn) => {
+      // Si se venía de otra ficha, se reabre (con su propio "volver"); si no, solo la pestaña
+      if (to.request) openDetail({ kind: to.request.kind, id: to.request.id }, to.request.returnTo);
+      else handleTabChange(to.tab);
+    },
+    [openDetail, handleTabChange]
+  );
+  const openSubjectDetail = useCallback(
+    (subjectId: string, from?: DetailReturn) => openDetail({ kind: 'subject', id: subjectId }, from),
+    [openDetail]
+  );
+  const openProfessorDetail = useCallback(
+    (professorId: string, from?: DetailReturn) => openDetail({ kind: 'professor', id: professorId }, from),
+    [openDetail]
+  );
+  const openSubjectDetailFromSchedule = useCallback(
+    (subjectId: string) => openDetail({ kind: 'subject', id: subjectId }, { tab: 'schedule' }),
+    [openDetail]
+  );
+
   // Atajo contextual UX: Tomar apunte de la clase activa en el horario
   const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string) => {
     if (subjectId) {
@@ -425,6 +459,7 @@ export function App() {
             <div className={activeTab === 'schedule' ? tabEnterClass : 'hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
+                onOpenSubjectDetail={openSubjectDetailFromSchedule}
                 onEditorActiveChange={handleScheduleEditorChange}
                 isActive={activeTab === 'schedule'}
               />
@@ -434,6 +469,9 @@ export function App() {
                 <Suspense fallback={<ViewSkeleton />}>
                   <SubjectsView
                     onNavigateToNotes={handleNavigateToNotesFromSchedule}
+                    detailRequest={detailRequest?.kind === 'subject' ? detailRequest : null}
+                    onOpenProfessorDetail={openProfessorDetail}
+                    onReturnFromDetail={returnFromDetail}
                     onEditorActiveChange={handleSubjectsEditorChange}
                     isActive={activeTab === 'subjects'}
                   />
@@ -444,6 +482,9 @@ export function App() {
               {mountedTabs.has('professors') && (
                 <Suspense fallback={<ViewSkeleton />}>
                   <ProfessorsView
+                    detailRequest={detailRequest?.kind === 'professor' ? detailRequest : null}
+                    onOpenSubjectDetail={openSubjectDetail}
+                    onReturnFromDetail={returnFromDetail}
                     onEditorActiveChange={handleProfessorsEditorChange}
                     isActive={activeTab === 'professors'}
                   />

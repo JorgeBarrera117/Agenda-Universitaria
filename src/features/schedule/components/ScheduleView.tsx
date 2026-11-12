@@ -46,10 +46,12 @@ import {
   type ScheduleSlot,
   type CreateScheduleSlotDTO,
 } from '../types';
-import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
+import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
 
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
+  /** Tocar una clase abre la ficha técnica de su materia (App cambia a la pestaña Materias). */
+  onOpenSubjectDetail?: (subjectId: string) => void;
   onEditorActiveChange?: (isActive: boolean) => void;
   isActive?: boolean;
 }
@@ -67,6 +69,7 @@ const ImportScheduleModal = lazy(() =>
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onNavigateToNotes,
+  onOpenSubjectDetail,
   onEditorActiveChange,
   isActive = true,
 }) => {
@@ -217,6 +220,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     const scrollAmount = direction === 'left' ? -250 : 250;
     el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
+
+  /** Nombre de la materia en una tarjeta de clase: si se puede, toda la tarjeta abre su ficha. */
+  const renderSubjectTitle = (subjectId: string, name: string) =>
+    onOpenSubjectDetail ? (
+      <button type="button" onClick={() => onOpenSubjectDetail(subjectId)} className={STRETCHED_CARD_BUTTON_CLASS}>
+        {name}
+        <span className="sr-only"> · ver ficha de la materia</span>
+      </button>
+    ) : (
+      name
+    );
 
   // Vista de Edición / Creación Dedicada a Pantalla Completa
   if (isModalOpen) {
@@ -500,11 +514,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                   porque en la cuadrícula semanal no cabe un botón sin saturar el bloque. */}
                               <div className="flex items-start justify-between gap-1 pt-0.5">
                                 <h4 className="min-w-0 text-xs font-black text-[var(--color-md-on-surface)] leading-tight line-clamp-2">
-                                  {subject?.name || 'Materia'}
+                                  {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
                                 </h4>
 
                                 <M3KebabMenu
                                   size="sm"
+                                  className={ABOVE_STRETCHED_CLASS}
                                   items={[
                                     ...(onNavigateToNotes
                                       ? [
@@ -638,7 +653,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <h4 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] leading-tight line-clamp-2">
-                        {subject?.name || 'Materia'}
+                        {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
                       </h4>
                       {(subject?.code || isNow) && (
                         <div className="flex items-center gap-1.5 flex-wrap mt-1">
@@ -674,6 +689,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                     {/* Gestión en el menú ⋮; "Tomar apunte" ya es la acción visible del pie */}
                     <M3KebabMenu
+                      className={ABOVE_STRETCHED_CLASS}
                       items={[
                         {
                           id: 'edit',
@@ -722,7 +738,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                         onClick={() => onNavigateToNotes(slot.subjectId)}
                         aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
                         icon={<FileEdit className="w-3 h-3" />}
-                        className="shrink-0 text-[11px] py-1 px-3 h-7 whitespace-nowrap"
+                        className={`${ABOVE_STRETCHED_CLASS} shrink-0 text-[11px] py-1 px-3 h-7 whitespace-nowrap`}
                       >
                         Tomar apunte
                       </Button>
