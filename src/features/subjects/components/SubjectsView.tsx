@@ -12,7 +12,10 @@ import {
   FolderOpen,
   Import,
   Share2,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react';
+import { SegmentedControl } from '../../../shared/components/form';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
 import { subjectImportedMessage } from '../../schedule/utils/importMessages';
@@ -43,6 +46,8 @@ import type { Subject, CreateSubjectDTO } from '../types';
 import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
 import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
 import { SubjectDetailView } from './SubjectDetailView';
+
+type CatalogTab = 'active' | 'archived';
 
 interface SubjectsViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
@@ -91,10 +96,16 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
     };
   }, [isFullScreen, onEditorActiveChange]);
 
-  // Estadísticas del semestre memoizadas para rendimiento
+  // Materias en curso y las de semestres anteriores (archivadas desde Ajustes → Finalizar semestre)
+  const activeSubjects = useMemo(() => subjects.filter((s) => !s.isArchived), [subjects]);
+  const archivedSubjects = useMemo(() => subjects.filter((s) => s.isArchived), [subjects]);
+  const [catalogTab, setCatalogTab] = useState<CatalogTab>('active');
+  const visibleSubjects = catalogTab === 'archived' ? archivedSubjects : activeSubjects;
+
+  // Estadísticas del semestre en curso memoizadas para rendimiento
   const totalCredits = useMemo(
-    () => subjects.reduce((sum, s) => sum + (s.credits || 0), 0),
-    [subjects]
+    () => activeSubjects.reduce((sum, s) => sum + (s.credits || 0), 0),
+    [activeSubjects]
   );
   const totalSlotsCount = slots.length;
 
@@ -124,6 +135,12 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
       if (subjectToDelete.id === detail.selectedId) detail.dismiss();
       setSubjectToDelete(null);
     }
+  };
+
+  // Deshacer un archivado: la materia vuelve a "en curso" (conserva el semestre en que se cursó)
+  const handleUnarchive = async (subject: Subject) => {
+    await updateSubject(subject.id, { isArchived: false });
+    showToast(`«${subject.name}» volvió a tus materias en curso.`);
   };
 
   // Avisos breves (descarga del .agclass, errores, importación terminada)
@@ -265,7 +282,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
               Plan de Asignaturas
             </h2>
             <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
-              {subjects.length}
+              {activeSubjects.length}
             </span>
           </div>
           <p className="text-[11px] sm:text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
@@ -311,7 +328,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </div>
           <div className="min-w-0">
             <div className="text-sm sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
-              {subjects.length}
+              {activeSubjects.length}
             </div>
             <div className="text-[9.5px] sm:text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
               Materias
@@ -350,8 +367,56 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </div>
       </div>
 
+      {/* Pestañas: materias en curso / historial de semestres anteriores */}
+      {subjects.length > 0 && (
+        <SegmentedControl
+          value={catalogTab}
+          onChange={setCatalogTab}
+          ariaLabel="Mostrar materias"
+          options={[
+            {
+              value: 'active',
+              label: `Materias en curso (${activeSubjects.length})`,
+              shortLabel: `En curso (${activeSubjects.length})`,
+              icon: <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />,
+            },
+            {
+              value: 'archived',
+              label: `Historial archivado (${archivedSubjects.length})`,
+              shortLabel: `Historial (${archivedSubjects.length})`,
+              icon: <Archive className="h-4 w-4 shrink-0" aria-hidden="true" />,
+            },
+          ]}
+        />
+      )}
+
       {/* 3. CATÁLOGO DE ASIGNATURAS */}
-      {subjects.length === 0 ? (
+      {subjects.length > 0 && visibleSubjects.length === 0 ? (
+        <Card padding="relaxed" className="text-center py-10 border-dashed">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] flex items-center justify-center mx-auto mb-2.5">
+            {catalogTab === 'archived' ? <Archive className="w-6 h-6" /> : <BookOpen className="w-6 h-6" />}
+          </div>
+          <h3 className="text-sm font-bold text-[var(--color-md-on-surface)] mb-1">
+            {catalogTab === 'archived' ? 'Aún no hay materias archivadas' : 'No tienes materias en curso'}
+          </h3>
+          <p className="text-xs text-[var(--color-md-on-surface-variant)] max-w-sm mx-auto">
+            {catalogTab === 'archived'
+              ? 'Cuando finalices un semestre desde Ajustes, sus materias aparecerán aquí con todos sus apuntes y archivos.'
+              : 'Inscribe las materias de este semestre. Las anteriores siguen en el historial con sus apuntes.'}
+          </p>
+          {catalogTab === 'active' && (
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
+              onClick={handleOpenCreate}
+              className="shadow-xs mt-3"
+            >
+              Inscribir asignatura
+            </Button>
+          )}
+        </Card>
+      ) : subjects.length === 0 ? (
         <Card padding="relaxed" className="text-center py-12 border-dashed">
           <div className="w-12 h-12 rounded-2xl bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] flex items-center justify-center mx-auto mb-2.5">
             <BookOpen className="w-6 h-6" />
@@ -374,7 +439,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
-          {subjects.map((subject) => {
+          {visibleSubjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;
             const docCount = getDocumentCountForSubject(subject.id);
@@ -408,11 +473,21 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                         <span className="sr-only"> · ver ficha</span>
                       </button>
                     </h3>
-                    {subject.code && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] mt-0.5">
-                        <span className="sr-only">Código: </span>
-                        {subject.code}
-                      </span>
+                    {(subject.code || subject.isArchived) && (
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                        {subject.code && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
+                            <span className="sr-only">Código: </span>
+                            {subject.code}
+                          </span>
+                        )}
+                        {subject.isArchived && (
+                          <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]">
+                            <Archive className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            Archivada{subject.semester ? ` · ${subject.semester}` : ''}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -433,6 +508,16 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                               label: `Ver apuntes (${noteCount})`,
                               icon: <BookOpen className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                               onClick: () => onNavigateToNotes(subject.id),
+                            },
+                          ]
+                        : []),
+                      ...(subject.isArchived
+                        ? [
+                            {
+                              id: 'unarchive',
+                              label: 'Mover a en curso',
+                              icon: <ArchiveRestore className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                              onClick: () => void handleUnarchive(subject),
                             },
                           ]
                         : []),

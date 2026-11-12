@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import {
+  Archive,
   Award,
   CalendarDays,
   ChevronRight,
@@ -161,6 +162,12 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
               {subject.name}
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+              {subject.isArchived && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-[var(--color-md-secondary-container)] px-2 py-1 font-semibold text-[var(--color-md-on-secondary-container)]">
+                  <Archive className="h-3.5 w-3.5" aria-hidden="true" />
+                  Archivada{subject.semester ? ` · ${subject.semester}` : ''}
+                </span>
+              )}
               {subject.code && (
                 <span className="inline-flex items-center rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-1 font-mono font-medium text-[var(--color-md-on-surface-variant)]">
                   <span className="sr-only">Código: </span>

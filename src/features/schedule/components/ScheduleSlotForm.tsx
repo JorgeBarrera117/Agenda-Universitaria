@@ -55,7 +55,13 @@ function describeDuration(minutes: number): string {
 }
 
 export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData, defaultDay = 1, onSubmit, onCancel }) => {
-  const { subjects, getSubjectById } = useSubjects();
+  const { subjects: allSubjects, getSubjectById } = useSubjects();
+  // Solo materias en curso: las archivadas (semestres anteriores) no reciben clases nuevas. Si se
+  // edita una clase existente, su materia se mantiene en la lista aunque esté archivada.
+  const subjects = useMemo(
+    () => allSubjects.filter((s) => !s.isArchived || s.id === initialData?.subjectId),
+    [allSubjects, initialData?.subjectId]
+  );
   const { professors } = useProfessors();
 
   const initialIsVirtual = initialData ? isSlotVirtual(initialData) : false;
