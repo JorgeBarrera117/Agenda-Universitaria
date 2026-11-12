@@ -3,17 +3,21 @@ import { Capacitor } from '@capacitor/core';
 import { WidgetBridge } from '../plugins/widgetBridge';
 import type { NoteSharePackage } from '../../features/notes/services/noteShareService';
 import type { ProfessorSharePackage } from '../../features/professors/services/professorShareService';
+import type { ScheduleSharePackage } from '../../features/schedule/services/scheduleShareService';
+import type { SubjectSharePackage } from '../../features/subjects/services/subjectShareService';
 
 /** Archivo compartido con el que se abrió la app, ya validado. */
 export type IncomingSharedFile =
   | { kind: 'note'; sharePackage: NoteSharePackage }
-  | { kind: 'contact'; sharePackage: ProfessorSharePackage };
+  | { kind: 'contact'; sharePackage: ProfessorSharePackage }
+  | { kind: 'subject'; sharePackage: SubjectSharePackage }
+  | { kind: 'schedule'; sharePackage: ScheduleSharePackage };
 
-const UNKNOWN_FILE_MESSAGE = 'El archivo no es un apunte ni un contacto de Agenda Universitaria.';
+const UNKNOWN_FILE_MESSAGE = 'Este archivo no es un apunte, contacto, materia ni horario de Agenda Universitaria.';
 
 /**
- * Tipo declarado en el archivo ("note" en .agnote, "single_professor" en .agcontact). Ambos
- * formatos escriben "type" al principio, así que basta con mirar el inicio y no se analiza dos
+ * Tipo declarado en el archivo ("note", "single_professor", "single_subject" o "full_schedule"). Todos
+ * los formatos escriben "type" al principio, así que basta con mirar el inicio y no se analiza dos
  * veces un apunte grande; si no aparece ahí (archivo editado a mano) se lee el JSON completo.
  */
 function declaredType(content: string): string | undefined {
@@ -32,7 +36,8 @@ function declaredType(content: string): string | undefined {
 }
 
 /**
- * Apunte (.agnote) o contacto (.agcontact) con el que se abrió la app, p. ej. tocado en WhatsApp.
+ * Apunte (.agnote), contacto (.agcontact), materia (.agclass) u horario (.agschedule) con el que
+ * se abrió la app, p. ej. tocado en WhatsApp.
  * Solo en Android: el plugin nativo emite "incomingFile" con el URI, se lee con readContentUri y
  * se valida con el parser de su formato antes de ofrecerlo. El evento queda retenido hasta que
  * este listener se registra, así que también llega en un arranque en frío. onError debe ser
@@ -62,6 +67,16 @@ export function useIncomingSharedFile(onError: (message: string) => void): {
             case 'single_professor': {
               const { parseAgcontactContent } = await import('../../features/professors/services/professorShareService');
               next = { kind: 'contact', sharePackage: parseAgcontactContent(content) };
+              break;
+            }
+            case 'single_subject': {
+              const { parseAgclassContent } = await import('../../features/subjects/services/subjectShareService');
+              next = { kind: 'subject', sharePackage: parseAgclassContent(content) };
+              break;
+            }
+            case 'full_schedule': {
+              const { parseAgscheduleContent } = await import('../../features/schedule/services/scheduleShareService');
+              next = { kind: 'schedule', sharePackage: parseAgscheduleContent(content) };
               break;
             }
             default:

@@ -23,6 +23,7 @@ import { useTabCounts } from './shared/hooks/useTabCounts';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { useIncomingSharedFile } from './shared/hooks/useIncomingSharedFile';
 import { professorImportedMessage } from './features/professors/utils/importMessage';
+import { scheduleImportedMessage, subjectImportedMessage } from './features/schedule/utils/importMessages';
 import type { UpdateInfo } from './shared/services/updateService';
 
 const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
@@ -49,6 +50,13 @@ const ImportNoteModal = lazy(() =>
 // Solo se carga cuando llega un contacto de catedrático compartido (.agcontact)
 const ImportProfessorModal = lazy(() =>
   import('./features/professors/components/ImportProfessorModal').then((m) => ({ default: m.ImportProfessorModal }))
+);
+// Solo se cargan cuando llega una materia (.agclass) o un horario completo (.agschedule)
+const ImportSubjectModal = lazy(() =>
+  import('./features/subjects/components/ImportSubjectModal').then((m) => ({ default: m.ImportSubjectModal }))
+);
+const ImportScheduleModal = lazy(() =>
+  import('./features/schedule/components/ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
 const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: m.DocumentsView })));
 const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
@@ -189,7 +197,7 @@ export function App() {
     return false;
   }, BACK_PRIORITY.TAB, activeTab !== 'schedule' && !isSettingsOpen);
 
-  // Apunte (.agnote) o contacto (.agcontact) abierto desde WhatsApp u otra app (Android):
+  // Apunte, contacto, materia u horario compartido abierto desde WhatsApp u otra app (Android):
   // se ofrece importarlo con su modal
   const { incoming, clearIncoming } = useIncomingSharedFile(showToast);
 
@@ -340,6 +348,36 @@ export function App() {
               clearIncoming();
               handleTabChange('professors');
               showToast(professorImportedMessage(result));
+            }}
+          />
+        </Suspense>
+      )}
+
+      {incoming?.kind === 'subject' && (
+        <Suspense fallback={null}>
+          <ImportSubjectModal
+            key={`${incoming.sharePackage.exportedAt}-${incoming.sharePackage.subject.name}`}
+            sharePackage={incoming.sharePackage}
+            onClose={clearIncoming}
+            onImported={({ subjectName, summary }) => {
+              clearIncoming();
+              handleTabChange('subjects');
+              showToast(subjectImportedMessage(subjectName, summary));
+            }}
+          />
+        </Suspense>
+      )}
+
+      {incoming?.kind === 'schedule' && (
+        <Suspense fallback={null}>
+          <ImportScheduleModal
+            key={incoming.sharePackage.exportedAt}
+            sharePackage={incoming.sharePackage}
+            onClose={clearIncoming}
+            onImported={({ summary, mode }) => {
+              clearIncoming();
+              handleTabChange('schedule');
+              showToast(scheduleImportedMessage(summary, mode));
             }}
           />
         </Suspense>

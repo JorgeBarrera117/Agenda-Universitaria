@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Capacitor } from '@capacitor/core';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Import,
   MessageSquareText,
@@ -41,9 +40,7 @@ import {
 } from '../services/professorShareService';
 import { professorImportedMessage } from '../utils/importMessage';
 import { ImportProfessorModal } from './ImportProfessorModal';
-
-/** Tope antes de leer un archivo elegido a mano (un .agcontact real pesa unos pocos KB). */
-const MAX_AGCONTACT_FILE_BYTES = 1024 * 1024;
+import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
 
 interface ProfessorsViewProps {
   onEditorActiveChange?: (isActive: boolean) => void;
@@ -161,23 +158,13 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   };
 
   // Importar un .agcontact elegido desde el almacenamiento del dispositivo
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [importPackage, setImportPackage] = useState<ProfessorSharePackage | null>(null);
-
-  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    // Se vacía para poder elegir el mismo archivo otra vez
-    event.target.value = '';
-    if (!file) return;
-    try {
-      if (file.size > MAX_AGCONTACT_FILE_BYTES) {
-        throw new Error('El archivo es demasiado grande para ser un contacto compartido.');
-      }
-      setImportPackage(parseAgcontactContent(await file.text()));
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'No se pudo abrir el archivo.');
-    }
-  };
+  const agcontactPicker = useSharedFilePicker({
+    extension: AGCONTACT_EXTENSION,
+    mimeType: AGCONTACT_MIME_TYPE,
+    onContent: (content) => setImportPackage(parseAgcontactContent(content)),
+    onError: showToast,
+  });
 
   // Lista memoizada de profesores con datos de asesoría o cubículo para el modal
   const professorsWithAdvisories = useMemo(
@@ -226,20 +213,12 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
             isScrolled ? 'sm:scale-75 sm:opacity-0 sm:pointer-events-none' : 'scale-100 opacity-100'
           }`}
         >
-          {/* En Android se abre el selector sin filtro: los .agcontact guardados desde WhatsApp
-              suelen figurar como "archivo desconocido" y un filtro por tipo los ocultaría. */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={Capacitor.isNativePlatform() ? undefined : `${AGCONTACT_EXTENSION},${AGCONTACT_MIME_TYPE},application/json`}
-            className="hidden"
-            onChange={(e) => void handleImportFile(e)}
-          />
+          <input {...agcontactPicker.inputProps} />
           <Button
             variant="secondary"
             size="sm"
             icon={<Import className="w-4 h-4 stroke-[2.3]" />}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={agcontactPicker.open}
             className="active:scale-95 whitespace-nowrap"
           >
             Importar (.agcontact)

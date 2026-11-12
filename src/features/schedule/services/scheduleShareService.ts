@@ -21,17 +21,14 @@ import {
   type AcademicImportSummary,
   type LocalAcademicState,
 } from './academicBundle';
+import { AGSCHEDULE_EXTENSION, AGSCHEDULE_FORMAT_VERSION, AGSCHEDULE_MIME_TYPE, AGSCHEDULE_TYPE } from './agscheduleFormat';
 
 /**
  * Formato .agschedule (Agenda Schedule): el horario completo de un semestre (materias, docentes y
  * todos los bloques de clase) para pasarlo a compañeros del mismo grupo. Al importarlo se trata
- * como contenido NO confiable (ver parseAcademicBundle).
+ * como contenido NO confiable (ver parseAcademicBundle). Las constantes viven en agscheduleFormat.
  */
-export const AGSCHEDULE_TYPE = 'full_schedule';
-export const AGSCHEDULE_FORMAT_VERSION = 1;
-export const AGSCHEDULE_EXTENSION = '.agschedule';
-/** MIME propio: Android abre la agenda al tocar el archivo en WhatsApp (ver AndroidManifest). */
-export const AGSCHEDULE_MIME_TYPE = 'application/vnd.agenda-universitaria.schedule+json';
+export { AGSCHEDULE_EXTENSION, AGSCHEDULE_FORMAT_VERSION, AGSCHEDULE_MIME_TYPE, AGSCHEDULE_TYPE };
 
 const MAX_PACKAGE_CHARS = 1024 * 1024;
 const LIMITS = { maxSubjects: 60, maxProfessors: 60, maxSlots: 300 } as const;

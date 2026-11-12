@@ -14,7 +14,14 @@ import {
   Laptop,
   ChevronLeft,
   ChevronRight,
+  Import,
+  Share2,
 } from 'lucide-react';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
+import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
+import { AGSCHEDULE_EXTENSION, AGSCHEDULE_MIME_TYPE } from '../services/agscheduleFormat';
+import type { ScheduleSharePackage } from '../services/scheduleShareService';
+import { scheduleImportedMessage } from '../utils/importMessages';
 import { useSchedule } from '../hooks/useSchedule';
 import { useCampusPulse } from '../hooks/useCampusPulse';
 import { CampusPulseBento } from './CampusPulseBento';
@@ -52,6 +59,10 @@ const SubjectDocumentsModal = lazy(() =>
   import('../../subjects/components/SubjectDocumentsModal').then((m) => ({
     default: m.SubjectDocumentsModal,
   }))
+);
+// Igual con la importación de un horario compartido (.agschedule)
+const ImportScheduleModal = lazy(() =>
+  import('./ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
@@ -113,6 +124,43 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       setSlotToDelete(null);
     }
   };
+
+  // Avisos breves (descarga del .agschedule, errores, importación terminada)
+  const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+  const showToast = (text: string) => setToast((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
+
+  // Compartir el horario completo (.agschedule). El servicio se carga solo al usarlo: esta es la
+  // vista de arranque y no debe pesar más por un botón que se toca de vez en cuando.
+  const handleShareSchedule = async () => {
+    if (subjects.length === 0) {
+      showToast('Aún no tienes materias para compartir.');
+      return;
+    }
+    try {
+      const { exportScheduleToAgschedule } = await import('../services/scheduleShareService');
+      const result = await exportScheduleToAgschedule(settings.semesterName, subjects, slots, professors);
+      if (result.method === 'download') showToast(`Se descargó «${result.fileName}».`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'No se pudo compartir el horario.');
+    }
+  };
+
+  // Importar un .agschedule elegido desde el almacenamiento del dispositivo
+  const [importPackage, setImportPackage] = useState<ScheduleSharePackage | null>(null);
+  const agschedulePicker = useSharedFilePicker({
+    extension: AGSCHEDULE_EXTENSION,
+    mimeType: AGSCHEDULE_MIME_TYPE,
+    onContent: async (content) => {
+      const { parseAgscheduleContent } = await import('../services/scheduleShareService');
+      setImportPackage(parseAgscheduleContent(content));
+    },
+    onError: showToast,
+  });
 
   // Días a mostrar según configuración y asignaturas existentes
   const displayedDays = useMemo(() => {
@@ -279,6 +327,26 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           >
             Nueva Clase
           </Button>
+
+          {/* Compartir o importar el horario completo (.agschedule) */}
+          <input {...agschedulePicker.inputProps} />
+          <M3KebabMenu
+            ariaLabel="Compartir o importar el horario"
+            items={[
+              {
+                id: 'share-agschedule',
+                label: 'Compartir (.agschedule)',
+                icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                onClick: () => void handleShareSchedule(),
+              },
+              {
+                id: 'import-agschedule',
+                label: 'Importar (.agschedule)',
+                icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                onClick: agschedulePicker.open,
+              },
+            ]}
+          />
         </div>
       </div>
 
@@ -703,6 +771,23 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           />
         </Suspense>
       )}
+
+      {/* Vista previa de un .agschedule importado a mano */}
+      {importPackage && (
+        <Suspense fallback={null}>
+          <ImportScheduleModal
+            key={importPackage.exportedAt}
+            sharePackage={importPackage}
+            onClose={() => setImportPackage(null)}
+            onImported={({ summary, mode }) => {
+              setImportPackage(null);
+              showToast(scheduleImportedMessage(summary, mode));
+            }}
+          />
+        </Suspense>
+      )}
+
+      <ContextualToast message={toast?.text ?? null} bottomOffset="nav" onClose={() => setToast(null)} />
 
       {/* Botón Flotante Reubicable (FAB) */}
       {isActive && (

@@ -10,7 +10,20 @@ import {
   Clock,
   FileText,
   FolderOpen,
+  Import,
+  Share2,
 } from 'lucide-react';
+import { ContextualToast } from '../../../shared/components/ContextualToast';
+import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
+import { subjectImportedMessage } from '../../schedule/utils/importMessages';
+import {
+  AGCLASS_EXTENSION,
+  AGCLASS_MIME_TYPE,
+  exportSubjectToAgclass,
+  parseAgclassContent,
+  type SubjectSharePackage,
+} from '../services/subjectShareService';
+import { ImportSubjectModal } from './ImportSubjectModal';
 import { useSubjects } from '../hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
@@ -92,6 +105,34 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
     }
   };
 
+  // Avisos breves (descarga del .agclass, errores, importación terminada)
+  const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+  const showToast = (text: string) => setToast((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
+
+  // Compartir la materia con sus clases y su docente como archivo .agclass
+  const handleShareAgclass = async (subject: Subject) => {
+    try {
+      const result = await exportSubjectToAgclass(subject, slots, professors);
+      if (result.method === 'download') showToast(`Se descargó «${result.fileName}».`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'No se pudo compartir la materia.');
+    }
+  };
+
+  // Importar un .agclass elegido desde el almacenamiento del dispositivo
+  const [importPackage, setImportPackage] = useState<SubjectSharePackage | null>(null);
+  const agclassPicker = useSharedFilePicker({
+    extension: AGCLASS_EXTENSION,
+    mimeType: AGCLASS_MIME_TYPE,
+    onContent: (content) => setImportPackage(parseAgclassContent(content)),
+    onError: showToast,
+  });
+
   // Vista de Edición / Creación Dedicada a Pantalla Completa
   if (isModalOpen) {
     return (
@@ -129,19 +170,32 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </p>
         </div>
         <div
-          className={`hidden sm:block shrink-0 origin-right transition-all duration-200 ${
-            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+          className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 ${
+            isScrolled ? 'sm:scale-75 sm:opacity-0 sm:pointer-events-none' : 'scale-100 opacity-100'
           }`}
         >
+          <input {...agclassPicker.inputProps} />
           <Button
-            variant="success"
+            variant="secondary"
             size="sm"
-            icon={<BookPlus className="w-4 h-4 stroke-[2.4]" />}
-            onClick={handleOpenCreate}
-            className="h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[#006E1C]/20 dark:ring-[#78DC77]/30 hover:scale-[1.02] whitespace-nowrap"
+            icon={<Import className="w-4 h-4 stroke-[2.3]" />}
+            onClick={agclassPicker.open}
+            className="active:scale-95 whitespace-nowrap"
           >
-            Inscribir Asignatura
+            Importar (.agclass)
           </Button>
+          {/* En móvil se inscribe con el botón flotante */}
+          <div className="hidden sm:block">
+            <Button
+              variant="success"
+              size="sm"
+              icon={<BookPlus className="w-4 h-4 stroke-[2.4]" />}
+              onClick={handleOpenCreate}
+              className="h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[#006E1C]/20 dark:ring-[#78DC77]/30 hover:scale-[1.02] whitespace-nowrap"
+            >
+              Inscribir Asignatura
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -274,6 +328,12 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                             },
                           ]
                         : []),
+                      {
+                        id: 'share-agclass',
+                        label: 'Compartir (.agclass)',
+                        icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                        onClick: () => void handleShareAgclass(subject),
+                      },
                       {
                         id: 'edit',
                         label: 'Editar asignatura',
@@ -411,6 +471,21 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         isOpen={selectedSubjectForDocs !== null}
         onClose={() => setSelectedSubjectForDocs(null)}
       />
+
+      {/* Vista previa de un .agclass importado a mano */}
+      {importPackage && (
+        <ImportSubjectModal
+          key={`${importPackage.exportedAt}-${importPackage.subject.name}`}
+          sharePackage={importPackage}
+          onClose={() => setImportPackage(null)}
+          onImported={({ subjectName, summary }) => {
+            setImportPackage(null);
+            showToast(subjectImportedMessage(subjectName, summary));
+          }}
+        />
+      )}
+
+      <ContextualToast message={toast?.text ?? null} bottomOffset="nav" onClose={() => setToast(null)} />
 
       {/* Botón Flotante Reubicable (FAB) */}
       {isActive && (
