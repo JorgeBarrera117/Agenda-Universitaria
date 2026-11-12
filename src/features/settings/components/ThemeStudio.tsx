@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Check, ChevronDown, Frame, Layers, Monitor, Moon, Palette, Sparkles, Sun, Wand2, Zap } from 'lucide-react';
+import { Check, Frame, Layers, Monitor, Moon, Palette, Plus, Sparkles, Sun, X, Zap } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
 import {
   MATERIAL_COLOR_PALETTES,
@@ -17,16 +17,6 @@ import type {
   PresetPalette,
   ThemeMode,
 } from '../types';
-
-interface ThemeStudioProps {
-  settings: AppSettings;
-  onThemeChange: (theme: ThemeMode) => void;
-  onPaletteChange: (palette: MaterialColorTheme) => void;
-  onCardSurfaceChange: (style: CardSurfaceStyle) => void;
-  onPerformanceModeChange: (enabled: boolean) => void;
-  /** Guarda y aplica la paleta creada a partir de un color propio. */
-  onCustomPaletteApply: (palette: CustomPaletteSettings) => void;
-}
 
 const THEME_OPTIONS: SegmentedOption<ThemeMode>[] = [
   { value: 'light', label: 'Claro', icon: <Sun className="h-4 w-4 shrink-0" aria-hidden="true" /> },
@@ -55,11 +45,12 @@ const CARD_SURFACE_OPTIONS: (SegmentedOption<CardSurfaceStyle> & { description: 
   },
 ];
 
-const THEME_LABEL: Record<ThemeMode, string> = { light: 'Claro', dark: 'Oscuro', system: 'Auto' };
-
 const PRESET_KEYS = Object.keys(MATERIAL_COLOR_PALETTES) as PresetPalette[];
 
-function SectionHeader({ icon, title, aside }: { icon: React.ReactNode; title: string; aside?: React.ReactNode }) {
+/** Columnas de la cuadrícula de círculos (deben coincidir con grid-cols-6 / sm:grid-cols-8). */
+const paletteColumns = () => (window.matchMedia('(min-width: 640px)').matches ? 8 : 6);
+
+export function SectionHeader({ icon, title, aside }: { icon: React.ReactNode; title: string; aside?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <h3 className="flex items-center gap-2 text-xs font-bold text-[var(--color-md-on-surface)]">
@@ -71,23 +62,29 @@ function SectionHeader({ icon, title, aside }: { icon: React.ReactNode; title: s
   );
 }
 
+interface ThemeColorSectionProps {
+  settings: AppSettings;
+  onThemeChange: (theme: ThemeMode) => void;
+  onPaletteChange: (palette: MaterialColorTheme) => void;
+  /** Guarda y aplica la paleta creada a partir de un color propio. */
+  onCustomPaletteApply: (palette: CustomPaletteSettings) => void;
+}
+
 /**
- * Apariencia en controles compactos: modo de luminosidad, paleta Material You, acabado de tarjetas
- * y Modo Ultra Fluidez. Las fichas de paleta muestran los colores reales de cada paleta en el modo activo.
+ * Bloque "Color": modo de luminosidad y paletas en círculos compactos (el nombre de la elegida va
+ * en la etiqueta del encabezado). El círculo «+» abre "Crea tu paleta" debajo de la cuadrícula.
  */
-export const ThemeStudio: React.FC<ThemeStudioProps> = ({
+export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
   settings,
   onThemeChange,
   onPaletteChange,
-  onCardSurfaceChange,
-  onPerformanceModeChange,
   onCustomPaletteApply,
 }) => {
   const paletteButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [creatorOpen, setCreatorOpen] = useState(false);
   const currentPalette = settings.colorPalette || 'default';
   const customPalette = isValidCustomPalette(settings.customPalette) ? settings.customPalette : null;
-  // "Tu paleta" aparece primero en la cuadrícula en cuanto existe
+  // "Tu paleta" aparece primero en cuanto existe
   const paletteKeys: MaterialColorTheme[] = customPalette ? ['custom', ...PRESET_KEYS] : PRESET_KEYS;
   const creatorSeed =
     customPalette?.seed ??
@@ -95,11 +92,16 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({
   const isDark =
     settings.theme === 'dark' ||
     (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const surfaceOption = CARD_SURFACE_OPTIONS.find((o) => o.value === settings.cardSurfaceStyle) ?? CARD_SURFACE_OPTIONS[0];
+  const activeSubtitle =
+    currentPalette === 'custom'
+      ? customPalette
+        ? `Creada con ${customPalette.seed}`
+        : ''
+      : (MATERIAL_COLOR_PALETTES[currentPalette] ?? MATERIAL_COLOR_PALETTES.default).subtitle;
 
   // Navegación con flechas dentro del grupo de paletas (radiogroup con tabindex itinerante)
   const handlePaletteKeyDown = (event: React.KeyboardEvent, index: number) => {
-    const columns = window.matchMedia('(min-width: 640px)').matches ? 3 : 2;
+    const columns = paletteColumns();
     const step =
       event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowDown' ? columns : event.key === 'ArrowUp' ? -columns : 0;
     if (step === 0) return;
@@ -116,101 +118,119 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({
         <SegmentedControl value={settings.theme} onChange={onThemeChange} options={THEME_OPTIONS} ariaLabel="Modo de luminosidad" />
       </section>
 
-      <section className="space-y-2 border-t border-[var(--color-md-outline-variant)] pt-3" aria-label="Color del tema">
+      <section className="space-y-2.5 border-t border-[var(--color-md-outline-variant)] pt-3" aria-label="Paleta de color">
         <SectionHeader
           icon={<Palette className="h-3.5 w-3.5" aria-hidden="true" />}
-          title="Color del tema"
+          title="Paleta"
           aside={
             <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
-              <span
-                className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-md-primary)]"
-                aria-hidden="true"
-              />
-              <span className="truncate">
-                {paletteDisplayName(currentPalette)} · {THEME_LABEL[settings.theme]}
-              </span>
+              <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-md-primary)]" aria-hidden="true" />
+              <span className="truncate">{paletteDisplayName(currentPalette)}</span>
             </span>
           }
         />
 
-        <div role="radiogroup" aria-label="Paletas de color del tema" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {paletteKeys.map((key, index) => {
-            const palette =
-              key === 'custom' && customPalette
-                ? { name: 'Tu paleta', subtitle: `Creada con ${customPalette.seed}`, light: customPalette.light, dark: customPalette.dark }
-                : MATERIAL_COLOR_PALETTES[key === 'custom' ? 'default' : key];
-            const tokens: ThemeTokenSet = isDark ? palette.dark : palette.light;
-            const isSelected = currentPalette === key;
-            return (
-              <button
-                key={key}
-                ref={(el) => {
-                  paletteButtonsRef.current[index] = el;
-                }}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                tabIndex={isSelected ? 0 : -1}
-                onClick={() => onPaletteChange(key)}
-                onKeyDown={(e) => handlePaletteKeyDown(e, index)}
-                title={palette.subtitle}
-                className={`flex h-11 min-w-0 items-center gap-2 rounded-xl border px-2.5 text-left transition-all duration-150 ease-out active:scale-[0.98] ${
-                  isSelected
-                    ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-                    : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)] hover:border-[var(--color-md-outline)]'
-                }`}
-              >
-                {/* Doble círculo: aro primaryContainer con núcleo primary de la propia paleta */}
-                <span
-                  aria-hidden="true"
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 ring-[var(--color-md-outline-variant)]"
+        <div className="grid grid-cols-6 gap-x-2 gap-y-2.5 sm:grid-cols-8">
+          <div role="radiogroup" aria-label="Paletas de color del tema" className="contents">
+            {paletteKeys.map((key, index) => {
+              const palette =
+                key === 'custom' && customPalette
+                  ? { name: 'Tu paleta', light: customPalette.light, dark: customPalette.dark }
+                  : MATERIAL_COLOR_PALETTES[key === 'custom' ? 'default' : key];
+              const tokens: ThemeTokenSet = isDark ? palette.dark : palette.light;
+              const isSelected = currentPalette === key;
+              return (
+                <button
+                  key={key}
+                  ref={(el) => {
+                    paletteButtonsRef.current[index] = el;
+                  }}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={palette.name}
+                  title={palette.name}
+                  tabIndex={isSelected ? 0 : -1}
+                  onClick={() => onPaletteChange(key)}
+                  onKeyDown={(e) => handlePaletteKeyDown(e, index)}
+                  className={`mx-auto flex aspect-square w-full max-w-11 items-center justify-center rounded-full transition-transform duration-150 ease-out active:scale-90 ${
+                    isSelected
+                      ? 'ring-2 ring-[var(--color-md-primary)] ring-offset-2 ring-offset-[var(--color-md-card-bg)]'
+                      : 'ring-1 ring-[var(--color-md-outline-variant)]'
+                  }`}
                   style={{ backgroundColor: tokens.primaryContainer }}
                 >
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: tokens.primary }} />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-xs font-bold">{palette.name}</span>
-                {isSelected && <Check className="h-4 w-4 shrink-0" aria-hidden="true" />}
-              </button>
-            );
-          })}
-        </div>
+                  {/* Núcleo primary de la propia paleta; la elegida lleva la marca */}
+                  <span
+                    aria-hidden="true"
+                    className="flex h-1/2 w-1/2 items-center justify-center rounded-full"
+                    style={{ backgroundColor: tokens.primary, color: tokens.onPrimary }}
+                  >
+                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Crea tu paleta: la librería de color solo se descarga al abrir esta sección */}
-        <div className="rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]">
+          {/* «+»: crear o editar tu paleta */}
           <button
             type="button"
             onClick={() => setCreatorOpen((open) => !open)}
             aria-expanded={creatorOpen}
             aria-controls="custom-palette-creator"
-            className="flex min-h-[44px] w-full items-center gap-2 px-3 text-left"
+            aria-label={customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}
+            title={customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}
+            className={`mx-auto flex aspect-square w-full max-w-11 items-center justify-center rounded-full border-2 border-dashed transition-all duration-150 ease-out active:scale-90 ${
+              creatorOpen
+                ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
+                : 'border-[var(--color-md-outline)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-primary)] hover:text-[var(--color-md-primary)]'
+            }`}
           >
-            <Wand2 className="h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
-              <span className="block text-xs font-bold text-[var(--color-md-on-surface)]">
-                {customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}
-              </span>
-              <span className="block text-[11px] text-[var(--color-md-on-surface-variant)]">
-                Elige un color y la app calcula el resto para claro y oscuro.
-              </span>
-            </span>
-            <ChevronDown
-              className={`h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)] transition-transform duration-200 ${creatorOpen ? 'rotate-180' : ''}`}
-              aria-hidden="true"
-            />
+            {creatorOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
           </button>
-          {creatorOpen && (
-            <div id="custom-palette-creator" className="border-t border-[var(--color-md-outline-variant)] p-3">
-              <CustomPaletteCreator
-                initialSeed={creatorSeed}
-                isActive={currentPalette === 'custom'}
-                onApply={onCustomPaletteApply}
-              />
-            </div>
-          )}
         </div>
-      </section>
 
-      <section className="space-y-2 border-t border-[var(--color-md-outline-variant)] pt-3" aria-label="Acabado de tarjetas">
+        {activeSubtitle && !creatorOpen && (
+          <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" aria-live="polite">
+            {activeSubtitle}
+          </p>
+        )}
+
+        {creatorOpen && (
+          <div
+            id="custom-palette-creator"
+            className="m3-tab-enter-right space-y-2 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-3"
+          >
+            <p className="text-xs font-bold text-[var(--color-md-on-surface)]">{customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}</p>
+            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+              Elige un color y la app calcula el resto para claro y oscuro.
+            </p>
+            <CustomPaletteCreator
+              initialSeed={creatorSeed}
+              isActive={currentPalette === 'custom'}
+              onApply={onCustomPaletteApply}
+            />
+          </div>
+        )}
+      </section>
+    </div>
+  );
+};
+
+interface CardStyleSectionProps {
+  settings: AppSettings;
+  onCardSurfaceChange: (style: CardSurfaceStyle) => void;
+  onPerformanceModeChange: (enabled: boolean) => void;
+}
+
+/** Bloque "Tarjetas y rendimiento": acabado de tarjetas y Modo Ultra Fluidez. */
+export const CardStyleSection: React.FC<CardStyleSectionProps> = ({ settings, onCardSurfaceChange, onPerformanceModeChange }) => {
+  const surfaceOption = CARD_SURFACE_OPTIONS.find((o) => o.value === settings.cardSurfaceStyle) ?? CARD_SURFACE_OPTIONS[0];
+
+  return (
+    <div className="space-y-4">
+      <section className="space-y-2" aria-label="Acabado de tarjetas">
         <SectionHeader icon={<Layers className="h-3.5 w-3.5" aria-hidden="true" />} title="Acabado de tarjetas" />
         <SegmentedControl
           value={settings.cardSurfaceStyle}

@@ -14,6 +14,7 @@ import {
   Sliders,
   Trash2,
   RotateCcw,
+  ChevronDown,
 } from 'lucide-react';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -39,7 +40,7 @@ import { UpdateSettings } from './UpdateSettings';
 import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { StudentCredential } from './StudentCredential';
-import { ThemeStudio } from './ThemeStudio';
+import { CardStyleSection, ThemeColorSection } from './ThemeStudio';
 import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
 import type { AppSettings, CardSurfaceStyle, CustomPaletteSettings, MaterialColorTheme, WallpaperStyle } from '../types';
 
@@ -100,6 +101,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // Sincronización de estado durante render sin efectos en cascada
   const [prevSemesterName, setPrevSemesterName] = useState(settings.semesterName);
   const [semesterInput, setSemesterInput] = useState(settings.semesterName);
+  // Controles finos del papel tapiz (opacidad, escala, desenfoque): plegados al entrar
+  const [wallpaperTuneOpen, setWallpaperTuneOpen] = useState(false);
   if (settings.semesterName !== prevSemesterName) {
     setPrevSemesterName(settings.semesterName);
     setSemesterInput(settings.semesterName);
@@ -415,19 +418,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
             {activeSubView === 'appearance' && (
-              <div className="md-card bg-[var(--md-card-surface)] rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xs border border-[var(--color-md-outline-variant)] space-y-4">
-                {/* 1-2. Modo de luminosidad, paleta Material You y acabado de tarjetas */}
-                <ThemeStudio
-                  settings={settings}
-                  onThemeChange={handleThemeChange}
-                  onPaletteChange={handleColorPaletteChange}
-                  onCardSurfaceChange={handleCardSurfaceChange}
-                  onPerformanceModeChange={handlePerformanceModeChange}
-                  onCustomPaletteApply={handleCustomPaletteApply}
-                />
+              <div className="space-y-4">
+                {/* 1. Color: modo de luminosidad y paleta */}
+                <SettingsGroup title="Color">
+                  <div className="p-3.5 sm:p-5">
+                    <ThemeColorSection
+                      settings={settings}
+                      onThemeChange={handleThemeChange}
+                      onPaletteChange={handleColorPaletteChange}
+                      onCustomPaletteApply={handleCustomPaletteApply}
+                    />
+                  </div>
+                </SettingsGroup>
 
-                {/* 3. Estudio de Papel Tapiz Adaptativo (Wallpaper Studio Compacto) */}
-                <div className="pt-3 border-t border-[var(--color-md-outline-variant)] space-y-3">
+                {/* 2. Fondo: papel tapiz adaptativo */}
+                <SettingsGroup title="Fondo">
+                <div className="p-3.5 sm:p-5 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />
@@ -455,10 +461,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug">
-                    Elige un diseño vectorial o sube una fotografía de fondo:
-                  </p>
-
                   {/* Input oculto para subir foto */}
                   <input
                     ref={wallpaperInputRef}
@@ -469,13 +471,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   />
 
                   {/* Galería de Estilos de Papel Tapiz Compacta */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
                     {(
                       [
                         { id: 'campus', label: 'Campus', desc: 'Doodles de estudio' },
                         { id: 'blueprint', label: 'Ingeniería', desc: 'Cuadrícula técnica' },
                         { id: 'constellation', label: 'Nodos', desc: 'Grafo / Red' },
-                        { id: 'topographic', label: 'Topográfico', desc: 'Ondas suaves' },
+                        { id: 'topographic', label: 'Relieve', desc: 'Topográfico, ondas suaves' },
                         { id: 'dots', label: 'Puntos', desc: 'Bullet journal' },
                         { id: 'custom', label: 'Mi Foto', desc: customWallpaperPreview ? 'Cargada' : 'Subir...' },
                         { id: 'none', label: 'Fondo Liso', desc: 'Sin tapiz' },
@@ -492,6 +494,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <button
                           key={item.id}
                           type="button"
+                          title={item.desc}
+                          aria-pressed={isSelected}
                           onClick={() => {
                             if (item.id === 'custom' && !customWallpaperPreview) {
                               wallpaperInputRef.current?.click();
@@ -499,14 +503,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             }
                             updateSettings({ ...settings, wallpaperStyle: item.id });
                           }}
-                          className={`p-2 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-1.5 text-left relative overflow-hidden group ${
+                          className={`p-1.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1 text-center relative overflow-hidden group ${
                             isSelected
                               ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]/35 shadow-2xs'
                               : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] hover:border-[var(--color-md-outline)]'
                           }`}
                         >
                           {/* Miniatura del patrón o foto */}
-                          <div className="w-full h-11 rounded-lg bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)]/60 relative overflow-hidden flex items-center justify-center">
+                          <div className="w-full h-10 rounded-lg bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)]/60 relative overflow-hidden flex items-center justify-center">
                             {item.id === 'none' && (
                               <span className="text-[10px] font-bold text-[var(--color-md-on-surface-variant)]">
                                 Liso
@@ -548,14 +552,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             )}
                           </div>
 
-                          <div className="min-w-0">
-                            <span className="text-xs font-extrabold text-[var(--color-md-on-surface)] block truncate">
-                              {item.label}
-                            </span>
-                            <span className="text-[10px] text-[var(--color-md-on-surface-variant)] block truncate">
-                              {item.desc}
-                            </span>
-                          </div>
+                          <span className="text-[10px] font-bold text-[var(--color-md-on-surface)] block truncate">
+                            {item.label}
+                          </span>
                         </button>
                       );
                     })}
@@ -594,14 +593,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                   {/* Controles de Opacidad, Tamaño y Desenfoque */}
                   {(settings.wallpaperStyle || 'campus') !== 'none' && (
-                    <div
-                      data-no-swipe="true"
-                      className="p-3 rounded-xl sm:rounded-2xl bg-[var(--color-md-surface-container)] border border-[var(--color-md-outline-variant)] space-y-3"
+                    <div className="rounded-xl sm:rounded-2xl bg-[var(--color-md-surface-container)] border border-[var(--color-md-outline-variant)]">
+                    <button
+                      type="button"
+                      onClick={() => setWallpaperTuneOpen((open) => !open)}
+                      aria-expanded={wallpaperTuneOpen}
+                      aria-controls="wallpaper-tune-panel"
+                      className="flex min-h-[44px] w-full items-center gap-2 px-3 text-left cursor-pointer"
                     >
-                      <div className="flex items-center gap-2 text-xs font-bold text-[var(--color-md-on-surface)]">
-                        <Sliders className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />
-                        <span>Intensidad, Escala y Desenfoque</span>
-                      </div>
+                      <Sliders className="w-3.5 h-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 text-xs font-bold text-[var(--color-md-on-surface)]">Ajustar fondo</span>
+                      <span className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+                        Intensidad {settings.wallpaperOpacity ?? 16}%
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)] transition-transform duration-200 ${wallpaperTuneOpen ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {wallpaperTuneOpen && (
+                    <div
+                      id="wallpaper-tune-panel"
+                      data-no-swipe="true"
+                      className="space-y-3 border-t border-[var(--color-md-outline-variant)] p-3"
+                    >
 
                       {/* 1. Control de Opacidad */}
                       <div className="space-y-1">
@@ -799,11 +814,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </div>
                       </div>
                     </div>
+                    )}
+                    </div>
                   )}
                 </div>
+                </SettingsGroup>
 
-                <p className="text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug pt-0.5">
-                  El tema, paleta y papel tapiz se guardan localmente y se aplican en tiempo real.
+                {/* 3. Tarjetas y rendimiento */}
+                <SettingsGroup title="Tarjetas y rendimiento">
+                  <div className="p-3.5 sm:p-5">
+                    <CardStyleSection
+                      settings={settings}
+                      onCardSurfaceChange={handleCardSurfaceChange}
+                      onPerformanceModeChange={handlePerformanceModeChange}
+                    />
+                  </div>
+                </SettingsGroup>
+
+                <p className="px-1 text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug">
+                  Todo se guarda en este dispositivo y se aplica al instante.
                 </p>
               </div>
             )}
