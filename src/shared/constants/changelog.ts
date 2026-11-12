@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.56',
+    date: '2026-11-12',
+    title: 'Tu paleta, a tu manera',
+    changes: [
+      { kind: 'nuevo', text: '«Crea tu paleta» ahora tiene tres colores: Principal, Acento y Fondo. El fondo puede ser neutro, suave o marcado, y tomar el tono que quieras.' },
+      { kind: 'nuevo', text: 'Cinco estilos para tu paleta: Equilibrado, Vibrante, Expresivo, Fiel y Monocromo.' },
+      { kind: 'mejora', text: 'El color de acento se ve en el botón flotante, la pestaña activa y las etiquetas. El texto siempre queda legible, combines los colores que combines.' },
+    ],
+  },
+  {
     version: '1.7.10.55',
     date: '2026-11-12',
     title: 'Apariencia más ordenada',
