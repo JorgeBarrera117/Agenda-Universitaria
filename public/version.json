@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.43",
+  "latestVersion": "1.7.10.44",
   "releaseDate": "2026-11-11",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.43/Agenda-Universitaria-v1.7.10.43.apk",
-  "apkSha256": "28dc70fbeb05f84c27f61694fd636c27d4ff4aedb42e8a895b703a7ff87f00ef",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.44/Agenda-Universitaria-v1.7.10.44.apk",
+  "apkSha256": "2732ee31c878fc15e2c8950ab7a0ec447b734d534e6f3e78dd4afdb1074411a2",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Comparte una materia con su horario (.agclass) por WhatsApp",
-    "Comparte tu horario completo (.agschedule) con tu grupo",
-    "Antes de importar ves qué se agrega y qué choca con tu horario"
+    "Tarjetas más claras: el nombre de la materia y del catedrático van primero",
+    "En el horario del día ves al catedrático justo debajo de la materia",
+    "Cubículo y asesorías se leen completos en Profesores"
   ]
 }
