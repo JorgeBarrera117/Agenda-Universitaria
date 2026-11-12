@@ -26,6 +26,8 @@ import { DETAIL_TAB, type DetailRequest, type DetailReturn, type DetailTarget } 
 import { professorImportedMessage } from './features/professors/utils/importMessage';
 import { scheduleImportedMessage, subjectImportedMessage } from './features/schedule/utils/importMessages';
 import type { UpdateInfo } from './shared/services/updateService';
+import type { ChangelogEntry } from './shared/constants/changelog';
+import type { SettingsCategory } from './features/settings/components/SettingsView';
 
 const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
 
@@ -41,6 +43,10 @@ const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: m.Sub
 const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: m.ProfessorsView })));
 const NotesView = lazy(() => loadNotesView().then((m) => ({ default: m.NotesView })));
 // Solo se carga si hay una versión nueva que anunciar
+// Solo se carga si hay novedades sin ver tras actualizar
+const WhatsNewModal = lazy(() =>
+  import('./shared/components/WhatsNewModal').then((m) => ({ default: m.WhatsNewModal }))
+);
 const UpdateModal = lazy(() =>
   import('./shared/components/UpdateModal').then((m) => ({ default: m.UpdateModal }))
 );
@@ -202,6 +208,30 @@ export function App() {
   // se ofrece importarlo con su modal
   const { incoming, clearIncoming } = useIncomingSharedFile(showToast);
 
+  // Aviso "Lo nuevo" tras actualizar: una sola vez por versión. El historial y el servicio se
+  // cargan poco después del arranque y solo se monta el modal si hay algo que contar
+  const [whatsNew, setWhatsNew] = useState<ChangelogEntry[]>([]);
+  const [settingsInitialView, setSettingsInitialView] = useState<SettingsCategory | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void import('./shared/services/whatsNewService').then(({ getUnseenChangelog }) => {
+        const entries = getUnseenChangelog();
+        if (!cancelled && entries.length > 0) setWhatsNew(entries);
+      });
+    }, 1200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
+  const closeWhatsNew = useCallback(() => setWhatsNew([]), []);
+  const openChangelogFromWhatsNew = useCallback(() => {
+    setWhatsNew([]);
+    setSettingsInitialView('changelog');
+    setIsSettingsOpen(true);
+  }, []);
+
   // Aviso de nueva versión: 3 s después de abrir (sin competir con el arranque), solo con
   // conexión y si el usuario no lo pospuso hoy para esa misma versión. El servicio se carga
   // de forma diferida para no sumar peso al arranque.
@@ -351,7 +381,14 @@ export function App() {
         />
       )}
 
-      {pendingUpdate && !incoming && (
+      {whatsNew.length > 0 && !incoming && (
+        <Suspense fallback={null}>
+          <WhatsNewModal entries={whatsNew} onClose={closeWhatsNew} onOpenAll={openChangelogFromWhatsNew} />
+        </Suspense>
+      )}
+
+      {/* El aviso de nueva versión espera a que se cierre "Lo nuevo" */}
+      {pendingUpdate && !incoming && whatsNew.length === 0 && (
         <Suspense fallback={null}>
           <UpdateModal info={pendingUpdate} onDownload={downloadPendingUpdate} onLater={closeUpdateForToday} />
         </Suspense>
@@ -449,7 +486,11 @@ export function App() {
           <div className="m3-view-enter flex-1">
             <Suspense fallback={<ViewSkeleton />}>
               <SettingsView
-                onBack={() => setIsSettingsOpen(false)}
+                initialSubView={settingsInitialView}
+                onBack={() => {
+                  setIsSettingsOpen(false);
+                  setSettingsInitialView(undefined);
+                }}
                 onShowToast={showToast}
               />
             </Suspense>

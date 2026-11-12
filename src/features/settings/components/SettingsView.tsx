@@ -34,6 +34,7 @@ import { ScheduleSettings } from './ScheduleSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { MediaSettings } from './MediaSettings';
 import { AboutSettings } from './AboutSettings';
+import { ChangelogList, ChangelogPreview } from './ChangelogSettings';
 import { UpdateSettings } from './UpdateSettings';
 import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
 import { PageHeader } from '../../../shared/components/PageHeader';
@@ -42,19 +43,22 @@ import { ThemeStudio } from './ThemeStudio';
 import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
 import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, WallpaperStyle } from '../types';
 
-interface SettingsViewProps {
-  onBack: () => void;
-  onShowToast: (message: string) => void;
-}
-
-type SettingsCategory =
+export type SettingsCategory =
   | 'appearance'
   | 'schedule'
   | 'notifications'
   | 'media'
   | 'backup'
   | 'about'
+  | 'changelog'
   | 'profile';
+
+interface SettingsViewProps {
+  onBack: () => void;
+  onShowToast: (message: string) => void;
+  /** Sub-página con la que abrir Ajustes (p. ej. las novedades desde el aviso "Lo nuevo"). */
+  initialSubView?: SettingsCategory;
+}
 
 const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
   appearance: 'Apariencia y tema',
@@ -63,6 +67,7 @@ const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
   media: 'Fotografías y pizarras',
   backup: 'Datos y copias de seguridad',
   about: 'Acerca de la agenda',
+  changelog: 'Novedades de la versión',
   profile: 'Perfil estudiantil',
 };
 
@@ -75,12 +80,13 @@ const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   onBack,
   onShowToast,
+  initialSubView,
 }) => {
   const { settings, updateSettings, storageEstimate, refreshStorageEstimate } = useAppSettings();
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
 
-  const [activeSubView, setActiveSubView] = useState<SettingsCategory | null>(null);
+  const [activeSubView, setActiveSubView] = useState<SettingsCategory | null>(initialSubView ?? null);
   // Último resultado de la comprobación de versiones (la del arranque o la manual de la subvista)
   const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(() => getLastUpdateCheck());
   useEffect(() => {
@@ -164,11 +170,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // Volver de una subvista al menú con animación de salida (sin corte a 0 ms)
   const subViewExit = useExitTransition(MOTION_EXIT_MS.sheet);
   const closeSubView = () => subViewExit.runExit(() => setActiveSubView(null));
+  // Las novedades cuelgan de "Acerca de la agenda": volver lleva ahí, no al menú principal
+  const backFromSubView = () => (activeSubView === 'changelog' ? setActiveSubView('about') : closeSubView());
 
   // Interceptar botón "Atrás" de Android / Navegador
   useBackButton(() => {
     if (activeSubView !== null) {
-      closeSubView();
+      backFromSubView();
       return true;
     }
     onBack();
@@ -393,9 +401,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* Cabecera de la sub-página, fija al hacer scroll */}
             <PageHeader
               title={SUBVIEW_TITLES[activeSubView]}
-              subtitle="Ajustes"
-              onBack={closeSubView}
-              backLabel="Regresar a Ajustes"
+              subtitle={activeSubView === 'changelog' ? 'Acerca de la agenda' : 'Ajustes'}
+              onBack={backFromSubView}
+              backLabel={activeSubView === 'changelog' ? 'Regresar a Acerca de la agenda' : 'Regresar a Ajustes'}
             />
 
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
@@ -851,9 +859,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {activeSubView === 'about' && (
               <>
                 <AboutSettings />
+                <ChangelogPreview onOpenAll={() => setActiveSubView('changelog')} />
                 <UpdateSettings initialResult={updateResult} onResult={setUpdateResult} onShowToast={onShowToast} />
               </>
             )}
+
+            {/* ---------------- SUB-VISTA 7: NOVEDADES DE LA VERSIÓN ---------------- */}
+            {activeSubView === 'changelog' && <ChangelogList />}
           </div>
         )}
       </div>

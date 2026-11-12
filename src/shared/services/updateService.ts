@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { APP_INFO } from '../constants/appInfo';
 import { WidgetBridge } from '../plugins/widgetBridge';
+import { compareVersions } from '../utils/version';
 
 /**
  * Comprobación de actualizaciones. El manifiesto public/version.json se lee desde la rama main de
@@ -55,20 +56,7 @@ export type UpdateCheckResult =
  * 1.7.10 < 1.7.10.1, 1.10 > 1.9) e ignora una "v" inicial y sufijos como "-beta".
  */
 export function isNewerVersion(remoteVer: string, currentVer: string): boolean {
-  const parse = (version: string) =>
-    version
-      .trim()
-      .replace(/^v/i, '')
-      .split('-')[0]
-      .split('.')
-      .map((part) => Number.parseInt(part, 10) || 0);
-  const remote = parse(remoteVer);
-  const current = parse(currentVer);
-  for (let i = 0; i < Math.max(remote.length, current.length); i++) {
-    const diff = (remote[i] ?? 0) - (current[i] ?? 0);
-    if (diff !== 0) return diff > 0;
-  }
-  return false;
+  return compareVersions(remoteVer, currentVer) > 0;
 }
 
 /** Valida el manifiesto descargado: formato de versión, enlaces de confianza y novedades acotadas. */
