@@ -1,9 +1,17 @@
-import { Capacitor } from '@capacitor/core';
-import { APP_INFO } from '../../../shared/constants/appInfo';
 import { db } from '../../../shared/db/AppDatabase';
-import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
 import { comparableName } from '../../../shared/utils/comparableName';
-import { blobToDataUrl } from '../../../shared/utils/dataUrl';
+import {
+  cleanHexColor,
+  cleanLine,
+  cleanMultiline,
+  deliverSharedFile,
+  isRecord,
+  parsePackageEnvelope,
+  shareFileBaseName,
+  sharePackageHeader,
+  type SharePackageHeader,
+  type SharedFileResult,
+} from '../../../shared/utils/sharePackage';
 import { shareText, type ShareOutcome } from '../../../shared/utils/shareText';
 import { subjectRepository } from '../../subjects/repositories/subjectRepository';
 import type { Subject } from '../../subjects/types';
@@ -52,7 +60,6 @@ export function shareProfessorContact(professor: Professor, subjectNames: string
  * estudiantes, igual que .agnote con los apuntes. Al importarlo se trata como contenido NO
  * confiable: se valida la cabecera y se limpia cada campo.
  */
-export const AGCONTACT_APP_ID = 'agenda-universitaria';
 export const AGCONTACT_TYPE = 'single_professor';
 export const AGCONTACT_FORMAT_VERSION = 1;
 export const AGCONTACT_EXTENSION = '.agcontact';
@@ -64,14 +71,10 @@ export const AGCONTACT_MIME_TYPE = 'application/vnd.agenda-universitaria.contact
 
 /** Límites: un archivo ajeno no debe poder llenar la base de datos ni romper la interfaz. */
 const MAX_PACKAGE_CHARS = 256 * 1024;
-const MAX_NAME_LENGTH = 120;
-const MAX_EMAIL_LENGTH = 160;
-const MAX_PHONE_LENGTH = 40;
-const MAX_OFFICE_LENGTH = 120;
-const MAX_NOTES_LENGTH = 2000;
 const MAX_SUBJECTS = 20;
 const MAX_SUBJECT_NAME_LENGTH = 100;
 
+/** Datos de contacto de un docente tal como viajan en .agcontact, .agclass y .agschedule. */
 export interface ProfessorShareData {
   name: string;
   email?: string;
@@ -85,52 +88,55 @@ export interface ProfessorShareData {
   color?: string;
 }
 
-export interface ProfessorSharePackage {
-  app: typeof AGCONTACT_APP_ID;
-  type: typeof AGCONTACT_TYPE;
-  formatVersion: number;
-  exportedAt: string;
-  appVersion: string;
+export interface ProfessorSharePackage extends SharePackageHeader<typeof AGCONTACT_TYPE> {
   professor: ProfessorShareData;
   /** Materias que imparte, por nombre: el receptor las empareja con las suyas. */
   subjectNames: string[];
 }
 
-export interface ProfessorExportResult {
-  method: 'share' | 'download';
-  fileName: string;
-}
-
 /** "Prof_<nombre>.agcontact" sin tildes, rutas ni caracteres raros. */
 export function agcontactFileName(name: string): string {
-  const base = name
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^A-Za-z0-9 _-]/g, '')
-    .trim()
-    .replace(/\s+/g, '_')
-    .slice(0, 60);
-  return `Prof_${base || 'docente'}${AGCONTACT_EXTENSION}`;
+  return `Prof_${shareFileBaseName(name, 'docente')}${AGCONTACT_EXTENSION}`;
 }
 
-/** Paquete .agcontact de un docente: solo sus datos de contacto, nunca ids de la base local. */
-export function buildProfessorSharePackage(professor: Professor, subjectNames: string[]): ProfessorSharePackage {
+/** Solo los datos de contacto del docente: nunca ids de la base local. */
+export function toProfessorShareData(professor: Professor): ProfessorShareData {
   const optional = (value?: string) => (value?.trim() ? value.trim() : undefined);
   return {
-    app: AGCONTACT_APP_ID,
-    type: AGCONTACT_TYPE,
-    formatVersion: AGCONTACT_FORMAT_VERSION,
-    exportedAt: new Date().toISOString(),
-    appVersion: APP_INFO.version,
-    professor: {
-      name: professor.name.trim(),
-      email: optional(professor.email),
-      phone: optional(professor.phone),
-      office: optional(professor.office),
-      notes: optional(professor.notes),
-      icon: professor.icon,
-      color: professor.color,
-    },
+    name: professor.name.trim(),
+    email: optional(professor.email),
+    phone: optional(professor.phone),
+    office: optional(professor.office),
+    notes: optional(professor.notes),
+    icon: professor.icon,
+    color: professor.color,
+  };
+}
+
+/**
+ * Valida y limpia los datos de un docente recibido. Devuelve undefined si no tiene nombre.
+ * El ícono solo se acepta si existe en la app y el color solo como #RRGGBB.
+ */
+export function cleanProfessorShareData(raw: unknown): ProfessorShareData | undefined {
+  if (!isRecord(raw)) return undefined;
+  const name = cleanLine(raw.name, 120);
+  if (!name) return undefined;
+  const icon = typeof raw.icon === 'string' && PROFESSOR_ICONS.some((option) => option.id === raw.icon) ? raw.icon : undefined;
+  return {
+    name,
+    email: cleanLine(raw.email, 160),
+    phone: cleanLine(raw.phone, 40),
+    office: cleanLine(raw.office, 120),
+    notes: cleanMultiline(raw.notes, 2000),
+    icon,
+    color: cleanHexColor(raw.color),
+  };
+}
+
+export function buildProfessorSharePackage(professor: Professor, subjectNames: string[]): ProfessorSharePackage {
+  return {
+    ...sharePackageHeader(AGCONTACT_TYPE, AGCONTACT_FORMAT_VERSION),
+    professor: toProfessorShareData(professor),
     subjectNames: [...new Set(subjectNames.map((n) => n.trim()).filter(Boolean))],
   };
 }
@@ -139,99 +145,37 @@ export function buildProfessorSharePackage(professor: Professor, subjectNames: s
  * Comparte la ficha de un docente como archivo .agcontact. En Android abre la hoja de compartir
  * del sistema (WhatsApp, Telegram, Drive…); en la web o en PC descarga el archivo.
  */
-export async function exportProfessorToAgcontact(
-  professor: Professor,
-  subjectNames: string[]
-): Promise<ProfessorExportResult> {
-  const content = JSON.stringify(buildProfessorSharePackage(professor, subjectNames));
-  const fileName = agcontactFileName(professor.name);
-  const blob = new Blob([content], { type: AGCONTACT_MIME_TYPE });
-
-  if (Capacitor.isNativePlatform()) {
-    await WidgetBridge.shareFile({ base64Data: await blobToDataUrl(blob), fileName, mimeType: AGCONTACT_MIME_TYPE });
-    return { method: 'share', fileName };
-  }
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  // Se libera después: revocar en el mismo tick puede cancelar la descarga en algunos navegadores
-  window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
-  return { method: 'download', fileName };
+export function exportProfessorToAgcontact(professor: Professor, subjectNames: string[]): Promise<SharedFileResult> {
+  return deliverSharedFile(
+    JSON.stringify(buildProfessorSharePackage(professor, subjectNames)),
+    agcontactFileName(professor.name),
+    AGCONTACT_MIME_TYPE
+  );
 }
 
 const INVALID_AGCONTACT_MESSAGE = 'El archivo no es un contacto compartido de Agenda Universitaria.';
 
-type UnknownRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/** Una línea de texto: sin caracteres de control, espacios colapsados y con límite de largo. */
-function cleanLine(value: unknown, maxLength: number): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  // eslint-disable-next-line no-control-regex
-  const text = value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxLength);
-  return text || undefined;
-}
-
-/** Texto de varias líneas (asesorías): conserva los saltos, quita el resto de controles. */
-function cleanMultiline(value: unknown, maxLength: number): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const text = value
-    .replace(/\r\n?/g, '\n')
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-    .slice(0, maxLength);
-  return text || undefined;
-}
-
 /**
  * Valida y limpia el contenido de un .agcontact. Comprueba la firma (app y tipo) y la versión del
- * formato, descarta campos desconocidos y deja cada valor dentro de sus límites. El ícono solo se
- * acepta si existe en la app y el color solo como #RRGGBB.
+ * formato, descarta campos desconocidos y deja cada valor dentro de sus límites.
  */
 export function parseAgcontactContent(rawJson: string): ProfessorSharePackage {
-  if (rawJson.length > MAX_PACKAGE_CHARS) {
-    throw new Error('El contacto compartido es demasiado grande para importarlo.');
-  }
+  const { body, formatVersion, exportedAt, appVersion } = parsePackageEnvelope(rawJson, {
+    type: AGCONTACT_TYPE,
+    currentVersion: AGCONTACT_FORMAT_VERSION,
+    maxChars: MAX_PACKAGE_CHARS,
+    invalidMessage: INVALID_AGCONTACT_MESSAGE,
+    tooLargeMessage: 'El contacto compartido es demasiado grande para importarlo.',
+    newerVersionMessage: 'Este contacto se creó con una versión más nueva de la app. Actualiza Agenda Universitaria para abrirlo.',
+  });
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawJson);
-  } catch {
-    throw new Error(INVALID_AGCONTACT_MESSAGE);
-  }
-
-  if (!isRecord(parsed) || parsed.app !== AGCONTACT_APP_ID || parsed.type !== AGCONTACT_TYPE) {
-    throw new Error(INVALID_AGCONTACT_MESSAGE);
-  }
-  const formatVersion = parsed.formatVersion;
-  if (typeof formatVersion !== 'number' || !Number.isInteger(formatVersion) || formatVersion < 1) {
-    throw new Error(INVALID_AGCONTACT_MESSAGE);
-  }
-  if (formatVersion > AGCONTACT_FORMAT_VERSION) {
-    throw new Error('Este contacto se creó con una versión más nueva de la app. Actualiza Agenda Universitaria para abrirlo.');
-  }
-
-  const raw = parsed.professor;
-  const name = isRecord(raw) ? cleanLine(raw.name, MAX_NAME_LENGTH) : undefined;
-  if (!isRecord(raw) || !name) {
-    throw new Error(INVALID_AGCONTACT_MESSAGE);
-  }
-
-  const icon = typeof raw.icon === 'string' && PROFESSOR_ICONS.some((option) => option.id === raw.icon) ? raw.icon : undefined;
-  const color = typeof raw.color === 'string' && /^#[0-9a-f]{6}$/i.test(raw.color) ? raw.color : undefined;
+  const professor = cleanProfessorShareData(body.professor);
+  if (!professor) throw new Error(INVALID_AGCONTACT_MESSAGE);
 
   const subjectNames: string[] = [];
   const seen = new Set<string>();
-  if (Array.isArray(parsed.subjectNames)) {
-    for (const value of parsed.subjectNames) {
+  if (Array.isArray(body.subjectNames)) {
+    for (const value of body.subjectNames) {
       const subjectName = cleanLine(value, MAX_SUBJECT_NAME_LENGTH);
       if (!subjectName || seen.has(comparableName(subjectName))) continue;
       seen.add(comparableName(subjectName));
@@ -240,26 +184,13 @@ export function parseAgcontactContent(rawJson: string): ProfessorSharePackage {
     }
   }
 
-  const exportedAt =
-    typeof parsed.exportedAt === 'string' && !Number.isNaN(Date.parse(parsed.exportedAt))
-      ? parsed.exportedAt
-      : new Date().toISOString();
-
   return {
-    app: AGCONTACT_APP_ID,
+    app: 'agenda-universitaria',
     type: AGCONTACT_TYPE,
     formatVersion,
     exportedAt,
-    appVersion: cleanLine(parsed.appVersion, 20) ?? '',
-    professor: {
-      name,
-      email: cleanLine(raw.email, MAX_EMAIL_LENGTH),
-      phone: cleanLine(raw.phone, MAX_PHONE_LENGTH),
-      office: cleanLine(raw.office, MAX_OFFICE_LENGTH),
-      notes: cleanMultiline(raw.notes, MAX_NOTES_LENGTH),
-      icon,
-      color,
-    },
+    appVersion,
+    professor,
     subjectNames,
   };
 }
@@ -311,17 +242,7 @@ export async function importProfessorPackage(
       }
     }
 
-    const { professor: data } = sharePackage;
-    const professor = await professorRepository.create({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      office: data.office,
-      notes: data.notes,
-      icon: data.icon,
-      color: data.color,
-      subjectIds: [...subjectIds],
-    });
+    const professor = await professorRepository.create({ ...sharePackage.professor, subjectIds: [...subjectIds] });
     return { professor, createdSubjects };
   });
 }
