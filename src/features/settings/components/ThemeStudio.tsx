@@ -1,9 +1,22 @@
-import React, { useRef } from 'react';
-import { Check, Frame, Layers, Monitor, Moon, Palette, Sparkles, Sun, Zap } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Check, ChevronDown, Frame, Layers, Monitor, Moon, Palette, Sparkles, Sun, Wand2, Zap } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
-import { MATERIAL_COLOR_PALETTES } from '../../../shared/utils/theme';
+import {
+  MATERIAL_COLOR_PALETTES,
+  isValidCustomPalette,
+  paletteDisplayName,
+  type ThemeTokenSet,
+} from '../../../shared/utils/theme';
 import { M3Switch } from './SettingsPrimitives';
-import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, ThemeMode } from '../types';
+import { CustomPaletteCreator } from './CustomPaletteCreator';
+import type {
+  AppSettings,
+  CardSurfaceStyle,
+  CustomPaletteSettings,
+  MaterialColorTheme,
+  PresetPalette,
+  ThemeMode,
+} from '../types';
 
 interface ThemeStudioProps {
   settings: AppSettings;
@@ -11,6 +24,8 @@ interface ThemeStudioProps {
   onPaletteChange: (palette: MaterialColorTheme) => void;
   onCardSurfaceChange: (style: CardSurfaceStyle) => void;
   onPerformanceModeChange: (enabled: boolean) => void;
+  /** Guarda y aplica la paleta creada a partir de un color propio. */
+  onCustomPaletteApply: (palette: CustomPaletteSettings) => void;
 }
 
 const THEME_OPTIONS: SegmentedOption<ThemeMode>[] = [
@@ -42,7 +57,7 @@ const CARD_SURFACE_OPTIONS: (SegmentedOption<CardSurfaceStyle> & { description: 
 
 const THEME_LABEL: Record<ThemeMode, string> = { light: 'Claro', dark: 'Oscuro', system: 'Auto' };
 
-const PALETTE_KEYS = Object.keys(MATERIAL_COLOR_PALETTES) as MaterialColorTheme[];
+const PRESET_KEYS = Object.keys(MATERIAL_COLOR_PALETTES) as PresetPalette[];
 
 function SectionHeader({ icon, title, aside }: { icon: React.ReactNode; title: string; aside?: React.ReactNode }) {
   return (
@@ -66,10 +81,17 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({
   onPaletteChange,
   onCardSurfaceChange,
   onPerformanceModeChange,
+  onCustomPaletteApply,
 }) => {
   const paletteButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const [creatorOpen, setCreatorOpen] = useState(false);
   const currentPalette = settings.colorPalette || 'default';
-  const activePalette = MATERIAL_COLOR_PALETTES[currentPalette] || MATERIAL_COLOR_PALETTES.default;
+  const customPalette = isValidCustomPalette(settings.customPalette) ? settings.customPalette : null;
+  // "Tu paleta" aparece primero en la cuadrícula en cuanto existe
+  const paletteKeys: MaterialColorTheme[] = customPalette ? ['custom', ...PRESET_KEYS] : PRESET_KEYS;
+  const creatorSeed =
+    customPalette?.seed ??
+    (currentPalette !== 'custom' ? (MATERIAL_COLOR_PALETTES[currentPalette] ?? MATERIAL_COLOR_PALETTES.default).seed : '#00639B');
   const isDark =
     settings.theme === 'dark' ||
     (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -82,8 +104,8 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({
       event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowDown' ? columns : event.key === 'ArrowUp' ? -columns : 0;
     if (step === 0) return;
     event.preventDefault();
-    const next = (index + step + PALETTE_KEYS.length) % PALETTE_KEYS.length;
-    onPaletteChange(PALETTE_KEYS[next]);
+    const next = (index + step + paletteKeys.length) % paletteKeys.length;
+    onPaletteChange(paletteKeys[next]);
     paletteButtonsRef.current[next]?.focus();
   };
 
@@ -105,16 +127,19 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({
                 aria-hidden="true"
               />
               <span className="truncate">
-                {activePalette.name} · {THEME_LABEL[settings.theme]}
+                {paletteDisplayName(currentPalette)} · {THEME_LABEL[settings.theme]}
               </span>
             </span>
           }
         />
 
         <div role="radiogroup" aria-label="Paletas de color del tema" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {PALETTE_KEYS.map((key, index) => {
-            const palette = MATERIAL_COLOR_PALETTES[key];
-            const tokens = isDark ? palette.dark : palette.light;
+          {paletteKeys.map((key, index) => {
+            const palette =
+              key === 'custom' && customPalette
+                ? { name: 'Tu paleta', subtitle: `Creada con ${customPalette.seed}`, light: customPalette.light, dark: customPalette.dark }
+                : MATERIAL_COLOR_PALETTES[key === 'custom' ? 'default' : key];
+            const tokens: ThemeTokenSet = isDark ? palette.dark : palette.light;
             const isSelected = currentPalette === key;
             return (
               <button
@@ -148,6 +173,40 @@ export const ThemeStudio: React.FC<ThemeStudioProps> = ({
               </button>
             );
           })}
+        </div>
+
+        {/* Crea tu paleta: la librería de color solo se descarga al abrir esta sección */}
+        <div className="rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]">
+          <button
+            type="button"
+            onClick={() => setCreatorOpen((open) => !open)}
+            aria-expanded={creatorOpen}
+            aria-controls="custom-palette-creator"
+            className="flex min-h-[44px] w-full items-center gap-2 px-3 text-left"
+          >
+            <Wand2 className="h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-bold text-[var(--color-md-on-surface)]">
+                {customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}
+              </span>
+              <span className="block text-[11px] text-[var(--color-md-on-surface-variant)]">
+                Elige un color y la app calcula el resto para claro y oscuro.
+              </span>
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)] transition-transform duration-200 ${creatorOpen ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          {creatorOpen && (
+            <div id="custom-palette-creator" className="border-t border-[var(--color-md-outline-variant)] p-3">
+              <CustomPaletteCreator
+                initialSeed={creatorSeed}
+                isActive={currentPalette === 'custom'}
+                onApply={onCustomPaletteApply}
+              />
+            </div>
+          )}
         </div>
       </section>
 

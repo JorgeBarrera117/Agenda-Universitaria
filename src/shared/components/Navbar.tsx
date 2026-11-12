@@ -127,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#F1F4FA]/95 dark:bg-[#1D2024]/95 backdrop-blur-md border-b border-[#C2C7CE]/35 dark:border-[#42474E]/35 text-[#191C20] dark:text-[#E2E2E6] shadow-xs transition-colors duration-200">
+    <header className="sticky top-0 z-40 bg-[var(--color-md-surface-container)]/95 backdrop-blur-md border-b border-[var(--color-md-outline-variant)]/35 text-[var(--color-md-on-surface)] shadow-xs transition-colors duration-200">
       <div
         className="w-full mx-auto px-3 sm:px-6 lg:px-8 2xl:px-10"
         style={{
@@ -150,11 +150,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <StudentAvatar
                 avatarUrl={studentAvatarUrl}
                 name={studentName}
-                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[#C2C7CE]/50 dark:ring-white/10 text-sm lg:text-base"
+                className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[var(--color-md-outline-variant)]/50 dark:ring-white/10 text-sm lg:text-base"
               />
               <span
                 aria-hidden="true"
-                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-full border-2 border-[#F1F4FA] dark:border-[#1D2024] transition-colors duration-200 ${
+                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-full border-2 border-[var(--color-md-surface-container)] transition-colors duration-200 ${
                   isOnline ? 'bg-emerald-500' : 'bg-amber-500'
                 }`}
               />
@@ -165,11 +165,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <h1 className="text-sm sm:text-[15px] lg:text-lg xl:text-xl font-extrabold tracking-tight text-[var(--color-md-on-surface)] leading-tight whitespace-nowrap truncate max-w-[200px] sm:max-w-none">
                   {firstName ? `Hola, ${firstName}` : 'Agenda Universitaria'}
                 </h1>
-                <span className="hidden 2xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shrink-0">
+                <span className="hidden 2xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shrink-0">
                   Campus Digital
                 </span>
               </div>
-              <div className="flex md:max-lg:hidden landscape:max-lg:hidden items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs lg:text-[13px] text-[#41474D] dark:text-[#C2C7CF] font-medium whitespace-nowrap">
+              <div className="flex md:max-lg:hidden landscape:max-lg:hidden items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs lg:text-[13px] text-[var(--color-md-on-surface-variant)] font-medium whitespace-nowrap">
                 <span className="capitalize">{capitalizedDate}</span>
                 <span>•</span>
                 {customStatus && StatusIcon ? (
@@ -252,9 +252,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={onOpenSettings}
               title="Ajustes y Personalización de la Agenda"
               aria-label="Abrir Ajustes"
-              className="flex items-center justify-center gap-2 w-10 h-10 lg:w-auto lg:px-5 lg:h-11 xl:h-12 rounded-full bg-[#E2E7EF] dark:bg-[#272A2F] hover:bg-[#D8E3F8] dark:hover:bg-[#3C4758] text-[#191C20] dark:text-[#E2E2E6] transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs group"
+              className="flex items-center justify-center gap-2 w-10 h-10 lg:w-auto lg:px-5 lg:h-11 xl:h-12 rounded-full bg-[var(--color-md-surface-container-high)] hover:bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-surface)] transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs group"
             >
-              <div className="w-5 h-5 flex items-center justify-center text-[#00639B] dark:text-[#96CCFF] group-hover:rotate-90 transition-transform duration-300">
+              <div className="w-5 h-5 flex items-center justify-center text-[var(--color-md-primary)] group-hover:rotate-90 transition-transform duration-300">
                 <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
               <span className="text-xs lg:text-sm font-bold hidden lg:inline">

@@ -36,10 +36,11 @@ export function BackgroundSyncManager(): null {
       WidgetSyncService.syncWidgetData(slots, subjects, professors, notes, {
         theme: settings.theme,
         colorPalette: settings.colorPalette,
+        customPalette: settings.customPalette,
       }).catch(console.warn);
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [slots, subjects, professors, notes, settings.theme, settings.colorPalette]);
+  }, [slots, subjects, professors, notes, settings.theme, settings.colorPalette, settings.customPalette]);
 
   return null;
 }

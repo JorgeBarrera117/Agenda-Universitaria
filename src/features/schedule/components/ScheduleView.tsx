@@ -272,13 +272,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 self-end sm:self-auto">
           {/* Alternar vista diaria / semanal */}
-          <div className="flex items-center bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
+          <div className="flex items-center bg-[var(--color-md-surface-container-high)] p-1 rounded-full border border-[var(--color-md-outline-variant)]/60 shadow-2xs">
             <button
               onClick={() => setViewMode('weekly')}
               className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'weekly'
-                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
-                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
+                  ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-xs'
+                  : 'text-[var(--color-md-on-surface-variant)] hover:text-[var(--color-md-on-surface)]'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -288,8 +288,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               onClick={() => setViewMode('daily')}
               className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'daily'
-                  ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-xs'
-                  : 'text-[#43474E] dark:text-[#C3C7D0] hover:text-[#191C20] dark:hover:text-[#E2E2E6]'
+                  ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-xs'
+                  : 'text-[var(--color-md-on-surface-variant)] hover:text-[var(--color-md-on-surface)]'
               }`}
             >
               <List className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -299,13 +299,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
           {/* Flechas de desplazamiento semanal en pantallas medianas */}
           {viewMode === 'weekly' && (canScrollLeft || canScrollRight) && (
-            <div className="hidden sm:flex items-center gap-1 bg-[#E2E7EF] dark:bg-[#272A2F] p-1 rounded-full border border-[#C3C7D0]/60 dark:border-[#43474E]/60 shadow-2xs">
+            <div className="hidden sm:flex items-center gap-1 bg-[var(--color-md-surface-container-high)] p-1 rounded-full border border-[var(--color-md-outline-variant)]/60 shadow-2xs">
               <button
                 onClick={() => scrollWeekly('left')}
                 disabled={!canScrollLeft}
                 className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                   canScrollLeft
-                    ? 'hover:bg-white dark:hover:bg-[#1D2024] text-[#00639B] dark:text-[#96CCFF] cursor-pointer active:scale-90'
+                    ? 'hover:bg-[var(--color-md-card-bg)] text-[var(--color-md-primary)] cursor-pointer active:scale-90'
                     : 'opacity-25 cursor-not-allowed text-slate-400'
                 }`}
                 title="Desplazar a la izquierda"
@@ -318,7 +318,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 disabled={!canScrollRight}
                 className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                   canScrollRight
-                    ? 'hover:bg-white dark:hover:bg-[#1D2024] text-[#00639B] dark:text-[#96CCFF] cursor-pointer active:scale-90'
+                    ? 'hover:bg-[var(--color-md-card-bg)] text-[var(--color-md-primary)] cursor-pointer active:scale-90'
                     : 'opacity-25 cursor-not-allowed text-slate-400'
                 }`}
                 title="Desplazar a la derecha"
@@ -335,7 +335,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             size="sm"
             icon={<CalendarPlus className="w-4 h-4 stroke-[2.4]" />}
             onClick={() => handleOpenCreate(selectedDay)}
-            className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[#00639B]/20 dark:ring-[#96CCFF]/30 hover:scale-[1.02] whitespace-nowrap transition-all ${
+            className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[var(--color-md-primary)]/20 hover:scale-[1.02] whitespace-nowrap transition-all ${
               isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
             }`}
           >
@@ -373,7 +373,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* 3. SELECTOR DE DÍAS (Móvil y Vista Diaria) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
-        <div className="bg-[#F1F4FA] dark:bg-[#1D2024] p-1 rounded-2xl border border-[#C3C7D0]/40 dark:border-[#43474E]/40 shadow-2xs">
+        <div className="bg-[var(--color-md-surface-container)] p-1 rounded-2xl border border-[var(--color-md-outline-variant)]/40 shadow-2xs">
           <div className="flex items-stretch gap-1 sm:gap-2 overflow-x-auto custom-scrollbar p-0.5">
             {displayedDays.map((day) => {
               const isSelected = selectedDay === day;
@@ -466,7 +466,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       </div>
                       <button
                         onClick={() => handleOpenCreate(day)}
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-[#00639B] dark:bg-[#96CCFF] text-white dark:text-[#003353] hover:opacity-90 active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0"
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:opacity-90 active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0"
                         title={`Agregar clase el ${DAY_NAMES[day]}`}
                       >
                         <Plus className="w-3 h-3 stroke-[2.8]" />

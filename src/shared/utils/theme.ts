@@ -1,4 +1,11 @@
-import type { ThemeMode, MaterialColorTheme, CardSurfaceStyle } from '../../features/settings/types';
+import type {
+  CardSurfaceStyle,
+  CustomPaletteSettings,
+  MaterialColorTheme,
+  PresetPalette,
+  ThemeMode,
+} from '../../features/settings/types';
+import { GENERATED_PALETTES } from './generatedPalettes';
 
 export interface ThemeTokenSet {
   /** Color principal (Botones "Aceptar", Switches activos, FABs, Íconos primarios) */
@@ -34,7 +41,7 @@ export interface ThemeTokenSet {
 }
 
 export interface ColorThemeDefinition {
-  id: MaterialColorTheme;
+  id: PresetPalette;
   name: string;
   subtitle: string;
   seed: string;
@@ -46,11 +53,13 @@ export interface ColorThemeDefinition {
  * REGISTRO CENTRAL DE PALETAS DE COLOR (MATERIAL YOU)
  * ============================================================================
  * Para agregar nuevas paletas en el futuro:
- * 1. Añade el identificador al tipo `MaterialColorTheme` en `src/features/settings/types.ts`
- * 2. Registra aquí su definición `light` y `dark`.
+ * - Generadas (recomendado): súmala a PRESETS en scripts/generate-palettes.ts y ejecútalo; el
+ *   tipo GeneratedPaletteId y GENERATED_PALETTES se actualizan solos.
+ * - Hechas a mano: añade el identificador a `PresetPalette` en `src/features/settings/types.ts`
+ *   y registra aquí su definición `light` y `dark`.
  * Toda la aplicación y el selector de Ajustes se adaptarán automáticamente.
  */
-export const MATERIAL_COLOR_PALETTES: Record<MaterialColorTheme, ColorThemeDefinition> = {
+export const MATERIAL_COLOR_PALETTES: Record<PresetPalette, ColorThemeDefinition> = {
   default: {
     id: 'default',
     name: 'Clásico Pastel',
@@ -532,7 +541,44 @@ export const MATERIAL_COLOR_PALETTES: Record<MaterialColorTheme, ColorThemeDefin
       outlineVariant: '#2E2E33',
     },
   },
+  // 10 paletas generadas con Material You (scripts/generate-palettes.ts)
+  ...GENERATED_PALETTES,
 };
+
+const TOKEN_KEYS: readonly (keyof ThemeTokenSet)[] = [
+  'primary',
+  'primaryHover',
+  'onPrimary',
+  'primaryContainer',
+  'onPrimaryContainer',
+  'secondaryContainer',
+  'onSecondaryContainer',
+  'surface',
+  'cardBg',
+  'surfaceContainer',
+  'surfaceContainerHigh',
+  'onSurface',
+  'onSurfaceVariant',
+  'outline',
+  'outlineVariant',
+];
+
+/** ¿Tokens completos y válidos? (la paleta propia vive en localStorage y podría estar dañada). */
+function isValidTokenSet(tokens: unknown): tokens is ThemeTokenSet {
+  if (typeof tokens !== 'object' || tokens === null) return false;
+  const record = tokens as Record<string, unknown>;
+  return TOKEN_KEYS.every((key) => typeof record[key] === 'string' && /^#[0-9a-f]{6}$/i.test(record[key] as string));
+}
+
+export function isValidCustomPalette(custom: CustomPaletteSettings | undefined): custom is CustomPaletteSettings {
+  return Boolean(custom && isValidTokenSet(custom.light) && isValidTokenSet(custom.dark));
+}
+
+/** Nombre visible de la paleta activa (la propia se llama "Tu paleta"). */
+export function paletteDisplayName(palette: MaterialColorTheme): string {
+  if (palette === 'custom') return 'Tu paleta';
+  return (MATERIAL_COLOR_PALETTES[palette] ?? MATERIAL_COLOR_PALETTES.default).name;
+}
 
 /**
  * Aplica el acabado de tarjetas como atributo de :root. Los estilos viven en index.css
@@ -558,7 +604,8 @@ export function applyPerformanceMode(enabled: boolean): void {
 
 export function applyTheme(
   theme: ThemeMode = 'light',
-  colorPalette: MaterialColorTheme = 'default'
+  colorPalette: MaterialColorTheme = 'default',
+  customPalette?: CustomPaletteSettings
 ): void {
   if (typeof window === 'undefined') return;
 
@@ -577,8 +624,11 @@ export function applyTheme(
     root.style.colorScheme = 'light';
   }
 
-  // Obtener definición de la paleta seleccionada (con fallback seguro a 'default')
-  const paletteDef = MATERIAL_COLOR_PALETTES[colorPalette] || MATERIAL_COLOR_PALETTES.default;
+  // Paleta seleccionada: la propia si es válida; si no, la predefinida (fallback seguro a 'default')
+  const custom = colorPalette === 'custom' && isValidCustomPalette(customPalette) ? customPalette : null;
+  const paletteDef = custom
+    ? { seed: custom.seed, light: custom.light, dark: custom.dark }
+    : (colorPalette !== 'custom' && MATERIAL_COLOR_PALETTES[colorPalette]) || MATERIAL_COLOR_PALETTES.default;
   const tokens = isDark ? paletteDef.dark : paletteDef.light;
 
   // Inyectar tokens semánticos Material You en :root
@@ -616,7 +666,8 @@ export function applyTheme(
 export function setupSystemThemeListener(
   currentTheme: ThemeMode,
   colorPalette: MaterialColorTheme = 'default',
-  onThemeChange?: () => void
+  onThemeChange?: () => void,
+  customPalette?: CustomPaletteSettings
 ): () => void {
   if (typeof window === 'undefined' || currentTheme !== 'system') {
     return () => {};
@@ -624,7 +675,7 @@ export function setupSystemThemeListener(
 
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   const handler = () => {
-    applyTheme('system', colorPalette);
+    applyTheme('system', colorPalette, customPalette);
     onThemeChange?.();
   };
 

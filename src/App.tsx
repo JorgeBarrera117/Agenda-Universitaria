@@ -144,12 +144,9 @@ export function App() {
 
   // Sincronizar tema de apariencia (claro, oscuro o sistema) y paleta dinámica Material You
   useEffect(() => {
-    applyTheme(settings.theme, settings.colorPalette);
-    const cleanup = setupSystemThemeListener(settings.theme, settings.colorPalette, () => {
-      applyTheme('system', settings.colorPalette);
-    });
-    return cleanup;
-  }, [settings.theme, settings.colorPalette]);
+    applyTheme(settings.theme, settings.colorPalette, settings.customPalette);
+    return setupSystemThemeListener(settings.theme, settings.colorPalette, undefined, settings.customPalette);
+  }, [settings.theme, settings.colorPalette, settings.customPalette]);
 
   // Acabado de tarjetas antes del primer pintado para que no parpadeen de sólido a cristal
   useLayoutEffect(() => {

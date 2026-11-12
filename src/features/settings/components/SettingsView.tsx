@@ -20,7 +20,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { NotificationService } from '../../../shared/services/notificationService';
 import { BackupSection } from './BackupSection';
-import { applyTheme, MATERIAL_COLOR_PALETTES } from '../../../shared/utils/theme';
+import { applyTheme, paletteDisplayName } from '../../../shared/utils/theme';
 import {
   getCustomWallpaperDataUrl,
   saveCustomWallpaperDataUrl,
@@ -41,7 +41,7 @@ import { PageHeader } from '../../../shared/components/PageHeader';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
 import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
-import type { AppSettings, CardSurfaceStyle, MaterialColorTheme, WallpaperStyle } from '../types';
+import type { AppSettings, CardSurfaceStyle, CustomPaletteSettings, MaterialColorTheme, WallpaperStyle } from '../types';
 
 export type SettingsCategory =
   | 'appearance'
@@ -185,16 +185,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   // Manejador de cambio de tema instantáneo (Modo Claro / Oscuro / Sistema)
   const handleThemeChange = (newTheme: AppSettings['theme']) => {
-    applyTheme(newTheme, settings.colorPalette);
+    applyTheme(newTheme, settings.colorPalette, settings.customPalette);
     updateSettings({ ...settings, theme: newTheme });
     onShowToast(`Tema cambiado a: ${newTheme === 'dark' ? 'Oscuro' : newTheme === 'light' ? 'Claro' : 'Automático'}`);
   };
 
   // Manejador de cambio de paleta dinámica Material You
   const handleColorPaletteChange = (newPalette: MaterialColorTheme) => {
-    applyTheme(settings.theme, newPalette);
+    applyTheme(settings.theme, newPalette, settings.customPalette);
     updateSettings({ ...settings, colorPalette: newPalette });
-    onShowToast(`Paleta de color actualizada: ${MATERIAL_COLOR_PALETTES[newPalette].name}`);
+    onShowToast(`Paleta de color actualizada: ${paletteDisplayName(newPalette)}`);
+  };
+
+  // Paleta propia creada en Temas: se guarda ya calculada y queda seleccionada
+  const handleCustomPaletteApply = (customPalette: CustomPaletteSettings) => {
+    applyTheme(settings.theme, 'custom', customPalette);
+    updateSettings({ colorPalette: 'custom', customPalette });
+    onShowToast('Tu paleta está aplicada.');
   };
 
   const handlePerformanceModeChange = (performanceMode: boolean) => {
@@ -338,7 +345,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <SettingsRow
                 icon={settings.theme === 'dark' ? <Moon className="h-4 w-4" /> : settings.theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
                 title="Apariencia y tema"
-                subtitle={`${themeLabel} · ${(MATERIAL_COLOR_PALETTES[settings.colorPalette || 'default'] || MATERIAL_COLOR_PALETTES.default).name}`}
+                subtitle={`${themeLabel} · ${paletteDisplayName(settings.colorPalette || 'default')}`}
                 value={themeLabel}
                 onClick={() => setActiveSubView('appearance')}
               />
@@ -416,6 +423,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onPaletteChange={handleColorPaletteChange}
                   onCardSurfaceChange={handleCardSurfaceChange}
                   onPerformanceModeChange={handlePerformanceModeChange}
+                  onCustomPaletteApply={handleCustomPaletteApply}
                 />
 
                 {/* 3. Estudio de Papel Tapiz Adaptativo (Wallpaper Studio Compacto) */}

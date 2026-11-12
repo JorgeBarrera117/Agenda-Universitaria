@@ -4,8 +4,8 @@ import { DAY_NAMES, SHORT_DAY_NAMES } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { Note } from '../../features/notes/types';
-import type { MaterialColorTheme, ThemeMode } from '../../features/settings/types';
-import { MATERIAL_COLOR_PALETTES } from '../utils/theme';
+import type { CustomPaletteSettings, MaterialColorTheme, ThemeMode } from '../../features/settings/types';
+import { MATERIAL_COLOR_PALETTES, isValidCustomPalette } from '../utils/theme';
 import { WidgetBridge } from '../plugins/widgetBridge';
 
 export interface WidgetThemeTokens {
@@ -37,13 +37,14 @@ export class WidgetSyncService {
     subjects: Subject[],
     professors: Professor[],
     notes: Note[],
-    themeSettings?: { theme: ThemeMode; colorPalette: MaterialColorTheme }
+    themeSettings?: { theme: ThemeMode; colorPalette: MaterialColorTheme; customPalette?: CustomPaletteSettings }
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
 
     // Obtener configuración de tema (de argumentos o de localStorage como respaldo)
     let themeMode: ThemeMode = themeSettings?.theme || 'system';
     let paletteName: MaterialColorTheme = themeSettings?.colorPalette || 'default';
+    let customPalette: CustomPaletteSettings | undefined = themeSettings?.customPalette;
 
     if (!themeSettings && typeof window !== 'undefined') {
       try {
@@ -52,6 +53,7 @@ export class WidgetSyncService {
           const parsed = JSON.parse(stored);
           if (parsed.theme) themeMode = parsed.theme;
           if (parsed.colorPalette) paletteName = parsed.colorPalette;
+          if (parsed.customPalette) customPalette = parsed.customPalette;
         }
       } catch {
         // Fallback a valores por defecto
@@ -64,7 +66,11 @@ export class WidgetSyncService {
         typeof window !== 'undefined' &&
         window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-    const paletteDef = MATERIAL_COLOR_PALETTES[paletteName] || MATERIAL_COLOR_PALETTES.default;
+    // La paleta propia (si es válida) también colorea el widget; si no, la predefinida o la default
+    const paletteDef =
+      paletteName === 'custom' && isValidCustomPalette(customPalette)
+        ? customPalette
+        : (paletteName !== 'custom' && MATERIAL_COLOR_PALETTES[paletteName]) || MATERIAL_COLOR_PALETTES.default;
     const tokens = isDark ? paletteDef.dark : paletteDef.light;
 
     const themePayload: WidgetThemeTokens = {

@@ -32,7 +32,7 @@ export const StickyToolbar: React.FC<StickyToolbarProps> = ({ children, classNam
       className={`sticky top-14 sm:top-16 lg:top-[76px] xl:top-20 landscape:max-lg:top-14 z-30 -mx-4 px-4 py-2 border-b transition-[background-color,border-color,box-shadow] duration-200 ${
         isStuck
           ? // Mismo fondo y borde que el Navbar: se lee como una sola barra superior
-            'bg-[#F1F4FA]/95 dark:bg-[#1D2024]/95 backdrop-blur-md border-[#C2C7CE]/35 dark:border-[#42474E]/35 shadow-xs'
+            'bg-[var(--color-md-surface-container)]/95 backdrop-blur-md border-[var(--color-md-outline-variant)]/35 shadow-xs'
           : 'bg-transparent border-transparent'
       } ${className}`}
     >

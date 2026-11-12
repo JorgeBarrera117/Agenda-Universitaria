@@ -1,5 +1,10 @@
+import type { ThemeTokenSet } from '../../shared/utils/theme';
+import type { GeneratedPaletteId } from '../../shared/utils/generatedPalettes';
+
 export type ThemeMode = 'light' | 'dark' | 'system';
-export type MaterialColorTheme =
+
+/** Paletas incluidas en la app: las 12 hechas a mano y las generadas con Material You. */
+export type PresetPalette =
   | 'default'
   | 'blue'
   | 'purple'
@@ -11,7 +16,18 @@ export type MaterialColorTheme =
   | 'oled'
   | 'matcha'
   | 'sunset'
-  | 'slate';
+  | 'slate'
+  | GeneratedPaletteId;
+
+/** 'custom' = la paleta creada por el estudiante a partir de su color (ver customPalette). */
+export type MaterialColorTheme = PresetPalette | 'custom';
+
+/** Paleta propia: el color elegido y los tokens ya calculados (la app no recalcula al arrancar). */
+export interface CustomPaletteSettings {
+  seed: string;
+  light: ThemeTokenSet;
+  dark: ThemeTokenSet;
+}
 
 /** Acabado de las tarjetas: sólido (actual), cristal translúcido o plano con bordes marcados. */
 export type CardSurfaceStyle = 'solid' | 'glass' | 'bordered';
@@ -57,6 +73,8 @@ export interface AppSettings {
   cardSurfaceStyle: CardSurfaceStyle;
   /** Modo Ultra Fluidez: sin desenfoques de fondo ni sombras (ver index.css). */
   performanceMode: boolean;
+  /** Tokens de la paleta propia; se usan cuando colorPalette es 'custom'. */
+  customPalette?: CustomPaletteSettings;
   semesterName: string;
   // Perfil / credencial estudiantil (opcional, solo se guarda en este dispositivo)
   studentName?: string;

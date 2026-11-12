@@ -317,7 +317,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
               size="sm"
               icon={<UserPlus className="w-4 h-4 stroke-[2.3]" />}
               onClick={handleOpenCreate}
-              className="shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#96CCFF]/35 active:scale-95 whitespace-nowrap"
+              className="shadow-sm hover:shadow ring-1 ring-[var(--color-md-primary)]/25 active:scale-95 whitespace-nowrap"
             >
               Registrar Catedrático
             </Button>
@@ -326,26 +326,26 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       </div>
 
       {/* 2. Banner Interactivo de Asesorías y Cubículos (Compactado) */}
-      <div className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)]/40 rounded-2xl overflow-hidden shadow-2xs">
         <button
           type="button"
           onClick={() => setIsAdvisoriesModalOpen(true)}
-          className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-[#E2E7EF]/40 dark:hover:bg-[#272A2F]/40 transition-colors text-left cursor-pointer group"
+          className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-[var(--color-md-surface-container-high)]/40 transition-colors text-left cursor-pointer group"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-[#D7E8CD] dark:bg-[#234E27] text-[#0E2010] dark:text-[#D7E8CD] flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform shrink-0">
               <CalendarCheck className="w-4 h-4 stroke-[2.2]" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] block group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors truncate">
+              <span className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] block group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors truncate">
                 Consultar asesorías y cubículos
               </span>
-              <span className="text-[11px] text-[#43474E] dark:text-[#8C9199] block mt-0.5 truncate">
+              <span className="text-[11px] text-[var(--color-md-on-surface-variant)] block mt-0.5 truncate">
                 Directorio rápido de horarios de atención y oficinas
               </span>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-[#72777F] dark:text-[#8C9199] group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors shrink-0 ml-2" />
+          <ChevronRight className="w-4 h-4 text-[var(--color-md-outline)] group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors shrink-0 ml-2" />
         </button>
       </div>
 
