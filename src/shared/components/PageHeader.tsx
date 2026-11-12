@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useIsStuck } from '../hooks/useIsStuck';
-import { HEADER_SCRIM_CLASS } from '../styles/surfaces';
 
 interface PageHeaderProps {
   title: string;
@@ -28,12 +27,16 @@ export const PAGE_HEADER_PRIMARY_BUTTON =
 /** Estas pantallas ocultan el Navbar: el encabezado se pega al borde superior. */
 const topEdge = () => 0;
 
+/** Cápsula del encabezado (mismo estilo que HEADER_SCRIM_CLASS), con su fondo según el estado. */
+const CAPSULE_CLASS =
+  'flex items-center gap-2.5 rounded-2xl border border-[var(--color-md-outline-variant)]/30 p-3 backdrop-blur-md transition-[background-color,box-shadow] duration-200';
+
 /**
  * Encabezado de pantalla con el estilo de Ajustes: cápsula translúcida con botón de volver
  * (cuadrado, flecha en color primario), título y subtítulo, y las acciones de cada pantalla.
- * Se queda fijo arriba al hacer scroll: en reposo no dibuja nada alrededor de la cápsula (no tapa
- * el papel tapiz) y al quedar pegado aparece detrás una franja esmerilada de borde a borde para
- * que el contenido pase difuminado y no asome por los costados de la cápsula.
+ * Se queda fijo arriba al hacer scroll como una cápsula flotante: no hay franja detrás (solo se
+ * ve la cápsula con sus esquinas redondeadas); al quedar pegada se vuelve más opaca y gana
+ * sombra para que el contenido que pasa por debajo no estorbe la lectura.
  */
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
@@ -53,11 +56,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       ref={ref}
       style={style}
       data-stuck={isStuck || undefined}
-      className={`sticky top-0 z-40 py-2 transition-[background-color,box-shadow] duration-200 ${
-        isStuck ? 'bg-[var(--color-md-surface)]/85 backdrop-blur-md shadow-xs' : 'bg-transparent'
-      } ${className}`}
+      className={`sticky top-0 z-40 py-2 ${className}`}
     >
-      <div className={`flex items-center gap-2.5 ${HEADER_SCRIM_CLASS}`}>
+      <div
+        className={`${CAPSULE_CLASS} ${
+          isStuck ? 'bg-[var(--color-md-surface)]/90 shadow-md' : 'bg-[var(--color-md-surface)]/70 shadow-2xs'
+        }`}
+      >
         <button
           type="button"
           onClick={onBack}
