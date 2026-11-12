@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Award,
   CalendarDays,
@@ -16,6 +16,7 @@ import {
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
 import { BACK_PRIORITY, useBackButton } from '../../../shared/hooks/useBackButton';
+import { MOTION_EXIT_MS, useExitTransition } from '../../../shared/hooks/useExitTransition';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import type { Professor } from '../../professors/types';
 import { DAY_NAMES, type ScheduleSlot } from '../../schedule/types';
@@ -91,8 +92,12 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
   onNavigateToDocs,
   onSelectProfessor,
 }) => {
+  // Salida animada (la misma de los formularios): con la flecha y con el botón atrás de Android
+  const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
+  const exit = useCallback(() => runExit(onBack), [runExit, onBack]);
+
   useBackButton(() => {
-    onBack();
+    exit();
     return true;
   }, BACK_PRIORITY.SUBVIEW);
 
@@ -101,11 +106,11 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
   const hasCredits = subject.credits !== undefined && subject.credits > 0;
 
   return (
-    <div className="m3-sheet-enter mx-auto w-full max-w-3xl space-y-3 pb-10">
+    <div className={`${isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'} mx-auto w-full max-w-3xl space-y-3 pb-10`}>
       <PageHeader
         title="Asignatura"
         subtitle="Ficha técnica"
-        onBack={onBack}
+        onBack={exit}
         backLabel="Volver a materias"
         actions={
           <>
