@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Pipette, Wand2 } from 'lucide-react';
+import { M3ColorPickerModal } from '../../../shared/components/form';
 import type { GeneratedTokens } from '../../../shared/utils/paletteGenerator';
 import type { ThemeTokenSet } from '../../../shared/utils/theme';
 import type { BackgroundSource, BackgroundTint, CustomPaletteSettings, PaletteRecipe, PaletteStyle } from '../types';
@@ -49,6 +50,7 @@ const chipClass = (selected: boolean) =>
 /** Muestras rápidas + selector libre + código hexadecimal para un color. */
 const ColorField: React.FC<{ value: string; onPick: (color: string) => void; label: string }> = ({ value, onPick, label }) => {
   const [hexInput, setHexInput] = useState(value);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const hexInvalid = hexInput.trim() !== '' && !HEX_INPUT.test(hexInput.trim());
 
   const pick = (color: string) => {
@@ -75,14 +77,25 @@ const ColorField: React.FC<{ value: string; onPick: (color: string) => void; lab
         ))}
       </div>
       <div className="flex items-center gap-2">
-        <label
-          className="relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl ring-1 ring-[var(--color-md-outline-variant)]"
+        {/* Selector propio de la app (el <input type="color"> abre en Android un diálogo del sistema) */}
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          aria-label={`Elegir cualquier color para ${label}`}
+          aria-haspopup="dialog"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ring-[var(--color-md-outline-variant)] transition-transform duration-150 active:scale-95"
           style={{ backgroundColor: value }}
         >
           <Pipette className="h-4 w-4 text-white drop-shadow" aria-hidden="true" />
-          <span className="sr-only">Elegir cualquier color para {label}</span>
-          <input type="color" value={value} onChange={(e) => pick(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
-        </label>
+        </button>
+        <M3ColorPickerModal
+          isOpen={pickerOpen}
+          initialColor={value}
+          onClose={() => setPickerOpen(false)}
+          onApply={pick}
+          title={`Elige ${label}`}
+          showIconContrastHint={false}
+        />
         <input
           type="text"
           maxLength={7}
