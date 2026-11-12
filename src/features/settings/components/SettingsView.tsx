@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  ArrowLeft,
   Sun,
   Moon,
   Monitor,
@@ -37,7 +36,7 @@ import { MediaSettings } from './MediaSettings';
 import { AboutSettings } from './AboutSettings';
 import { UpdateSettings } from './UpdateSettings';
 import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
-import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
+import { PageHeader } from '../../../shared/components/PageHeader';
 import { StudentCredential } from './StudentCredential';
 import { ThemeStudio } from './ThemeStudio';
 import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
@@ -311,28 +310,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
            ========================================================================= */}
         {activeSubView === null ? (
           <div className="space-y-3 m3-tab-enter-left">
-            {/* Cabecera Principal Compacta */}
-            <div className={`flex items-center justify-between ${HEADER_SCRIM_CLASS}`}>
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={onBack}
-                  title="Volver a la Agenda"
-                  aria-label="Volver a la Agenda"
-                  className="w-9 h-9 flex items-center justify-center text-[var(--color-md-on-surface)] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer"
-                >
-                  <ArrowLeft className="w-4.5 h-4.5 text-[var(--color-md-primary)]" />
-                </button>
-                <div>
-                  <h1 className="text-lg sm:text-xl font-black text-[var(--color-md-on-surface)] tracking-tight">
-                    Ajustes
-                  </h1>
-                  <p className="text-[11px] text-[var(--color-md-on-surface-variant)] font-medium">
-                    Preferencias globales de la aplicación
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Cabecera fija al hacer scroll */}
+            <PageHeader
+              titleAs="h1"
+              title="Ajustes"
+              subtitle="Preferencias globales de la aplicación"
+              onBack={onBack}
+              backLabel="Volver a la Agenda"
+            />
 
             {/* Credencial estudiantil plegable (perfil editable en su propia sub-página) */}
             <StudentCredential
@@ -405,27 +390,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
              VISTA 2: SUB-PÁGINAS DEDICADAS (FOCALIZADAS, LIMPIAS Y COMPACTAS)
              ========================================================================= */
           <div className={`space-y-3 ${subViewExit.isClosing ? 'm3-sheet-exit' : 'm3-tab-enter-right'}`}>
-            {/* Cabecera de la Sub-Página Compacta */}
-            <div className={`flex items-center justify-between ${HEADER_SCRIM_CLASS}`}>
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={closeSubView}
-                  aria-label="Regresar a Ajustes"
-                  className="w-9 h-9 flex items-center justify-center text-[var(--color-md-on-surface)] bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer"
-                >
-                  <ArrowLeft className="w-4.5 h-4.5 text-[var(--color-md-primary)]" />
-                </button>
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-[var(--color-md-on-surface)] tracking-tight">
-                    {SUBVIEW_TITLES[activeSubView]}
-                  </h2>
-                  <p className="text-[11px] text-[var(--color-md-on-surface-variant)] font-medium">
-                    Ajustes
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Cabecera de la sub-página, fija al hacer scroll */}
+            <PageHeader
+              title={SUBVIEW_TITLES[activeSubView]}
+              subtitle="Ajustes"
+              onBack={closeSubView}
+              backLabel="Regresar a Ajustes"
+            />
 
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
             {activeSubView === 'appearance' && (

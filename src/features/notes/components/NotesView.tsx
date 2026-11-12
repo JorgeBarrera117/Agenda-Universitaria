@@ -8,7 +8,6 @@ import {
   Camera,
   Image as ImageIcon,
   Loader2,
-  ArrowLeft,
   LayoutGrid,
   List as ListIcon,
   ArrowUpDown,
@@ -24,6 +23,7 @@ import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
 import { Modal } from '../../../shared/components/Modal';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
+import { PageHeader } from '../../../shared/components/PageHeader';
 import { SearchField } from '../../../shared/components/SearchField';
 import { M3Select } from '../../../shared/components/M3Select';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
@@ -356,31 +356,24 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
     return (
       <div className={`relative flex min-h-[100dvh] w-full flex-col pb-16 ${readerExit.isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'}`}>
-        {/* Barra superior: volver · título y materia · menú de acciones */}
-        <header className="sticky top-0 z-40 flex items-center gap-2.5 border-b border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface)]/95 px-3 py-2 backdrop-blur-xl sm:px-6">
-          <button
-            type="button"
-            onClick={closeReader}
-            aria-label="Volver a los apuntes"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface)] transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-container)] active:scale-95"
-          >
-            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-          </button>
-
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-bold leading-tight text-[var(--color-md-on-surface)]">
-              {readingNote.title || 'Documento sin título'}
-            </h2>
-            <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">
+        {/* Encabezado fijo con el estilo de Ajustes: volver · título y materia · menú de acciones.
+            La vista ocupa todo el ancho (sin margen del <main>): relleno lateral propio. */}
+        <PageHeader
+          title={readingNote.title || 'Documento sin título'}
+          subtitle={
+            <span className="flex items-center gap-1.5">
               <span
                 className="h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: readingSubject?.color }}
                 aria-hidden="true"
               />
               <span className="truncate">{readingSubject?.name || 'Sin materia'}</span>
-            </p>
-          </div>
-
+            </span>
+          }
+          onBack={closeReader}
+          backLabel="Volver a los apuntes"
+          className="px-3 sm:px-6"
+          actions={
           <M3KebabMenu
             size="md"
             ariaLabel="Opciones del apunte"
@@ -432,7 +425,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
               },
             ]}
           />
-        </header>
+          }
+        />
 
         <input
           ref={readerCameraInputRef}

@@ -1,9 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
+import { useIsStuck } from '../hooks/useIsStuck';
 
 interface StickyToolbarProps {
   children: React.ReactNode;
   className?: string;
 }
+
+/** Línea donde se pega: el borde inferior del Navbar (se mide en cada comprobación). */
+const navbarBottom = () => document.querySelector('header')?.getBoundingClientRect().bottom ?? 56;
 
 /**
  * Barra (búsqueda, orden…) que se queda fija justo debajo del Navbar al hacer scroll.
@@ -19,43 +23,7 @@ interface StickyToolbarProps {
  */
 export const StickyToolbar: React.FC<StickyToolbarProps> = ({ children, className = '' }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [isStuck, setIsStuck] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    let frame = 0;
-    const check = () => {
-      frame = 0;
-      const rect = element.getBoundingClientRect();
-      // Pestaña oculta (display: none): mide 0×0 y top 0, lo que parecería "pegada". Nunca lo está.
-      if (rect.width === 0 && rect.height === 0) {
-        setIsStuck(false);
-        return;
-      }
-      const headerBottom = document.querySelector('header')?.getBoundingClientRect().bottom ?? 56;
-      // Pegada = su borde superior llegó al borde inferior del Navbar (1px de tolerancia por el borde)
-      setIsStuck(rect.top <= headerBottom + 1);
-    };
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(check);
-    };
-
-    // El scroll mueve la barra; el ResizeObserver avisa cuando la pestaña vuelve a mostrarse
-    // (pasa de 0×0 a su tamaño real) o cambia el ancho, casos en los que no hay evento de scroll
-    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
-    resizeObserver?.observe(element);
-    schedule();
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-    return () => {
-      resizeObserver?.disconnect();
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
+  const isStuck = useIsStuck(ref, navbarBottom);
 
   return (
     <div

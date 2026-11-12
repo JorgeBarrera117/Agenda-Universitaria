@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { Check, ArrowLeft, Undo2, Redo2, X, Loader2, AlertTriangle, Share2 } from 'lucide-react';
+import { Check, Undo2, Redo2, X, Loader2, AlertTriangle, Share2 } from 'lucide-react';
+import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { RichTextEditor } from './RichTextEditor';
@@ -18,9 +19,6 @@ interface NoteEditorProps {
   onSubmit: (data: CreateNoteDTO) => Promise<void>;
   onCancel: () => void;
 }
-
-const headerIconButton =
-  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--color-md-on-surface)] transition-all duration-150 ease-out hover:bg-[var(--color-md-surface-container-high)] active:scale-95 disabled:pointer-events-none disabled:opacity-35';
 
 /** Normaliza una etiqueta escrita a mano: sin "#", sin espacios extremos y en minúsculas. */
 function normalizeTag(raw: string): string {
@@ -190,76 +188,75 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
         isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'
       }`}
     >
-      {/* Cabecera: volver · documento y estado · deshacer, rehacer y guardar */}
-      <header
+      {/* Encabezado fijo con el estilo de Ajustes: volver · documento y estado · deshacer,
+          rehacer, compartir y guardar. El editor ocupa todo el ancho (sin margen del <main>),
+          así que la franja usa su propio relleno lateral respetando el área segura. */}
+      <PageHeader
+        title={title.trim() || (initialData ? 'Documento sin título' : 'Nuevo apunte')}
+        subtitle={
+          <span aria-live="polite">{isSubmitting ? 'Guardando…' : isDirty ? 'Cambios sin guardar' : 'Sin cambios'}</span>
+        }
+        onBack={handleBack}
+        backLabel="Volver"
+        className="w-full shrink-0 sm:px-6"
         style={{
           paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
         }}
-        className="sticky top-0 z-40 flex w-full shrink-0 items-center gap-1 border-b border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface)]/95 py-2 backdrop-blur-xl sm:gap-2 sm:px-6"
-      >
-        <button type="button" onClick={handleBack} aria-label="Volver" className={headerIconButton}>
-          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-        </button>
-
-        <div className="min-w-0 flex-1 px-1">
-          <p className="truncate text-sm font-bold leading-tight">
-            {title.trim() || (initialData ? 'Documento sin título' : 'Nuevo apunte')}
-          </p>
-          <p className="truncate text-[11px] font-medium text-[var(--color-md-on-surface-variant)]" aria-live="polite">
-            {isSubmitting ? 'Guardando…' : isDirty ? 'Cambios sin guardar' : 'Sin cambios'}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => editorInstance?.chain().focus().undo().run()}
-          disabled={!editorInstance || !editorInstance.can().undo()}
-          aria-label="Deshacer"
-          title="Deshacer (Ctrl+Z)"
-          className={headerIconButton}
-        >
-          <Undo2 className="h-[18px] w-[18px]" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editorInstance?.chain().focus().redo().run()}
-          disabled={!editorInstance || !editorInstance.can().redo()}
-          aria-label="Rehacer"
-          title="Rehacer (Ctrl+Y)"
-          className={headerIconButton}
-        >
-          <Redo2 className="h-[18px] w-[18px]" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleShare()}
-          disabled={isSharing}
-          aria-label="Compartir apunte"
-          title="Compartir apunte (.agnote)"
-          className={headerIconButton}
-        >
-          {isSharing ? (
-            <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden="true" />
-          ) : (
-            <Share2 className="h-[18px] w-[18px]" aria-hidden="true" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          disabled={isSubmitting || subjects.length === 0}
-          className="ml-1 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-4 text-sm font-bold text-[var(--color-md-on-primary)] shadow-xs transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-95 disabled:pointer-events-none disabled:opacity-50"
-        >
-          {isSubmitting ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <Check className="h-4 w-4 stroke-[2.8]" aria-hidden="true" />
-          )}
-          <span>Guardar</span>
-        </button>
-      </header>
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => editorInstance?.chain().focus().undo().run()}
+              disabled={!editorInstance || !editorInstance.can().undo()}
+              aria-label="Deshacer"
+              title="Deshacer (Ctrl+Z)"
+              className={PAGE_HEADER_ICON_BUTTON}
+            >
+              <Undo2 className="h-[18px] w-[18px]" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editorInstance?.chain().focus().redo().run()}
+              disabled={!editorInstance || !editorInstance.can().redo()}
+              aria-label="Rehacer"
+              title="Rehacer (Ctrl+Y)"
+              className={PAGE_HEADER_ICON_BUTTON}
+            >
+              <Redo2 className="h-[18px] w-[18px]" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleShare()}
+              disabled={isSharing}
+              aria-label="Compartir apunte"
+              title="Compartir apunte (.agnote)"
+              className={PAGE_HEADER_ICON_BUTTON}
+            >
+              {isSharing ? (
+                <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden="true" />
+              ) : (
+                <Share2 className="h-[18px] w-[18px]" aria-hidden="true" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSave()}
+              disabled={isSubmitting || subjects.length === 0}
+              className={`ml-1 ${PAGE_HEADER_PRIMARY_BUTTON} max-[399px]:w-9 max-[399px]:justify-center max-[399px]:px-0`}
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Check className="h-3.5 w-3.5 stroke-[2.8]" aria-hidden="true" />
+              )}
+              {/* En teléfonos angostos (< 400px) queda solo el ✓ para dar espacio al título;
+                  el texto sigue disponible para lectores de pantalla */}
+              <span className="max-[399px]:sr-only">Guardar</span>
+            </button>
+          </>
+        }
+      />
 
       <ContextualToast message={error} variant="error" bottomOffset="nav" onClose={() => setError(null)} />
       <ContextualToast message={shareNotice} bottomOffset="nav" onClose={() => setShareNotice(null)} />
