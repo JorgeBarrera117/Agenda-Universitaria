@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.54",
+  "latestVersion": "1.7.10.55",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.54/Agenda-Universitaria-v1.7.10.54.apk",
-  "apkSha256": "16c011eff164fd175ecc0c157e2a6994a8c49e0283638a5634c176be92c1c13a",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.55/Agenda-Universitaria-v1.7.10.55.apk",
+  "apkSha256": "6d0dbd8df50d2c3174043fc551278696992905b864f9e74feec2bb47636da25d",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "10 paletas de color nuevas en Ajustes → Apariencia y tema",
-    "Crea tu propia paleta a partir de cualquier color (también colorea el widget)",
-    "La barra superior y más pantallas siguen la paleta elegida"
+    "Apariencia y tema más ordenada: bloques Color, Fondo y Tarjetas",
+    "Paletas en círculos de color, con «+» para crear la tuya",
+    "Los ajustes finos del papel tapiz quedan en «Ajustar fondo»"
   ]
 }
