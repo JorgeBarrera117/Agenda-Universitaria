@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.45",
+  "latestVersion": "1.7.10.46",
   "releaseDate": "2026-11-12",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.45/Agenda-Universitaria-v1.7.10.45.apk",
-  "apkSha256": "8be988359a3ee1bad84c14b19864bdfdc8964068b3b00066a347e48c7657930a",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.46/Agenda-Universitaria-v1.7.10.46.apk",
+  "apkSha256": "8292bac74de8f60604dcc96025626a96e8452b80cad5c72e587614db86d26512",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "El buscador se queda fijo arriba al hacer scroll en Profesores, Apuntes y Archivos",
-    "Las tarjetas pasan por detrás con efecto de cristal esmerilado",
-    "En Archivos, el orden también queda a mano junto al buscador"
+    "Arreglada la franja oscura que aparecía detrás del buscador",
+    "Buscador renovado e igual en Profesores, Apuntes y Archivos",
+    "Al quedar fijo, el buscador se une al encabezado como una sola barra"
   ]
 }
