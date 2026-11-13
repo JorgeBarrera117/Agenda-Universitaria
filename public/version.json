@@ -1,13 +1,14 @@
 {
-  "latestVersion": "1.7.10.58",
+  "latestVersion": "1.7.10.59",
   "releaseDate": "2026-11-13",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.58/Agenda-Universitaria-v1.7.10.58.apk",
-  "apkSha256": "47505f1a520a73f50fecbcc972fd04c9022824e055716a13f31f8bd7826f7188",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.59/Agenda-Universitaria-v1.7.10.59.apk",
+  "apkSha256": "01a89616c246064d7cb2df5a024fa18f432f46f4f986a863bc890f0247e4487b",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.59/Agenda-Universitaria-Setup-v1.7.10.59.exe",
+  "desktopSha256": "a96bcf33d681a3943970e68e0933eac6d1a6e8e3f41a4e4a900532227280e71f",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "«Guardar» ya no cierra el apunte: sigues escribiendo",
-    "La cabecera muestra «Guardado a las HH:mm ✓»",
-    "Nuevo «Guardar y salir» al salir con cambios pendientes"
+    "Instalador para Windows con accesos en el escritorio y el menú Inicio",
+    "En Windows, las actualizaciones se descargan e instalan desde la app"
   ]
 }
