@@ -2,7 +2,7 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { AlertTriangle, Download, ExternalLink, Loader2, RotateCcw, ShieldCheck } from 'lucide-react';
 import { useInAppUpdate } from '../hooks/useInAppUpdate';
-import { canInstallInApp, type UpdateInfo } from '../services/updateService';
+import { canInstallInApp, isDesktopApp, type UpdateInfo } from '../services/updateService';
 
 interface UpdateInstallActionsProps {
   info: UpdateInfo;
@@ -24,12 +24,13 @@ export const UpdateInstallActions: React.FC<UpdateInstallActionsProps> = ({ info
   const { state, start, grantPermission, reopenInstaller } = useInAppUpdate();
   const inApp = canInstallInApp(info);
   const isNative = Capacitor.isNativePlatform();
+  const isDesktop = isDesktopApp();
 
   if (!inApp) {
     return (
       <button type="button" onClick={onOpenPage} className={primaryButton}>
-        {isNative ? <Download className="h-4 w-4" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />}
-        {isNative ? 'Descargar actualización' : 'Abrir la nueva versión'}
+        {isNative || isDesktop ? <Download className="h-4 w-4" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />}
+        {isNative || isDesktop ? 'Descargar actualización' : 'Abrir la nueva versión'}
       </button>
     );
   }
@@ -81,7 +82,14 @@ export const UpdateInstallActions: React.FC<UpdateInstallActionsProps> = ({ info
         </div>
       )}
 
-      {state.phase === 'installer-opened' && (
+      {state.phase === 'installer-opened' && isDesktop && (
+        <p className="inline-flex items-center gap-2 text-xs font-semibold leading-relaxed text-[var(--color-md-on-surface)]">
+          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />
+          Instalando… La agenda se cerrará y volverá a abrirse en unos segundos. Tus datos se conservan.
+        </p>
+      )}
+
+      {state.phase === 'installer-opened' && !isDesktop && (
         <div className="space-y-1.5">
           <p className="text-xs leading-relaxed text-[var(--color-md-on-surface)]">
             Se abrió el instalador de Android: toca «Actualizar». Tus materias y apuntes se conservan.

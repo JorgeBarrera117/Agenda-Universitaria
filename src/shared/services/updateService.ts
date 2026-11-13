@@ -42,6 +42,10 @@ export interface UpdateInfo {
   apkDownloadUrl?: string;
   /** Huella SHA-256 del APK: la app no instala nada que no coincida. */
   apkSha256?: string;
+  /** Enlace directo al instalador de Windows (.exe) para actualizar la versión de escritorio. */
+  desktopDownloadUrl?: string;
+  /** Huella SHA-256 del instalador de Windows. */
+  desktopSha256?: string;
   webUrl?: string;
   highlights: string[];
 }
@@ -91,6 +95,15 @@ export function parseVersionManifest(raw: unknown): UpdateInfo {
         : undefined,
     apkSha256:
       typeof data.apkSha256 === 'string' && /^[a-f0-9]{64}$/i.test(data.apkSha256) ? data.apkSha256.toLowerCase() : undefined,
+    desktopDownloadUrl:
+      typeof data.desktopDownloadUrl === 'string' &&
+      /^https:\/\/github\.com\/jorgebarrera117\/agenda-universitaria\/releases\/download\/[^?#]+\.exe$/i.test(data.desktopDownloadUrl)
+        ? data.desktopDownloadUrl
+        : undefined,
+    desktopSha256:
+      typeof data.desktopSha256 === 'string' && /^[a-f0-9]{64}$/i.test(data.desktopSha256)
+        ? data.desktopSha256.toLowerCase()
+        : undefined,
     webUrl: url(data.webUrl),
     highlights,
   };
@@ -220,9 +233,21 @@ export async function openDownloadUrl(url: string): Promise<void> {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-/** ¿Se puede actualizar sin salir de la app? Android, con enlace directo al APK y su huella. */
+/** Versión de escritorio (Electron) con actualizador integrado. */
+const desktopUpdater = () => (typeof window !== 'undefined' && window.electronAPI?.downloadUpdate ? window.electronAPI : undefined);
+
+/** ¿Es la app de escritorio (Windows)? */
+export function isDesktopApp(): boolean {
+  return typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
+}
+
+/**
+ * ¿Se puede actualizar sin salir de la app? Android con el APK directo y su huella; Windows con el
+ * instalador directo y su huella.
+ */
 export function canInstallInApp(info: UpdateInfo): boolean {
-  return Capacitor.isNativePlatform() && Boolean(info.apkDownloadUrl && info.apkSha256);
+  if (Capacitor.isNativePlatform()) return Boolean(info.apkDownloadUrl && info.apkSha256);
+  return Boolean(desktopUpdater() && info.desktopDownloadUrl && info.desktopSha256);
 }
 
 /** Error al instalar porque Android aún no permite que la app instale actualizaciones. */
@@ -242,6 +267,23 @@ function isInstallPermissionRejection(err: unknown): boolean {
  * la huella SHA-256, que sea esta app y que sea una versión más nueva antes de aceptarlo.
  */
 export async function downloadUpdateInApp(info: UpdateInfo, onProgress: (percent: number | null) => void): Promise<void> {
+  const desktop = desktopUpdater();
+  if (desktop) {
+    if (!info.desktopDownloadUrl || !info.desktopSha256) {
+      throw new Error('Esta versión no permite actualizar desde la app.');
+    }
+    const stop = desktop.onUpdateProgress((percent) => onProgress(percent >= 0 ? percent : null));
+    try {
+      await desktop.downloadUpdate({ url: info.desktopDownloadUrl, sha256: info.desktopSha256 });
+    } catch (err) {
+      // Los errores de IPC llegan como "Error invoking remote method '…': Error: <mensaje>"
+      const message = err instanceof Error ? err.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') : '';
+      throw new Error(message || 'No se pudo descargar la actualización.');
+    } finally {
+      stop();
+    }
+    return;
+  }
   if (!info.apkDownloadUrl || !info.apkSha256) {
     throw new Error('Esta versión no permite actualizar desde la app.');
   }
@@ -264,8 +306,9 @@ export async function downloadUpdateInApp(info: UpdateInfo, onProgress: (percent
   }
 }
 
-/** ¿Android ya permite que la app instale actualizaciones? */
+/** ¿Android ya permite que la app instale actualizaciones? (Windows no pide este permiso.) */
 export async function hasInstallPermission(): Promise<boolean> {
+  if (desktopUpdater()) return true;
   return (await WidgetBridge.canInstallPackages()).allowed;
 }
 
@@ -274,8 +317,16 @@ export function openInstallPermissionSettings(): Promise<void> {
   return WidgetBridge.openInstallPermissionSettings();
 }
 
-/** Abre el instalador de Android con el APK descargado. */
+/**
+ * Abre el instalador de Android con el APK descargado. En Windows ejecuta el instalador en
+ * silencio: la app se cierra y vuelve a abrirse ya actualizada.
+ */
 export async function installDownloadedUpdate(): Promise<void> {
+  const desktop = desktopUpdater();
+  if (desktop) {
+    await desktop.installUpdate();
+    return;
+  }
   try {
     await WidgetBridge.installDownloadedUpdate();
   } catch (err) {

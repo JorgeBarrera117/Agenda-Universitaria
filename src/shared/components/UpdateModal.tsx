@@ -5,7 +5,7 @@ import { Modal } from './Modal';
 import { Button } from './atoms';
 import { UpdateInstallActions } from './UpdateInstallActions';
 import { APP_INFO } from '../constants/appInfo';
-import { canInstallInApp, formatReleaseDate, type UpdateInfo } from '../services/updateService';
+import { canInstallInApp, formatReleaseDate, isDesktopApp, type UpdateInfo } from '../services/updateService';
 
 interface UpdateModalProps {
   info: UpdateInfo;
@@ -53,6 +53,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ info, onDownload, onLa
             {inApp
               ? 'Se descarga dentro de la app y se abre el instalador de Android. Tus materias y apuntes se conservan.'
               : 'Se abrirá GitHub para descargar el APK. Instálalo encima de la app actual: tus materias y apuntes se conservan.'}
+          </p>
+        )}
+        {isDesktopApp() && inApp && (
+          <p className="rounded-xl bg-[var(--color-md-surface-container)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">
+            Se descarga dentro de la app y se instala sola: la agenda se cierra y vuelve a abrirse actualizada. Tus materias y apuntes se conservan.
           </p>
         )}
 

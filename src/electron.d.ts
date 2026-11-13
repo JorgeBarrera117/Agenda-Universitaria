@@ -40,6 +40,12 @@ export interface ElectronAPI {
   setLaunchAtLogin: (enabled: boolean) => Promise<boolean>;
   /** Devuelve la función para dejar de escuchar. */
   onReminderFired: (callback: () => void) => () => void;
+  /** Descarga el instalador y comprueba su SHA-256 (rechaza enlaces fuera de los releases del repositorio). */
+  downloadUpdate: (options: { url: string; sha256: string }) => Promise<{ success: boolean }>;
+  /** Ejecuta el instalador descargado en silencio; la app se cierra y el instalador la vuelve a abrir. */
+  installUpdate: () => Promise<{ success: boolean }>;
+  /** Progreso 0-100 (o -1 si el servidor no informa el tamaño). Devuelve la función para dejar de escuchar. */
+  onUpdateProgress: (callback: (percent: number) => void) => () => void;
 }
 
 declare global {

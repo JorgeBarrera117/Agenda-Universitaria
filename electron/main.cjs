@@ -1,7 +1,7 @@
-const { app, BrowserWindow, shell, ipcMain, Notification, Tray, Menu, nativeImage, dialog, session, powerMonitor } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, Notification, Tray, Menu, nativeImage, dialog, session, powerMonitor, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -350,6 +350,78 @@ function createWindow(showImmediately) {
     mainWindow = null;
   });
 }
+
+/* ------------------------------------------------------------------------------------------------
+ * Actualizaciones dentro de la app (como en Android): descarga el instalador desde los releases
+ * del repositorio, comprueba su huella SHA-256 y lo ejecuta en silencio; al terminar, el instalador
+ * vuelve a abrir la app. Los datos se conservan (misma carpeta de datos).
+ * ---------------------------------------------------------------------------------------------- */
+const UPDATE_URL_PATTERN =
+  /^https:\/\/github\.com\/jorgebarrera117\/agenda-universitaria\/releases\/download\/[^?#]+\.exe$/i;
+let downloadedInstaller = null;
+let updateDownloadInProgress = false;
+
+ipcMain.handle('download-update', async (event, options) => {
+  const url = options && options.url;
+  const expected = options && typeof options.sha256 === 'string' ? options.sha256.toLowerCase() : '';
+  if (typeof url !== 'string' || !UPDATE_URL_PATTERN.test(url) || !/^[a-f0-9]{64}$/.test(expected)) {
+    throw new Error('El enlace de la actualización no es de confianza.');
+  }
+  if (updateDownloadInProgress) throw new Error('La actualización ya se está descargando.');
+  updateDownloadInProgress = true;
+  const crypto = require('crypto');
+  const dir = path.join(app.getPath('temp'), 'AgendaUniversitaria_Update');
+  const target = path.join(dir, 'Agenda-Universitaria-Setup.exe');
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const response = await net.fetch(url, { cache: 'no-store' });
+    if (!response.ok || !response.body) throw new Error(`No se pudo descargar la actualización (HTTP ${response.status}).`);
+    const total = Number(response.headers.get('content-length')) || 0;
+    const hash = crypto.createHash('sha256');
+    const file = fs.createWriteStream(target);
+    let received = 0;
+    let lastPercent = -1;
+    const reader = response.body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = Buffer.from(value);
+        hash.update(chunk);
+        received += chunk.length;
+        if (!file.write(chunk)) await new Promise((resolve) => file.once('drain', resolve));
+        const percent = total > 0 ? Math.floor((received / total) * 100) : -1;
+        if (percent !== lastPercent) {
+          lastPercent = percent;
+          if (!event.sender.isDestroyed()) event.sender.send('update-download-progress', percent);
+        }
+      }
+    } finally {
+      await new Promise((resolve) => file.end(resolve));
+    }
+    if (hash.digest('hex') !== expected) {
+      fs.rmSync(target, { force: true });
+      throw new Error('La descarga no coincide con la versión publicada. Se descartó por seguridad.');
+    }
+    downloadedInstaller = target;
+    return { success: true };
+  } finally {
+    updateDownloadInProgress = false;
+  }
+});
+
+ipcMain.handle('install-update', () => {
+  if (!downloadedInstaller || !fs.existsSync(downloadedInstaller)) {
+    throw new Error('Primero hay que descargar la actualización.');
+  }
+  // /S = sin ventanas; --force-run = el instalador abre la app al terminar
+  const child = spawn(downloadedInstaller, ['/S', '--force-run'], { detached: true, stdio: 'ignore', windowsHide: false });
+  child.unref();
+  isQuitting = true;
+  // Un momento para que la interfaz muestre "Instalando…" antes de cerrarse
+  setTimeout(() => app.quit(), 600);
+  return { success: true };
+});
 
 // Canal IPC: Apertura nativa de documentos con la aplicación predeterminada del sistema operativo
 ipcMain.handle('open-document', async (_event, options) => {
