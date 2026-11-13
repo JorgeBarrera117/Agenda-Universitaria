@@ -1,5 +1,11 @@
 !include "FileFunc.nsh"
 
+; Pie de las ventanas del instalador: solo el nombre (electron-builder ponía "1.7.1-0.61", porque no
+; entiende versiones de cuatro números). Se inserta después del BrandingText estándar y lo reemplaza.
+!macro customHeader
+  BrandingText "Agenda Universitaria"
+!macroend
+
 ; ---------------------------------------------------------------------------------------------
 ; Cierre de la agenda antes de instalar, actualizar o desinstalar.
 ;
@@ -49,6 +55,31 @@
 
 !macro customUnInit
   !insertmacro agendaCloseRunningApp
+!macroend
+
+; Al desinstalar (también cuando una actualización quita la versión anterior): borra la carpeta del
+; programa reintentando hasta ~60 s. Windows Defender suele tener los archivos recién usados
+; bloqueados unos segundos; la plantilla estándar fallaba tras pocos intentos y el instalador
+; mostraba «No se puede cerrar… reintentar». Los datos del estudiante no están aquí (viven en
+; %APPDATA%\agenda-universitaria), así que no se tocan.
+!macro customRemoveFiles
+  Push $R1
+  StrCpy $R1 0
+  ${Do}
+    ClearErrors
+    RMDir /r "$INSTDIR"
+    ; IfFileExists "<carpeta>\*.*" es la forma de NSIS de preguntar si la carpeta aún existe
+    ${IfNot} ${FileExists} "$INSTDIR\*.*"
+      ${ExitDo}
+    ${EndIf}
+    IntOp $R1 $R1 + 1
+    ${If} $R1 >= 60
+      DetailPrint `No se pudo borrar por completo "$INSTDIR".`
+      ${ExitDo}
+    ${EndIf}
+    Sleep 1000
+  ${Loop}
+  Pop $R1
 !macroend
 
 ; En "Aplicaciones instaladas" de Windows: nombre sin número y la versión real (1.7.10.59), que
