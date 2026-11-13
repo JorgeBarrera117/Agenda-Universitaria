@@ -97,10 +97,12 @@
       "shortcutName": "Agenda Universitaria",
       "artifactName": "Agenda-Universitaria-Setup-v1.7.10.59.${ext}",
       "include": "electron/installer.nsh",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "uninstallDisplayName": "Agenda Universitaria"
     },
     "portable": {
       "artifactName": "Agenda-Universitaria-Portable-v1.7.10.59.${ext}"
-    }
+    },
+    "buildVersion": "1.7.10.59"
   }
 }
