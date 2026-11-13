@@ -15,7 +15,10 @@
   Push $1
   StrCpy $1 0
   ${Do}
-    nsExec::Exec `"$SYSDIR\taskkill.exe" /F /T /IM "${APP_EXECUTABLE_FILENAME}" /FI "USERNAME eq %USERNAME%"`
+    ; Sin filtro de usuario: con él, taskkill tarda ~45 s en resolver cuentas (o se cuelga si el
+    ; nombre no se expande). Sin permisos de administrador tampoco puede cerrar procesos de otros
+    ; usuarios, así que solo afecta a la agenda de quien instala.
+    nsExec::Exec `"$SYSDIR\taskkill.exe" /F /T /IM "${APP_EXECUTABLE_FILENAME}"`
     Pop $0
     Sleep 400
     ; findstr devuelve 0 si todavía hay algún proceso con ese nombre
