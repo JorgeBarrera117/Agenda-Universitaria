@@ -1,14 +1,15 @@
 {
-  "latestVersion": "1.7.10.60",
+  "latestVersion": "1.7.10.61",
   "releaseDate": "2026-11-13",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.60/Agenda-Universitaria-v1.7.10.60.apk",
-  "apkSha256": "a63244f90c1e55c8a501f6dc8064ad73ef91089509ae82994b316acca3f950d4",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.60/Agenda-Universitaria-Setup-v1.7.10.60.exe",
-  "desktopSha256": "bb6b66160293d71d32b56f5eea94cff04833ac0208f7c55242a049c1766a6cc6",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.61/Agenda-Universitaria-v1.7.10.61.apk",
+  "apkSha256": "a05854408682dfc268e04a0e89d7cbd44d8b2488692751de87d12a6a5e9c15d5",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.61/Agenda-Universitaria-Setup-v1.7.10.61.exe",
+  "desktopSha256": "f8a8317a63173ef25669797812a886c88b89691fedfa41a87ec2780f8c506c42",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "El instalador de Windows ya no muestra «No se puede cerrar Agenda Universitaria»",
-    "En Windows, la agenda aparece con su nombre y versión real en Aplicaciones instaladas"
+    "Instalador de Windows: elige la carpeta y abre la agenda al terminar",
+    "Las actualizaciones de Windows ya no piden «Reintentar»",
+    "La versión de Windows pesa menos y se instala más rápido"
   ]
 }
