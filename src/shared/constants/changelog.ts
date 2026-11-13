@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.60',
+    date: '2026-11-13',
+    title: 'Instalación sin errores en Windows',
+    changes: [
+      { kind: 'correccion', text: 'El instalador de Windows ya no muestra «No se puede cerrar Agenda Universitaria»: cierra la agenda, espera a que termine y la vuelve a abrir al instalar.' },
+      { kind: 'mejora', text: 'En «Aplicaciones instaladas» de Windows la agenda aparece con su nombre y su versión real.' },
+    ],
+  },
+  {
     version: '1.7.10.59',
     date: '2026-11-13',
     title: 'Instalador y actualizaciones para Windows',

@@ -1,7 +1,7 @@
 {
   "name": "agenda-universitaria",
   "private": true,
-  "version": "1.7.10.59",
+  "version": "1.7.10.60",
   "description": "Agenda Universitaria PWA - POR Y PARA LOS ESTUDIANTES",
   "author": "Jorge I. Barrera V.",
   "type": "module",
@@ -95,14 +95,14 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Agenda Universitaria",
-      "artifactName": "Agenda-Universitaria-Setup-v1.7.10.59.${ext}",
+      "artifactName": "Agenda-Universitaria-Setup-v1.7.10.60.${ext}",
       "include": "electron/installer.nsh",
       "deleteAppDataOnUninstall": false,
       "uninstallDisplayName": "Agenda Universitaria"
     },
     "portable": {
-      "artifactName": "Agenda-Universitaria-Portable-v1.7.10.59.${ext}"
+      "artifactName": "Agenda-Universitaria-Portable-v1.7.10.60.${ext}"
     },
-    "buildVersion": "1.7.10.59"
+    "buildVersion": "1.7.10.60"
   }
 }
