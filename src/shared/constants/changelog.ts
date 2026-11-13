@@ -32,6 +32,17 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.58',
+    date: '2026-11-13',
+    title: 'Guarda sin salir del apunte',
+    changes: [
+      { kind: 'mejora', text: '«Guardar» ya no cierra el apunte: guarda y puedes seguir escribiendo. Para salir, usa la flecha «Volver».' },
+      { kind: 'mejora', text: 'La cabecera del apunte muestra «Guardado a las HH:mm ✓» después de cada guardado.' },
+      { kind: 'nuevo', text: 'Si sales con cambios sin guardar, ahora puedes elegir «Guardar y salir».' },
+      { kind: 'nuevo', text: 'Versión portable para Windows: avisa de tus clases aunque cierres la ventana y pide permiso para enviar notificaciones.' },
+    ],
+  },
+  {
     version: '1.7.10.57',
     date: '2026-11-12',
     title: 'Selector de color propio',
