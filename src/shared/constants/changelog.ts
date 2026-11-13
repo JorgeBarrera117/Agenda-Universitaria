@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.61',
+    date: '2026-11-13',
+    title: 'Instalador de Windows con opciones',
+    changes: [
+      { kind: 'nuevo', text: 'El instalador de Windows te deja elegir para quién y en qué carpeta instalar, y al terminar puedes abrir la agenda o solo finalizar.' },
+      { kind: 'correccion', text: 'Las actualizaciones de Windows esperan a que el sistema libere los archivos en vez de pedir «Reintentar».' },
+      { kind: 'mejora', text: 'La versión de Windows pesa menos y se instala más rápido.' },
+    ],
+  },
+  {
     version: '1.7.10.60',
     date: '2026-11-13',
     title: 'Instalación sin errores en Windows',
