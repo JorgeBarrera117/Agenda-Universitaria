@@ -7,7 +7,7 @@ export interface INoteRepository {
   getById(id: string): Promise<Note | undefined>;
   search(query: string, subjectId?: string): Promise<Note[]>;
   create(data: CreateNoteDTO): Promise<Note>;
-  update(id: string, data: UpdateNoteDTO): Promise<void>;
+  update(id: string, data: UpdateNoteDTO): Promise<Note>;
   delete(id: string): Promise<void>;
 }
 
@@ -56,10 +56,16 @@ export class DexieNoteRepository implements INoteRepository {
     return note;
   }
 
-  async update(id: string, data: UpdateNoteDTO): Promise<void> {
-    await db.notes.update(id, {
-      ...data,
-      updatedAt: new Date().toISOString(),
+  /** Actualiza y devuelve la nota tal como quedó guardada (el editor sigue trabajando sobre ella). */
+  async update(id: string, data: UpdateNoteDTO): Promise<Note> {
+    return db.transaction('rw', db.notes, async () => {
+      const changed = await db.notes.update(id, {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });
+      const note = changed ? await db.notes.get(id) : undefined;
+      if (!note) throw new Error('Este apunte ya no existe. Puede que se haya eliminado.');
+      return note;
     });
   }
 

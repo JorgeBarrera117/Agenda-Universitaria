@@ -16,7 +16,8 @@ import { exportNoteToAgnote } from '../services/noteShareService';
 
 interface NoteEditorProps {
   initialData?: Note;
-  onSubmit: (data: CreateNoteDTO) => Promise<void>;
+  /** Guarda y devuelve la nota guardada; el editor sigue abierto sobre ella. */
+  onSubmit: (data: CreateNoteDTO) => Promise<Note | void>;
   onCancel: () => void;
 }
 
@@ -42,6 +43,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  // Nota sobre la que se trabaja: tras el primer guardado de un apunte nuevo ya tiene id
+  const [activeNote, setActiveNote] = useState<Note | undefined>(initialData);
+  // Lo último guardado: "Cambios sin guardar" se mide contra esto, no contra cómo se abrió
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState({
+    title: initialData?.title || '',
+    subjectId: initialData?.subjectId || '',
+    content: initialData?.content || '',
+    tags: initialData?.tags ?? [],
+  });
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
 
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -79,11 +90,11 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
   }, [content, editorInstance]);
 
   const isDirty =
-    title !== (initialData?.title || '') ||
-    subjectId !== (initialData?.subjectId || '') ||
-    content !== (initialData?.content || '') ||
+    title !== lastSavedSnapshot.title ||
+    subjectId !== lastSavedSnapshot.subjectId ||
+    content !== lastSavedSnapshot.content ||
     tagDraft.trim() !== '' ||
-    tags.join('|') !== (initialData?.tags ?? []).join('|');
+    tags.join('|') !== lastSavedSnapshot.tags.join('|');
 
   const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
 
@@ -135,12 +146,12 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
       const now = new Date().toISOString();
       const draft: Note = {
         // Con el id real se incluyen también las fotos adjuntas del apunte guardado
-        id: initialData?.id ?? 'borrador',
+        id: activeNote?.id ?? 'borrador',
         subjectId,
         title: title.trim() || 'Apunte',
         content,
         tags: commitTags(tagDraft),
-        createdAt: initialData?.createdAt ?? now,
+        createdAt: activeNote?.createdAt ?? now,
         updatedAt: now,
       };
       const result = await exportNoteToAgnote(draft, subjects.find((s) => s.id === subjectId));
@@ -152,14 +163,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     }
   };
 
-  const handleSave = async () => {
+  /** Guarda sin salir del editor. Devuelve si se guardó (para "Guardar y salir"). */
+  const handleSave = async (): Promise<boolean> => {
     if (!title.trim()) {
       setError('Escribe un título para tu apunte.');
-      return;
+      return false;
     }
     if (!subjectId) {
       setError('Elige la materia de este apunte.');
-      return;
+      return false;
     }
 
     const finalTags = commitTags(tagDraft);
@@ -167,9 +179,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     try {
       setIsSubmitting(true);
       setError(null);
-      await onSubmit({ title: title.trim(), subjectId, content, tags: finalTags });
+      const saved = await onSubmit({ title: title.trim(), subjectId, content, tags: finalTags });
+      if (saved) setActiveNote(saved);
+      // Se compara con lo que hay en pantalla (el título sin recortar) para que quede "sin cambios"
+      setLastSavedSnapshot({ title, subjectId, content, tags: finalTags });
+      setLastSavedTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+      return true;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar el apunte.');
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -192,9 +210,17 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           rehacer, compartir y guardar. El editor ocupa todo el ancho (sin margen del <main>),
           así que la franja usa su propio relleno lateral respetando el área segura. */}
       <PageHeader
-        title={title.trim() || (initialData ? 'Documento sin título' : 'Nuevo apunte')}
+        title={title.trim() || (activeNote ? 'Documento sin título' : 'Nuevo apunte')}
         subtitle={
-          <span aria-live="polite">{isSubmitting ? 'Guardando…' : isDirty ? 'Cambios sin guardar' : 'Sin cambios'}</span>
+          <span aria-live="polite">
+            {isSubmitting
+              ? 'Guardando…'
+              : isDirty
+                ? 'Cambios sin guardar'
+                : lastSavedTime
+                  ? `Guardado a las ${lastSavedTime} ✓`
+                  : 'Sin cambios'}
+          </span>
         }
         onBack={handleBack}
         backLabel="Volver"
@@ -386,7 +412,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             <AlertTriangle className="h-5 w-5" aria-hidden="true" />
           </div>
           <p className="text-sm text-[var(--color-md-on-surface-variant)]">
-            Tienes cambios sin guardar en este apunte. Si sales ahora, se perderán.
+            Tienes cambios sin guardar en este apunte. Si sales sin guardar, se perderán.
           </p>
         </div>
         <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
@@ -400,8 +426,20 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           >
             Descartar
           </Button>
-          <Button variant="primary" size="sm" onClick={() => setShowDiscardModal(false)}>
+          <Button variant="outline" size="sm" onClick={() => setShowDiscardModal(false)}>
             Seguir editando
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={isSubmitting}
+            onClick={async () => {
+              setShowDiscardModal(false);
+              // Solo sale si de verdad se guardó (falta de título o materia: se queda y lo indica)
+              if (await handleSave()) runExit(onCancel);
+            }}
+          >
+            Guardar y salir
           </Button>
         </div>
       </Modal>

@@ -246,25 +246,20 @@ export const NotesView: React.FC<NotesViewProps> = ({
     }
   };
 
-  const handleSubmit = async (dto: CreateNoteDTO) => {
+  // Guardar NO cierra el editor: se sigue escribiendo sobre la nota guardada. Solo "Volver" sale.
+  const handleSubmit = async (dto: CreateNoteDTO): Promise<Note> => {
+    let savedNote: Note;
     if (editingNote) {
-      await updateNote(editingNote.id, dto);
+      savedNote = await updateNote(editingNote.id, dto);
       if (readingNote?.id === editingNote.id) {
-        setReadingNote({
-          ...editingNote,
-          ...dto,
-          updatedAt: new Date().toISOString(),
-        });
-        setViewMode('reader');
-        setEditingNote(undefined);
-        return;
+        setReadingNote(savedNote);
       }
     } else {
-      await addNote(dto);
+      // Apunte nuevo: desde aquí, los siguientes guardados actualizan esta misma nota (sin duplicados)
+      savedNote = await addNote(dto);
     }
-
-    setViewMode('list');
-    setEditingNote(undefined);
+    setEditingNote(savedNote);
+    return savedNote;
   };
 
   const handleReaderFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
