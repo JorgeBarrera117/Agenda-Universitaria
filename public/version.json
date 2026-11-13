@@ -1,13 +1,13 @@
 {
-  "latestVersion": "1.7.10.57",
-  "releaseDate": "2026-11-12",
+  "latestVersion": "1.7.10.58",
+  "releaseDate": "2026-11-13",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.57/Agenda-Universitaria-v1.7.10.57.apk",
-  "apkSha256": "13c0919cf21d76a4524f82e990859cd3c9149c0eb5f2bc62d2189fff6f5317e4",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.58/Agenda-Universitaria-v1.7.10.58.apk",
+  "apkSha256": "47505f1a520a73f50fecbcc972fd04c9022824e055716a13f31f8bd7826f7188",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Selector de color propio de la app, en vez del de Android",
-    "Cuadro de intensidad y brillo para elegir cualquier color",
-    "El color de las materias usa el mismo selector mejorado"
+    "«Guardar» ya no cierra el apunte: sigues escribiendo",
+    "La cabecera muestra «Guardado a las HH:mm ✓»",
+    "Nuevo «Guardar y salir» al salir con cambios pendientes"
   ]
 }
