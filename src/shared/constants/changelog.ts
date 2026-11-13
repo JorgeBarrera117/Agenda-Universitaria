@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.59',
+    date: '2026-11-13',
+    title: 'Instalador y actualizaciones para Windows',
+    changes: [
+      { kind: 'nuevo', text: 'Instalador para Windows: crea accesos en el escritorio y en el menú Inicio, y se abre más rápido que la versión portable.' },
+      { kind: 'nuevo', text: 'En Windows, las actualizaciones se descargan e instalan desde la app, como en Android: la agenda se cierra y vuelve a abrirse ya actualizada.' },
+    ],
+  },
+  {
     version: '1.7.10.58',
     date: '2026-11-13',
     title: 'Guarda sin salir del apunte',
