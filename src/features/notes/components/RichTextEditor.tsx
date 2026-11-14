@@ -144,9 +144,13 @@ function copyNoticeText(verb: string, result: ImageCopyResult): string {
     : `Imagen ${verb} solo en el apunte (${result.error ?? "error desconocido"}). Usa «Pegar imagen».`;
 }
 
-type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & { onClick: () => void };
+type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & {
+  onClick: () => void;
+  /** Botones del grupo fijo (cámara, galería, micrófono): color del contenedor tonal. */
+  tonal?: boolean;
+};
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled }) => {
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled, tonal = false }) => {
   const isToggle = isActive !== undefined;
   return (
     <button
@@ -161,7 +165,9 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
       className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl transition-all duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${
         isActive
           ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-          : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
+          : tonal
+            ? 'text-[var(--color-md-on-secondary-container)] hover:bg-black/5 dark:hover:bg-white/10'
+            : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
       }`}
     >
       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -374,6 +380,27 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const openCamera = useCallback(() => cameraInputRef.current?.click(), []);
   const openGallery = useCallback(() => galleryInputRef.current?.click(), []);
 
+  // Zona de formato desplazable: degradados en los bordes cuando hay más botones fuera de la vista
+  const [formatScroller, setFormatScroller] = useState<HTMLDivElement | null>(null);
+  const [formatOverflow, setFormatOverflow] = useState({ left: false, right: false });
+  useEffect(() => {
+    if (!formatScroller) return;
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = formatScroller;
+      const left = scrollLeft > 4;
+      const right = scrollLeft + clientWidth < scrollWidth - 4;
+      setFormatOverflow((prev) => (prev.left === left && prev.right === right ? prev : { left, right }));
+    };
+    update();
+    formatScroller.addEventListener('scroll', update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(formatScroller);
+    return () => {
+      formatScroller.removeEventListener('scroll', update);
+      observer.disconnect();
+    };
+  }, [formatScroller]);
+
   if (!editor) return null;
 
   /**
@@ -506,6 +533,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
   ];
 
+  // Orden por uso al tomar apuntes: lo más frecuente queda a la vista sin desplazar
   const toolbarGroups: { label: string; actions: ToolbarAction[] }[] = [
     {
       label: 'Estilo de texto',
@@ -513,7 +541,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         { id: 'bold', label: 'Negrita (Ctrl+B)', icon: Bold, run: () => chain().toggleBold().run(), isActive: editor.isActive('bold') },
         { id: 'italic', label: 'Cursiva (Ctrl+I)', icon: Italic, run: () => chain().toggleItalic().run(), isActive: editor.isActive('italic') },
         { id: 'underline', label: 'Subrayado (Ctrl+U)', icon: Underline, run: () => chain().toggleUnderline().run(), isActive: editor.isActive('underline') },
-        { id: 'strike', label: 'Tachado', icon: Strikethrough, run: () => chain().toggleStrike().run(), isActive: editor.isActive('strike') },
+      ],
+    },
+    {
+      label: 'Listas',
+      actions: [
+        { id: 'bullet', label: 'Lista con viñetas', icon: List, run: () => chain().toggleBulletList().run(), isActive: editor.isActive('bulletList') },
+        { id: 'ordered', label: 'Lista numerada', icon: ListOrdered, run: () => chain().toggleOrderedList().run(), isActive: editor.isActive('orderedList') },
       ],
     },
     {
@@ -524,16 +558,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       ],
     },
     {
-      label: 'Listas y citas',
+      label: 'Más formato',
       actions: [
-        { id: 'bullet', label: 'Lista con viñetas', icon: List, run: () => chain().toggleBulletList().run(), isActive: editor.isActive('bulletList') },
-        { id: 'ordered', label: 'Lista numerada', icon: ListOrdered, run: () => chain().toggleOrderedList().run(), isActive: editor.isActive('orderedList') },
         { id: 'quote', label: 'Cita destacada', icon: Quote, run: () => chain().toggleBlockquote().run(), isActive: editor.isActive('blockquote') },
-      ],
-    },
-    {
-      label: 'Insertar',
-      actions: [
+        { id: 'strike', label: 'Tachado', icon: Strikethrough, run: () => chain().toggleStrike().run(), isActive: editor.isActive('strike') },
         { id: 'divider', label: 'Línea divisoria', icon: Minus, run: () => chain().setHorizontalRule().run() },
         // En Android siempre visible: lee el portapapeles del teléfono (fotos copiadas aquí o en
         // otra app); en la web, solo cuando hay una foto copiada dentro del editor
@@ -586,28 +614,48 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             ))}
           </div>
         ) : (
-        <div
-          role="toolbar"
-          aria-label="Formato del apunte"
-          className="mx-auto flex max-w-3xl items-center gap-1.5 overflow-x-auto py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {toolbarGroups.map((group, index) => (
-            <React.Fragment key={group.label}>
-              {index > 0 && <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />}
-              <div role="group" aria-label={group.label} className="flex shrink-0 items-center gap-1.5">
-                {group.label === 'Insertar' && (
-                  <>
-                    <ToolbarButton label="Tomar foto con la cámara" icon={Camera} onClick={openCamera} disabled={isProcessingImage} />
-                    <ToolbarButton label="Imagen de la galería" icon={ImageIcon} onClick={openGallery} disabled={isProcessingImage} />
-                    {onRecordVoice && <ToolbarButton label="Grabar nota de voz" icon={Mic} onClick={onRecordVoice} />}
-                  </>
-                )}
-                {group.actions.map(({ id, run, ...action }) => (
-                  <ToolbarButton key={id} {...action} onClick={run} />
-                ))}
-              </div>
-            </React.Fragment>
-          ))}
+        <div role="toolbar" aria-label="Formato del apunte" className="mx-auto flex max-w-3xl items-center gap-2 py-0.5">
+          {/* Formato: se desplaza de lado si no cabe; los degradados avisan que hay más botones */}
+          <div className="relative min-w-0 flex-1">
+            <div
+              ref={setFormatScroller}
+              className="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {toolbarGroups.map((group, index) => (
+                <React.Fragment key={group.label}>
+                  {index > 0 && <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />}
+                  <div role="group" aria-label={group.label} className="flex shrink-0 items-center gap-1.5">
+                    {group.actions.map(({ id, run, ...action }) => (
+                      <ToolbarButton key={id} {...action} onClick={run} />
+                    ))}
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+            {formatOverflow.left && (
+              <span
+                className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[var(--color-md-surface-container)] to-transparent"
+                aria-hidden="true"
+              />
+            )}
+            {formatOverflow.right && (
+              <span
+                className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--color-md-surface-container)] to-transparent"
+                aria-hidden="true"
+              />
+            )}
+          </div>
+
+          {/* Fotos y voz: siempre a la vista, en un contenedor tonal M3 al alcance del pulgar */}
+          <div
+            role="group"
+            aria-label="Fotos y voz"
+            className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-[var(--color-md-secondary-container)] p-0.5"
+          >
+            <ToolbarButton tonal label="Tomar foto con la cámara" icon={Camera} onClick={openCamera} disabled={isProcessingImage} />
+            <ToolbarButton tonal label="Imagen de la galería" icon={ImageIcon} onClick={openGallery} disabled={isProcessingImage} />
+            {onRecordVoice && <ToolbarButton tonal label="Grabar nota de voz" icon={Mic} onClick={onRecordVoice} />}
+          </div>
         </div>
         )}
 

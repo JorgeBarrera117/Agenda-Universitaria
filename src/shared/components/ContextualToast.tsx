@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, AlertTriangle, Info, LogOut } from 'lucide-react';
 
@@ -10,7 +10,21 @@ export interface ContextualToastProps {
   /** 'nav' deja espacio sobre la barra inferior en móvil; 'compact' se posiciona más cerca del borde inferior */
   bottomOffset?: 'nav' | 'compact';
   onClose?: () => void;
+  /**
+   * Milisegundos visible antes de ocultarse solo (llama a onClose). Por defecto según la variante;
+   * 0 = se queda hasta que se toque o el componente que lo muestra lo quite.
+   */
+  durationMs?: number;
 }
+
+/** Tiempo de lectura según la importancia: los errores se quedan un poco más. */
+const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
+  success: 3500,
+  info: 3500,
+  exit: 2500,
+  warning: 5000,
+  error: 6000,
+};
 
 /**
  * Clasifica automáticamente el tipo de aviso contextual según su contenido semántico
@@ -109,10 +123,27 @@ export const ContextualToast: React.FC<ContextualToastProps> = ({
   variant,
   bottomOffset = 'nav',
   onClose,
+  durationMs,
 }) => {
+  // onClose suele ser una función en línea (cambia en cada render): se lee desde una ref para que
+  // el temporizador no se reinicie con cada render del componente que muestra el aviso
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const resolvedVariant = message ? (variant ?? inferToastVariant(message)) : 'info';
+  const visibleMs = durationMs ?? DEFAULT_DURATION_MS[resolvedVariant];
+
+  // Se oculta solo (como el snackbar de Material Design 3); cada mensaje nuevo reinicia el tiempo
+  useEffect(() => {
+    if (!message || visibleMs <= 0) return;
+    const timer = window.setTimeout(() => onCloseRef.current?.(), visibleMs);
+    return () => window.clearTimeout(timer);
+  }, [message, visibleMs]);
+
   if (!message) return null;
 
-  const resolvedVariant = variant ?? inferToastVariant(message);
   const style = VARIANT_STYLES[resolvedVariant];
   const Icon = style.IconComponent;
 
