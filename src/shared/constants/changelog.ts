@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.64',
+    date: '2026-11-14',
+    title: 'Barra de apuntes más práctica',
+    changes: [
+      { kind: 'mejora', text: 'Cámara, galería y micrófono quedan siempre a la vista en la barra del editor; el formato se ordena por uso (negrita, cursiva y listas primero).' },
+      { kind: 'correccion', text: 'Los avisos como «Nota de voz guardada en el apunte» ya se ocultan solos y no tapan la barra.' },
+    ],
+  },
+  {
     version: '1.7.10.63',
     date: '2026-11-13',
     title: 'Notas de voz en tus apuntes',
