@@ -23,7 +23,7 @@ import {
   restoreFromRawJson,
   pickAndRestoreBackup,
 } from '../../../shared/utils/backup';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { formInputClass } from '../../../shared/components/form';
 
@@ -324,7 +324,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
             </p>
           )}
 
-          <div className="flex items-center justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+          <ModalActions>
             <Button
               variant="ghost"
               size="sm"
@@ -338,7 +338,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
             <Button variant="primary" size="sm" onClick={handleRestoreFromPaste} disabled={isImporting || !pastedJson.trim()}>
               {isImporting ? 'Restaurando…' : 'Restaurar datos'}
             </Button>
-          </div>
+          </ModalActions>
         </div>
       </Modal>
     </div>

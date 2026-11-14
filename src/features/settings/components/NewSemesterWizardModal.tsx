@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Archive, CalendarX2, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldCheck, Users } from 'lucide-react';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { formInputClass } from '../../../shared/components/form';
 import { saveBackupToDownloads } from '../../../shared/utils/backup';
@@ -239,7 +239,7 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
           </p>
         )}
 
-        <div className="flex items-center justify-between gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions layout="between">
           <Button
             variant="ghost"
             size="sm"
@@ -263,7 +263,7 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
               Iniciar nuevo ciclo lectivo
             </Button>
           )}
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, BookOpen, Clock, Mail, MapPin, Phone, Plus, UserPlus } from 'lucide-react';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -215,7 +215,7 @@ export const ImportProfessorModal: React.FC<ImportProfessorModalProps> = ({ shar
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving}>
             Cancelar
           </Button>
@@ -228,7 +228,7 @@ export const ImportProfessorModal: React.FC<ImportProfessorModalProps> = ({ shar
           >
             Guardar catedrático
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

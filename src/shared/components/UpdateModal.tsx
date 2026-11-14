@@ -1,7 +1,7 @@
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Check, Sparkles } from 'lucide-react';
-import { Modal } from './Modal';
+import { Modal, ModalActions } from './Modal';
 import { Button } from './atoms';
 import { UpdateInstallActions } from './UpdateInstallActions';
 import { APP_INFO } from '../constants/appInfo';
@@ -63,11 +63,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ info, onDownload, onLa
 
         <UpdateInstallActions info={info} onOpenPage={onDownload} />
 
-        <div className="flex justify-end border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions>
           <Button variant="ghost" size="sm" onClick={onLater}>
             Más tarde
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

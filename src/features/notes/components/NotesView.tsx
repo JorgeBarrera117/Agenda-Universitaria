@@ -21,7 +21,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { SearchField } from '../../../shared/components/SearchField';
@@ -562,11 +562,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
               </div>
             ))}
           </dl>
-          <div className="flex justify-end pt-3">
+          <ModalActions>
             <Button variant="secondary" size="sm" onClick={() => setIsDetailsModalOpen(false)}>
               Cerrar
             </Button>
-          </div>
+          </ModalActions>
         </Modal>
 
         <Modal isOpen={noteToDelete !== null} onClose={() => setNoteToDelete(null)} title="¿Eliminar apunte?" maxWidth="sm">
@@ -574,21 +574,21 @@ export const NotesView: React.FC<NotesViewProps> = ({
             Se eliminará <strong className="text-[var(--color-md-on-surface)]">{noteToDelete?.title}</strong> junto con sus fotos.
             Esta acción no se puede deshacer.
           </p>
-          <div className="flex justify-end gap-2 pt-4">
+          <ModalActions>
             <Button variant="ghost" size="sm" onClick={() => setNoteToDelete(null)}>
               Cancelar
             </Button>
             <Button variant="danger" size="sm" onClick={confirmDelete}>
               Eliminar
             </Button>
-          </div>
+          </ModalActions>
         </Modal>
 
         <Modal isOpen={imageToDelete !== null} onClose={() => setImageToDelete(null)} title="¿Eliminar fotografía?" maxWidth="sm">
           <p className="text-sm text-[var(--color-md-on-surface-variant)]">
             Se quitará esta foto del pizarrón del apunte. Esta acción no se puede deshacer.
           </p>
-          <div className="flex justify-end gap-2 pt-4">
+          <ModalActions>
             <Button variant="ghost" size="sm" onClick={() => setImageToDelete(null)}>
               Cancelar
             </Button>
@@ -604,7 +604,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
             >
               Eliminar
             </Button>
-          </div>
+          </ModalActions>
         </Modal>
 
         {zoomedImage && <LightboxModal image={zoomedImage} onClose={() => setZoomedImage(null)} />}

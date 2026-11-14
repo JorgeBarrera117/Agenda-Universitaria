@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { BookOpen, Download, ImageIcon, Plus, Tag, X } from 'lucide-react';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { formInputClass } from '../../../shared/components/form';
@@ -211,7 +211,7 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving}>
             Cancelar
           </Button>
@@ -224,7 +224,7 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
           >
             Guardar en mis apuntes
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

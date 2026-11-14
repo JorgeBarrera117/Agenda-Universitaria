@@ -4,7 +4,7 @@ import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from 
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { RichTextEditor } from './RichTextEditor';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
@@ -415,7 +415,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             Tienes cambios sin guardar en este apunte. Si sales sin guardar, se perderán.
           </p>
         </div>
-        <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+        <ModalActions layout="stack">
           <Button
             variant="ghost"
             size="sm"
@@ -441,7 +441,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           >
             Guardar y salir
           </Button>
-        </div>
+        </ModalActions>
       </Modal>
     </div>
   );

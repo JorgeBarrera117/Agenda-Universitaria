@@ -33,7 +33,7 @@ import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -762,7 +762,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
             ¿Deseas retirar esta cátedra de tu horario semanal? La materia y tus apuntes permanecerán guardados.
           </p>
-          <div className="flex justify-end gap-2 pt-2">
+          <ModalActions>
             <button
               onClick={() => setSlotToDelete(null)}
               className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 rounded-xl transition-colors cursor-pointer"
@@ -775,7 +775,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             >
               Retirar
             </button>
-          </div>
+          </ModalActions>
         </div>
       </Modal>
 

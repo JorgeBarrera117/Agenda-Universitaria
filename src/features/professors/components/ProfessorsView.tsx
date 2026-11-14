@@ -20,7 +20,7 @@ import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -213,7 +213,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
           ¿Deseas desvincular a <strong className="text-slate-900 dark:text-white">{profToDelete?.name}</strong>? Sus materias y apuntes no sufrirán cambios.
         </p>
-        <div className="flex justify-end gap-2.5 pt-2">
+        <ModalActions>
           <button
             onClick={() => setProfToDelete(null)}
             className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl transition-colors cursor-pointer"
@@ -226,7 +226,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           >
             Confirmar
           </button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

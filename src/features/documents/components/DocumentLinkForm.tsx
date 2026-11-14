@@ -17,7 +17,7 @@ import {
 import type { Subject } from '../../subjects/types';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import {
   FormSheet,
@@ -363,7 +363,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
               </p>
             </div>
 
-            <div className="flex flex-col-reverse gap-2 border-t border-[var(--color-md-outline-variant)] pt-3 sm:flex-row sm:justify-end">
+            <ModalActions layout="stack">
               <button
                 type="button"
                 onClick={() => {
@@ -382,7 +382,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
               >
                 Seguir editando
               </button>
-            </div>
+            </ModalActions>
           </div>
       </Modal>
     </>

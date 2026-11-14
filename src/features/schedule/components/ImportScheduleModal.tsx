@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CalendarRange, Download } from 'lucide-react';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form/SegmentedControl';
 import { useProfessors } from '../../professors/hooks/useProfessors';
@@ -146,7 +146,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving}>
             Cancelar
           </Button>
@@ -159,7 +159,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
           >
             Importar horario
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

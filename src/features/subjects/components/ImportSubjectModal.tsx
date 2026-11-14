@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, Download, GraduationCap, MapPin, Video } from 'lucide-react';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form/SegmentedControl';
 import { useProfessors } from '../../professors/hooks/useProfessors';
@@ -181,7 +181,7 @@ export const ImportSubjectModal: React.FC<ImportSubjectModalProps> = ({ sharePac
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving}>
             Cancelar
           </Button>
@@ -194,7 +194,7 @@ export const ImportSubjectModal: React.FC<ImportSubjectModalProps> = ({ sharePac
           >
             Importar materia
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

@@ -1,6 +1,6 @@
 import React, { useId, useRef, useState } from 'react';
 import { AlertTriangle, Check } from 'lucide-react';
-import { Modal } from '../Modal';
+import { Modal, ModalActions } from '../Modal';
 import { Button } from '../atoms';
 import { formInputClass } from './formStyles';
 
@@ -286,7 +286,7 @@ export const M3ColorPickerModal: React.FC<M3ColorPickerModalProps> = ({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Cancelar
           </Button>
@@ -301,7 +301,7 @@ export const M3ColorPickerModal: React.FC<M3ColorPickerModalProps> = ({
           >
             Aplicar color
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

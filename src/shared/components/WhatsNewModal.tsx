@@ -4,7 +4,7 @@ import type { ChangelogEntry } from '../constants/changelog';
 import { APP_INFO } from '../constants/appInfo';
 import { markChangelogSeen } from '../services/whatsNewService';
 import { ChangelogEntryCard } from './ChangelogEntryCard';
-import { Modal } from './Modal';
+import { Modal, ModalActions } from './Modal';
 import { Button } from './atoms';
 
 /** Cuántas versiones mostrar en el aviso (el resto queda en el historial completo). */
@@ -36,7 +36,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, onClose, 
   };
 
   return (
-    <Modal isOpen onClose={close} title={`Lo nuevo en la versión ${APP_INFO.version}`} maxWidth="md">
+    <Modal isOpen onClose={close} title={`Lo nuevo en la versión ${APP_INFO.version}`} maxWidth="md" dismissOnBackdrop>
       <div className="space-y-4">
         <p className="flex items-start gap-2 text-xs leading-relaxed text-[var(--color-md-on-surface-variant)]">
           <PartyPopper className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
@@ -59,14 +59,14 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, onClose, 
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-2 border-t border-[var(--color-md-outline-variant)] pt-3">
+        <ModalActions layout="between">
           <Button variant="ghost" size="sm" icon={<ScrollText className="h-4 w-4" aria-hidden="true" />} onClick={openAll}>
             Ver todas
           </Button>
           <Button variant="primary" size="sm" onClick={close}>
             Entendido
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

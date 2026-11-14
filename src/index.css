@@ -617,6 +617,27 @@
 .m3-backdrop-enter { animation: m3-backdrop-enter 220ms var(--m3-easing-standard) backwards; }
 .m3-backdrop-exit { animation: m3-backdrop-exit 150ms var(--m3-easing-emphasized-accelerate) forwards; pointer-events: none; }
 
+/* Hoja inferior M3 (sube desde el borde). La salida dura lo mismo que MOTION_EXIT_MS.dialog. */
+@keyframes m3-bottom-sheet-enter {
+  from { transform: translate3d(0, 100%, 0); }
+  to { transform: none; }
+}
+@keyframes m3-bottom-sheet-exit {
+  from { transform: none; }
+  to { transform: translate3d(0, 100%, 0); }
+}
+.m3-bottom-sheet-enter { animation: m3-bottom-sheet-enter 280ms var(--m3-easing-emphasized-decelerate) backwards; }
+.m3-bottom-sheet-exit { animation: m3-bottom-sheet-exit 150ms var(--m3-easing-emphasized-accelerate) forwards; pointer-events: none; }
+
+/* Modal adaptable: diálogo centrado que escala en pantallas medianas/grandes y hoja inferior en
+   teléfonos (Modal.tsx usa el mismo corte, sm = 640px). */
+.m3-modal-enter { animation: m3-dialog-enter 220ms var(--m3-easing-emphasized-decelerate) backwards; }
+.m3-modal-exit { animation: m3-dialog-exit 150ms var(--m3-easing-emphasized-accelerate) forwards; pointer-events: none; }
+@media (max-width: 639.98px) {
+  .m3-modal-enter { animation: m3-bottom-sheet-enter 280ms var(--m3-easing-emphasized-decelerate) backwards; }
+  .m3-modal-exit { animation: m3-bottom-sheet-exit 150ms var(--m3-easing-emphasized-accelerate) forwards; }
+}
+
 /* Sin will-change permanente: convertiría el contenedor de la pestaña en bloque contenedor de los
    elementos position:fixed (p. ej. la barra de formato del editor) y los anclaría al final del contenido. */
 .m3-tab-enter-right {
@@ -670,6 +691,10 @@
   .m3-dialog-exit,
   .m3-backdrop-enter,
   .m3-backdrop-exit,
+  .m3-bottom-sheet-enter,
+  .m3-bottom-sheet-exit,
+  .m3-modal-enter,
+  .m3-modal-exit,
   .animate-in {
     animation-duration: 1ms !important;
   }

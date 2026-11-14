@@ -37,7 +37,7 @@ import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { SubjectDocumentsModal } from './SubjectDocumentsModal';
 import { useSubjectDocuments } from '../hooks/useSubjectDocuments';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
-import { Modal } from '../../../shared/components/Modal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -185,7 +185,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
             Estás a punto de dar de baja <strong className="text-slate-900 dark:text-white">{subjectToDelete?.name}</strong>. Esta acción eliminará permanentemente sus horarios y apuntes asociados en la base de datos local.
           </p>
-          <div className="flex justify-end gap-2 pt-2">
+          <ModalActions>
             <button
               onClick={() => setSubjectToDelete(null)}
               className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 rounded-xl transition-colors cursor-pointer"
@@ -198,7 +198,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             >
               Confirmar baja
             </button>
-          </div>
+          </ModalActions>
         </div>
       </Modal>
 
