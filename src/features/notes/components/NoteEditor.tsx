@@ -4,6 +4,8 @@ import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from 
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { RichTextEditor } from './RichTextEditor';
+import { VoiceNotesSection, VoiceRecorderModal } from './VoiceNotes';
+import { useNoteAudios } from '../hooks/useNoteAudios';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
@@ -53,6 +55,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     tags: initialData?.tags ?? [],
   });
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  // Notas de voz del apunte (necesitan que el apunte exista: uno nuevo se guarda antes de grabar)
+  const { audios, addAudio, renameAudio, removeAudio } = useNoteAudios(activeNote?.id);
+  const [isRecorderOpen, setIsRecorderOpen] = useState(false);
 
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -191,6 +196,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRecordVoice = async () => {
+    if (activeNote?.id) {
+      setIsRecorderOpen(true);
+      return;
+    }
+    // Apunte nuevo: se guarda primero (título y materia) para poder adjuntarle la grabación
+    if (await handleSave()) setIsRecorderOpen(true);
   };
 
   const [createdLabel] = useState(() =>
@@ -388,6 +402,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           />
         </div>
 
+        {/* Notas de voz del apunte (solo aparecen cuando hay alguna) */}
+        <VoiceNotesSection
+          audios={audios}
+          onRecord={() => void handleRecordVoice()}
+          onRename={renameAudio}
+          onDelete={removeAudio}
+          className="mb-4 shrink-0"
+        />
+
         <div className="flex min-h-0 w-full flex-1 flex-col">
           <RichTextEditor
             content={content}
@@ -395,6 +418,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             onEditorReady={handleEditorReady}
             onImageError={setError}
             toolbarMotionClass={isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'}
+            onRecordVoice={() => void handleRecordVoice()}
             placeholder="Comienza a redactar tu apunte aquí…"
             statusSlot={
               <span aria-live="off">
@@ -405,6 +429,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           />
         </div>
       </div>
+
+      <VoiceRecorderModal
+        isOpen={isRecorderOpen}
+        onClose={() => setIsRecorderOpen(false)}
+        onSave={async ({ blob, mimeType, durationMs, name }) => {
+          await addAudio(blob, mimeType, durationMs, name);
+          setShareNotice('Nota de voz guardada en el apunte.');
+        }}
+      />
 
       <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="¿Descartar cambios?" maxWidth="sm">
         <div className="flex items-start gap-3">

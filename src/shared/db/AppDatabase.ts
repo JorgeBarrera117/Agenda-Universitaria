@@ -2,7 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { ScheduleSlot } from '../../features/schedule/types';
-import type { Note, NoteImage } from '../../features/notes/types';
+import type { Note, NoteAudio, NoteImage } from '../../features/notes/types';
 
 export class AppDatabase extends Dexie {
   subjects!: Table<Subject, string>;
@@ -10,6 +10,8 @@ export class AppDatabase extends Dexie {
   scheduleSlots!: Table<ScheduleSlot, string>;
   notes!: Table<Note, string>;
   noteImages!: Table<NoteImage, string>;
+  /** Notas de voz de los apuntes (Blob de audio). */
+  noteAudios!: Table<NoteAudio, string>;
 
   constructor() {
     super('AgendaUniversitariaDB');
@@ -24,6 +26,10 @@ export class AppDatabase extends Dexie {
     });
     this.version(3).stores({
       subjects: 'id, name, code, professorId',
+    });
+    // Notas de voz: tabla nueva, las existentes no cambian (migración sin pérdida de datos)
+    this.version(4).stores({
+      noteAudios: 'id, noteId, createdAt',
     });
   }
 }

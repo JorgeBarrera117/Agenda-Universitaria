@@ -80,8 +80,14 @@ export class DexieSubjectRepository implements ISubjectRepository {
 
   async delete(id: string): Promise<void> {
     // Transacción atómica: si se borra una materia, borramos también los slots del horario asociados
-    await db.transaction('rw', [db.subjects, db.scheduleSlots, db.notes, db.professors], async () => {
+    await db.transaction('rw', [db.subjects, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios, db.professors], async () => {
       await db.scheduleSlots.where('subjectId').equals(id).delete();
+      // Fotos y notas de voz de sus apuntes también (antes quedaban huérfanas en la base de datos)
+      const noteIds = (await db.notes.where('subjectId').equals(id).primaryKeys()) as string[];
+      if (noteIds.length > 0) {
+        await db.noteImages.where('noteId').anyOf(noteIds).delete();
+        await db.noteAudios.where('noteId').anyOf(noteIds).delete();
+      }
       await db.notes.where('subjectId').equals(id).delete();
       
       // Actualizar referencias en profesores

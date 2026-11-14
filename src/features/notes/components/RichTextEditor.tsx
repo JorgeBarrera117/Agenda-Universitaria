@@ -25,6 +25,7 @@ import {
   Minus,
   Camera,
   Image as ImageIcon,
+  Mic,
   Loader2,
   Heading1,
   Heading2,
@@ -49,6 +50,8 @@ interface RichTextEditorProps {
   onImageError?: (message: string) => void;
   /** Clase de animación de la barra (va en un portal y no hereda la animación del editor). */
   toolbarMotionClass?: string;
+  /** Si existe, la barra muestra el micrófono para grabar una nota de voz. */
+  onRecordVoice?: () => void;
 }
 
 interface ToolbarAction {
@@ -171,6 +174,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onChange,
   placeholder = 'Comienza a redactar tu apunte aquí…',
   statusSlot,
+  onRecordVoice,
   onEditorReady,
   onImageError,
   toolbarMotionClass = '',
@@ -595,6 +599,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   <>
                     <ToolbarButton label="Tomar foto con la cámara" icon={Camera} onClick={openCamera} disabled={isProcessingImage} />
                     <ToolbarButton label="Imagen de la galería" icon={ImageIcon} onClick={openGallery} disabled={isProcessingImage} />
+                    {onRecordVoice && <ToolbarButton label="Grabar nota de voz" icon={Mic} onClick={onRecordVoice} />}
                   </>
                 )}
                 {group.actions.map(({ id, run, ...action }) => (

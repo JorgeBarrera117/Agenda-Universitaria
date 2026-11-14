@@ -1,12 +1,13 @@
 import { Capacitor } from '@capacitor/core';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
-import { SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from '../../../shared/utils/dataUrl';
+import { SAFE_AUDIO_DATA_URL, SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from '../../../shared/utils/dataUrl';
 import { comparableName } from '../../../shared/utils/comparableName';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import { db } from '../../../shared/db/AppDatabase';
 import { subjectRepository } from '../../subjects/repositories/subjectRepository';
 import { noteImageRepository } from '../repositories/noteImageRepository';
+import { noteAudioRepository } from '../repositories/noteAudioRepository';
 import { noteRepository } from '../repositories/noteRepository';
 import type { Subject } from '../../subjects/types';
 import type { Note } from '../types';
@@ -24,7 +25,9 @@ export const AGNOTE_EXTENSION = '.agnote';
 export const AGNOTE_MIME_TYPE = 'application/vnd.agenda-universitaria.note+json';
 
 /** Límites de importación: un archivo ajeno no debe poder bloquear la app ni la base de datos. */
-const MAX_PACKAGE_CHARS = 40 * 1024 * 1024;
+// Las notas de voz pesan más que el texto: ~0,3 MB por minuto (más un tercio por el base64)
+const MAX_PACKAGE_CHARS = 80 * 1024 * 1024;
+const MAX_RECORDINGS = 20;
 const MAX_TITLE_LENGTH = 200;
 const MAX_TAGS = 20;
 const MAX_TAG_LENGTH = 40;
@@ -41,6 +44,13 @@ export interface NoteShareSubject {
 export interface NoteShareAttachment {
   name: string;
   /** data:image/(png|jpeg|webp|gif);base64,… */
+  dataUrl: string;
+}
+
+export interface NoteShareRecording {
+  name: string;
+  durationMs: number;
+  /** data:audio/(webm|ogg|mp4|…)[;codecs=…];base64,… */
   dataUrl: string;
 }
 
@@ -61,6 +71,8 @@ export interface NoteSharePackage {
   subject: NoteShareSubject | null;
   /** Fotos adjuntas al apunte (tabla noteImages), aparte de las insertadas en el texto. */
   attachments: NoteShareAttachment[];
+  /** Notas de voz (desde 1.7.10.63; campo opcional, las versiones anteriores lo ignoran). */
+  recordings?: NoteShareRecording[];
 }
 
 export interface NoteExportResult {
@@ -92,6 +104,11 @@ export async function buildNoteSharePackage(
     // Solo imágenes rasterizadas, igual que al importar
     if (SAFE_IMAGE_DATA_URL.test(dataUrl)) attachments.push({ name: image.name, dataUrl });
   }
+  const recordings: NoteShareRecording[] = [];
+  for (const audio of await noteAudioRepository.getByNoteId(note.id)) {
+    const dataUrl = await blobToDataUrl(audio.blob);
+    if (SAFE_AUDIO_DATA_URL.test(dataUrl)) recordings.push({ name: audio.name, durationMs: audio.durationMs, dataUrl });
+  }
 
   return {
     app: AGNOTE_APP_ID,
@@ -108,6 +125,7 @@ export async function buildNoteSharePackage(
     },
     subject: subject ? { name: subject.name, code: subject.code, color: subject.color } : null,
     attachments,
+    recordings,
   };
 }
 
@@ -214,6 +232,15 @@ export function parseAgnoteContent(rawJson: string): NoteSharePackage {
     }
   }
 
+  const recordings: NoteShareRecording[] = [];
+  if (Array.isArray(parsed.recordings)) {
+    for (const raw of parsed.recordings.slice(0, MAX_RECORDINGS)) {
+      if (!isRecord(raw) || !isString(raw.dataUrl) || !SAFE_AUDIO_DATA_URL.test(raw.dataUrl)) continue;
+      const durationMs = typeof raw.durationMs === 'number' && Number.isFinite(raw.durationMs) ? Math.max(0, raw.durationMs) : 0;
+      recordings.push({ name: cleanText(raw.name, 80) || 'Nota de voz', durationMs, dataUrl: raw.dataUrl });
+    }
+  }
+
   return {
     app: AGNOTE_APP_ID,
     type: AGNOTE_TYPE,
@@ -229,6 +256,7 @@ export function parseAgnoteContent(rawJson: string): NoteSharePackage {
     },
     subject,
     attachments,
+    recordings,
   };
 }
 
@@ -270,9 +298,13 @@ export async function importAgnotePackage(
   tags: string[]
 ): Promise<{ note: Note; subjectId: string; createdSubject: boolean }> {
   const attachments = agnoteAttachmentBlobs(sharePackage);
+  const recordings = (sharePackage.recordings ?? []).map((recording) => {
+    const blob = dataUrlToBlob(recording.dataUrl);
+    return { name: recording.name, blob, mimeType: blob.type, durationMs: recording.durationMs };
+  });
   // db.professors también: subjectRepository.create abre su propia transacción anidada sobre
   // subjects y professors, y Dexie exige que el padre incluya todas las tablas que usan sus hijas
-  return db.transaction('rw', [db.subjects, db.professors, db.notes, db.noteImages], async () => {
+  return db.transaction('rw', [db.subjects, db.professors, db.notes, db.noteImages, db.noteAudios], async () => {
     let subjectId: string;
     if (target.kind === 'existing') {
       if (!(await subjectRepository.getById(target.subjectId))) {
@@ -296,6 +328,9 @@ export async function importAgnotePackage(
     });
     for (const attachment of attachments) {
       await noteImageRepository.addBlob(note.id, attachment.name, attachment.blob, attachment.mimeType);
+    }
+    for (const recording of recordings) {
+      await noteAudioRepository.add(note.id, recording.name, recording.blob, recording.mimeType, recording.durationMs);
     }
     return { note, subjectId, createdSubject: target.kind === 'create' };
   });

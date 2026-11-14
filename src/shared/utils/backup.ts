@@ -1,12 +1,12 @@
 import { Capacitor } from '@capacitor/core';
 import { db } from '../db/AppDatabase';
-import type { Note, NoteImage } from '../../features/notes/types';
+import type { Note, NoteAudio, NoteImage } from '../../features/notes/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { ScheduleSlot } from '../../features/schedule/types';
 import { WidgetBridge } from '../plugins/widgetBridge';
 import { sanitizeNoteHtml } from './sanitizeHtml';
-import { SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from './dataUrl';
+import { SAFE_AUDIO_DATA_URL, SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from './dataUrl';
 
 export interface ExportResult {
   method: 'downloads' | 'share' | 'file-picker' | 'clipboard' | 'download';
@@ -23,6 +23,7 @@ export async function generateBackupData(): Promise<{ jsonString: string; fileNa
   const scheduleSlots = await db.scheduleSlots.toArray();
   const notes = await db.notes.toArray();
   const rawImages = await db.noteImages.toArray();
+  const rawAudios = await db.noteAudios.toArray();
 
   const serializedImages = await Promise.all(
     rawImages.map(async (img) => ({
@@ -35,6 +36,18 @@ export async function generateBackupData(): Promise<{ jsonString: string; fileNa
     }))
   );
 
+  const serializedAudios = await Promise.all(
+    rawAudios.map(async (audio) => ({
+      id: audio.id,
+      noteId: audio.noteId,
+      name: audio.name,
+      mimeType: audio.mimeType,
+      durationMs: audio.durationMs,
+      dataUrl: await blobToDataUrl(audio.blob),
+      createdAt: audio.createdAt,
+    }))
+  );
+
   const backupData = {
     version: 2,
     exportedAt: new Date().toISOString(),
@@ -44,6 +57,8 @@ export async function generateBackupData(): Promise<{ jsonString: string; fileNa
       scheduleSlots,
       notes,
       images: serializedImages,
+      // Notas de voz (desde 1.7.10.63); los respaldos anteriores simplemente no traen esta sección
+      audios: serializedAudios,
     },
   };
 
@@ -261,18 +276,20 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
 
   const backup = parseBackupPayload(parsed);
 
-  await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages], async () => {
+  await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios], async () => {
     await db.subjects.clear();
     await db.professors.clear();
     await db.scheduleSlots.clear();
     await db.notes.clear();
     await db.noteImages.clear();
+    await db.noteAudios.clear();
 
     if (backup.subjects.length) await db.subjects.bulkAdd(backup.subjects);
     if (backup.professors.length) await db.professors.bulkAdd(backup.professors);
     if (backup.scheduleSlots.length) await db.scheduleSlots.bulkAdd(backup.scheduleSlots);
     if (backup.notes.length) await db.notes.bulkAdd(backup.notes);
     if (backup.images.length) await db.noteImages.bulkAdd(backup.images);
+    if (backup.audios.length) await db.noteAudios.bulkAdd(backup.audios);
   });
 }
 
@@ -284,6 +301,7 @@ interface ParsedBackup {
   scheduleSlots: ScheduleSlot[];
   notes: Note[];
   images: NoteImage[];
+  audios: NoteAudio[];
 }
 
 const INVALID_BACKUP_MESSAGE = 'El archivo no contiene un formato de respaldo válido de Agenda Universitaria.';
@@ -354,7 +372,23 @@ function parseBackupPayload(parsed: unknown): ParsedBackup {
     });
   }
 
-  return { subjects, professors, scheduleSlots, notes, images };
+  // Notas de voz: solo formatos de audio conocidos (el respaldo puede venir de otra persona)
+  const audios: NoteAudio[] = [];
+  for (const raw of readRecords(data, 'audios', ['id', 'noteId'])) {
+    const match = isString(raw.dataUrl) ? SAFE_AUDIO_DATA_URL.exec(raw.dataUrl) : null;
+    if (!match || !isString(raw.dataUrl)) continue;
+    audios.push({
+      id: raw.id as string,
+      noteId: raw.noteId as string,
+      name: isString(raw.name) ? raw.name.slice(0, 80) : 'Nota de voz',
+      mimeType: match[1],
+      blob: dataUrlToBlob(raw.dataUrl),
+      durationMs: typeof raw.durationMs === 'number' && Number.isFinite(raw.durationMs) ? Math.max(0, raw.durationMs) : 0,
+      createdAt: isString(raw.createdAt) ? raw.createdAt : new Date().toISOString(),
+    });
+  }
+
+  return { subjects, professors, scheduleSlots, notes, images, audios };
 }
 
 /**

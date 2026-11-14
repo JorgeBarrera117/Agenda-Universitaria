@@ -15,12 +15,15 @@ import {
   Info,
   Share2,
   FileDown,
+  Mic,
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
+import { VoiceNotesSection, VoiceRecorderModal } from './VoiceNotes';
+import { useNoteAudios, useNoteAudioCounts } from '../hooks/useNoteAudios';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { PageHeader } from '../../../shared/components/PageHeader';
@@ -118,6 +121,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
     }
   }, []);
 
+  const audioCounts = useNoteAudioCounts();
+
   // Vistas a pantalla completa: 'list' (galería), 'editor' (crear/editar), 'reader' (lectura)
   const [viewMode, setViewMode] = useState<'list' | 'editor' | 'reader'>('list');
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
@@ -133,6 +138,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
     addImage: addImageToReadingNote,
     removeImage: removeImageFromReadingNote,
   } = useNoteImages(readingNote?.id);
+  const {
+    audios: readingNoteAudios,
+    addAudio: addAudioToReadingNote,
+    renameAudio: renameReadingNoteAudio,
+    removeAudio: removeReadingNoteAudio,
+  } = useNoteAudios(readingNote?.id);
+  const [isRecorderOpen, setIsRecorderOpen] = useState(false);
 
   const readingNoteHtml = useMemo(
     () => (readingNote ? sanitizeNoteHtml(readingNote.content) : ''),
@@ -390,6 +402,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 disabled: isUploadingInReader,
               },
               {
+                id: 'voice',
+                label: 'Grabar nota de voz',
+                icon: <Mic className="h-4 w-4 text-[var(--color-md-primary)]" />,
+                onClick: () => setIsRecorderOpen(true),
+              },
+              {
                 id: 'copy',
                 label: 'Copiar texto',
                 icon: <Copy className="h-4 w-4 text-[var(--color-md-primary)]" />,
@@ -542,8 +560,26 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 </div>
               </section>
             )}
+
+            {/* Notas de voz: solo aparecen si existen; para grabar la primera, menú ⋮ */}
+            <VoiceNotesSection
+              audios={readingNoteAudios}
+              onRecord={() => setIsRecorderOpen(true)}
+              onRename={renameReadingNoteAudio}
+              onDelete={removeReadingNoteAudio}
+              className="border-t border-[var(--color-md-outline-variant)] pt-5"
+            />
           </article>
         </div>
+
+        <VoiceRecorderModal
+          isOpen={isRecorderOpen}
+          onClose={() => setIsRecorderOpen(false)}
+          onSave={async ({ blob, mimeType, durationMs, name }) => {
+            await addAudioToReadingNote(blob, mimeType, durationMs, name);
+            setReaderToast('Nota de voz guardada en el apunte.');
+          }}
+        />
 
         <ContextualToast message={readerToast} bottomOffset="compact" onClose={() => setReaderToast(null)} />
 
@@ -553,6 +589,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               ['Palabras', String(stats.words)],
               ['Caracteres', String(stats.chars)],
               ['Fotos del pizarrón', String(readingNoteImages.length)],
+              ['Notas de voz', String(readingNoteAudios.length)],
               ['Creado', new Date(readingNote.createdAt).toLocaleString('es-ES')],
               ['Última edición', new Date(readingNote.updatedAt).toLocaleString('es-ES')],
             ].map(([term, value]) => (
@@ -814,6 +851,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           {sortedNotes.map((note) => {
             const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;
+            const audioCount = audioCounts[note.id] || 0;
             const preview = previewsById[note.id] ?? parseNotePreview(note.content);
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
@@ -887,12 +925,21 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       draggable={false}
                       className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                     />
-                    {imageCount > 0 && (
-                      <span className="absolute top-1 left-1 inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-800 bg-amber-50/95 px-1 py-0.5 rounded shadow-2xs">
-                        <Camera className="w-2.5 h-2.5" aria-hidden="true" />
-                        <span>{imageCount}</span>
-                      </span>
-                    )}
+                    <div className="absolute top-1 left-1 flex items-center gap-1">
+                      {imageCount > 0 && (
+                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-800 bg-amber-50/95 px-1 py-0.5 rounded shadow-2xs">
+                          <Camera className="w-2.5 h-2.5" aria-hidden="true" />
+                          <span>{imageCount}</span>
+                        </span>
+                      )}
+                      {audioCount > 0 && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-[var(--color-md-primary-container)] px-1 py-0.5 text-[8px] font-bold text-[var(--color-md-on-primary-container)] shadow-2xs">
+                          <Mic className="w-2.5 h-2.5" aria-hidden="true" />
+                          <span>{audioCount}</span>
+                          <span className="sr-only">notas de voz</span>
+                        </span>
+                      )}
+                    </div>
                     {preview.hasText && (
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 pt-4">
                         <p className="text-[9px] text-white/95 leading-tight line-clamp-1 font-medium drop-shadow-xs">
@@ -917,14 +964,21 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
                     {/* Pie de la hoja: fotos adjuntas y materia */}
                     <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                      {imageCount > 0 ? (
-                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
-                          <Camera className="w-2.5 h-2.5" aria-hidden="true" />
-                          <span>{imageCount}</span>
-                        </span>
-                      ) : (
-                        <div />
-                      )}
+                      <div className="flex items-center gap-1">
+                        {imageCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
+                            <Camera className="w-2.5 h-2.5" aria-hidden="true" />
+                            <span>{imageCount}</span>
+                          </span>
+                        )}
+                        {audioCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 rounded bg-[var(--color-md-primary-container)] px-1 py-0.5 text-[8px] font-bold text-[var(--color-md-on-primary-container)]">
+                            <Mic className="w-2.5 h-2.5" aria-hidden="true" />
+                            <span>{audioCount}</span>
+                            <span className="sr-only">notas de voz</span>
+                          </span>
+                        )}
+                      </div>
 
                       <div
                         className="w-4 h-4 rounded flex items-center justify-center text-white shadow-2xs shrink-0"
@@ -956,6 +1010,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           {sortedNotes.map((note) => {
             const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
             const imageCount = imageCounts?.[note.id] || 0;
+            const audioCount = audioCounts[note.id] || 0;
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
               day: 'numeric',
               month: 'short',
@@ -994,6 +1049,16 @@ export const NotesView: React.FC<NotesViewProps> = ({
                           <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
                             <Camera className="w-2.5 h-2.5" />
                             {imageCount}
+                          </span>
+                        </>
+                      )}
+                      {audioCount > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-[var(--color-md-primary)]">
+                            <Mic className="w-2.5 h-2.5" aria-hidden="true" />
+                            {audioCount}
+                            <span className="sr-only">notas de voz</span>
                           </span>
                         </>
                       )}

@@ -70,8 +70,9 @@ export class DexieNoteRepository implements INoteRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await db.transaction('rw', [db.notes, db.noteImages], async () => {
+    await db.transaction('rw', [db.notes, db.noteImages, db.noteAudios], async () => {
       await db.noteImages.where('noteId').equals(id).delete();
+      await db.noteAudios.where('noteId').equals(id).delete();
       await db.notes.delete(id);
     });
   }
