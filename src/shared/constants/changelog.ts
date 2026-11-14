@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.62',
+    date: '2026-11-13',
+    title: 'Ventanas más cómodas en celular y PC',
+    changes: [
+      { kind: 'mejora', text: 'En el celular, las ventanas emergentes salen desde abajo, a todo el ancho; en la computadora siguen centradas.' },
+      { kind: 'mejora', text: 'Los botones «Cancelar», «Guardar» o «Siguiente» quedan siempre a la vista, aunque el contenido sea largo.' },
+      { kind: 'correccion', text: 'Las listas para elegir (materia, orden…) ya no salen cortadas dentro de las ventanas. En el celular se abren desde abajo con opciones grandes.' },
+    ],
+  },
+  {
     version: '1.7.10.61',
     date: '2026-11-13',
     title: 'Instalador de Windows con opciones',
