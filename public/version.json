@@ -1,15 +1,15 @@
 {
-  "latestVersion": "1.7.10.62",
+  "latestVersion": "1.7.10.63",
   "releaseDate": "2026-11-13",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.62/Agenda-Universitaria-v1.7.10.62.apk",
-  "apkSha256": "f14a7b75208b96e38f652cb3c1cfd416cb5c56dd61124e207e687eca3dcc719f",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.62/Agenda-Universitaria-Setup-v1.7.10.62.exe",
-  "desktopSha256": "3d67582178c5af6c3a74799ccf9646036f618c8d0362aec8ce832412d7d09630",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.63/Agenda-Universitaria-v1.7.10.63.apk",
+  "apkSha256": "63087d1efbb32ac3128b2918546f75174aed0db28b1cb0f064e1983117834f50",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.63/Agenda-Universitaria-Setup-v1.7.10.63.exe",
+  "desktopSha256": "7f294f4d2ebf42b4fe514ff543482514800be7edbae4032ce85c66968b1d1d31",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "En el celular, las ventanas salen desde abajo; en la PC siguen centradas",
-    "Los botones de las ventanas quedan siempre a la vista",
-    "Las listas para elegir ya no salen cortadas"
+    "Graba notas de voz dentro de tus apuntes",
+    "Escucha, renombra o elimina cada grabación desde el apunte",
+    "Las notas de voz van en las copias de seguridad y al compartir"
   ]
 }
