@@ -32,6 +32,17 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.63',
+    date: '2026-11-13',
+    title: 'Notas de voz en tus apuntes',
+    changes: [
+      { kind: 'nuevo', text: 'Graba notas de voz dentro de un apunte: desde el menú ⋮ del apunte o con el micrófono de la barra del editor. Puedes pausar, escucharla y ponerle nombre antes de guardarla.' },
+      { kind: 'nuevo', text: 'Cada grabación tiene su reproductor para escucharla, adelantar, cambiarle el nombre o eliminarla.' },
+      { kind: 'mejora', text: 'Las notas de voz se incluyen en las copias de seguridad y al compartir un apunte.' },
+      { kind: 'correccion', text: 'Al borrar una materia también se borran las fotos y grabaciones de sus apuntes, que antes quedaban ocupando espacio.' },
+    ],
+  },
+  {
     version: '1.7.10.62',
     date: '2026-11-13',
     title: 'Ventanas más cómodas en celular y PC',
