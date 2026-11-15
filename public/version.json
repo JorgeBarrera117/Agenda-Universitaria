@@ -1,13 +1,14 @@
 {
-  "latestVersion": "1.7.10.69",
-  "releaseDate": "2026-11-14",
+  "latestVersion": "1.7.10.70",
+  "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.69/Agenda-Universitaria-v1.7.10.69.apk",
-  "apkSha256": "516af353a27ce0b4ab47a345e1aaeb71e5ad620cf6741bb54b13b5c864ffa4fc",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.69/Agenda-Universitaria-Setup-v1.7.10.69.exe",
-  "desktopSha256": "acda53ca50f28d8c683b9f7189ff5e2dcf0aad22e23f449fc3279cde991bf31b",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.70/Agenda-Universitaria-v1.7.10.70.apk",
+  "apkSha256": "075cb40dbc97ea15064babb8d6967bbc0a6666490e926ebaaddc9060c1d62804",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.70/Agenda-Universitaria-Setup-v1.7.10.70.exe",
+  "desktopSha256": "e52551b3288e9033289ce04cdebd1fb185826df63c77f040d4fbce9b0be2bec1",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Ya puedes usar fotos HEIC (iPhone y Samsung) en tu perfil, apuntes y papel tapiz"
+    "Apuntes personales sin materia, con su propia pastilla «Personal»",
+    "Los apuntes nuevos ya vienen con la materia o «Personal» que tengas abierta"
   ]
 }
