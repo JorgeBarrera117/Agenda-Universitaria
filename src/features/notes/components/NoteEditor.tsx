@@ -15,12 +15,22 @@ import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExit
 import type { Editor } from '@tiptap/react';
 import type { Note, CreateNoteDTO } from '../types';
 import { exportNoteToAgnote } from '../services/noteShareService';
+import {
+  PERSONAL_CHOICE,
+  PERSONAL_COLOR,
+  PERSONAL_ICON,
+  PERSONAL_LABEL,
+  choiceToSubjectId,
+  subjectIdToChoice,
+} from '../utils/personalNotes';
 
 interface NoteEditorProps {
   initialData?: Note;
   /** Guarda y devuelve la nota guardada; el editor sigue abierto sobre ella. */
   onSubmit: (data: CreateNoteDTO) => Promise<Note | void>;
   onCancel: () => void;
+  /** Clasificación preelegida de un apunte nuevo (la del filtro abierto): id de materia o «personal». */
+  defaultSubjectChoice?: string;
 }
 
 /** Normaliza una etiqueta escrita a mano: sin "#", sin espacios extremos y en minúsculas. */
@@ -28,15 +38,17 @@ function normalizeTag(raw: string): string {
   return raw.replace(/^#+/, '').trim().toLowerCase();
 }
 
-export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, onCancel }) => {
+export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, onCancel, defaultSubjectChoice }) => {
   const { subjects } = useSubjects();
+  // Valor del selector: id de la materia, «personal» o '' (aún sin elegir)
+  const initialChoice = initialData ? subjectIdToChoice(initialData.subjectId) : (defaultSubjectChoice ?? '');
 
   const [title, setTitle] = useState(initialData?.title || '');
-  const [subjectId, setSubjectId] = useState(initialData?.subjectId || '');
+  const [subjectChoice, setSubjectChoice] = useState(initialChoice);
   const [prevInitialSubjectId, setPrevInitialSubjectId] = useState(initialData?.subjectId);
   if (initialData?.subjectId !== prevInitialSubjectId) {
     setPrevInitialSubjectId(initialData?.subjectId);
-    setSubjectId(initialData?.subjectId || '');
+    setSubjectChoice(initialChoice);
   }
 
   const [content, setContent] = useState(initialData?.content || '');
@@ -50,7 +62,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
   // Lo último guardado: "Cambios sin guardar" se mide contra esto, no contra cómo se abrió
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState({
     title: initialData?.title || '',
-    subjectId: initialData?.subjectId || '',
+    // Un apunte nuevo con la clasificación preelegida no cuenta como «cambios sin guardar»
+    subjectChoice: initialChoice,
     content: initialData?.content || '',
     tags: initialData?.tags ?? [],
   });
@@ -73,15 +86,23 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     el.style.height = `${el.scrollHeight}px`;
   }, []);
 
+  // «Personal» primero: está siempre, aunque el estudiante aún no tenga materias
   const subjectOptions: M3SelectOption[] = useMemo(
-    () =>
-      subjects.map((s) => ({
+    () => [
+      {
+        value: PERSONAL_CHOICE,
+        label: PERSONAL_LABEL,
+        color: PERSONAL_COLOR,
+        icon: <SubjectBadge icon={PERSONAL_ICON} color={PERSONAL_COLOR} size="select" />,
+      },
+      ...subjects.map((s) => ({
         value: s.id,
         label: s.name,
         sublabel: s.code,
         color: s.color,
         icon: <SubjectBadge icon={s.icon} color={s.color} size="select" />,
       })),
+    ],
     [subjects]
   );
 
@@ -96,7 +117,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
 
   const isDirty =
     title !== lastSavedSnapshot.title ||
-    subjectId !== lastSavedSnapshot.subjectId ||
+    subjectChoice !== lastSavedSnapshot.subjectChoice ||
     content !== lastSavedSnapshot.content ||
     tagDraft.trim() !== '' ||
     tags.join('|') !== lastSavedSnapshot.tags.join('|');
@@ -152,14 +173,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
       const draft: Note = {
         // Con el id real se incluyen también las fotos adjuntas del apunte guardado
         id: activeNote?.id ?? 'borrador',
-        subjectId,
+        subjectId: choiceToSubjectId(subjectChoice),
         title: title.trim() || 'Apunte',
         content,
         tags: commitTags(tagDraft),
         createdAt: activeNote?.createdAt ?? now,
         updatedAt: now,
       };
-      const result = await exportNoteToAgnote(draft, subjects.find((s) => s.id === subjectId));
+      const result = await exportNoteToAgnote(draft, subjects.find((s) => s.id === subjectChoice));
       if (result.method === 'download') setShareNotice(`Apunte descargado: ${result.fileName}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudo compartir el apunte.');
@@ -174,8 +195,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
       setError('Escribe un título para tu apunte.');
       return false;
     }
-    if (!subjectId) {
-      setError('Elige la materia de este apunte.');
+    if (!subjectChoice) {
+      setError('Elige una materia o «Personal» para este apunte.');
       return false;
     }
 
@@ -184,10 +205,10 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     try {
       setIsSubmitting(true);
       setError(null);
-      const saved = await onSubmit({ title: title.trim(), subjectId, content, tags: finalTags });
+      const saved = await onSubmit({ title: title.trim(), subjectId: choiceToSubjectId(subjectChoice), content, tags: finalTags });
       if (saved) setActiveNote(saved);
       // Se compara con lo que hay en pantalla (el título sin recortar) para que quede "sin cambios"
-      setLastSavedSnapshot({ title, subjectId, content, tags: finalTags });
+      setLastSavedSnapshot({ title, subjectChoice, content, tags: finalTags });
       setLastSavedTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
       return true;
     } catch (err: unknown) {
@@ -336,22 +357,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
         />
 
         <div className="mb-2 flex shrink-0 flex-wrap items-center gap-2">
-          {subjects.length === 0 ? (
-            <span className="rounded-full bg-[var(--color-md-surface-container-high)] px-3 py-1.5 text-xs font-semibold text-[var(--color-md-on-surface)]">
-              Crea una materia en la pestaña Materias para guardar apuntes
-            </span>
-          ) : (
-            <M3Select
-              variant="pill"
-              value={subjectId}
-              onChange={(val) => {
-                setSubjectId(val);
-                setError(null);
-              }}
-              options={subjectOptions}
-              placeholder="Elegir materia *"
-            />
-          )}
+          <M3Select
+            variant="pill"
+            value={subjectChoice}
+            onChange={(val) => {
+              setSubjectChoice(val);
+              setError(null);
+            }}
+            options={subjectOptions}
+            placeholder="Materia o personal *"
+          />
           <span className="text-xs font-medium text-[var(--color-md-on-surface-variant)]">
             {initialData ? `Creado el ${createdLabel}` : `Hoy, ${createdLabel}`}
           </span>

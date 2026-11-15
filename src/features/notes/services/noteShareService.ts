@@ -6,6 +6,7 @@ import { comparableName } from '../../../shared/utils/comparableName';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import { db } from '../../../shared/db/AppDatabase';
 import { subjectRepository } from '../../subjects/repositories/subjectRepository';
+import { PERSONAL_SUBJECT_ID } from '../utils/personalNotes';
 import { noteImageRepository } from '../repositories/noteImageRepository';
 import { noteAudioRepository } from '../repositories/noteAudioRepository';
 import { noteRepository } from '../repositories/noteRepository';
@@ -285,6 +286,7 @@ export function findMatchingSubject<T extends Pick<Subject, 'id' | 'name' | 'cod
 
 export type AgnoteImportTarget =
   | { kind: 'existing'; subjectId: string }
+  | { kind: 'personal' }
   | { kind: 'create'; name: string; code?: string; color: string };
 
 /**
@@ -306,7 +308,9 @@ export async function importAgnotePackage(
   // subjects y professors, y Dexie exige que el padre incluya todas las tablas que usan sus hijas
   return db.transaction('rw', [db.subjects, db.professors, db.notes, db.noteImages, db.noteAudios], async () => {
     let subjectId: string;
-    if (target.kind === 'existing') {
+    if (target.kind === 'personal') {
+      subjectId = PERSONAL_SUBJECT_ID;
+    } else if (target.kind === 'existing') {
       if (!(await subjectRepository.getById(target.subjectId))) {
         throw new Error('La materia elegida ya no existe.');
       }

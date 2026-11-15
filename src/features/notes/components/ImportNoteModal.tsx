@@ -5,7 +5,8 @@ import { Button } from '../../../shared/components/atoms';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { formInputClass } from '../../../shared/components/form';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { SUBJECT_PRESET_COLORS } from '../../subjects/components/SubjectIcon';
+import { SUBJECT_PRESET_COLORS, SubjectBadge } from '../../subjects/components/SubjectIcon';
+import { PERSONAL_CHOICE, PERSONAL_COLOR, PERSONAL_ICON, PERSONAL_LABEL } from '../utils/personalNotes';
 import { parseNotePreview } from '../utils/notePreview';
 import {
   findMatchingSubject,
@@ -37,9 +38,10 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
   const photoCount = inlinePhotos + sharePackage.attachments.length;
 
   // La elección por defecto se deriva en cada render: las materias llegan de IndexedDB después
-  // del primer render y el emparejamiento debe aplicarse cuando aparezcan
+  // del primer render y el emparejamiento debe aplicarse cuando aparezcan. Un apunte compartido
+  // sin materia (personal) se guarda como personal.
   const matching = findMatchingSubject(subjects, origin);
-  const defaultChoice = matching?.id ?? (origin || subjects.length === 0 ? NEW_SUBJECT : subjects[0].id);
+  const defaultChoice = matching?.id ?? (origin ? NEW_SUBJECT : PERSONAL_CHOICE);
   const [choice, setChoice] = useState<string | null>(null);
   const selected = choice ?? defaultChoice;
 
@@ -50,6 +52,12 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
 
   const newSubjectColor = origin?.color ?? SUBJECT_PRESET_COLORS[0];
   const subjectOptions: M3SelectOption[] = [
+    {
+      value: PERSONAL_CHOICE,
+      label: PERSONAL_LABEL,
+      color: PERSONAL_COLOR,
+      icon: <SubjectBadge icon={PERSONAL_ICON} color={PERSONAL_COLOR} size="sm" />,
+    },
     ...subjects.map((s) => ({
       value: s.id,
       label: s.name,
@@ -72,6 +80,7 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
 
   const handleSave = async () => {
     const isNew = selected === NEW_SUBJECT;
+    const isPersonal = selected === PERSONAL_CHOICE;
     const name = newSubjectName.trim() || DEFAULT_NEW_SUBJECT_NAME;
     setIsSaving(true);
     setError(null);
@@ -80,12 +89,18 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
         sharePackage,
         isNew
           ? { kind: 'create', name, code: origin?.code, color: newSubjectColor }
-          : { kind: 'existing', subjectId: selected },
+          : isPersonal
+            ? { kind: 'personal' }
+            : { kind: 'existing', subjectId: selected },
         tags
       );
       onImported({
         title: sharePackage.note.title,
-        subjectName: isNew ? name : (subjects.find((s) => s.id === selected)?.name ?? 'tu materia'),
+        subjectName: isNew
+          ? name
+          : isPersonal
+            ? 'tus apuntes personales'
+            : (subjects.find((s) => s.id === selected)?.name ?? 'tu materia'),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar el apunte.');
@@ -145,7 +160,7 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
         {/* Materia de destino */}
         <section className="space-y-2">
           <M3Select
-            label="Guardar en la materia"
+            label="Guardar en"
             value={selected}
             onChange={(value) => setChoice(value)}
             options={subjectOptions}
@@ -172,7 +187,9 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
           )}
           {!matching && origin && selected !== NEW_SUBJECT && (
             <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
-              No tienes «{origin.name}»: el apunte se guardará en la materia que elegiste.
+              {selected === PERSONAL_CHOICE
+                ? `No tienes «${origin.name}»: el apunte se guardará en tus apuntes personales.`
+                : `No tienes «${origin.name}»: el apunte se guardará en la materia que elegiste.`}
             </p>
           )}
         </section>

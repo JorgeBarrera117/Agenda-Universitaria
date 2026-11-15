@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Award,
   Sparkles,
+  UserRound,
 } from 'lucide-react';
 
 export interface SubjectIconOption {
@@ -104,6 +105,9 @@ export const renderSubjectGlyph = (
       return <Award className={className} />;
     case 'sparkles':
       return <Sparkles className={className} />;
+    // Reservado para los apuntes personales (no aparece en el selector de íconos de materias)
+    case 'personal':
+      return <UserRound className={className} />;
     case 'book':
     default:
       return <BookOpen className={className} />;

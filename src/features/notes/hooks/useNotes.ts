@@ -2,14 +2,16 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../shared/db/AppDatabase';
 import { noteRepository } from '../repositories/noteRepository';
 import type { CreateNoteDTO, UpdateNoteDTO } from '../types';
+import { choiceToSubjectId } from '../utils/personalNotes';
 
 export function useNotes(subjectFilterId?: string, searchQuery?: string) {
   const notes = useLiveQuery(
     async () => {
       let queryCollection = db.notes.toCollection();
 
+      // 'all' = todos; 'personal' = los que no tienen materia (subjectId '')
       if (subjectFilterId && subjectFilterId !== 'all') {
-        queryCollection = db.notes.where('subjectId').equals(subjectFilterId);
+        queryCollection = db.notes.where('subjectId').equals(choiceToSubjectId(subjectFilterId));
       }
 
       let result = await queryCollection.toArray();

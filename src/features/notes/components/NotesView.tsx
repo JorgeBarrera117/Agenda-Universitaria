@@ -52,6 +52,7 @@ import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { notePlainText, parseNotePreview, type NotePreviewData } from '../utils/notePreview';
+import { PERSONAL_CATEGORY, PERSONAL_CHOICE, getNoteCategory } from '../utils/personalNotes';
 
 interface NotesViewProps {
   initialSubjectFilterId?: string;
@@ -101,7 +102,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     selectedSubjectId,
     searchQuery
   );
-  const { subjects, getSubjectById } = useSubjects();
+  const { subjects } = useSubjects();
   const isScrolled = useScrollCollapse(48);
 
   // Mapa de materias memoizado para búsqueda O(1) de asignaturas
@@ -172,8 +173,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   const handleShareNote = async (note: Note) => {
     try {
-      const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
-      const result = await exportNoteToAgnote(note, subject);
+      // Un apunte personal se comparte sin materia (el paquete .agnote lo admite)
+      const result = await exportNoteToAgnote(note, subjectMap.get(note.subjectId));
       // En Android abre la hoja de compartir del sistema; en la web descarga el archivo
       if (result.method === 'download') showReaderToast(`Apunte descargado: ${result.fileName}`);
     } catch (err) {
@@ -377,6 +378,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
     return (
       <NoteEditor
         initialData={editingNote}
+        defaultSubjectChoice={selectedSubjectId === 'all' ? undefined : selectedSubjectId}
         onSubmit={handleSubmit}
         onCancel={handleBackToList}
       />
@@ -385,7 +387,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // 2. Vista de lectura a pantalla completa: folio editorial continuo
   if (viewMode === 'reader' && readingNote) {
-    const readingSubject = subjectMap.get(readingNote.subjectId) || getSubjectById(readingNote.subjectId);
+    const readingCategory = getNoteCategory(readingNote, subjectMap);
     const stats = getNoteStats(readingNote);
     const wasEdited = readingNote.updatedAt !== readingNote.createdAt;
 
@@ -397,8 +399,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
           title={readingNote.title || 'Documento sin título'}
           subtitle={
             <span className="flex items-center gap-1.5">
-              {readingSubject && <SubjectBadge icon={readingSubject.icon} color={readingSubject.color} size="xs" />}
-              <span className="truncate">{readingSubject?.name || 'Sin materia'}</span>
+              <SubjectBadge icon={readingCategory.icon} color={readingCategory.color} size="xs" />
+              <span className="truncate">{readingCategory.name}</span>
             </span>
           }
           onBack={closeReader}
@@ -489,14 +491,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[var(--color-md-surface-container)] py-0.5 pl-0.5 pr-2.5 font-semibold text-[var(--color-md-on-surface)]">
                   <span
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                    style={{ backgroundColor: readingSubject?.color }}
+                    style={{ backgroundColor: readingCategory.color }}
                   >
-                    <SubjectIcon icon={readingSubject?.icon} className="h-3 w-3 text-white" />
+                    <SubjectIcon icon={readingCategory.icon} className="h-3 w-3 text-white" />
                   </span>
-                  <span className="truncate">{readingSubject?.name || 'Sin materia'}</span>
-                  {readingSubject?.code && (
+                  <span className="truncate">{readingCategory.name}</span>
+                  {readingCategory.code && (
                     <span className="font-mono text-[10px] text-[var(--color-md-on-surface-variant)]">
-                      {readingSubject.code}
+                      {readingCategory.code}
                     </span>
                   )}
                 </span>
@@ -776,6 +778,34 @@ export const NotesView: React.FC<NotesViewProps> = ({
           <span>Todos ({notes.length})</span>
         </button>
 
+        {/* Apuntes sin materia: ideas, pendientes, notas de la vida universitaria */}
+        {(() => {
+          const isSelected = selectedSubjectId === PERSONAL_CHOICE;
+          return (
+            <button
+              type="button"
+              onClick={() => setSelectedSubjectId(PERSONAL_CHOICE)}
+              aria-pressed={isSelected}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
+                isSelected
+                  ? 'text-white shadow-2xs ring-1 ring-white/30'
+                  : 'bg-[#F1F4FA] dark:bg-[#1D2024] text-[#191C20] dark:text-[#E2E2E6] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
+              }`}
+              style={{ backgroundColor: isSelected ? PERSONAL_CATEGORY.color : undefined }}
+            >
+              <div
+                className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 transition-all ${
+                  isSelected ? 'bg-white/25 text-white' : 'text-white shadow-2xs'
+                }`}
+                style={{ backgroundColor: isSelected ? undefined : PERSONAL_CATEGORY.color }}
+              >
+                <SubjectIcon icon={PERSONAL_CATEGORY.icon} className="w-2.5 h-2.5 text-white" />
+              </div>
+              <span>{PERSONAL_CATEGORY.name}</span>
+            </button>
+          );
+        })()}
+
         {subjects.map((sub) => {
           const isSelected = selectedSubjectId === sub.id;
           return (
@@ -860,12 +890,18 @@ export const NotesView: React.FC<NotesViewProps> = ({
             <FileText className="w-5 h-5" />
           </div>
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-            {searchQuery ? 'No se encontraron documentos' : 'No hay apuntes registrados'}
+            {searchQuery
+              ? 'No se encontraron documentos'
+              : selectedSubjectId === PERSONAL_CHOICE
+                ? 'Aún no tienes apuntes personales'
+                : 'No hay apuntes registrados'}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 max-w-sm mx-auto">
             {searchQuery
               ? 'Intenta con otro término de búsqueda o selecciona otra materia.'
-              : 'Redacta tu primer documento con formato enriquecido o adjunta fotos del pizarrón.'}
+              : selectedSubjectId === PERSONAL_CHOICE
+                ? 'Guarda ideas, pendientes o notas que no son de ninguna materia.'
+                : 'Redacta tu primer documento con formato enriquecido o adjunta fotos del pizarrón.'}
           </p>
           <Button
             variant="primary"
@@ -881,7 +917,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         /* Cuadrícula Compacta Responsiva */
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3">
           {sortedNotes.map((note) => {
-            const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
+            const category = getNoteCategory(note, subjectMap);
             const imageCount = imageCounts?.[note.id] || 0;
             const audioCount = audioCounts[note.id] || 0;
             const preview = previewsById[note.id] ?? parseNotePreview(note.content);
@@ -902,10 +938,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     <div
                       className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 shadow-2xs text-white"
                       style={{
-                        backgroundColor: subject?.color || '#00639B',
+                        backgroundColor: category.color,
                       }}
                     >
-                      <SubjectIcon icon={subject?.icon} className="w-3 h-3 text-white" />
+                      <SubjectIcon icon={category.icon} className="w-3 h-3 text-white" />
                     </div>
 
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
@@ -1014,10 +1050,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
                       <div
                         className="w-4 h-4 rounded flex items-center justify-center text-white shadow-2xs shrink-0"
-                        style={{ backgroundColor: subject?.color || '#00639B' }}
-                        title={subject?.name || 'Materia'}
+                        style={{ backgroundColor: category.color }}
+                        title={category.name}
                       >
-                        <SubjectIcon icon={subject?.icon} className="w-2.5 h-2.5 text-white" />
+                        <SubjectIcon icon={category.icon} className="w-2.5 h-2.5 text-white" />
                       </div>
                     </div>
                   </div>
@@ -1026,7 +1062,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 {/* Pie de la Tarjeta */}
                 <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
                   <span className="truncate max-w-[80px] font-medium">
-                    {subject?.name || 'General'}
+                    {category.name}
                   </span>
                   <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
                     {dateFormatted}
@@ -1040,7 +1076,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         /* Vista de Lista Agrupada */
         <div className="bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-2xs">
           {sortedNotes.map((note) => {
-            const subject = subjectMap.get(note.subjectId) || getSubjectById(note.subjectId);
+            const category = getNoteCategory(note, subjectMap);
             const imageCount = imageCounts?.[note.id] || 0;
             const audioCount = audioCounts[note.id] || 0;
             const dateFormatted = new Date(note.updatedAt).toLocaleDateString('es-ES', {
@@ -1059,10 +1095,10 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   <div
                     className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs text-white"
                     style={{
-                      backgroundColor: subject?.color || '#00639B',
+                      backgroundColor: category.color,
                     }}
                   >
-                    <SubjectIcon icon={subject?.icon} className="w-4 h-4 text-white" />
+                    <SubjectIcon icon={category.icon} className="w-4 h-4 text-white" />
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -1071,7 +1107,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     </h3>
                     <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       <span className="truncate max-w-[120px] font-semibold text-slate-600 dark:text-slate-300">
-                        {subject?.name || 'General'}
+                        {category.name}
                       </span>
                       <span>•</span>
                       <span>{dateFormatted}</span>

@@ -1,5 +1,6 @@
 export interface Note {
   id: string;
+  /** Materia del apunte; '' = apunte personal, sin materia (ver utils/personalNotes.ts). */
   subjectId: string;
   title: string;
   content: string; // Markdown
