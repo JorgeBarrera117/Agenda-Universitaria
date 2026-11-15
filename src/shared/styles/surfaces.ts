@@ -19,7 +19,7 @@ export const TONAL_CHIP_CLASS =
  * ABOVE_STRETCHED_CLASS para quedar por encima y seguir funcionando.
  */
 export const STRETCHED_CARD_BUTTON_CLASS =
-  "text-left after:absolute after:inset-0 after:rounded-[24px] sm:after:rounded-[28px] after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[var(--color-md-primary)]";
+  "cursor-pointer text-left after:absolute after:inset-0 after:rounded-[24px] sm:after:rounded-[28px] after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[var(--color-md-primary)]";
 
 /** Controles dentro de una tarjeta con STRETCHED_CARD_BUTTON_CLASS: por encima del botón estirado. */
 export const ABOVE_STRETCHED_CLASS = 'relative z-10';

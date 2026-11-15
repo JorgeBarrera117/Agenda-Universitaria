@@ -126,6 +126,35 @@
 }
 
 @layer base {
+  /* Cursor de mano en todo lo que se puede tocar (PC instalable, portable y web). Tailwind v4 dejó
+     de ponerlo en los botones por defecto, así que las tarjetas (su botón estirado), los menús y las
+     opciones mostraban la flecha. Va en la capa base: una clase cursor-* del componente
+     (cursor-grab, cursor-text, cursor-move…) sigue teniendo prioridad. */
+  :is(
+      button,
+      a[href],
+      summary,
+      select,
+      label[for],
+      input:is([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']),
+      [role='button'],
+      [role='option'],
+      [role='menuitem'],
+      [role='menuitemradio'],
+      [role='menuitemcheckbox'],
+      [role='tab'],
+      [role='switch'],
+      [role='radio'],
+      [role='checkbox']
+    ):not(:disabled, [aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  :is(button, select, input):disabled,
+  [aria-disabled='true'] {
+    cursor: default;
+  }
+
   html {
     font-family: var(--font-google-plain);
     -webkit-font-smoothing: antialiased;
