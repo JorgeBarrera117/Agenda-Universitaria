@@ -32,6 +32,14 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.67',
+    date: '2026-11-14',
+    title: 'Ves lo que escribes',
+    changes: [
+      { kind: 'correccion', text: 'Al escribir o editar un apunte largo, el cursor ya no queda escondido detrás de la barra de formato ni del teclado: el texto sube solo para que veas lo que escribes.' },
+    ],
+  },
+  {
     version: '1.7.10.66',
     date: '2026-11-14',
     title: 'Listas de tareas en tus apuntes',
