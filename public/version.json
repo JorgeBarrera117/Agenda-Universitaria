@@ -1,14 +1,13 @@
 {
-  "latestVersion": "1.7.10.68",
+  "latestVersion": "1.7.10.69",
   "releaseDate": "2026-11-14",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.68/Agenda-Universitaria-v1.7.10.68.apk",
-  "apkSha256": "7fee4ec449d1ccec45f5bbdfd5c5fded3cdbe6e6da5d20a873ef7c3206420957",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.68/Agenda-Universitaria-Setup-v1.7.10.68.exe",
-  "desktopSha256": "b0542459658a03bc13ea24f029b93f4d8a8fca968cd1c5486a0afaa7fa261ec0",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.69/Agenda-Universitaria-v1.7.10.69.apk",
+  "apkSha256": "516af353a27ce0b4ab47a345e1aaeb71e5ad620cf6741bb54b13b5c864ffa4fc",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.69/Agenda-Universitaria-Setup-v1.7.10.69.exe",
+  "desktopSha256": "acda53ca50f28d8c683b9f7189ff5e2dcf0aad22e23f449fc3279cde991bf31b",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Tarjeta «Mi perfil» más visible en Ajustes",
-    "Recorta tu foto de perfil moviéndola y acercándola, como en WhatsApp"
+    "Ya puedes usar fotos HEIC (iPhone y Samsung) en tu perfil, apuntes y papel tapiz"
   ]
 }
