@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.72",
+  "latestVersion": "1.7.10.73",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.72/Agenda-Universitaria-v1.7.10.72.apk",
-  "apkSha256": "a83605a4938882ca3e292e6e2bfe6428213b9fb08d1c6fc55fe655f4d9073828",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.72/Agenda-Universitaria-Setup-v1.7.10.72.exe",
-  "desktopSha256": "a4317579dd9f82b677774ceaebe8d8e82fced2c0c6a44f82fb294919e287948d",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.73/Agenda-Universitaria-v1.7.10.73.apk",
+  "apkSha256": "2e47bb51473c5bf0056f71f5efdc45e4776584b86d3e5f100fb9a7ef5362cafe",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.73/Agenda-Universitaria-Setup-v1.7.10.73.exe",
+  "desktopSha256": "6a709c3c34ca599b81868f0577dcc080f44adc913773f60973a4115ef936f4f3",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "En la computadora, «Descargar y actualizar» ya instala la nueva versión",
-    "Se ve el asistente con el progreso y al terminar la agenda se abre actualizada"
+    "El horario respeta los «Días visibles» que elijas en Ajustes",
+    "Tarjetas de la vista semanal con un diseño más claro"
   ]
 }
