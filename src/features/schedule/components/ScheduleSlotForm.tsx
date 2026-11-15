@@ -24,9 +24,19 @@ import {
   type ClassModality,
 } from '../types';
 
+/** Clase nueva desde la ficha de una materia: la materia, su docente y su aula ya elegidos. */
+export interface ScheduleSlotPreset {
+  subjectId: string;
+  professorId?: string;
+  classroomDefault?: string;
+}
+
 interface ScheduleSlotFormProps {
   initialData?: ScheduleSlot;
   defaultDay?: DayOfWeek;
+  preset?: ScheduleSlotPreset;
+  /** Texto accesible del botón atrás (depende de dónde se abrió el formulario). */
+  backLabel?: string;
   /** Una clase por día elegido (al editar, siempre una sola). */
   onSubmit: (data: CreateScheduleSlotDTO[]) => Promise<void>;
   onCancel: () => void;
@@ -97,21 +107,25 @@ function describeDays(days: DayOfWeek[]): string {
   return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
 }
 
-export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData, defaultDay = 1, onSubmit, onCancel }) => {
+export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData, defaultDay = 1, preset, backLabel = 'Volver al horario', onSubmit, onCancel }) => {
   const { subjects: allSubjects, getSubjectById } = useSubjects();
   // Solo materias en curso: las archivadas (semestres anteriores) no reciben clases nuevas. Si se
   // edita una clase existente, su materia se mantiene en la lista aunque esté archivada.
   const subjects = useMemo(
-    () => allSubjects.filter((s) => !s.isArchived || s.id === initialData?.subjectId),
-    [allSubjects, initialData?.subjectId]
+    () => allSubjects.filter((s) => !s.isArchived || s.id === initialData?.subjectId || s.id === preset?.subjectId),
+    [allSubjects, initialData?.subjectId, preset?.subjectId]
   );
   const { professors } = useProfessors();
   const isEditing = Boolean(initialData);
 
-  const initialIsVirtual = initialData ? isSlotVirtual(initialData) : false;
+  // Aula de partida: la de la clase que se edita o, en una clase nueva desde la ficha, la habitual
+  const presetClassroom = !initialData ? preset?.classroomDefault?.trim() || '' : '';
+  const initialIsVirtual = initialData
+    ? isSlotVirtual(initialData)
+    : presetClassroom !== '' && isSlotVirtual({ classroom: presetClassroom });
 
-  const [subjectId, setSubjectId] = useState(initialData?.subjectId || '');
-  const [professorId, setProfessorId] = useState(initialData?.professorId || '');
+  const [subjectId, setSubjectId] = useState(initialData?.subjectId || preset?.subjectId || '');
+  const [professorId, setProfessorId] = useState(initialData?.professorId || preset?.professorId || '');
   const [modality, setModality] = useState<ClassModality>(initialIsVirtual ? 'virtual' : 'presencial');
 
   // Días y horas. Una clase nueva puede repetirse en varios días: con «mismo horario» todos usan
@@ -125,9 +139,9 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
   const [dayTimes, setDayTimes] = useState<Partial<Record<DayOfWeek, TimeRange>>>({});
 
   // Los campos de ambas modalidades se conservan al alternar, así no se pierde lo escrito
-  const [classroom, setClassroom] = useState(!initialIsVirtual ? initialData?.classroom || '' : '');
+  const [classroom, setClassroom] = useState(!initialIsVirtual ? initialData?.classroom || presetClassroom : '');
   const [building, setBuilding] = useState(!initialIsVirtual ? initialData?.building || '' : '');
-  const [virtualPlatform, setVirtualPlatform] = useState(initialIsVirtual ? initialData?.classroom || '' : '');
+  const [virtualPlatform, setVirtualPlatform] = useState(initialIsVirtual ? initialData?.classroom || presetClassroom : '');
   const [virtualLink, setVirtualLink] = useState(
     initialData?.virtualLink || (initialIsVirtual ? initialData?.building || '' : '')
   );
@@ -279,7 +293,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
       title={isEditing ? 'Editar clase' : 'Nueva clase'}
       subtitle={`${describeDays(selectedDays)} · ${selectedSubject?.name || 'Selecciona una materia'}`}
       onBack={onCancel}
-      backLabel="Volver al horario"
+      backLabel={backLabel}
       onSubmit={handleSubmit}
       submitLabel={isEditing ? 'Actualizar' : isMultiDay ? `Guardar ${selectedDays.length} clases` : 'Guardar'}
       isSubmitting={isSubmitting}

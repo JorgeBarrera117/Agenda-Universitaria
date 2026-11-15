@@ -11,8 +11,11 @@ import {
   GraduationCap,
   Laptop,
   MapPin,
+  Pencil,
+  Plus,
   Share2,
   Trash2,
+  UserPlus,
 } from 'lucide-react';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
@@ -39,6 +42,10 @@ interface SubjectDetailViewProps {
   onNavigateToNotes: (subjectId: string) => void;
   onNavigateToDocs: (subject: Subject) => void;
   onSelectProfessor?: (professor: Professor) => void;
+  /** Editar una clase del horario (abre el formulario de esa clase). */
+  onEditSlot?: (slot: ScheduleSlot) => void;
+  /** Agregar clases de esta materia al horario (con la materia ya elegida). */
+  onAddSlot?: () => void;
 }
 
 /** Tarjeta de sección de la ficha: misma superficie que los formularios (FormSheet). */
@@ -92,6 +99,8 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
   onNavigateToNotes,
   onNavigateToDocs,
   onSelectProfessor,
+  onEditSlot,
+  onAddSlot,
 }) => {
   // Salida animada (la misma de los formularios): con la flecha y con el botón atrás de Android
   const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
@@ -145,8 +154,18 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
       />
 
       {/* Identidad: ícono, nombre y datos curriculares */}
-      <section className={SECTION_CLASS} aria-labelledby="subject-detail-name">
-        <div className="flex items-start gap-4">
+      <section className={`${SECTION_CLASS} relative`} aria-labelledby="subject-detail-name">
+        {/* Cada tarjeta lleva a su propia edición: esta, a los datos de la asignatura */}
+        <button
+          type="button"
+          onClick={onEdit}
+          aria-label="Editar datos de la asignatura"
+          title="Editar datos de la asignatura"
+          className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-md-on-surface-variant)] transition-colors hover:bg-[var(--color-md-on-surface)]/[0.08] hover:text-[var(--color-md-on-surface)]"
+        >
+          <Pencil className="h-[18px] w-[18px]" aria-hidden="true" />
+        </button>
+        <div className="flex items-start gap-4 pr-8">
           <div
             className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm ring-1 ring-white/20"
             style={{ backgroundColor: subject.color }}
@@ -235,27 +254,60 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
         <SectionTitle
           icon={<CalendarDays className="h-4 w-4" />}
           trailing={
-            sortedSlots.length > 0 && (
-              <span className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
-                {sortedSlots.length} {sortedSlots.length === 1 ? 'clase' : 'clases'} · {formatDuration(weeklyMinutes)}/sem
-              </span>
-            )
+            <span className="flex items-center gap-1">
+              {sortedSlots.length > 0 && (
+                <span className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+                  {sortedSlots.length} {sortedSlots.length === 1 ? 'clase' : 'clases'} · {formatDuration(weeklyMinutes)}/sem
+                </span>
+              )}
+              {onAddSlot && sortedSlots.length > 0 && (
+                <button
+                  type="button"
+                  onClick={onAddSlot}
+                  aria-label="Agregar clases de esta materia"
+                  title="Agregar clases de esta materia"
+                  className="-my-2 -mr-2 flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/10"
+                >
+                  <Plus className="h-5 w-5" aria-hidden="true" />
+                </button>
+              )}
+            </span>
           }
         >
           Horario semanal
         </SectionTitle>
 
         {sortedSlots.length === 0 ? (
-          <p className="text-xs text-[var(--color-md-on-surface-variant)]">
-            Esta materia todavía no tiene clases en el horario. Prográmalas desde la pestaña Horario.
-          </p>
+          <div className="space-y-3">
+            <p className="text-xs text-[var(--color-md-on-surface-variant)]">
+              Esta materia todavía no tiene clases en el horario.
+            </p>
+            {onAddSlot && (
+              <button
+                type="button"
+                onClick={onAddSlot}
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--color-md-secondary-container)] px-4 text-sm font-medium text-[var(--color-md-on-secondary-container)] transition-colors hover:brightness-95"
+              >
+                <Plus className="h-[18px] w-[18px]" aria-hidden="true" />
+                Programar clases
+              </button>
+            )}
+          </div>
         ) : (
           <ul className="divide-y divide-[var(--color-md-outline-variant)]">
             {sortedSlots.map((slot) => {
               const virtual = isSlotVirtual(slot);
               const location = describeSlotLocation(slot);
               return (
-                <li key={slot.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                <li key={slot.id} className="py-1 first:pt-0 last:pb-0">
+                  {/* Fila de lista M3: tocarla abre la edición de esa clase */}
+                  <button
+                    type="button"
+                    onClick={() => onEditSlot?.(slot)}
+                    disabled={!onEditSlot}
+                    aria-label={`Editar la clase del ${DAY_NAMES[slot.dayOfWeek].toLowerCase()}, ${slot.startTime} a ${slot.endTime}`}
+                    className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)] disabled:pointer-events-none"
+                  >
                   <span className="w-20 shrink-0 text-sm font-bold text-[var(--color-md-on-surface)]">{DAY_NAMES[slot.dayOfWeek]}</span>
                   <div className="min-w-0 flex-1 space-y-1">
                     <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-md-primary-container)] px-2 py-0.5 font-mono text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
@@ -273,6 +325,10 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                       </span>
                     </p>
                   </div>
+                  {onEditSlot && (
+                    <Pencil className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
+                  )}
+                  </button>
                 </li>
               );
             })}
@@ -300,9 +356,17 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
             {onSelectProfessor && <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />}
           </button>
         ) : (
-          <p className="text-xs text-[var(--color-md-on-surface-variant)]">
-            Sin catedrático asignado. Puedes vincularlo con «Editar».
-          </p>
+          <div className="space-y-3">
+            <p className="text-xs text-[var(--color-md-on-surface-variant)]">Sin catedrático asignado.</p>
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--color-md-outline)] px-4 text-sm font-medium text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/[0.08]"
+            >
+              <UserPlus className="h-[18px] w-[18px]" aria-hidden="true" />
+              Asignar catedrático
+            </button>
+          </div>
         )}
       </section>
     </div>

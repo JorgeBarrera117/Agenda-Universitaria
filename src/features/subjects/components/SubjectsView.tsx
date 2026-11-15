@@ -46,6 +46,8 @@ import type { Subject, CreateSubjectDTO } from '../types';
 import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
 import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
 import { SubjectDetailView } from './SubjectDetailView';
+import { ScheduleSlotForm } from '../../schedule/components/ScheduleSlotForm';
+import type { ScheduleSlot } from '../../schedule/types';
 
 type CatalogTab = 'active' | 'archived';
 
@@ -71,7 +73,9 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 }) => {
   const { subjects, addSubject, updateSubject, removeSubject } = useSubjects();
   const { professors } = useProfessors();
-  const { slots } = useSchedule();
+  const { slots, addSlots, updateSlot } = useSchedule();
+  // Formulario de clase abierto desde la ficha: editar una clase o agregar clases a la materia
+  const [slotEditor, setSlotEditor] = useState<{ subject: Subject; slot?: ScheduleSlot } | null>(null);
   const { notes } = useNotes();
   const isScrolled = useScrollCollapse(48);
 
@@ -236,6 +240,38 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
     );
   }
 
+  // Clase de la materia (desde la ficha): al guardar o volver, se regresa a la ficha
+  if (slotEditor) {
+    const { subject, slot } = slotEditor;
+    return (
+      <div className="w-full pb-8">
+        <ErrorBoundary fallbackTitle="Error al abrir el formulario de cátedra" onReset={() => setSlotEditor(null)}>
+          <ScheduleSlotForm
+            key={slot?.id || `new-slot-${subject.id}`}
+            initialData={slot}
+            preset={{
+              subjectId: subject.id,
+              professorId: professorOf(subject)?.id,
+              classroomDefault: subject.classroomDefault,
+            }}
+            onSubmit={async (dtos) => {
+              if (slot) {
+                await updateSlot(slot.id, dtos[0]);
+                showToast('Clase actualizada.');
+              } else {
+                await addSlots(dtos);
+                showToast(dtos.length === 1 ? 'Clase agregada al horario.' : `Se agregaron ${dtos.length} clases al horario.`);
+              }
+              setSlotEditor(null);
+            }}
+            onCancel={() => setSlotEditor(null)}
+            backLabel="Volver a la ficha de la materia"
+          />
+        </ErrorBoundary>
+      </div>
+    );
+  }
+
   // Ficha técnica de la asignatura a pantalla completa
   if (selectedSubject) {
     const professor = professorOf(selectedSubject);
@@ -257,6 +293,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             onNavigateToNotes?.(subjectId);
           }}
           onNavigateToDocs={(subject) => setSelectedSubjectForDocs(subject)}
+          onEditSlot={(slot) => setSlotEditor({ subject: selectedSubject, slot })}
+          onAddSlot={() => setSlotEditor({ subject: selectedSubject })}
           onSelectProfessor={
             onOpenProfessorDetail
               ? (prof) => {

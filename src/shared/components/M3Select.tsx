@@ -408,11 +408,13 @@ export const M3Select = <T extends string | number = string>({
           <div id={valueId} className="min-w-0 flex-1 truncate">
             {selectedOption ? (
               <div className="flex items-center gap-1.5 truncate">
-                <span className={`${isPill ? 'text-xs' : 'text-sm'} truncate font-bold text-[var(--color-md-on-surface)]`}>
+                {/* El nombre manda: el detalle (código, docente…) es lo que se recorta si no cabe.
+                    Antes el detalle no se encogía y en el teléfono dejaba el nombre en 0 px. */}
+                <span className={`${isPill ? 'text-xs' : 'text-sm'} min-w-0 shrink-0 max-w-full truncate font-bold text-[var(--color-md-on-surface)]`}>
                   {selectedOption.label}
                 </span>
                 {selectedOption.sublabel && (
-                  <span className="shrink-0 truncate font-mono text-xs font-medium text-[var(--color-md-on-surface-variant)]">
+                  <span className="min-w-0 truncate font-mono text-xs font-medium text-[var(--color-md-on-surface-variant)]">
                     ({selectedOption.sublabel})
                   </span>
                 )}
