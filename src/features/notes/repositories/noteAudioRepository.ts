@@ -3,6 +3,7 @@ import type { NoteAudio } from '../types';
 
 export interface INoteAudioRepository {
   getByNoteId(noteId: string): Promise<NoteAudio[]>;
+  getById(id: string): Promise<NoteAudio | undefined>;
   add(noteId: string, name: string, blob: Blob, mimeType: string, durationMs: number): Promise<NoteAudio>;
   rename(id: string, name: string): Promise<void>;
   delete(id: string): Promise<void>;
@@ -16,6 +17,10 @@ export class DexieNoteAudioRepository implements INoteAudioRepository {
   async getByNoteId(noteId: string): Promise<NoteAudio[]> {
     const audios = await db.noteAudios.where('noteId').equals(noteId).toArray();
     return audios.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  async getById(id: string): Promise<NoteAudio | undefined> {
+    return db.noteAudios.get(id);
   }
 
   async add(noteId: string, name: string, blob: Blob, mimeType: string, durationMs: number): Promise<NoteAudio> {

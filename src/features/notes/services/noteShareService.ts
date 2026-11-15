@@ -7,6 +7,7 @@ import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import { db } from '../../../shared/db/AppDatabase';
 import { subjectRepository } from '../../subjects/repositories/subjectRepository';
 import { PERSONAL_SUBJECT_ID } from '../utils/personalNotes';
+import { remapVoiceNoteEmbeds } from '../utils/voiceNoteEmbeds';
 import { noteImageRepository } from '../repositories/noteImageRepository';
 import { noteAudioRepository } from '../repositories/noteAudioRepository';
 import { noteRepository } from '../repositories/noteRepository';
@@ -49,6 +50,11 @@ export interface NoteShareAttachment {
 }
 
 export interface NoteShareRecording {
+  /**
+   * Id de la grabación en el dispositivo de origen (desde 1.7.10.71): enlaza con su marcador
+   * `data-voice-note` en el texto. Al importar recibe un id nuevo y el marcador se actualiza.
+   */
+  id?: string;
   name: string;
   durationMs: number;
   /** data:audio/(webm|ogg|mp4|…)[;codecs=…];base64,… */
@@ -108,7 +114,7 @@ export async function buildNoteSharePackage(
   const recordings: NoteShareRecording[] = [];
   for (const audio of await noteAudioRepository.getByNoteId(note.id)) {
     const dataUrl = await blobToDataUrl(audio.blob);
-    if (SAFE_AUDIO_DATA_URL.test(dataUrl)) recordings.push({ name: audio.name, durationMs: audio.durationMs, dataUrl });
+    if (SAFE_AUDIO_DATA_URL.test(dataUrl)) recordings.push({ id: audio.id, name: audio.name, durationMs: audio.durationMs, dataUrl });
   }
 
   return {
@@ -238,7 +244,9 @@ export function parseAgnoteContent(rawJson: string): NoteSharePackage {
     for (const raw of parsed.recordings.slice(0, MAX_RECORDINGS)) {
       if (!isRecord(raw) || !isString(raw.dataUrl) || !SAFE_AUDIO_DATA_URL.test(raw.dataUrl)) continue;
       const durationMs = typeof raw.durationMs === 'number' && Number.isFinite(raw.durationMs) ? Math.max(0, raw.durationMs) : 0;
-      recordings.push({ name: cleanText(raw.name, 80) || 'Nota de voz', durationMs, dataUrl: raw.dataUrl });
+      // El id solo sirve para enlazar con el texto: se acepta un formato acotado (UUID o similar)
+      const id = isString(raw.id) && /^[A-Za-z0-9_-]{1,64}$/.test(raw.id) ? raw.id : undefined;
+      recordings.push({ ...(id ? { id } : {}), name: cleanText(raw.name, 80) || 'Nota de voz', durationMs, dataUrl: raw.dataUrl });
     }
   }
 
@@ -302,7 +310,7 @@ export async function importAgnotePackage(
   const attachments = agnoteAttachmentBlobs(sharePackage);
   const recordings = (sharePackage.recordings ?? []).map((recording) => {
     const blob = dataUrlToBlob(recording.dataUrl);
-    return { name: recording.name, blob, mimeType: blob.type, durationMs: recording.durationMs };
+    return { originalId: recording.id, name: recording.name, blob, mimeType: blob.type, durationMs: recording.durationMs };
   });
   // db.professors también: subjectRepository.create abre su propia transacción anidada sobre
   // subjects y professors, y Dexie exige que el padre incluya todas las tablas que usan sus hijas
@@ -333,8 +341,16 @@ export async function importAgnotePackage(
     for (const attachment of attachments) {
       await noteImageRepository.addBlob(note.id, attachment.name, attachment.blob, attachment.mimeType);
     }
+    // Las grabaciones reciben ids nuevos: los reproductores insertados en el texto se reenlazan
+    const idMap = new Map<string, string>();
     for (const recording of recordings) {
-      await noteAudioRepository.add(note.id, recording.name, recording.blob, recording.mimeType, recording.durationMs);
+      const audio = await noteAudioRepository.add(note.id, recording.name, recording.blob, recording.mimeType, recording.durationMs);
+      if (recording.originalId) idMap.set(recording.originalId, audio.id);
+    }
+    const content = remapVoiceNoteEmbeds(note.content, idMap);
+    if (content !== note.content) {
+      const updated = await noteRepository.update(note.id, { content });
+      return { note: updated, subjectId, createdSubject: target.kind === 'create' };
     }
     return { note, subjectId, createdSubject: target.kind === 'create' };
   });

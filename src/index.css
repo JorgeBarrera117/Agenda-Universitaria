@@ -419,6 +419,8 @@
   font-family: var(--font-google-plain);
   font-weight: 400;
   line-height: 1.6;
+  /* Contiene las fotos flotantes (a un lado del texto) para que no se salgan por debajo */
+  display: flow-root;
 }
 
 :is(.ProseMirror, .note-content) p {
@@ -482,10 +484,89 @@
   border: 1px solid var(--color-md-outline-variant);
 }
 
+/* Foto con tamaño y posición (extensions/NoteImage.ts). En el editor la foto va dentro de su vista
+   (div.note-image > img) y el ancho está en el div; en el lector es el <img> con data-align y
+   style="width:…%". A un lado ('left'/'right') flota y el texto que sigue la rodea. */
+.ProseMirror .note-image {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.75rem auto;
+}
+.ProseMirror .note-image.has-width img {
+  width: 100%;
+}
+.ProseMirror .note-image img {
+  display: block;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+:is(.ProseMirror .note-image, .note-content img)[data-align='left'] {
+  float: left;
+  margin: 0.25rem 1rem 0.5rem 0;
+}
+:is(.ProseMirror .note-image, .note-content img)[data-align='right'] {
+  float: right;
+  margin: 0.25rem 0 0.5rem 1rem;
+}
+/* Junto a una foto flotante, listas y citas se estrechan en vez de quedar debajo de ella */
+:is(.ProseMirror, .note-content) :is(ul, ol, blockquote) {
+  display: flow-root;
+}
+:is(.ProseMirror, .note-content) hr {
+  clear: both;
+}
+
 /* Foto seleccionada en el editor (NodeSelection): anillo primario mientras se muestra su barra de acciones */
-.ProseMirror img.ProseMirror-selectednode {
+.ProseMirror .note-image.ProseMirror-selectednode img {
   outline: 3px solid var(--color-md-primary);
   outline-offset: 3px;
+}
+/* Tirador para cambiar el tamaño arrastrando (solo con la foto seleccionada) */
+.note-image-handle {
+  display: none;
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--color-md-primary);
+  border: 3px solid var(--color-md-surface);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: nwse-resize;
+  touch-action: none;
+  z-index: 1;
+}
+/* Zona de toque más grande que el punto visible */
+.note-image-handle::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+.note-image[data-align='right'] .note-image-handle {
+  right: auto;
+  left: -10px;
+  cursor: nesw-resize;
+}
+.note-image.ProseMirror-selectednode .note-image-handle {
+  display: block;
+}
+.note-image.is-resizing img {
+  opacity: 0.85;
+}
+
+/* Nota de voz dentro del texto (extensions/VoiceNoteNode.ts): bloque propio, nunca al lado de una foto */
+:is(.ProseMirror .voice-note-node, .note-content .voice-note-embed) {
+  clear: both;
+  margin: 0.75rem 0;
+}
+.ProseMirror .voice-note-node.is-selected > * {
+  outline: 3px solid var(--color-md-primary);
+  outline-offset: 2px;
+  border-radius: 1rem;
 }
 
 :is(.ProseMirror, .note-content) hr {

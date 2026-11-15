@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
 import {
@@ -13,7 +12,20 @@ import {
   type HighlightColor,
 } from '../extensions/NoteHighlight';
 import { NodeSelection, Selection } from '@tiptap/pm/state';
+import type { Node as PMNode } from '@tiptap/pm/model';
 import type { EditorView } from '@tiptap/pm/view';
+import {
+  MAX_IMAGE_WIDTH,
+  MIN_IMAGE_WIDTH,
+  NoteImage,
+  SIDE_IMAGE_DEFAULT_WIDTH,
+  clampImageWidth,
+  type ImageAlign,
+  type NoteImageAttrs,
+} from '../extensions/NoteImage';
+import { VoiceNoteNode } from '../extensions/VoiceNoteNode';
+import { findNodePos, insertBlockNodeInView, moveBlockNodeInView } from '../utils/editorInsert';
+import { ImageEditModal } from './ImageEditModal';
 import {
   ArrowDown,
   ArrowUp,
@@ -41,6 +53,13 @@ import {
   Loader2,
   Heading1,
   Heading2,
+  Move,
+  Scaling,
+  PenLine,
+  ArrowDownToLine,
+  AlignHorizontalJustifyStart,
+  AlignHorizontalJustifyCenter,
+  AlignHorizontalJustifyEnd,
 } from 'lucide-react';
 import { compressImage } from '../utils/imageCompression';
 import { IMAGE_ACCEPT, isImageFile } from '../../../shared/utils/imageFormats';
@@ -106,51 +125,28 @@ function pasteLooksLikeImage(data: DataTransfer | null): boolean {
   return /^content:\/\/\S+$/i.test(data.getData('text/plain').trim());
 }
 
-/**
- * Inserta una imagen en la selección (o en `pos`, al soltar un arrastre) y deja el cursor en el
- * párrafo de debajo, creándolo si hace falta: si la imagen quedara seleccionada, lo siguiente que
- * se escribiera la reemplazaría.
- */
+/** Inserta una foto en la selección (o en `pos`, al soltar un arrastre) con el cursor debajo. */
 function insertImageInView(view: EditorView, src: string, alt: string, pos?: number): void {
-  const { state } = view;
-  const imageType = state.schema.nodes.image;
-  if (!imageType) return;
-  const node = imageType.create({ src, alt });
-  const tr = state.tr;
-  const target = pos ?? (state.selection.empty ? state.selection.from : undefined);
-  const $target = target === undefined ? null : state.doc.resolve(target);
-  if (!$target || !$target.parent.isTextblock) {
-    if (target === undefined) tr.replaceSelectionWith(node, false);
-    else tr.insert(target, node);
-  } else if ($target.parent.content.size === 0) {
-    // Párrafo vacío: la foto lo sustituye en vez de dejar un hueco encima
-    tr.replaceWith($target.before(), $target.after(), node);
-  } else if ($target.parentOffset === 0) {
-    tr.insert($target.before(), node);
-  } else if ($target.parentOffset === $target.parent.content.size) {
-    tr.insert($target.after(), node);
-  } else {
-    // En medio del texto: se divide el párrafo
-    tr.insert(target as number, node);
-  }
-
-  // ProseMirror conserva la instancia del nodo insertado: se localiza para situar el cursor debajo
-  let after = -1;
-  tr.doc.descendants((child, childPos) => {
-    if (after >= 0) return false;
-    if (child === node) {
-      after = childPos + child.nodeSize;
-      return false;
-    }
-    return true;
-  });
-  if (after >= 0) {
-    if (!tr.doc.resolve(after).nodeAfter) tr.insert(after, state.schema.nodes.paragraph.create());
-    tr.setSelection(Selection.near(tr.doc.resolve(after), 1));
-  }
-  view.dispatch(tr.scrollIntoView());
-  view.focus();
+  const imageType = view.state.schema.nodes.image;
+  if (imageType) insertBlockNodeInView(view, imageType.create({ src, alt }), pos);
 }
+
+/** Bloques que se seleccionan enteros y tienen su propia barra de acciones. */
+type MediaKind = 'image' | 'voiceNote';
+
+function mediaKindOf(node: PMNode): MediaKind | null {
+  return node.type.name === 'image' || node.type.name === 'voiceNote' ? node.type.name : null;
+}
+
+const MEDIA_LABEL: Record<MediaKind, string> = { image: 'Imagen', voiceNote: 'Nota de voz' };
+
+/** Tamaños rápidos del menú de tamaño (en % del ancho del apunte). */
+const IMAGE_SIZE_PRESETS = [
+  { label: 'S', width: 33, name: 'Pequeña' },
+  { label: 'M', width: 50, name: 'Mediana' },
+  { label: 'L', width: 75, name: 'Grande' },
+  { label: 'XL', width: 100, name: 'Ancho completo' },
+] as const;
 
 /** Aviso tras copiar/cortar: dice dónde quedó la foto y, si falló, por qué. */
 function copyNoticeText(verb: string, result: ImageCopyResult): string {
@@ -229,6 +225,17 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
   const [imageClip, setImageClip] = useState<ImageClip | null>(null);
+  // Modo «Mover»: el bloque elegido espera a que se toque su sitio nuevo en el texto
+  const [moving, setMoving] = useState<{ node: PMNode; kind: MediaKind } | null>(null);
+  // Copia para handleClick de ProseMirror, que se configura una sola vez al crear el editor
+  const movingRef = useRef<{ node: PMNode; kind: MediaKind } | null>(null);
+  useEffect(() => {
+    movingRef.current = moving;
+  }, [moving]);
+  // Foto abierta en el editor de fotos (la instancia del nodo permite encontrarla al guardar)
+  const [editingImage, setEditingImage] = useState<PMNode | null>(null);
+  const [isSizeMenuOpen, setIsSizeMenuOpen] = useState(false);
+  const sizeMenuRef = useRef<HTMLDivElement>(null);
   // Aviso breve en el pie de la barra; id distinto en cada aviso para reiniciar el temporizador
   const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -263,7 +270,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     shouldRerenderOnTransaction: true,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2] } }),
-      Image.configure({
+      NoteImage.configure({
         inline: false,
         allowBase64: true,
         // TipTap 3 ya declara la imagen como arrastrable (draggable: true en el nodo)
@@ -271,6 +278,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           class: 'rounded-2xl max-w-full my-3 block mx-auto cursor-pointer select-none transition-shadow duration-150',
         },
       }),
+      VoiceNoteNode,
       Placeholder.configure({ placeholder }),
       NoteHighlight,
       // Lista de tareas: cada casilla es un elemento; nested permite subtareas y varias líneas por tarea
@@ -297,7 +305,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       // bajo la barra de formato (abajo); al escribir, el editor desplaza para respetarlo
       scrollThreshold: CARET_SCROLL_MARGIN,
       scrollMargin: CARET_SCROLL_MARGIN,
-      // Sin handleDOMEvents.click: tocar una foto la selecciona para editarla; el zoom es un botón
+      // Sin handleDOMEvents.click: tocar una foto la selecciona para editarla; el zoom es un botón.
+      // En modo «Mover», el toque elige el sitio nuevo de la foto o la nota de voz.
+      handleClick: (view, pos) => {
+        const moving = movingRef.current;
+        if (!moving) return false;
+        const result = moveBlockNodeInView(view, moving.node, pos);
+        // Tocar el propio elemento no lo mueve: se sigue esperando el sitio nuevo
+        if (result === 'inside') return true;
+        setMoving(null);
+        if (result === 'missing') setNotice((prev) => ({ id: (prev?.id ?? 0) + 1, text: 'No se encontró el elemento a mover.' }));
+        return true;
+      },
       handlePaste: (view, event) => {
         const files = imageFilesFrom(event.clipboardData);
         // En Android el archivo que arma el WebView puede llegar vacío o dañado: se lee la imagen
@@ -372,7 +391,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       // Selecciona exactamente la foto pulsada (aunque haya copias iguales en el apunte)
       const { state, view } = editor;
-      const pos = view.posAtDOM(img, 0);
+      // La foto vive dentro de su vista (div.note-image): la posición es la de ese contenedor
+      const pos = view.posAtDOM(img.closest('.note-image') ?? img, 0);
       const imagePos = [pos, pos - 1].find((p) => p >= 0 && state.doc.nodeAt(p)?.type.name === 'image');
       if (imagePos !== undefined) {
         view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, imagePos)));
@@ -483,6 +503,35 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     };
   }, [isHighlightMenuOpen]);
 
+  // Menú de tamaño de la foto: se cierra al tocar fuera o con Escape
+  useEffect(() => {
+    if (!isSizeMenuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (sizeMenuRef.current?.contains(target) || target?.closest('[aria-label="Tamaño de la imagen"]')) return;
+      setIsSizeMenuOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsSizeMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isSizeMenuOpen]);
+
+  // Escape cancela el modo «Mover»
+  useEffect(() => {
+    if (!moving) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMoving(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [moving]);
+
   // Zona de formato desplazable: degradados en los bordes cuando hay más botones fuera de la vista
   const [formatScroller, setFormatScroller] = useState<HTMLDivElement | null>(null);
   const [formatOverflow, setFormatOverflow] = useState({ left: false, right: false });
@@ -539,23 +588,24 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const showNotice = (text: string) => setNotice((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
 
-  // Imagen seleccionada (NodeSelection) y si tiene hermanos para moverla
+  // Foto o nota de voz seleccionada (NodeSelection) y si tiene bloques vecinos para moverla
   const { selection } = editor.state;
-  const selectedImage =
-    selection instanceof NodeSelection && selection.node.type.name === 'image' ? selection : null;
-  const imageIndex = selectedImage ? editor.state.doc.resolve(selectedImage.from).index() : 0;
-  const imageParent = selectedImage ? editor.state.doc.resolve(selectedImage.from).parent : null;
-  const canMoveUp = Boolean(selectedImage) && imageIndex > 0;
-  const canMoveDown = Boolean(imageParent) && imageIndex < (imageParent?.childCount ?? 0) - 1;
+  const selectedMedia = selection instanceof NodeSelection && mediaKindOf(selection.node) ? selection : null;
+  const mediaKind = selectedMedia ? mediaKindOf(selectedMedia.node) : null;
+  const selectedImage = mediaKind === 'image' ? selectedMedia : null;
+  const imageAttrs = selectedImage ? (selectedImage.node.attrs as NoteImageAttrs) : null;
+  const mediaIndex = selectedMedia ? editor.state.doc.resolve(selectedMedia.from).index() : 0;
+  const mediaParent = selectedMedia ? editor.state.doc.resolve(selectedMedia.from).parent : null;
+  const canMoveUp = Boolean(selectedMedia) && mediaIndex > 0;
+  const canMoveDown = Boolean(mediaParent) && mediaIndex < (mediaParent?.childCount ?? 0) - 1;
 
   const currentImageClip = (): ImageClip | null => {
-    if (!selectedImage) return null;
-    const { src, alt } = selectedImage.node.attrs as { src: string; alt?: string | null };
-    return { src, alt: alt ?? undefined };
+    if (!imageAttrs) return null;
+    return { src: imageAttrs.src, alt: imageAttrs.alt ?? undefined };
   };
 
-  /** Intercambia la imagen con el bloque anterior (-1) o siguiente (+1), conservándola seleccionada. */
-  const moveSelectedImage = (direction: -1 | 1) => {
+  /** Intercambia el bloque seleccionado con el anterior (-1) o el siguiente (+1), conservándolo seleccionado. */
+  const moveSelectedMedia = (direction: -1 | 1) => {
     const { state, view } = editor;
     const sel = state.selection;
     if (!(sel instanceof NodeSelection)) return;
@@ -570,6 +620,47 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     tr.setSelection(NodeSelection.create(tr.doc, insertAt)).scrollIntoView();
     view.dispatch(tr);
     view.focus();
+  };
+
+  /** Cambia atributos de la foto seleccionada sin perder la selección (sigue su barra de acciones). */
+  const updateSelectedImage = (attrs: Partial<NoteImageAttrs>) => {
+    const { state, view } = editor;
+    const sel = state.selection;
+    if (!(sel instanceof NodeSelection) || sel.node.type.name !== 'image') return;
+    const tr = state.tr.setNodeMarkup(sel.from, undefined, { ...sel.node.attrs, ...attrs });
+    tr.setSelection(NodeSelection.create(tr.doc, sel.from));
+    view.dispatch(tr);
+  };
+
+  const setImageAlign = (align: ImageAlign) => {
+    if (!imageAttrs) return;
+    // Al pasar a un lado se reduce (si era grande) para que el texto quepa al lado
+    const width =
+      align !== 'center' && (imageAttrs.width === null || imageAttrs.width > 70) ? SIDE_IMAGE_DEFAULT_WIDTH : imageAttrs.width;
+    updateSelectedImage({ align, width });
+  };
+
+  const startMoving = () => {
+    if (!selectedMedia || !mediaKind) return;
+    setIsSizeMenuOpen(false);
+    setMoving({ node: selectedMedia.node, kind: mediaKind });
+  };
+
+  /** Guarda la foto editada en el mismo sitio, con su tamaño y posición. */
+  const saveEditedImage = (dataUrl: string) => {
+    const target = editingImage;
+    setEditingImage(null);
+    if (!target) return;
+    const { state, view } = editor;
+    const pos = findNodePos(state.doc, target);
+    if (pos < 0) {
+      showNotice('La foto ya no está en el apunte.');
+      return;
+    }
+    const tr = state.tr.setNodeMarkup(pos, undefined, { ...target.attrs, src: dataUrl });
+    tr.setSelection(NodeSelection.create(tr.doc, pos));
+    view.dispatch(tr);
+    showNotice('Foto editada.');
   };
 
   /**
@@ -590,7 +681,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     showNotice(copyNoticeText(verb, await systemCopy));
   };
 
-  const deselectImage = placeCursorAfterImage;
+  const deselectMedia = () => {
+    setIsSizeMenuOpen(false);
+    placeCursorAfterImage();
+  };
 
   const pasteImage = async () => {
     if (Capacitor.isNativePlatform()) {
@@ -611,7 +705,52 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     showNotice('No hay ninguna imagen en el portapapeles. Copia una foto primero.');
   };
 
+  const moveActions: ToolbarAction[] = [
+    { id: 'move', label: 'Mover a otro sitio del texto', icon: Move, run: startMoving },
+    { id: 'up', label: 'Subir un bloque', icon: ArrowUp, run: () => moveSelectedMedia(-1), disabled: !canMoveUp },
+    { id: 'down', label: 'Bajar un bloque', icon: ArrowDown, run: () => moveSelectedMedia(1), disabled: !canMoveDown },
+  ];
+
   const imageActions: ToolbarAction[] = [
+    {
+      id: 'edit',
+      label: 'Editar foto (recortar, girar, dibujar, texto)',
+      icon: PenLine,
+      run: () => {
+        if (!selectedImage) return;
+        setIsSizeMenuOpen(false);
+        setEditingImage(selectedImage.node);
+      },
+    },
+    ...moveActions,
+    {
+      id: 'size',
+      label: 'Tamaño de la imagen',
+      icon: Scaling,
+      run: () => setIsSizeMenuOpen((open) => !open),
+      isActive: isSizeMenuOpen,
+    },
+    {
+      id: 'align-left',
+      label: 'A la izquierda, con el texto al lado',
+      icon: AlignHorizontalJustifyStart,
+      run: () => setImageAlign('left'),
+      isActive: imageAttrs?.align === 'left',
+    },
+    {
+      id: 'align-center',
+      label: 'Centrada, sola en su línea',
+      icon: AlignHorizontalJustifyCenter,
+      run: () => setImageAlign('center'),
+      isActive: imageAttrs?.align === 'center',
+    },
+    {
+      id: 'align-right',
+      label: 'A la derecha, con el texto al lado',
+      icon: AlignHorizontalJustifyEnd,
+      run: () => setImageAlign('right'),
+      isActive: imageAttrs?.align === 'right',
+    },
     {
       id: 'zoom',
       label: 'Ampliar imagen',
@@ -621,8 +760,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         if (clip) setZoomedImage({ src: clip.src, alt: clip.alt || 'Foto del apunte' });
       },
     },
-    { id: 'up', label: 'Mover arriba', icon: ArrowUp, run: () => moveSelectedImage(-1), disabled: !canMoveUp },
-    { id: 'down', label: 'Mover abajo', icon: ArrowDown, run: () => moveSelectedImage(1), disabled: !canMoveDown },
     { id: 'copy', label: 'Copiar imagen', icon: Copy, run: () => void copySelectedImage(false) },
     { id: 'cut', label: 'Cortar imagen', icon: Scissors, run: () => void copySelectedImage(true) },
     {
@@ -630,11 +767,28 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       label: 'Eliminar imagen',
       icon: Trash2,
       run: () => {
+        setIsSizeMenuOpen(false);
         chain().deleteSelection().run();
         showNotice('Imagen eliminada.');
       },
     },
   ];
+
+  const voiceNoteActions: ToolbarAction[] = [
+    ...moveActions,
+    {
+      id: 'remove',
+      label: 'Quitar del texto (la grabación queda en «Notas de voz»)',
+      icon: ArrowDownToLine,
+      run: () => {
+        chain().deleteSelection().run();
+        showNotice('Nota de voz quitada del texto: sigue en «Notas de voz», encima del apunte.');
+      },
+    },
+  ];
+
+  const mediaActions = mediaKind === 'image' ? imageActions : voiceNoteActions;
+  const currentWidth = imageAttrs?.width ?? MAX_IMAGE_WIDTH;
 
   const activeHighlightAttr: unknown = editor.isActive('highlight') ? editor.getAttributes('highlight').color : null;
   const activeHighlight = isHighlightColor(activeHighlightAttr) ? activeHighlightAttr : null;
@@ -704,7 +858,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       <input ref={galleryInputRef} type="file" accept={IMAGE_ACCEPT} onChange={handleImageInsert} className="hidden" />
 
       <div
-        onClick={() => {
+        onClick={(event) => {
+          // Los controles de una nota de voz no deben llevar el cursor (ni el scroll) a otra parte
+          if (event.target instanceof Element && event.target.closest('button, input, [data-node-view-wrapper]')) return;
           if (!editor.isFocused) editor.chain().focus().run();
         }}
         className="flex w-full flex-1 cursor-text flex-col"
@@ -725,19 +881,89 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }}
         className={`fixed bottom-0 left-0 right-0 z-30 ${toolbarMotionClass} border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl sm:px-6`}
       >
-        {selectedImage ? (
-          /* Barra contextual de imagen: reemplaza la de formato mientras la foto está seleccionada */
-          <div
-            role="toolbar"
-            aria-label="Acciones de la imagen"
-            className="m3-menu-enter mx-auto flex max-w-3xl items-center gap-1.5 overflow-x-auto py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            <ToolbarButton label="Terminar edición de la imagen" icon={X} onClick={deselectImage} />
-            <span className="shrink-0 pr-1 text-xs font-bold text-[var(--color-md-on-surface)]">Imagen</span>
-            <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />
-            {imageActions.map(({ id, run, ...action }) => (
-              <ToolbarButton key={id} {...action} onClick={run} />
-            ))}
+        {moving ? (
+          /* Modo «Mover»: el siguiente toque en el texto elige el sitio nuevo */
+          <div role="status" className="m3-menu-enter mx-auto flex max-w-3xl items-center gap-2 py-0.5">
+            <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]">
+              <Move className="h-[18px] w-[18px]" aria-hidden="true" />
+            </span>
+            <p className="min-w-0 flex-1 text-xs font-semibold leading-snug text-[var(--color-md-on-surface)]">
+              Toca en el texto dónde quieres poner {moving.kind === 'image' ? 'la imagen' : 'la nota de voz'}.
+            </p>
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setMoving(null)}
+              className="min-h-[38px] shrink-0 rounded-full px-3 text-xs font-bold text-[var(--color-md-primary)] hover:bg-[var(--color-md-surface-container-high)]"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : selectedMedia && mediaKind ? (
+          /* Barra contextual de la foto o nota de voz: reemplaza la de formato mientras está seleccionada */
+          <div className="relative mx-auto max-w-3xl">
+            {isSizeMenuOpen && imageAttrs && (
+              <div
+                ref={sizeMenuRef}
+                role="group"
+                aria-label="Tamaño de la imagen"
+                className="m3-menu-enter absolute bottom-[calc(100%+10px)] left-1/2 z-10 w-[min(20rem,calc(100vw-1rem))] origin-bottom -translate-x-1/2 rounded-[22px] border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+              >
+                <div className="mb-2 flex items-center justify-between px-1 text-xs font-bold text-[var(--color-md-on-surface-variant)]">
+                  <span>Tamaño</span>
+                  <span className="tabular-nums text-[var(--color-md-on-surface)]">{currentWidth} %</span>
+                </div>
+                <input
+                  type="range"
+                  min={MIN_IMAGE_WIDTH}
+                  max={MAX_IMAGE_WIDTH}
+                  step={1}
+                  value={currentWidth}
+                  onChange={(event) => updateSelectedImage({ width: clampImageWidth(Number(event.target.value)) })}
+                  aria-label="Ancho de la imagen"
+                  aria-valuetext={`${currentWidth} % del ancho del apunte`}
+                  data-no-swipe="true"
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-md-primary)] [&::-webkit-slider-thumb]:shadow-md"
+                  style={{
+                    background: `linear-gradient(to right, var(--color-md-primary) ${((currentWidth - MIN_IMAGE_WIDTH) / (MAX_IMAGE_WIDTH - MIN_IMAGE_WIDTH)) * 100}%, var(--color-md-outline-variant) ${((currentWidth - MIN_IMAGE_WIDTH) / (MAX_IMAGE_WIDTH - MIN_IMAGE_WIDTH)) * 100}%)`,
+                  }}
+                />
+                <div className="mt-3 grid grid-cols-4 gap-1.5">
+                  {IMAGE_SIZE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => updateSelectedImage({ width: preset.width })}
+                      aria-label={`${preset.name} (${preset.width} %)`}
+                      aria-pressed={currentWidth === preset.width}
+                      className={`min-h-[36px] rounded-full text-xs font-bold transition-colors ${
+                        currentWidth === preset.width
+                          ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
+                          : 'bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-surface-container-highest)]'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 px-1 text-[11px] text-[var(--color-md-on-surface-variant)]">
+                  También puedes arrastrar la esquina de la foto.
+                </p>
+              </div>
+            )}
+            <div
+              role="toolbar"
+              aria-label={mediaKind === 'image' ? 'Acciones de la imagen' : 'Acciones de la nota de voz'}
+              className="m3-menu-enter flex items-center gap-1.5 overflow-x-auto py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <ToolbarButton label={`Terminar edición: ${MEDIA_LABEL[mediaKind].toLowerCase()}`} icon={X} onClick={deselectMedia} />
+              <span className="shrink-0 whitespace-nowrap pr-1 text-xs font-bold text-[var(--color-md-on-surface)]">{MEDIA_LABEL[mediaKind]}</span>
+              <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />
+              {mediaActions.map(({ id, run, ...action }) => (
+                <ToolbarButton key={id} {...action} onClick={run} />
+              ))}
+            </div>
           </div>
         ) : (
         <div role="toolbar" aria-label="Formato del apunte" className="relative mx-auto flex max-w-3xl items-center gap-2 py-0.5">
@@ -854,6 +1080,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       )}
 
       {/* También en un portal: así queda por encima de la barra inferior (que vive en <body>) */}
+      {editingImage &&
+        typeof (editingImage.attrs as NoteImageAttrs).src === 'string' && (
+          <ImageEditModal
+            src={(editingImage.attrs as NoteImageAttrs).src}
+            onCancel={() => setEditingImage(null)}
+            onSave={saveEditedImage}
+          />
+        )}
+
       {zoomedImage &&
         createPortal(
           <ImageZoomModal src={zoomedImage.src} alt={zoomedImage.alt} onClose={() => setZoomedImage(null)} />,

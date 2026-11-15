@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { IMAGE_ACCEPT } from '../../../shared/utils/imageFormats';
 import {
   Plus,
@@ -23,8 +24,10 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useNoteImages } from '../hooks/useNoteImages';
 import { NoteEditor } from './NoteEditor';
-import { VoiceNotesSection, VoiceRecorderModal } from './VoiceNotes';
+import { VoiceNoteEmbed, VoiceNotesSection, VoiceRecorderModal } from './VoiceNotes';
 import { useNoteAudios, useNoteAudioCounts } from '../hooks/useNoteAudios';
+import { useVoiceNoteSlots } from '../hooks/useVoiceNoteSlots';
+import { VOICE_NOTE_ATTR, getEmbeddedAudioIds, removeVoiceNoteEmbed } from '../utils/voiceNoteEmbeds';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { PageHeader } from '../../../shared/components/PageHeader';
@@ -152,6 +155,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
     () => (readingNote ? sanitizeNoteHtml(readingNote.content) : ''),
     [readingNote]
   );
+  // Notas de voz insertadas en el texto (se montan en su sitio) y las que van aparte, debajo
+  const { containerRef: readerContentRef, slots: readerVoiceSlots } = useVoiceNoteSlots(readingNoteHtml);
+  const readerLooseAudios = useMemo(() => {
+    const embedded = getEmbeddedAudioIds(readingNoteHtml);
+    return readingNoteAudios.filter((audio) => !embedded.has(audio.id));
+  }, [readingNoteAudios, readingNoteHtml]);
 
   const [isUploadingInReader, setIsUploadingInReader] = useState(false);
   // Referencia fija del "hoy" para fechas relativas del lector ("Hoy", "Ayer")
@@ -281,6 +290,17 @@ export const NotesView: React.FC<NotesViewProps> = ({
    * <input>), así que la tarea se ubica por su posición entre todas las del apunte y se cambia su
    * data-checked en el HTML original, que se guarda en la base de datos.
    */
+  /** Al borrar una nota de voz insertada en el texto, su marcador también sale del apunte. */
+  const handleReaderVoiceEmbedRemoved = async (audioId: string) => {
+    if (!readingNote) return;
+    try {
+      const saved = await updateNote(readingNote.id, { content: removeVoiceNoteEmbed(readingNote.content, audioId) });
+      setReadingNote(saved);
+    } catch {
+      showReaderToast('No se pudo actualizar el apunte. Vuelve a intentarlo.');
+    }
+  };
+
   const handleReaderTaskToggle = async (container: HTMLElement, item: Element | null) => {
     if (!readingNote || !item) return;
     const index = Array.from(container.querySelectorAll('ul[data-type="taskList"] > li')).indexOf(item);
@@ -540,9 +560,21 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 const taskLabel = target?.closest('ul[data-type="taskList"] > li > label');
                 if (taskLabel) void handleReaderTaskToggle(e.currentTarget, taskLabel.parentElement);
               }}
+              ref={readerContentRef}
               className="note-content select-text text-[15px] leading-relaxed sm:text-base [&_img]:cursor-zoom-in"
               dangerouslySetInnerHTML={{ __html: readingNoteHtml }}
             />
+            {readerVoiceSlots.map((slot, index) =>
+              createPortal(
+                <VoiceNoteEmbed
+                  audioId={slot.audioId}
+                  fallbackName={slot.name}
+                  onRemoved={() => void handleReaderVoiceEmbedRemoved(slot.audioId)}
+                />,
+                slot.element,
+                `${slot.audioId}-${index}`
+              )
+            )}
 
             {isUploadingInReader && (
               <p role="status" className="flex items-center gap-2 text-xs font-semibold text-[var(--color-md-on-surface-variant)]">
@@ -597,7 +629,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
             {/* Notas de voz: solo aparecen si existen; para grabar la primera, menú ⋮ */}
             <VoiceNotesSection
-              audios={readingNoteAudios}
+              audios={readerLooseAudios}
               onRecord={() => setIsRecorderOpen(true)}
               onRename={renameReadingNoteAudio}
               onDelete={removeReadingNoteAudio}
@@ -610,8 +642,20 @@ export const NotesView: React.FC<NotesViewProps> = ({
           isOpen={isRecorderOpen}
           onClose={() => setIsRecorderOpen(false)}
           onSave={async ({ blob, mimeType, durationMs, name }) => {
-            await addAudioToReadingNote(blob, mimeType, durationMs, name);
-            setReaderToast('Nota de voz guardada en el apunte.');
+            const audio = await addAudioToReadingNote(blob, mimeType, durationMs, name);
+            // Desde el lector no hay cursor: va al final del texto; en el editor se puede mover
+            if (readingNote) {
+              const embed = document.createElement('div');
+              embed.setAttribute(VOICE_NOTE_ATTR, audio.id);
+              embed.setAttribute('data-name', audio.name);
+              embed.className = 'voice-note-embed';
+              try {
+                setReadingNote(await updateNote(readingNote.id, { content: `${readingNote.content}${embed.outerHTML}` }));
+              } catch {
+                // La grabación ya está guardada: si falla, se ve en «Notas de voz», debajo
+              }
+            }
+            setReaderToast('Nota de voz añadida al final del apunte.');
           }}
         />
 

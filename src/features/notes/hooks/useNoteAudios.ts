@@ -26,6 +26,19 @@ export function useNoteAudios(noteId?: string) {
   };
 }
 
+/**
+ * Una nota de voz por id, en vivo: la usa el reproductor insertado en el texto del apunte.
+ * `audio` es undefined mientras carga y null si la grabación ya no existe.
+ */
+export function useNoteAudio(audioId: string) {
+  const audio = useLiveQuery(async () => (audioId ? ((await noteAudioRepository.getById(audioId)) ?? null) : null), [audioId]);
+  return {
+    audio,
+    renameAudio: (name: string) => noteAudioRepository.rename(audioId, name),
+    removeAudio: () => noteAudioRepository.delete(audioId),
+  };
+}
+
 /** Conteo de notas de voz por apunte (solo claves del índice, sin leer los audios). */
 export function useNoteAudioCounts(): Record<string, number> {
   const counts = useLiveQuery(async () => {

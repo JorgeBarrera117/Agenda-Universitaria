@@ -13,7 +13,9 @@ import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
 import type { Editor } from '@tiptap/react';
-import type { Note, CreateNoteDTO } from '../types';
+import type { Note, CreateNoteDTO, NoteAudio } from '../types';
+import { insertBlockNodeInView } from '../utils/editorInsert';
+import { getEmbeddedAudioIds } from '../utils/voiceNoteEmbeds';
 import { exportNoteToAgnote } from '../services/noteShareService';
 import {
   PERSONAL_CHOICE,
@@ -73,6 +75,22 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
 
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+
+  // Las grabaciones que ya están dentro del texto no se repiten en la sección de arriba
+  const looseAudios = useMemo(() => {
+    const embedded = getEmbeddedAudioIds(content);
+    return audios.filter((audio) => !embedded.has(audio.id));
+  }, [audios, content]);
+
+  /** Pone el reproductor de una nota de voz en el cursor del texto. */
+  const insertVoiceNote = useCallback(
+    (audio: Pick<NoteAudio, 'id' | 'name'>) => {
+      const type = editorInstance?.schema.nodes.voiceNote;
+      if (!editorInstance || !type) return;
+      insertBlockNodeInView(editorInstance.view, type.create({ audioId: audio.id, name: audio.name }));
+    },
+    [editorInstance]
+  );
   const tagInputRef = useRef<HTMLInputElement>(null);
 
   const handleEditorReady = useCallback((editor: Editor) => {
@@ -419,10 +437,12 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
 
         {/* Notas de voz del apunte (solo aparecen cuando hay alguna) */}
         <VoiceNotesSection
-          audios={audios}
+          audios={looseAudios}
+          title="Notas de voz fuera del texto"
           onRecord={() => void handleRecordVoice()}
           onRename={renameAudio}
           onDelete={removeAudio}
+          onInsert={insertVoiceNote}
           className="mb-4 shrink-0"
         />
 
@@ -448,9 +468,12 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
       <VoiceRecorderModal
         isOpen={isRecorderOpen}
         onClose={() => setIsRecorderOpen(false)}
+        saveLabel="Poner en el apunte"
         onSave={async ({ blob, mimeType, durationMs, name }) => {
-          await addAudio(blob, mimeType, durationMs, name);
-          setShareNotice('Nota de voz guardada en el apunte.');
+          const audio = await addAudio(blob, mimeType, durationMs, name);
+          // Va al texto, donde estaba el cursor; después se puede mover como una foto
+          insertVoiceNote(audio);
+          setShareNotice('Nota de voz añadida al texto. Tócala para moverla.');
         }}
       />
 

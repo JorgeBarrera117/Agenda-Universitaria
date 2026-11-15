@@ -1,10 +1,11 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Check, Mic, Pause, Pencil, Play, Square, Trash2, X } from 'lucide-react';
+import { Check, CornerDownLeft, Mic, MicOff, Pause, Pencil, Play, Square, Trash2, X } from 'lucide-react';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
-import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
+import { M3KebabMenu, type KebabMenuItem } from '../../../shared/components/M3KebabMenu';
 import { Button } from '../../../shared/components/atoms';
 import { formInputClass } from '../../../shared/components/form/formStyles';
 import { LEVEL_BARS, formatDuration, useVoiceRecorder } from '../hooks/useVoiceRecorder';
+import { useNoteAudio } from '../hooks/useNoteAudios';
 import type { NoteAudio } from '../types';
 
 /* ---------------------------------------------------------------------------------------------
@@ -16,6 +17,8 @@ interface VoiceRecorderModalProps {
   onClose: () => void;
   /** Guarda la grabación en el apunte. */
   onSave: (recording: { blob: Blob; mimeType: string; durationMs: number; name: string }) => Promise<void>;
+  /** Texto del botón de guardar (en el editor la grabación va al texto, en el cursor). */
+  saveLabel?: string;
 }
 
 function defaultRecordingName(): string {
@@ -40,9 +43,10 @@ const LevelMeter: React.FC<{ levels: number[]; active: boolean }> = ({ levels, a
   </div>
 );
 
-const RecorderBody: React.FC<Omit<VoiceRecorderModalProps, 'isOpen'> & { onDirtyChange: (dirty: boolean) => void; confirmDiscard: boolean; onConfirmDiscard: (value: boolean) => void }> = ({
+const RecorderBody: React.FC<Omit<VoiceRecorderModalProps, 'isOpen' | 'saveLabel'> & { saveLabel: string; onDirtyChange: (dirty: boolean) => void; confirmDiscard: boolean; onConfirmDiscard: (value: boolean) => void }> = ({
   onClose,
   onSave,
+  saveLabel,
   onDirtyChange,
   confirmDiscard,
   onConfirmDiscard,
@@ -188,7 +192,7 @@ const RecorderBody: React.FC<Omit<VoiceRecorderModalProps, 'isOpen'> & { onDirty
               Descartar
             </Button>
             <Button variant="primary" size="sm" icon={<Check className="h-4 w-4" aria-hidden="true" />} isLoading={isSaving} onClick={() => void handleSave()}>
-              Guardar en el apunte
+              {saveLabel}
             </Button>
           </>
         ) : isLive ? (
@@ -214,7 +218,7 @@ const RecorderBody: React.FC<Omit<VoiceRecorderModalProps, 'isOpen'> & { onDirty
  * Grabadora de notas de voz. Cerrarla (✕, Atrás o Escape) con algo grabado pide confirmación
  * para no perder la grabación por un toque.
  */
-export const VoiceRecorderModal: React.FC<VoiceRecorderModalProps> = ({ isOpen, onClose, onSave }) => {
+export const VoiceRecorderModal: React.FC<VoiceRecorderModalProps> = ({ isOpen, onClose, onSave, saveLabel = 'Guardar en el apunte' }) => {
   const [dirty, setDirty] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [session, setSession] = useState(0);
@@ -242,6 +246,7 @@ export const VoiceRecorderModal: React.FC<VoiceRecorderModalProps> = ({ isOpen, 
           key={session}
           onClose={onClose}
           onSave={onSave}
+          saveLabel={saveLabel}
           onDirtyChange={setDirty}
           confirmDiscard={confirmDiscard}
           onConfirmDiscard={setConfirmDiscard}
@@ -262,9 +267,11 @@ interface VoiceNoteCardProps {
   audio: NoteAudio;
   onRename: () => void;
   onDelete: () => void;
+  /** Opciones extra del menú ⋮ (p. ej. «Poner en el texto»), antes de Eliminar. */
+  extraMenuItems?: KebabMenuItem[];
 }
 
-export const VoiceNoteCard: React.FC<VoiceNoteCardProps> = ({ audio, onRename, onDelete }) => {
+export const VoiceNoteCard: React.FC<VoiceNoteCardProps> = ({ audio, onRename, onDelete, extraMenuItems = [] }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMs, setCurrentMs] = useState(0);
@@ -366,6 +373,7 @@ export const VoiceNoteCard: React.FC<VoiceNoteCardProps> = ({ audio, onRename, o
         ariaLabel={`Opciones de ${audio.name}`}
         items={[
           { id: 'rename', label: 'Cambiar nombre', icon: <Pencil className="h-4 w-4 text-[var(--color-md-primary)]" />, onClick: onRename },
+          ...extraMenuItems,
           { id: 'delete', label: 'Eliminar', icon: <Trash2 className="h-4 w-4" />, variant: 'destructive', onClick: onDelete },
         ]}
       />
@@ -373,8 +381,162 @@ export const VoiceNoteCard: React.FC<VoiceNoteCardProps> = ({ audio, onRename, o
   );
 };
 
+
 /* ---------------------------------------------------------------------------------------------
- * Sección "Notas de voz" del apunte (lista + renombrar + eliminar)
+ * Diálogos de una nota de voz (los comparten la sección de abajo y el reproductor en el texto)
+ * ------------------------------------------------------------------------------------------- */
+
+interface RenameVoiceNoteDialogProps {
+  audio: NoteAudio | null;
+  onClose: () => void;
+  onRename: (id: string, name: string) => Promise<void>;
+}
+
+const RenameVoiceNoteDialog: React.FC<RenameVoiceNoteDialogProps> = ({ audio, onClose, onRename }) => {
+  const [value, setValue] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [prevAudio, setPrevAudio] = useState<NoteAudio | null>(null);
+  const inputId = useId();
+  // Cada apertura parte del nombre actual
+  if (audio !== prevAudio) {
+    setPrevAudio(audio);
+    if (audio) {
+      setValue(audio.name);
+      setError(null);
+    }
+  }
+
+  return (
+    <Modal isOpen={audio !== null} onClose={onClose} title="Cambiar nombre" maxWidth="sm">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!audio) return;
+          onRename(audio.id, value)
+            .then(onClose)
+            .catch((err: unknown) => setError(err instanceof Error ? err.message : 'No se pudo cambiar el nombre.'));
+        }}
+        className="space-y-2"
+      >
+        <label htmlFor={inputId} className="block text-xs font-semibold text-[var(--color-md-on-surface)]">
+          Nombre de la nota de voz
+        </label>
+        <input id={inputId} value={value} maxLength={80} autoFocus onChange={(e) => setValue(e.target.value)} className={formInputClass} />
+        {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+        <ModalActions>
+          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="primary" size="sm">
+            Guardar
+          </Button>
+        </ModalActions>
+      </form>
+    </Modal>
+  );
+};
+
+interface DeleteVoiceNoteDialogProps {
+  audio: NoteAudio | null;
+  onClose: () => void;
+  onConfirm: (audio: NoteAudio) => Promise<void>;
+}
+
+const DeleteVoiceNoteDialog: React.FC<DeleteVoiceNoteDialogProps> = ({ audio, onClose, onConfirm }) => (
+  <Modal isOpen={audio !== null} onClose={onClose} title="¿Eliminar la nota de voz?" maxWidth="sm">
+    <p className="text-sm text-[var(--color-md-on-surface-variant)]">
+      Se borrará «{audio?.name}» de este apunte. No se puede deshacer.
+    </p>
+    <ModalActions>
+      <Button variant="ghost" size="sm" icon={<X className="h-4 w-4" aria-hidden="true" />} onClick={onClose}>
+        Cancelar
+      </Button>
+      <Button
+        variant="danger"
+        size="sm"
+        onClick={() => {
+          if (!audio) return;
+          void onConfirm(audio).finally(onClose);
+        }}
+      >
+        Eliminar
+      </Button>
+    </ModalActions>
+  </Modal>
+);
+
+/* ---------------------------------------------------------------------------------------------
+ * Nota de voz dentro del texto del apunte (editor y lector)
+ * ------------------------------------------------------------------------------------------- */
+
+interface VoiceNoteEmbedProps {
+  audioId: string;
+  /** Nombre guardado en el texto: se muestra si la grabación ya no existe. */
+  fallbackName?: string;
+  /**
+   * Quitar el reproductor del texto. Se llama al eliminar la grabación y desde el aviso de
+   * «grabación no disponible». Sin él (lector de solo vista) no se ofrece quitarlo.
+   */
+  onRemoved?: () => void;
+}
+
+/**
+ * Reproductor de una nota de voz insertada en el texto. Carga la grabación por id (en vivo: si se
+ * renombra en otra parte, se actualiza). Si la grabación ya no existe (p. ej. se deshizo un borrado
+ * o el apunte llegó de un respaldo sin audios), lo dice en vez de quedar como un hueco.
+ */
+export const VoiceNoteEmbed: React.FC<VoiceNoteEmbedProps> = ({ audioId, fallbackName, onRemoved }) => {
+  const { audio, renameAudio, removeAudio } = useNoteAudio(audioId);
+  const [renaming, setRenaming] = useState<NoteAudio | null>(null);
+  const [deleting, setDeleting] = useState<NoteAudio | null>(null);
+
+  if (audio === undefined) {
+    return <div className="h-[74px] animate-pulse rounded-2xl bg-[var(--color-md-surface-container)]" aria-hidden="true" />;
+  }
+
+  if (audio === null) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-dashed border-[var(--color-md-outline-variant)] p-2.5 pr-1 text-[var(--color-md-on-surface-variant)]">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-surface-container-high)]">
+          <MicOff className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-[var(--color-md-on-surface)]">{fallbackName || 'Nota de voz'}</p>
+          <p className="text-[11px]">Esta grabación ya no está disponible.</p>
+        </div>
+        {onRemoved && (
+          <button
+            type="button"
+            onClick={onRemoved}
+            aria-label="Quitar del apunte"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[var(--color-md-surface-container-high)]"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <VoiceNoteCard audio={audio} onRename={() => setRenaming(audio)} onDelete={() => setDeleting(audio)} />
+      <RenameVoiceNoteDialog audio={renaming} onClose={() => setRenaming(null)} onRename={(_id, name) => renameAudio(name)} />
+      <DeleteVoiceNoteDialog
+        audio={deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={async () => {
+          // Primero se quita del texto: así el reproductor no llega a mostrarse como «no disponible»
+          onRemoved?.();
+          await removeAudio();
+        }}
+      />
+    </>
+  );
+};
+
+/* ---------------------------------------------------------------------------------------------
+ * Sección "Notas de voz" del apunte: grabaciones que no están dentro del texto
  * ------------------------------------------------------------------------------------------- */
 
 interface VoiceNotesSectionProps {
@@ -382,23 +544,32 @@ interface VoiceNotesSectionProps {
   onRecord: () => void;
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  /** Si existe, el menú de cada grabación ofrece ponerla en el texto (en el cursor). */
+  onInsert?: (audio: NoteAudio) => void;
+  /** Título de la sección (en el editor: las que aún no están en el texto). */
+  title?: string;
   className?: string;
 }
 
-export const VoiceNotesSection: React.FC<VoiceNotesSectionProps> = ({ audios, onRecord, onRename, onDelete, className = '' }) => {
+export const VoiceNotesSection: React.FC<VoiceNotesSectionProps> = ({
+  audios,
+  onRecord,
+  onRename,
+  onDelete,
+  onInsert,
+  title = 'Notas de voz',
+  className = '',
+}) => {
   const [renaming, setRenaming] = useState<NoteAudio | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-  const [renameError, setRenameError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<NoteAudio | null>(null);
-  const renameId = useId();
 
   if (audios.length === 0) return null;
 
   return (
-    <section className={`space-y-3 ${className}`} aria-label="Notas de voz">
+    <section className={`space-y-3 ${className}`} aria-label={title}>
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold">
-          Notas de voz
+          {title}
           <span className="ml-1.5 font-medium text-[var(--color-md-on-surface-variant)]">{audios.length}</span>
         </h3>
         <button
@@ -415,63 +586,26 @@ export const VoiceNotesSection: React.FC<VoiceNotesSectionProps> = ({ audios, on
           <VoiceNoteCard
             key={audio.id}
             audio={audio}
-            onRename={() => {
-              setRenaming(audio);
-              setRenameValue(audio.name);
-              setRenameError(null);
-            }}
+            onRename={() => setRenaming(audio)}
             onDelete={() => setDeleting(audio)}
+            extraMenuItems={
+              onInsert
+                ? [
+                    {
+                      id: 'insert',
+                      label: 'Poner en el texto',
+                      icon: <CornerDownLeft className="h-4 w-4 text-[var(--color-md-primary)]" />,
+                      onClick: () => onInsert(audio),
+                    },
+                  ]
+                : []
+            }
           />
         ))}
       </div>
 
-      <Modal isOpen={renaming !== null} onClose={() => setRenaming(null)} title="Cambiar nombre" maxWidth="sm">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!renaming) return;
-            onRename(renaming.id, renameValue)
-              .then(() => setRenaming(null))
-              .catch((err: unknown) => setRenameError(err instanceof Error ? err.message : 'No se pudo cambiar el nombre.'));
-          }}
-          className="space-y-2"
-        >
-          <label htmlFor={renameId} className="block text-xs font-semibold text-[var(--color-md-on-surface)]">
-            Nombre de la nota de voz
-          </label>
-          <input id={renameId} value={renameValue} maxLength={80} autoFocus onChange={(e) => setRenameValue(e.target.value)} className={formInputClass} />
-          {renameError && <p className="text-xs text-red-600 dark:text-red-400">{renameError}</p>}
-          <ModalActions>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setRenaming(null)}>
-              Cancelar
-            </Button>
-            <Button type="submit" variant="primary" size="sm">
-              Guardar
-            </Button>
-          </ModalActions>
-        </form>
-      </Modal>
-
-      <Modal isOpen={deleting !== null} onClose={() => setDeleting(null)} title="¿Eliminar la nota de voz?" maxWidth="sm">
-        <p className="text-sm text-[var(--color-md-on-surface-variant)]">
-          Se borrará «{deleting?.name}» de este apunte. No se puede deshacer.
-        </p>
-        <ModalActions>
-          <Button variant="ghost" size="sm" icon={<X className="h-4 w-4" aria-hidden="true" />} onClick={() => setDeleting(null)}>
-            Cancelar
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => {
-              if (!deleting) return;
-              void onDelete(deleting.id).finally(() => setDeleting(null));
-            }}
-          >
-            Eliminar
-          </Button>
-        </ModalActions>
-      </Modal>
+      <RenameVoiceNoteDialog audio={renaming} onClose={() => setRenaming(null)} onRename={onRename} />
+      <DeleteVoiceNoteDialog audio={deleting} onClose={() => setDeleting(null)} onConfirm={(audio) => onDelete(audio.id)} />
     </section>
   );
 };
