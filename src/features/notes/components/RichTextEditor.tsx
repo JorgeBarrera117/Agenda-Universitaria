@@ -196,6 +196,12 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
   );
 };
 
+/**
+ * Márgenes que el cursor debe guardar al desplazarse: arriba la cabecera fija del editor (~80 px)
+ * y abajo la barra de formato con su pie (~100 px) más un respiro para leer lo que se escribe.
+ */
+const CARET_SCROLL_MARGIN = { top: 96, bottom: 150, left: 0, right: 0 };
+
 const LAST_HIGHLIGHT_KEY = 'agenda_last_highlight';
 /** Etiqueta del botón del resaltador (también sirve para reconocerlo al cerrar la paleta). */
 const HIGHLIGHT_BUTTON_LABEL = 'Resaltar (elige el color)';
@@ -281,10 +287,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
     editorProps: {
       attributes: {
+        // pb-44: espacio al final para que la última línea pueda subir por encima de la barra fija
         class:
-          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-[15px] sm:text-base leading-relaxed max-w-none pb-24',
+          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-[15px] sm:text-base leading-relaxed max-w-none pb-44',
         'aria-label': 'Contenido del apunte',
       },
+      // El cursor se considera "a la vista" solo si no queda bajo la cabecera fija (arriba) ni
+      // bajo la barra de formato (abajo); al escribir, el editor desplaza para respetarlo
+      scrollThreshold: CARET_SCROLL_MARGIN,
+      scrollMargin: CARET_SCROLL_MARGIN,
       // Sin handleDOMEvents.click: tocar una foto la selecciona para editarla; el zoom es un botón
       handlePaste: (view, event) => {
         const files = imageFilesFrom(event.clipboardData);
@@ -422,6 +433,29 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const openCamera = useCallback(() => cameraInputRef.current?.click(), []);
   const openGallery = useCallback(() => galleryInputRef.current?.click(), []);
+
+  // Teclado del teléfono: al abrirse (la zona visible se achica) o al tocar el texto, el cursor sube
+  // por encima de la barra de formato. Sin esto el sistema lo deja justo detrás de la barra.
+  useEffect(() => {
+    if (!editor) return;
+    const viewport = window.visualViewport;
+    let timer = 0;
+    const revealCaret = () => {
+      if (!editor.isFocused) return;
+      window.clearTimeout(timer);
+      // Después de que termine de acomodarse la pantalla con el teclado
+      timer = window.setTimeout(() => editor.commands.scrollIntoView(), 150);
+    };
+    viewport?.addEventListener('resize', revealCaret);
+    window.addEventListener('resize', revealCaret);
+    editor.on('focus', revealCaret);
+    return () => {
+      window.clearTimeout(timer);
+      viewport?.removeEventListener('resize', revealCaret);
+      window.removeEventListener('resize', revealCaret);
+      editor.off('focus', revealCaret);
+    };
+  }, [editor]);
 
   // Paleta del resaltador: abierta/cerrada y último color usado (se recuerda entre apuntes)
   const [isHighlightMenuOpen, setIsHighlightMenuOpen] = useState(false);
