@@ -4,11 +4,21 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
+import {
+  DEFAULT_HIGHLIGHT,
+  HIGHLIGHT_COLORS,
+  NoteHighlight,
+  isHighlightColor,
+  type HighlightColor,
+} from '../extensions/NoteHighlight';
 import { NodeSelection, Selection } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import {
   ArrowDown,
   ArrowUp,
+  Check,
+  Eraser,
+  Highlighter,
   ClipboardPaste,
   Copy,
   Scissors,
@@ -61,6 +71,8 @@ interface ToolbarAction {
   run: () => void;
   isActive?: boolean;
   disabled?: boolean;
+  /** Franja de color bajo el ícono (el resaltador muestra el color que aplicará). */
+  indicatorColor?: HighlightColor;
 }
 
 interface ImageClip {
@@ -150,7 +162,7 @@ type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & {
   tonal?: boolean;
 };
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled, tonal = false }) => {
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled, tonal = false, indicatorColor }) => {
   const isToggle = isActive !== undefined;
   return (
     <button
@@ -162,7 +174,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
       aria-label={label}
       aria-pressed={isToggle ? isActive : undefined}
       title={label}
-      className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl transition-all duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${
+      className={`relative flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl transition-all duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${
         isActive
           ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
           : tonal
@@ -171,9 +183,29 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
       }`}
     >
       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+      {indicatorColor && (
+        <span
+          data-color={indicatorColor}
+          className="note-hl-swatch absolute bottom-1 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full ring-1 ring-black/10 dark:ring-white/15"
+          aria-hidden="true"
+        />
+      )}
     </button>
   );
 };
+
+const LAST_HIGHLIGHT_KEY = 'agenda_last_highlight';
+/** Etiqueta del botón del resaltador (también sirve para reconocerlo al cerrar la paleta). */
+const HIGHLIGHT_BUTTON_LABEL = 'Resaltar (elige el color)';
+
+function readLastHighlight(): HighlightColor {
+  try {
+    const saved = localStorage.getItem(LAST_HIGHLIGHT_KEY);
+    return isHighlightColor(saved) ? saved : DEFAULT_HIGHLIGHT;
+  } catch {
+    return DEFAULT_HIGHLIGHT;
+  }
+}
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   content,
@@ -231,6 +263,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         },
       }),
       Placeholder.configure({ placeholder }),
+      NoteHighlight,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -379,6 +412,31 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const openCamera = useCallback(() => cameraInputRef.current?.click(), []);
   const openGallery = useCallback(() => galleryInputRef.current?.click(), []);
+
+  // Paleta del resaltador: abierta/cerrada y último color usado (se recuerda entre apuntes)
+  const [isHighlightMenuOpen, setIsHighlightMenuOpen] = useState(false);
+  const [lastHighlight, setLastHighlight] = useState<HighlightColor>(readLastHighlight);
+  const highlightMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isHighlightMenuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (highlightMenuRef.current?.contains(target) || target?.closest(`[aria-label="${HIGHLIGHT_BUTTON_LABEL}"]`)) return;
+      setIsHighlightMenuOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsHighlightMenuOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isHighlightMenuOpen]);
 
   // Zona de formato desplazable: degradados en los bordes cuando hay más botones fuera de la vista
   const [formatScroller, setFormatScroller] = useState<HTMLDivElement | null>(null);
@@ -533,6 +591,20 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
   ];
 
+  const activeHighlightAttr: unknown = editor.isActive('highlight') ? editor.getAttributes('highlight').color : null;
+  const activeHighlight = isHighlightColor(activeHighlightAttr) ? activeHighlightAttr : null;
+
+  const applyHighlight = (color: HighlightColor) => {
+    chain().setHighlight(color).run();
+    setLastHighlight(color);
+    try {
+      localStorage.setItem(LAST_HIGHLIGHT_KEY, color);
+    } catch {
+      // Sin almacenamiento: solo no se recuerda el color para la próxima vez
+    }
+    setIsHighlightMenuOpen(false);
+  };
+
   // Orden por uso al tomar apuntes: lo más frecuente queda a la vista sin desplazar
   const toolbarGroups: { label: string; actions: ToolbarAction[] }[] = [
     {
@@ -541,6 +613,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         { id: 'bold', label: 'Negrita (Ctrl+B)', icon: Bold, run: () => chain().toggleBold().run(), isActive: editor.isActive('bold') },
         { id: 'italic', label: 'Cursiva (Ctrl+I)', icon: Italic, run: () => chain().toggleItalic().run(), isActive: editor.isActive('italic') },
         { id: 'underline', label: 'Subrayado (Ctrl+U)', icon: Underline, run: () => chain().toggleUnderline().run(), isActive: editor.isActive('underline') },
+        {
+          id: 'highlight',
+          label: HIGHLIGHT_BUTTON_LABEL,
+          icon: Highlighter,
+          run: () => setIsHighlightMenuOpen((open) => !open),
+          isActive: editor.isActive('highlight') || isHighlightMenuOpen,
+          indicatorColor: activeHighlight ?? lastHighlight,
+        },
       ],
     },
     {
@@ -614,7 +694,57 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             ))}
           </div>
         ) : (
-        <div role="toolbar" aria-label="Formato del apunte" className="mx-auto flex max-w-3xl items-center gap-2 py-0.5">
+        <div role="toolbar" aria-label="Formato del apunte" className="relative mx-auto flex max-w-3xl items-center gap-2 py-0.5">
+          {/* Paleta del resaltador (menú M3 sobre la barra): 7 colores y quitar resaltado */}
+          {isHighlightMenuOpen && (
+            <div
+              ref={highlightMenuRef}
+              role="group"
+              aria-label="Colores del resaltador"
+              className="m3-menu-enter absolute bottom-[calc(100%+10px)] left-1/2 z-10 w-max max-w-[calc(100vw-1rem)] origin-bottom -translate-x-1/2 rounded-[22px] border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+            >
+              <p className="mb-2 px-1 text-xs font-bold text-[var(--color-md-on-surface-variant)]">Resaltador</p>
+              <div className="flex items-center gap-2">
+                {HIGHLIGHT_COLORS.map((color) => {
+                  const isCurrent = activeHighlight === color.id;
+                  return (
+                    <button
+                      key={color.id}
+                      type="button"
+                      data-color={color.id}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyHighlight(color.id)}
+                      aria-label={`Resaltar en ${color.label.toLowerCase()}`}
+                      aria-pressed={isCurrent}
+                      title={color.label}
+                      className={`note-hl-swatch flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-150 ease-out active:scale-90 ${
+                        isCurrent
+                          ? 'ring-2 ring-[var(--color-md-primary)] ring-offset-2 ring-offset-[var(--color-md-surface-container-high)]'
+                          : color.id === lastHighlight
+                            ? 'ring-2 ring-[var(--color-md-outline)]'
+                            : 'ring-1 ring-black/10 dark:ring-white/15'
+                      }`}
+                    >
+                      {isCurrent && <Check className="h-4 w-4 text-[var(--color-md-on-surface)]" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  chain().unsetHighlight().run();
+                  setIsHighlightMenuOpen(false);
+                }}
+                disabled={!activeHighlight}
+                className="mt-2 inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-surface-container)] disabled:opacity-40"
+              >
+                <Eraser className="h-3.5 w-3.5" aria-hidden="true" />
+                Quitar resaltado
+              </button>
+            </div>
+          )}
           {/* Formato: se desplaza de lado si no cabe; los degradados avisan que hay más botones */}
           <div className="relative min-w-0 flex-1">
             <div

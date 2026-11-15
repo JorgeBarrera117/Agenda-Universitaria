@@ -494,6 +494,48 @@
   margin: 1rem 0;
 }
 
+/* Resaltador (NoteHighlight.ts): el apunte guarda el nombre del color y aquí se pinta. Modo claro:
+   tonos pastel con texto oscuro; modo oscuro: tonos translúcidos con texto claro. Ambos > 4.5:1.
+   .note-hl-swatch reutiliza los mismos colores en la paleta de la barra. */
+:is(.ProseMirror, .note-content) mark {
+  color: inherit;
+  border-radius: 0.25em;
+  padding: 0.05em 0.15em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+:is(.ProseMirror, .note-content) mark,
+:is(.ProseMirror, .note-content) mark[data-color='amarillo'],
+.note-hl-swatch[data-color='amarillo'] { background-color: #FFF176; }
+:is(.ProseMirror, .note-content) mark[data-color='verde'],
+.note-hl-swatch[data-color='verde'] { background-color: #B9F6CA; }
+:is(.ProseMirror, .note-content) mark[data-color='celeste'],
+.note-hl-swatch[data-color='celeste'] { background-color: #B3E5FC; }
+:is(.ProseMirror, .note-content) mark[data-color='rosa'],
+.note-hl-swatch[data-color='rosa'] { background-color: #F8BBD0; }
+:is(.ProseMirror, .note-content) mark[data-color='naranja'],
+.note-hl-swatch[data-color='naranja'] { background-color: #FFCC80; }
+:is(.ProseMirror, .note-content) mark[data-color='morado'],
+.note-hl-swatch[data-color='morado'] { background-color: #D1C4E9; }
+:is(.ProseMirror, .note-content) mark[data-color='rojo'],
+.note-hl-swatch[data-color='rojo'] { background-color: #FFCDD2; }
+
+.dark :is(.ProseMirror, .note-content) mark,
+.dark :is(.ProseMirror, .note-content) mark[data-color='amarillo'],
+.dark .note-hl-swatch[data-color='amarillo'] { background-color: rgba(255, 214, 0, 0.32); }
+.dark :is(.ProseMirror, .note-content) mark[data-color='verde'],
+.dark .note-hl-swatch[data-color='verde'] { background-color: rgba(0, 230, 118, 0.26); }
+.dark :is(.ProseMirror, .note-content) mark[data-color='celeste'],
+.dark .note-hl-swatch[data-color='celeste'] { background-color: rgba(41, 182, 246, 0.32); }
+.dark :is(.ProseMirror, .note-content) mark[data-color='rosa'],
+.dark .note-hl-swatch[data-color='rosa'] { background-color: rgba(240, 98, 146, 0.34); }
+.dark :is(.ProseMirror, .note-content) mark[data-color='naranja'],
+.dark .note-hl-swatch[data-color='naranja'] { background-color: rgba(255, 145, 0, 0.32); }
+.dark :is(.ProseMirror, .note-content) mark[data-color='morado'],
+.dark .note-hl-swatch[data-color='morado'] { background-color: rgba(179, 136, 255, 0.34); }
+.dark :is(.ProseMirror, .note-content) mark[data-color='rojo'],
+.dark .note-hl-swatch[data-color='rojo'] { background-color: rgba(239, 83, 80, 0.34); }
+
 /* Placeholder */
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
