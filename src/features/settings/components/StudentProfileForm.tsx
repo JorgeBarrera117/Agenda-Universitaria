@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { ImagePlus, Loader2, MessageSquareText, Save, Trash2, Wifi } from 'lucide-react';
+import { Camera, ImagePlus, MessageSquareText, Save, Trash2, Wifi } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
 import { STUDENT_STATUS_MAX_LENGTH, STUDENT_STATUS_PRESETS } from '../studentIdentity';
-import { cropImageToSquareDataUrl } from '../utils/avatarCrop';
+import { AvatarCropModal } from './AvatarCropModal';
 import { StudentAvatar } from './StudentAvatar';
 import type { AppSettings, StudentStatusMode } from '../types';
 
@@ -40,25 +40,22 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
   const [avatarUrl, setAvatarUrl] = useState(initialValues.studentAvatarUrl);
   const [statusMode, setStatusMode] = useState<StudentStatusMode>(initialValues.studentStatusMode ?? 'network');
   const [customStatus, setCustomStatus] = useState(initialValues.studentCustomStatus ?? '');
-  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  // Foto elegida que se está recortando (abre el recortador)
+  const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     // Permite volver a elegir el mismo archivo después
     event.target.value = '';
     if (!file) return;
-
-    setPhotoError(null);
-    setIsProcessingPhoto(true);
-    try {
-      setAvatarUrl(await cropImageToSquareDataUrl(file));
-    } catch {
-      setPhotoError('No se pudo leer esa imagen. Prueba con otra foto (JPG o PNG).');
-    } finally {
-      setIsProcessingPhoto(false);
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Ese archivo no es una imagen. Elige una foto (JPG o PNG).');
+      return;
     }
+    setPhotoError(null);
+    setPhotoToCrop(file);
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -80,26 +77,32 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
       className="space-y-4 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] p-3 shadow-2xs sm:p-4"
     >
       {/* Foto de perfil */}
-      <section aria-label="Foto de perfil" className="flex items-center gap-3">
-        <div className="relative">
+      <section aria-label="Foto de perfil" className="flex items-center gap-4">
+        {/* La foto también es un botón: tocarla abre la galería */}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          aria-label={avatarUrl ? 'Cambiar foto de perfil' : 'Elegir foto de perfil'}
+          className="group relative shrink-0 rounded-2xl transition-transform duration-150 ease-out active:scale-95"
+        >
           <StudentAvatar
             avatarUrl={avatarUrl}
             name={studentName}
-            className="h-[72px] w-[72px] rounded-2xl border border-[var(--color-md-outline-variant)] text-2xl shadow-xs"
+            className="h-24 w-24 rounded-2xl border border-[var(--color-md-outline-variant)] text-3xl shadow-xs"
           />
-          {isProcessingPhoto && (
-            <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--color-md-surface)]/70">
-              <Loader2 className="h-5 w-5 animate-spin text-[var(--color-md-primary)]" aria-hidden="true" />
-            </span>
-          )}
-        </div>
+          <span
+            aria-hidden="true"
+            className="absolute -bottom-1.5 -right-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs ring-2 ring-[var(--color-md-card-bg)] transition-transform duration-150 group-hover:scale-110"
+          >
+            <Camera className="h-4 w-4" />
+          </span>
+        </button>
         <div className="min-w-0 space-y-1.5">
           <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Foto de perfil</p>
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isProcessingPhoto}
               className={secondaryButtonClass}
             >
               <ImagePlus className="h-3.5 w-3.5" aria-hidden="true" />
@@ -109,7 +112,6 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
               <button
                 type="button"
                 onClick={() => setAvatarUrl(undefined)}
-                disabled={isProcessingPhoto}
                 className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold text-[var(--color-md-on-surface-variant)] transition-[transform,background-color] duration-150 ease-out hover:bg-[var(--color-md-surface-container-high)] active:scale-[0.98]"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -118,14 +120,14 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
             )}
           </div>
           <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" role={photoError ? 'alert' : undefined}>
-            {photoError ?? 'Se recorta al centro y se guarda solo en este dispositivo.'}
+            {photoError ?? 'Al elegirla podrás moverla y acercarla para encuadrarla. Se guarda solo en este dispositivo.'}
           </p>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => void handlePhotoSelected(e)}
+            onChange={handlePhotoSelected}
             tabIndex={-1}
             aria-hidden="true"
           />
@@ -249,12 +251,20 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
 
       <button
         type="submit"
-        disabled={isProcessingPhoto}
         className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-4 text-xs font-bold text-[var(--color-md-on-primary)] transition-[transform,background-color] duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-[0.98] disabled:opacity-50"
       >
         <Save className="h-3.5 w-3.5" aria-hidden="true" />
         Guardar perfil
       </button>
+
+      <AvatarCropModal
+        file={photoToCrop}
+        onCancel={() => setPhotoToCrop(null)}
+        onConfirm={(dataUrl) => {
+          setAvatarUrl(dataUrl);
+          setPhotoToCrop(null);
+        }}
+      />
     </form>
   );
 };

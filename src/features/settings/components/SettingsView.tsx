@@ -69,7 +69,7 @@ const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
   backup: 'Datos y copias de seguridad',
   about: 'Acerca de la agenda',
   changelog: 'Novedades de la versión',
-  profile: 'Perfil estudiantil',
+  profile: 'Mi perfil',
 };
 
 const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: string }[] = [
@@ -337,7 +337,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               backLabel="Volver a la Agenda"
             />
 
-            {/* Credencial estudiantil plegable (perfil editable en su propia sub-página) */}
+            {/* Tarjeta "Mi perfil": abre el perfil (foto, nombre, carrera, meta y estado) */}
             <StudentCredential
               settings={settings}
               appVersion={APP_INFO.version}
