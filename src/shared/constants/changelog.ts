@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.70',
+    date: '2026-11-15',
+    title: 'Apuntes personales',
+    changes: [
+      { kind: 'nuevo', text: 'Ahora puedes crear apuntes personales que no pertenecen a ninguna materia: elige «Personal» en el selector del apunte.' },
+      { kind: 'nuevo', text: 'En Apuntes, la pastilla «Personal» junto a «Todos» reúne tus ideas, pendientes y notas sin materia.' },
+      { kind: 'mejora', text: 'Al crear un apunte con una materia o «Personal» abiertos, ya viene elegida esa clasificación.' },
+    ],
+  },
+  {
     version: '1.7.10.69',
     date: '2026-11-14',
     title: 'Fotos HEIC, sin problema',
