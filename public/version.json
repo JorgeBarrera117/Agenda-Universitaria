@@ -1,15 +1,13 @@
 {
-  "latestVersion": "1.7.10.66",
+  "latestVersion": "1.7.10.67",
   "releaseDate": "2026-11-14",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.66/Agenda-Universitaria-v1.7.10.66.apk",
-  "apkSha256": "80801e21814767e9b0105082280e9a1fc375c1da80616ffb1bf3a0f80bcd891e",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.66/Agenda-Universitaria-Setup-v1.7.10.66.exe",
-  "desktopSha256": "3f3998e67e58d6fbe98af1c2067766db76fc75866746d0f5611b199010a2055b",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.67/Agenda-Universitaria-v1.7.10.67.apk",
+  "apkSha256": "24a9fb8a967b71bff8bdc498708975416957ee5a3b417ec81f5895d95ae2664d",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.67/Agenda-Universitaria-Setup-v1.7.10.67.exe",
+  "desktopSha256": "3b0c95b6b83e6ab5a8877d4953aefa5c88af765beeee7c6d2330a57d7355ad2e",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Listas de tareas con casillas en tus apuntes",
-    "Al marcar una tarea se tacha todo su texto",
-    "Marca tareas también desde el modo lectura"
+    "Al escribir apuntes largos, el cursor ya no se esconde detrás de la barra ni del teclado"
   ]
 }
