@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.65',
+    date: '2026-11-14',
+    title: 'Resaltador de colores',
+    changes: [
+      { kind: 'nuevo', text: 'Resalta texto en tus apuntes con 7 colores: amarillo, verde, celeste, rosa, naranja, morado y rojo. Está junto a negrita, cursiva y subrayado.' },
+      { kind: 'mejora', text: 'Los resaltados se leen bien en modo claro y oscuro, y la app recuerda el último color que usaste.' },
+    ],
+  },
+  {
     version: '1.7.10.64',
     date: '2026-11-14',
     title: 'Barra de apuntes más práctica',
