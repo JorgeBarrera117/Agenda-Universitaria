@@ -14,6 +14,11 @@ export function useSchedule() {
     return scheduleRepository.create(dto);
   };
 
+  /** Varias clases de una materia a la vez (una por día de la semana). */
+  const addSlots = async (dtos: CreateScheduleSlotDTO[]) => {
+    return scheduleRepository.createMany(dtos);
+  };
+
   const updateSlot = async (id: string, dto: UpdateScheduleSlotDTO) => {
     return scheduleRepository.update(id, dto);
   };
@@ -33,6 +38,7 @@ export function useSchedule() {
     slots: slots ?? [],
     isLoading: false,
     addSlot,
+    addSlots,
     updateSlot,
     removeSlot,
     getSlotsByDay,

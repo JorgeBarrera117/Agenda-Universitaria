@@ -1,11 +1,13 @@
 import { db } from '../../../shared/db/AppDatabase';
-import type { ScheduleSlot, CreateScheduleSlotDTO, UpdateScheduleSlotDTO, DayOfWeek } from '../types';
+import { DAY_NAMES, type ScheduleSlot, type CreateScheduleSlotDTO, type UpdateScheduleSlotDTO, type DayOfWeek } from '../types';
 
 export interface IScheduleRepository {
   getAll(): Promise<ScheduleSlot[]>;
   getByDay(day: DayOfWeek): Promise<ScheduleSlot[]>;
   getById(id: string): Promise<ScheduleSlot | undefined>;
   create(data: CreateScheduleSlotDTO): Promise<ScheduleSlot>;
+  /** Crea varias clases a la vez (una por día): o se guardan todas, o ninguna. */
+  createMany(items: CreateScheduleSlotDTO[]): Promise<ScheduleSlot[]>;
   update(id: string, data: UpdateScheduleSlotDTO): Promise<void>;
   delete(id: string): Promise<void>;
   /** Quita todas las clases del horario semanal. Devuelve cuántas quitó. */
@@ -61,6 +63,26 @@ export class DexieScheduleRepository implements IScheduleRepository {
     };
     await db.scheduleSlots.add(slot);
     return slot;
+  }
+
+  async createMany(items: CreateScheduleSlotDTO[]): Promise<ScheduleSlot[]> {
+    // En una transacción: si un día se cruza con otra clase, no queda la materia a medio cargar
+    return db.transaction('rw', db.scheduleSlots, async () => {
+      for (const data of items) {
+        const day = DAY_NAMES[data.dayOfWeek].toLowerCase();
+        if (data.startTime >= data.endTime) {
+          throw new Error(`El ${day}: la hora de inicio debe ser menor que la de término.`);
+        }
+        const overlap = await this.checkOverlap(data);
+        if (overlap) {
+          throw new Error(`El ${day} se cruza con otra clase de tu horario (${overlap.startTime} – ${overlap.endTime}).`);
+        }
+      }
+      const now = new Date().toISOString();
+      const created = items.map((data): ScheduleSlot => ({ ...data, id: crypto.randomUUID(), createdAt: now }));
+      await db.scheduleSlots.bulkAdd(created);
+      return created;
+    });
   }
 
   async update(id: string, data: UpdateScheduleSlotDTO): Promise<void> {

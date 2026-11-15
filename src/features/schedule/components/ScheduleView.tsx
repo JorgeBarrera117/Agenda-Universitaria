@@ -30,7 +30,7 @@ import { isSlotVirtual } from '../utils/slotModality';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { SubjectIcon } from '../../subjects/components/SubjectIcon';
+import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
@@ -75,7 +75,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onEditorActiveChange,
   isActive = true,
 }) => {
-  const { slots, addSlot, updateSlot, removeSlot } = useSchedule();
+  const { slots, addSlots, updateSlot, removeSlot } = useSchedule();
   const { subjects, getSubjectById } = useSubjects();
   const { professors, getProfessorById } = useProfessors();
   const { settings } = useAppSettings();
@@ -114,11 +114,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     setIsModalOpen(true);
   }, []);
 
-  const handleSubmit = async (dto: CreateScheduleSlotDTO) => {
+  const handleSubmit = async (dtos: CreateScheduleSlotDTO[]) => {
     if (editingSlot) {
-      await updateSlot(editingSlot.id, dto);
+      await updateSlot(editingSlot.id, dtos[0]);
     } else {
-      await addSlot(dto);
+      await addSlots(dtos);
+      if (dtos.length > 1) showToast(`Se agregaron ${dtos.length} clases al horario.`);
     }
     setIsModalOpen(false);
   };
@@ -495,8 +496,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             nowTimeString < slot.endTime;
 
                           return (
-                            /* Tarjeta rellena M3 teñida con el color de la materia: indicador de color a la
-                               izquierda, título pequeño, y hora · aula · docente en cuerpo pequeño con iconos.
+                            /* Tarjeta rellena M3 teñida con el color de la materia: icono de la materia y
+                               título pequeño arriba; debajo hora · aula · docente en cuerpo pequeño con iconos.
                                Las acciones viven en el menú ⋮; tocar la tarjeta abre la ficha de la materia. */
                             <article
                               key={slot.id}
@@ -504,21 +505,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 backgroundColor: `color-mix(in srgb, ${color} 9%, var(--color-md-card-bg))`,
                                 borderColor: isNow ? undefined : `color-mix(in srgb, ${color} 30%, transparent)`,
                               }}
-                              className={`content-auto group relative overflow-hidden rounded-2xl border py-2.5 pl-4 pr-1 transition-[box-shadow,transform] duration-150 ease-out hover:shadow-md active:scale-[0.99] ${
+                              className={`content-auto group relative overflow-hidden rounded-2xl border p-2.5 pr-1 transition-[box-shadow,transform] duration-150 ease-out hover:shadow-md active:scale-[0.99] ${
                                 isNow ? 'border-emerald-500 ring-2 ring-emerald-500/40' : ''
                               }`}
                             >
-                              <span
-                                aria-hidden="true"
-                                className="absolute bottom-2.5 left-1.5 top-2.5 w-1 rounded-full"
-                                style={{ backgroundColor: color }}
-                              />
-
-                              <div className="flex items-start gap-0.5">
-                                <h4 className="min-w-0 flex-1 pt-1 text-[13px] font-medium leading-snug text-[var(--color-md-on-surface)] line-clamp-2">
-                                  {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
-                                </h4>
-
+                              {/* Encabezado: icono elegido para la materia (con su color) y menú. El nombre va
+                                  debajo, a todo el ancho: en columnas estrechas no compite con el icono */}
+                              <div className="flex items-center justify-between gap-2">
+                                <SubjectBadge icon={subject?.icon} color={color} size="md" />
                                 <M3KebabMenu
                                   size="sm"
                                   className={ABOVE_STRETCHED_CLASS}
@@ -551,7 +545,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 />
                               </div>
 
-                              <div className="space-y-1 pr-2">
+                              <h4 className="mt-1.5 pr-1.5 text-[13px] font-medium leading-snug text-[var(--color-md-on-surface)] line-clamp-2 [overflow-wrap:anywhere]">
+                                {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
+                              </h4>
+
+                              <div className="mt-1.5 space-y-1 pr-2">
                                 {isNow && (
                                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">
                                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" />
