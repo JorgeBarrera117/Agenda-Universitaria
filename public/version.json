@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.76",
+  "latestVersion": "1.7.10.77",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.76/Agenda-Universitaria-v1.7.10.76.apk",
-  "apkSha256": "4b2148903dd91a0bd3db55ef903088a579e7ad82610a3d98dc7e6fe3cf9415b6",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.76/Agenda-Universitaria-Setup-v1.7.10.76.exe",
-  "desktopSha256": "f4c06947ec14e0259103a07dbcff7eec23dcb5d3eac2c799f72ef85b99fdf222",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.77/Agenda-Universitaria-v1.7.10.77.apk",
+  "apkSha256": "b8e2aebdc9d716224482ce7f9eb560645db6fff65f9cde76de4d9e80aee366e9",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.77/Agenda-Universitaria-Setup-v1.7.10.77.exe",
+  "desktopSha256": "fe95bd7919a0b260ec38fd3061eb6e4a42b1188462891c5bf55bddf9081108b0",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Elimina una clase desde la ficha de la materia o al editarla",
-    "La confirmación dice exactamente qué clase se borra"
+    "Un mensaje de ánimo para ti en Ajustes → Acerca de la agenda",
+    "«Todo lo puedo en Cristo que me fortalece» (Filipenses 4:13)"
   ]
 }
