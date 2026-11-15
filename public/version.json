@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.64",
+  "latestVersion": "1.7.10.65",
   "releaseDate": "2026-11-14",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.64/Agenda-Universitaria-v1.7.10.64.apk",
-  "apkSha256": "3e9b82efc592bfaaa777a74e90ccb102373e403d1424b7988205fa1773ee2dfc",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.64/Agenda-Universitaria-Setup-v1.7.10.64.exe",
-  "desktopSha256": "77f58eededfad40affe473689f68bf0338c92c5ea0778256713e9716447515e1",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.65/Agenda-Universitaria-v1.7.10.65.apk",
+  "apkSha256": "5d79d976138040dbbd3d78d06e4c7565f7bef204d9e22bdd48facb2025f404f9",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.65/Agenda-Universitaria-Setup-v1.7.10.65.exe",
+  "desktopSha256": "cff583a75336ec5ab024c426fbc0a1543a27ef10eb2043c7ca267c2e3a751929",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Cámara, galería y micrófono siempre a la vista en la barra del editor",
-    "Los avisos se ocultan solos y ya no tapan la barra"
+    "Resalta texto en tus apuntes con 7 colores",
+    "Los resaltados se leen bien en modo claro y oscuro"
   ]
 }
