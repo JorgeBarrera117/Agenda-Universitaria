@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.78',
+    date: '2026-11-15',
+    title: 'Íconos de tus materias',
+    changes: [
+      { kind: 'mejora', text: 'Los avisos de clase muestran el ícono y el color de la materia, en el teléfono y en la computadora.' },
+      { kind: 'mejora', text: 'Los widgets muestran el ícono de cada materia junto a sus clases y apuntes.' },
+      { kind: 'correccion', text: 'El widget de horario por día solo muestra los días que usas (Ajustes → Días visibles y los días con clases).' },
+    ],
+  },
+  {
     version: '1.7.10.77',
     date: '2026-11-15',
     title: 'Un mensaje para ti',
