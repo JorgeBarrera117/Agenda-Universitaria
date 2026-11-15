@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.72',
+    date: '2026-11-15',
+    title: 'Actualizaciones en PC',
+    changes: [
+      { kind: 'correccion', text: 'En la computadora, «Descargar y actualizar» ya instala la nueva versión: antes la agenda se cerraba y no se actualizaba.' },
+      { kind: 'mejora', text: 'Al actualizar en la computadora se ve el asistente con el progreso de la instalación, y al pulsar «Terminar» la agenda se abre actualizada.' },
+    ],
+  },
+  {
     version: '1.7.10.71',
     date: '2026-11-15',
     title: 'Audios y fotos en el texto',
