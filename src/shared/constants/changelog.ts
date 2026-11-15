@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.79',
+    date: '2026-11-15',
+    title: 'Tu próxima clase, con su ícono',
+    changes: [
+      { kind: 'mejora', text: 'En el horario, «Próxima clase» y «En curso» muestran el ícono y el color de la materia.' },
+      { kind: 'mejora', text: 'En los avisos de clase del teléfono, arriba va el ícono de la agenda y al lado del texto el ícono de la materia en su color.' },
+    ],
+  },
+  {
     version: '1.7.10.78',
     date: '2026-11-15',
     title: 'Íconos de tus materias',
