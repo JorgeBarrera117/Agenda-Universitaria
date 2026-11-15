@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.77",
+  "latestVersion": "1.7.10.78",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.77/Agenda-Universitaria-v1.7.10.77.apk",
-  "apkSha256": "b8e2aebdc9d716224482ce7f9eb560645db6fff65f9cde76de4d9e80aee366e9",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.77/Agenda-Universitaria-Setup-v1.7.10.77.exe",
-  "desktopSha256": "fe95bd7919a0b260ec38fd3061eb6e4a42b1188462891c5bf55bddf9081108b0",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.78/Agenda-Universitaria-v1.7.10.78.apk",
+  "apkSha256": "eed868cc55fe0a3147a969f8215b53e1d8ebe827fc56d5eafdebeff05eea22c2",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.78/Agenda-Universitaria-Setup-v1.7.10.78.exe",
+  "desktopSha256": "59eeca6c9d606752d4db0a94e17a2619ac1b27be8384ed73dbca91c9bd6fe1c9",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Un mensaje de ánimo para ti en Ajustes → Acerca de la agenda",
-    "«Todo lo puedo en Cristo que me fortalece» (Filipenses 4:13)"
+    "Avisos de clase con el ícono y el color de cada materia",
+    "Widgets con el ícono de la materia y solo los días que usas"
   ]
 }
