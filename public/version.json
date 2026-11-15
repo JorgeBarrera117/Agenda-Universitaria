@@ -1,14 +1,15 @@
 {
-  "latestVersion": "1.7.10.65",
+  "latestVersion": "1.7.10.66",
   "releaseDate": "2026-11-14",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.65/Agenda-Universitaria-v1.7.10.65.apk",
-  "apkSha256": "5d79d976138040dbbd3d78d06e4c7565f7bef204d9e22bdd48facb2025f404f9",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.65/Agenda-Universitaria-Setup-v1.7.10.65.exe",
-  "desktopSha256": "cff583a75336ec5ab024c426fbc0a1543a27ef10eb2043c7ca267c2e3a751929",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.66/Agenda-Universitaria-v1.7.10.66.apk",
+  "apkSha256": "80801e21814767e9b0105082280e9a1fc375c1da80616ffb1bf3a0f80bcd891e",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.66/Agenda-Universitaria-Setup-v1.7.10.66.exe",
+  "desktopSha256": "3f3998e67e58d6fbe98af1c2067766db76fc75866746d0f5611b199010a2055b",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Resalta texto en tus apuntes con 7 colores",
-    "Los resaltados se leen bien en modo claro y oscuro"
+    "Listas de tareas con casillas en tus apuntes",
+    "Al marcar una tarea se tacha todo su texto",
+    "Marca tareas también desde el modo lectura"
   ]
 }
