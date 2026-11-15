@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.76',
+    date: '2026-11-15',
+    title: 'Borra clases desde la ficha',
+    changes: [
+      { kind: 'nuevo', text: 'Elimina una clase del horario desde el menú ⋮ de la ficha de la materia o con «Eliminar esta clase» al editarla.' },
+      { kind: 'mejora', text: 'Antes de borrar, la app te dice exactamente qué clase se quita (materia, día y horas).' },
+    ],
+  },
+  {
     version: '1.7.10.75',
     date: '2026-11-15',
     title: 'Edita desde la ficha de la materia',
