@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Import,
   Share2,
+  UserRound,
 } from 'lucide-react';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
@@ -26,6 +27,7 @@ import { useSchedule } from '../hooks/useSchedule';
 import { useCampusPulse } from '../hooks/useCampusPulse';
 import { CampusPulseBento } from './CampusPulseBento';
 import { isSlotVirtual } from '../utils/slotModality';
+import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectIcon } from '../../subjects/components/SubjectIcon';
@@ -165,25 +167,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     onError: showToast,
   });
 
-  // Días a mostrar según configuración y asignaturas existentes
-  const displayedDays = useMemo(() => {
-    const hasSat =
-      slots.some((s) => s.dayOfWeek === 6) ||
-      settings.visibleDays === 'mon-sat' ||
-      settings.visibleDays === 'all';
-    const hasSun =
-      slots.some((s) => s.dayOfWeek === 7) || settings.visibleDays === 'all';
-    const days: DayOfWeek[] = [1, 2, 3, 4, 5];
-    if (hasSat || selectedDay === 6) days.push(6);
-    if (hasSun || selectedDay === 7) days.push(7);
-    return days;
-  }, [slots, settings.visibleDays, selectedDay]);
+  // Días a mostrar: el rango de Ajustes más los días con clases (ver utils/visibleDays.ts)
+  const displayedDays = useMemo(
+    () => getDisplayedDays(settings.visibleDays, slots.map((slot) => slot.dayOfWeek)),
+    [slots, settings.visibleDays]
+  );
+  // Día activo de la vista por día: si el elegido (hoy, al abrir) no se muestra, el siguiente visible
+  const activeDay = resolveVisibleDay(selectedDay, displayedDays);
 
   const daySlots = useMemo(() => {
     return slots
-      .filter((s) => s.dayOfWeek === selectedDay)
+      .filter((s) => s.dayOfWeek === activeDay)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [slots, selectedDay]);
+  }, [slots, activeDay]);
 
   // Detección y control de scroll horizontal para vista semanal
   const weeklyScrollRef = useRef<HTMLDivElement>(null);
@@ -243,7 +239,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <ScheduleSlotForm
             key={editingSlot?.id || 'new-slot'}
             initialData={editingSlot}
-            defaultDay={selectedDay}
+            defaultDay={activeDay}
             onSubmit={handleSubmit}
             onCancel={() => setIsModalOpen(false)}
           />
@@ -334,7 +330,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             variant="primary"
             size="sm"
             icon={<CalendarPlus className="w-4 h-4 stroke-[2.4]" />}
-            onClick={() => handleOpenCreate(selectedDay)}
+            onClick={() => handleOpenCreate(activeDay)}
             className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[var(--color-md-primary)]/20 hover:scale-[1.02] whitespace-nowrap transition-all ${
               isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
             }`}
@@ -376,7 +372,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         <div className="bg-[var(--color-md-surface-container)] p-1 rounded-2xl border border-[var(--color-md-outline-variant)]/40 shadow-2xs">
           <div className="flex items-stretch gap-1 sm:gap-2 overflow-x-auto custom-scrollbar p-0.5">
             {displayedDays.map((day) => {
-              const isSelected = selectedDay === day;
+              const isSelected = activeDay === day;
               const isToday = currentDayOfWeek === day;
               const count = slots.filter((s) => s.dayOfWeek === day).length;
 
@@ -442,84 +438,91 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 const isToday = currentDayOfWeek === day;
 
                 return (
-                  <div
+                  <section
                     key={day}
-                    className={`flex flex-col gap-1.5 rounded-xl sm:rounded-2xl p-2 min-w-0 transition-colors ${
+                    aria-label={`${DAY_NAMES[day]}${isToday ? ', hoy' : ''}: ${daySlotsList.length} ${daySlotsList.length === 1 ? 'clase' : 'clases'}`}
+                    className={`flex min-w-0 flex-col gap-2 rounded-[20px] p-2 transition-colors ${
                       isToday
-                        ? 'bg-[var(--color-md-card-bg)] border-2 border-[var(--color-md-primary)] shadow-2xs'
-                        : 'bg-[var(--color-md-card-bg)]/80 border border-[var(--color-md-outline-variant)]'
+                        ? 'bg-[var(--color-md-primary-container)]/50 ring-1 ring-inset ring-[var(--color-md-primary)]/35'
+                        : 'bg-[var(--color-md-card-bg)]'
                     }`}
                   >
-                    {/* Encabezado del Día */}
-                    <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-[var(--color-md-outline-variant)]">
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span
-                          className={`text-xs font-black uppercase tracking-wider truncate ${
+                    {/* Encabezado del día: nombre (título pequeño M3), «Hoy» y botón de icono para agregar */}
+                    <header className="flex items-center justify-between gap-1 pl-1.5 pt-0.5">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <h3
+                          className={`truncate text-sm font-medium tracking-[0.1px] ${
                             isToday ? 'text-[var(--color-md-primary)]' : 'text-[var(--color-md-on-surface)]'
                           }`}
                         >
                           {DAY_NAMES[day]}
-                        </span>
+                        </h3>
                         {isToday && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                          <span className="shrink-0 rounded-full bg-[var(--color-md-primary)] px-2 py-px text-[10px] font-semibold leading-4 text-[var(--color-md-on-primary)]">
+                            Hoy
+                          </span>
                         )}
                       </div>
                       <button
+                        type="button"
                         onClick={() => handleOpenCreate(day)}
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:opacity-90 active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0"
+                        aria-label={`Agregar clase el ${DAY_NAMES[day]}`}
                         title={`Agregar clase el ${DAY_NAMES[day]}`}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--color-md-primary)] transition-colors duration-150 hover:bg-[var(--color-md-primary)]/10 active:bg-[var(--color-md-primary)]/15"
                       >
-                        <Plus className="w-3 h-3 stroke-[2.8]" />
-                        <span>Agregar</span>
+                        <Plus className="h-[18px] w-[18px]" aria-hidden="true" />
                       </button>
-                    </div>
+                    </header>
 
-                    {/* Lista de Bloques Semanales Compactos */}
-                    <div className="space-y-1.5 min-h-[160px]">
+                    {/* Clases del día */}
+                    <div className="flex min-h-[160px] flex-1 flex-col gap-2">
                       {daySlotsList.length === 0 ? (
-                        <div className="h-full flex items-center justify-center py-8 text-center text-[11px] text-[var(--color-md-on-surface-variant)] italic">
-                          Libre
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCreate(day)}
+                          className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-[var(--color-md-outline-variant)] px-2 py-8 text-xs font-medium text-[var(--color-md-on-surface-variant)] transition-colors duration-150 hover:bg-[var(--color-md-on-surface)]/[0.04]"
+                        >
+                          Sin clases
+                        </button>
                       ) : (
                         daySlotsList.map((slot) => {
                           const subject = getSubjectById(slot.subjectId);
                           const professor = getProfessorById(slot.professorId);
+                          const color = subject?.color || '#006BBB';
                           const isNow =
                             isToday &&
                             nowTimeString >= slot.startTime &&
                             nowTimeString < slot.endTime;
 
                           return (
-                            <div
+                            /* Tarjeta rellena M3 teñida con el color de la materia: indicador de color a la
+                               izquierda, título pequeño, y hora · aula · docente en cuerpo pequeño con iconos.
+                               Las acciones viven en el menú ⋮; tocar la tarjeta abre la ficha de la materia. */
+                            <article
                               key={slot.id}
                               style={{
-                                background: isNow
-                                  ? undefined
-                                  : `linear-gradient(155deg, ${subject?.color || '#006BBB'}15 0%, ${subject?.color || '#006BBB'}04 100%), var(--color-md-card-bg)`,
-                                borderColor: isNow ? undefined : `${subject?.color || '#006BBB'}40`,
+                                backgroundColor: `color-mix(in srgb, ${color} 9%, var(--color-md-card-bg))`,
+                                borderColor: isNow ? undefined : `color-mix(in srgb, ${color} 30%, transparent)`,
                               }}
-                              className={`content-auto rounded-xl p-2 border transition-[transform,box-shadow,border-color] duration-150 ease-out active:scale-[0.98] relative overflow-hidden group shadow-2xs hover:shadow-xs flex flex-col justify-between gap-1 ${
-                                isNow
-                                  ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-[var(--color-md-card-bg)]'
-                                  : 'hover:border-[var(--color-md-primary)]'
+                              className={`content-auto group relative overflow-hidden rounded-2xl border py-2.5 pl-4 pr-1 transition-[box-shadow,transform] duration-150 ease-out hover:shadow-md active:scale-[0.99] ${
+                                isNow ? 'border-emerald-500 ring-2 ring-emerald-500/40' : ''
                               }`}
                             >
-                              {/* Barra superior de acento */}
-                              <div
-                                className="absolute top-0 left-0 right-0 h-1 opacity-90"
-                                style={{ backgroundColor: subject?.color || '#006BBB' }}
+                              <span
+                                aria-hidden="true"
+                                className="absolute bottom-2.5 left-1.5 top-2.5 w-1 rounded-full"
+                                style={{ backgroundColor: color }}
                               />
 
-                              {/* Jerarquía: materia → hora → aula/modalidad. Las acciones viven en el menú ⋮,
-                                  porque en la cuadrícula semanal no cabe un botón sin saturar el bloque. */}
-                              <div className="flex items-start justify-between gap-1 pt-0.5">
-                                <h4 className="min-w-0 text-xs font-black text-[var(--color-md-on-surface)] leading-tight line-clamp-2">
+                              <div className="flex items-start gap-0.5">
+                                <h4 className="min-w-0 flex-1 pt-1 text-[13px] font-medium leading-snug text-[var(--color-md-on-surface)] line-clamp-2">
                                   {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
                                 </h4>
 
                                 <M3KebabMenu
                                   size="sm"
                                   className={ABOVE_STRETCHED_CLASS}
+                                  ariaLabel={`Opciones de ${subject?.name || 'la clase'}`}
                                   items={[
                                     ...(onNavigateToNotes
                                       ? [
@@ -548,39 +551,40 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 />
                               </div>
 
-                              <span className="font-mono font-bold text-[10px] text-[var(--color-md-primary)]">
-                                {slot.startTime} - {slot.endTime}
-                              </span>
-
-                              <div className="flex items-center justify-between gap-1 text-[10px] text-[var(--color-md-on-surface-variant)] pt-1 border-t border-[var(--color-md-outline-variant)] min-w-0">
-                                <span className="truncate font-medium flex items-center gap-1">
-                                  {isSlotVirtual(slot) ? (
-                                    <>
-                                      <Laptop className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
-                                      <span>Virtual</span>
-                                    </>
-                                  ) : slot.classroom ? (
-                                    <>
-                                      <Building2 className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
-                                      <span className="truncate">{slot.classroom}</span>
-                                    </>
-                                  ) : (
-                                    'Sin aula'
-                                  )}
-                                </span>
-
-                                {professor && (
-                                  <span className="truncate max-w-[90px] font-medium text-right text-[9.5px]">
-                                    {professor.name}
+                              <div className="space-y-1 pr-2">
+                                {isNow && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" />
+                                    En curso
                                   </span>
                                 )}
+                                <p className="flex items-center gap-1.5 text-xs font-medium tabular-nums text-[var(--color-md-on-surface)]">
+                                  <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
+                                  {slot.startTime} – {slot.endTime}
+                                </p>
+                                <p className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--color-md-on-surface-variant)]">
+                                  {isSlotVirtual(slot) ? (
+                                    <Laptop className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                  ) : (
+                                    <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                  )}
+                                  <span className="truncate">
+                                    {isSlotVirtual(slot) ? 'Virtual' : slot.classroom || 'Sin aula'}
+                                  </span>
+                                </p>
+                                {professor && (
+                                  <p className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--color-md-on-surface-variant)]">
+                                    <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                    <span className="truncate">{professor.name}</span>
+                                  </p>
+                                )}
                               </div>
-                            </div>
+                            </article>
                           );
                         })
                       )}
                     </div>
-                  </div>
+                  </section>
                 );
               })}
             </div>
@@ -596,7 +600,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               Horario del día
             </span>
             <h3 className="text-sm sm:text-base font-black text-[var(--color-md-on-surface)] mt-0.5">
-              {DAY_NAMES[selectedDay]}
+              {DAY_NAMES[activeDay]}
             </h3>
           </div>
           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] border border-[var(--color-md-outline-variant)]">
@@ -608,12 +612,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <div className="text-center py-10 bg-[var(--color-md-card-bg)] rounded-2xl border border-dashed border-[var(--color-md-outline-variant)] p-6 shadow-2xs">
             <Calendar className="w-10 h-10 text-[var(--color-md-outline)] mx-auto mb-1.5 opacity-50" />
             <p className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)]">
-              Sin clases agendadas para el {DAY_NAMES[selectedDay]}
+              Sin clases agendadas para el {DAY_NAMES[activeDay]}
             </p>
             <Button
               variant="primary"
               size="sm"
-              onClick={() => handleOpenCreate(selectedDay)}
+              onClick={() => handleOpenCreate(activeDay)}
               icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
               className="mt-3"
             >
@@ -627,7 +631,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               // La clase puede tener su propio docente; si no, se muestra el titular de la materia
               const professor = getProfessorById(slot.professorId ?? subject?.professorId);
               const isNow =
-                selectedDay === currentDayOfWeek &&
+                activeDay === currentDayOfWeek &&
                 nowTimeString >= slot.startTime &&
                 nowTimeString < slot.endTime;
 
@@ -811,7 +815,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="schedule"
-          onClick={() => handleOpenCreate(selectedDay)}
+          onClick={() => handleOpenCreate(activeDay)}
           label="Programar Nueva Cátedra"
           icon={<CalendarPlus className="w-6 h-6 stroke-[2.2]" />}
         />
