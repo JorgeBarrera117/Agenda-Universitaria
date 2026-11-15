@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.75',
+    date: '2026-11-15',
+    title: 'Edita desde la ficha de la materia',
+    changes: [
+      { kind: 'nuevo', text: 'En la ficha de una materia, toca una clase del horario para editarla o usa «+» para agregar clases con la materia, el docente y el aula ya elegidos.' },
+      { kind: 'mejora', text: 'Cada tarjeta de la ficha lleva a su propia edición: un lápiz para los datos de la asignatura y «Asignar catedrático» si aún no tiene.' },
+      { kind: 'correccion', text: 'En el teléfono, los selectores vuelven a mostrar el nombre de la materia o del docente elegido.' },
+    ],
+  },
+  {
     version: '1.7.10.74',
     date: '2026-11-15',
     title: 'Horario más rápido de armar',
