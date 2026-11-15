@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.73',
+    date: '2026-11-15',
+    title: 'Horario semanal renovado',
+    changes: [
+      { kind: 'correccion', text: 'El horario respeta los «Días visibles» de Ajustes: con «Lun - Sáb» ya no aparece el domingo, y si hoy queda fuera se abre el siguiente día.' },
+      { kind: 'mejora', text: 'Las tarjetas de la vista semanal tienen un diseño más claro: color de la materia, hora, aula y docente con iconos, y «En curso» en la clase actual.' },
+    ],
+  },
+  {
     version: '1.7.10.72',
     date: '2026-11-15',
     title: 'Actualizaciones en PC',
