@@ -66,10 +66,11 @@ export function BackgroundSyncManager(): null {
         theme: settings.theme,
         colorPalette: settings.colorPalette,
         customPalette: settings.customPalette,
+        visibleDays: settings.visibleDays,
       }).catch(console.warn);
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [slots, subjects, professors, notes, settings.theme, settings.colorPalette, settings.customPalette]);
+  }, [slots, subjects, professors, notes, settings.theme, settings.colorPalette, settings.customPalette, settings.visibleDays]);
 
   return null;
 }

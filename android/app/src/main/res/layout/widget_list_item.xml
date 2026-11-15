@@ -18,14 +18,28 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
-        <!-- Indicador de color lateral de la Asignatura -->
-        <ImageView
-            android:id="@+id/widget_item_color_bar"
-            android:layout_width="4dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="8dp"
-            android:background="#38bdf8"
-            android:contentDescription="Color" />
+        <!-- Ícono de la materia (el que eligió el estudiante) sobre un círculo de su color -->
+        <FrameLayout
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp">
+
+            <ImageView
+                android:id="@+id/widget_item_icon_bg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/widget_subject_icon_bg"
+                android:importantForAccessibility="no" />
+
+            <ImageView
+                android:id="@+id/widget_item_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_subject_book"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"

@@ -11,6 +11,9 @@ import android.net.Uri;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.Calendar;
 
 public class ScheduleDayWidgetProvider extends AppWidgetProvider {
@@ -76,6 +79,45 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
         return day - 1;
     }
 
+    /**
+     * Días que muestra el widget (índices 1 = lunes … 7 = domingo): los que envía la app según
+     * Ajustes → Días visibles, más los días con clases. Sin ese dato (versión anterior), los 7.
+     */
+    static boolean[] readVisibleDays(Context context) {
+        boolean[] visible = new boolean[8];
+        boolean any = false;
+        String raw = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString("widget_data", null);
+        if (raw != null) {
+            try {
+                JSONArray days = new JSONObject(raw).optJSONArray("visibleDays");
+                if (days != null) {
+                    for (int i = 0; i < days.length(); i++) {
+                        int day = days.optInt(i, 0);
+                        if (day >= 1 && day <= 7) {
+                            visible[day] = true;
+                            any = true;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+                // Datos ilegibles: se muestran todos los días
+            }
+        }
+        if (!any) {
+            for (int day = 1; day <= 7; day++) visible[day] = true;
+        }
+        return visible;
+    }
+
+    /** Si el día no se muestra (p. ej. domingo con «Lun - Sáb»), el siguiente que sí. */
+    static int resolveVisibleDay(int day, boolean[] visible) {
+        for (int offset = 0; offset < 7; offset++) {
+            int candidate = ((day - 1 + offset) % 7) + 1;
+            if (visible[candidate]) return candidate;
+        }
+        return day;
+    }
+
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
@@ -109,6 +151,10 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             }
         }
 
+        // Solo los días de la semana que usa el estudiante; si el elegido no está, el siguiente
+        boolean[] visibleDays = readVisibleDays(context);
+        selectedDay = resolveVisibleDay(selectedDay, visibleDays);
+
         WidgetThemeHelper.ThemeColors theme = WidgetThemeHelper.getThemeColors(context);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_schedule_day_layout);
 
@@ -136,6 +182,13 @@ public class ScheduleDayWidgetProvider extends AppWidgetProvider {
             int btnDotId = DAY_BUTTON_DOT_IDS[i];
             boolean isSelected = (dayNum == selectedDay);
             boolean isToday = (dayNum == today);
+
+            // Día fuera del rango y sin clases: su botón no se muestra (los demás ocupan el espacio)
+            if (!visibleDays[dayNum]) {
+                views.setViewVisibility(btnFrameId, View.GONE);
+                continue;
+            }
+            views.setViewVisibility(btnFrameId, View.VISIBLE);
 
             // Estilo de la píldora según esté seleccionada o inactiva
             if (isSelected) {

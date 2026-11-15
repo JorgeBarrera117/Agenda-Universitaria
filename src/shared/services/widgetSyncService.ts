@@ -4,7 +4,10 @@ import { DAY_NAMES, SHORT_DAY_NAMES } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { Note } from '../../features/notes/types';
-import type { CustomPaletteSettings, MaterialColorTheme, ThemeMode } from '../../features/settings/types';
+import type { AppSettings, CustomPaletteSettings, MaterialColorTheme, ThemeMode } from '../../features/settings/types';
+import { getDisplayedDays } from '../../features/schedule/utils/visibleDays';
+import { androidSubjectIconResource } from '../../features/subjects/utils/subjectIconResource';
+import { PERSONAL_COLOR, PERSONAL_ICON } from '../../features/notes/utils/personalNotes';
 import { MATERIAL_COLOR_PALETTES, isValidCustomPalette } from '../utils/theme';
 import { WidgetBridge } from '../plugins/widgetBridge';
 
@@ -37,7 +40,13 @@ export class WidgetSyncService {
     subjects: Subject[],
     professors: Professor[],
     notes: Note[],
-    themeSettings?: { theme: ThemeMode; colorPalette: MaterialColorTheme; customPalette?: CustomPaletteSettings }
+    themeSettings?: {
+      theme: ThemeMode;
+      colorPalette: MaterialColorTheme;
+      customPalette?: CustomPaletteSettings;
+      /** Días visibles del horario (el widget por día muestra solo esos y los que tienen clases). */
+      visibleDays?: AppSettings['visibleDays'];
+    }
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
 
@@ -97,7 +106,10 @@ export class WidgetSyncService {
       return (d === 0 ? 7 : d); // 1 = Lunes ... 7 = Domingo
     })();
 
-    const currentHash = `${todayDay}_${isDark ? 'dark' : 'light'}_${paletteName}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => s.id).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
+    // Días del widget por día: el rango de Ajustes más los días con clases (igual que la app)
+    const visibleDays = getDisplayedDays(themeSettings?.visibleDays ?? 'mon-fri', slots.map((s) => s.dayOfWeek));
+
+    const currentHash = `${todayDay}_${isDark ? 'dark' : 'light'}_${paletteName}_${visibleDays.join('')}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.icon}_${s.color}`).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
     if (currentHash === this.lastWidgetHash) {
       return;
     }
@@ -160,6 +172,7 @@ export class WidgetSyncService {
           timeOrDate: `${slot.startTime} - ${slot.endTime}`,
           details: detailsParts.length > 0 ? detailsParts.join(' • ') : (isToday ? 'Clase de hoy' : DAY_NAMES[slot.dayOfWeek]),
           color: subject ? subject.color : '#3b82f6',
+          icon: androidSubjectIconResource(subject?.icon),
           badge,
           isToday,
         };
@@ -194,7 +207,8 @@ export class WidgetSyncService {
             details: subject
               ? `${subject.name}${cleanSnippet ? ' • ' + cleanSnippet : ''}`
               : (cleanSnippet || 'Apunte universitario'),
-            color: subject ? subject.color : '#10b981',
+            color: subject ? subject.color : note.subjectId === '' ? PERSONAL_COLOR : '#10b981',
+            icon: androidSubjectIconResource(subject ? subject.icon : note.subjectId === '' ? PERSONAL_ICON : undefined),
             badge,
             isToday: false,
           };
@@ -236,6 +250,7 @@ export class WidgetSyncService {
             timeOrDate: `${slot.startTime} - ${slot.endTime}`,
             details: detailsParts.length > 0 ? detailsParts.join(' • ') : (isToday ? 'Clase de hoy' : DAY_NAMES[slot.dayOfWeek]),
             color: subject ? subject.color : '#3b82f6',
+            icon: androidSubjectIconResource(subject?.icon),
             badge,
             isToday,
           };
@@ -247,6 +262,7 @@ export class WidgetSyncService {
         schedule: scheduleData,
         notes: recentNotes,
         scheduleByDay,
+        visibleDays,
       };
 
       await WidgetBridge.updateWidgetData({

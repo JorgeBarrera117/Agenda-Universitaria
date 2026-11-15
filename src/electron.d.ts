@@ -21,6 +21,8 @@ export interface ElectronReminder {
   body: string;
   /** La interfaz reproduce el tono elegido (el aviso de Windows sale en silencio). */
   playTone: boolean;
+  /** Ícono de la materia como PNG (data URL); sin él, el aviso usa el ícono de la app. */
+  icon?: string;
 }
 
 export interface ElectronNotificationOptions {

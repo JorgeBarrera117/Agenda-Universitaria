@@ -5,6 +5,12 @@ import type { Subject } from '../../features/subjects/types';
 import type { AppSettings, NotificationSoundTone } from '../../features/settings/types';
 import { notificationToneUrl, resolveNotificationTone } from '../../features/settings/notificationTones';
 import type { ElectronReminder } from '../../electron';
+import { androidSubjectIconResource } from '../../features/subjects/utils/subjectIconResource';
+
+/** Título de la notificación de prueba: el nombre de la app ya lo muestra el sistema. */
+const TEST_TITLE = 'Notificaciones activas';
+/** Color de la app para los avisos que no son de una materia. */
+const APP_COLOR = '#00639B';
 
 /** Prefijo de los canales de recordatorios (incluye el canal único heredado 'academic_schedule_channel'). */
 const CHANNEL_PREFIX = 'academic_schedule_';
@@ -41,19 +47,28 @@ function describeSlot(slot: ScheduleSlot, subjects: Subject[]) {
       : `Aula: ${slot.classroom || 'Sin asignar'}${slot.building ? ` • ${slot.building}` : ''}`;
   return {
     subject,
-    before: { title: `⏳ En 15 min: ${subjectName}`, body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}` },
-    start: { title: `🔔 ¡Comienza la clase de ${subjectName}!`, body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}` },
+    before: { title: `En 15 min: ${subjectName}`, body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}` },
+    start: { title: `¡Comienza la clase de ${subjectName}!`, body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}` },
   };
 }
 
 /** Recordatorios semanales para el escritorio (día 1 = lunes … 7 = domingo, como el horario). */
-function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[], settings: AppSettings): ElectronReminder[] {
+async function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[], settings: AppSettings): Promise<ElectronReminder[]> {
   if (!settings.notificationsEnabled) return [];
+  // Ícono de cada materia (su dibujo sobre su color) para el aviso de Windows. Se carga solo aquí:
+  // la versión web y la de Android no lo necesitan
+  const { subjectBadgePng } = await import('../../features/subjects/utils/subjectBadgeImage');
+  const iconBySubject = new Map<string, string | undefined>();
+  for (const subject of subjects) {
+    if (!slots.some((slot) => slot.subjectId === subject.id)) continue;
+    iconBySubject.set(subject.id, (await subjectBadgePng(subject.icon, subject.color)) ?? undefined);
+  }
   // El aviso de Windows sale en silencio y la app reproduce el tono elegido
   const playTone = settings.notificationSound && Boolean(resolveNotificationTone(settings.notificationTone).file);
   const reminders: ElectronReminder[] = [];
   for (const slot of slots) {
     const texts = describeSlot(slot, subjects);
+    const icon = iconBySubject.get(slot.subjectId);
     const [startH, startM] = (slot.startTime || '08:00').split(':').map(Number);
     if (settings.notify15MinBefore) {
       let minutes = startH * 60 + startM - 15;
@@ -62,10 +77,10 @@ function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[], setti
         minutes += 24 * 60;
         weekday = weekday === 1 ? 7 : weekday - 1;
       }
-      reminders.push({ id: generateNotificationId(slot.id, 1), weekday, hour: Math.floor(minutes / 60), minute: minutes % 60, ...texts.before, playTone });
+      reminders.push({ id: generateNotificationId(slot.id, 1), weekday, hour: Math.floor(minutes / 60), minute: minutes % 60, ...texts.before, playTone, icon });
     }
     if (settings.notifyAtClassStart) {
-      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone });
+      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone, icon });
     }
   }
   return reminders;
@@ -189,12 +204,12 @@ export class NotificationService {
           notifications: [
             {
               id: 999999,
-              title: '🎓 Notificaciones Activas • Agenda Universitaria',
+              title: TEST_TITLE,
               body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
               channelId,
               smallIcon: 'ic_stat_agenda',
               largeIcon: 'ic_notification_large',
-              iconColor: '#00639B',
+              iconColor: APP_COLOR,
               schedule: { at: new Date(Date.now() + 1000) }, // 1 segundo en el futuro
               sound,
             },
@@ -204,7 +219,7 @@ export class NotificationService {
       } else if (desktopApi()?.showNotification) {
         const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
         const shown = await desktopApi()!.showNotification({
-          title: '🎓 Notificaciones Activas • Agenda Universitaria',
+          title: TEST_TITLE,
           body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
           silent: toneFile !== null || !settings.notificationSound,
         });
@@ -213,7 +228,7 @@ export class NotificationService {
       } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         // La API web no admite sonidos propios: se silencia el aviso y se reproduce el tono elegido
         const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
-        new Notification('🎓 Notificaciones Activas • Agenda Universitaria', {
+        new Notification(TEST_TITLE, {
           body: '¡Todo listo! Recibirás avisos 15 minutos antes y al momento exacto de iniciar tus clases.',
           icon: './app-icon-claro.svg',
           silent: toneFile !== null || !settings.notificationSound,
@@ -242,12 +257,12 @@ export class NotificationService {
       // cerrada); el permiso lo comprueba al momento de avisar
       const desktop = desktopApi();
       return desktop?.syncReminders
-        ? desktop.syncReminders(buildDesktopReminders(slots, subjects, settings))
+        ? desktop.syncReminders(await buildDesktopReminders(slots, subjects, settings))
         : { scheduledCount: 0 };
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `v3_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}`).join(',')}`;
+    const currentHash = `v4_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
@@ -305,9 +320,8 @@ export class NotificationService {
           id: generateNotificationId(slot.id, 1),
           ...before,
           channelId,
-          smallIcon: 'ic_stat_agenda',
-          largeIcon: 'ic_notification_large',
-          iconColor: subject?.color || '#00639B',
+          smallIcon: androidSubjectIconResource(subject?.icon),
+          iconColor: subject?.color || APP_COLOR,
           schedule: {
             on: {
               weekday: priorWeekday,
@@ -327,9 +341,8 @@ export class NotificationService {
           id: generateNotificationId(slot.id, 2),
           ...start,
           channelId,
-          smallIcon: 'ic_stat_agenda',
-          largeIcon: 'ic_notification_large',
-          iconColor: subject?.color || '#00639B',
+          smallIcon: androidSubjectIconResource(subject?.icon),
+          iconColor: subject?.color || APP_COLOR,
           schedule: {
             on: {
               weekday: capacitorWeekday,

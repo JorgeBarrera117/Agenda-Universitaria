@@ -105,7 +105,6 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         String title = item.optString("title", "Elemento");
         String timeOrDate = item.optString("timeOrDate", "");
         String details = item.optString("details", "");
-        String colorHex = item.optString("color", "#38bdf8");
         String badge = item.optString("badge", "");
         boolean isToday = item.optBoolean("isToday", false);
         String id = item.optString("id", "");
@@ -143,13 +142,8 @@ class AgendaListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
             }
         }
 
-        // Barra de color representativo de la asignatura
-        try {
-            int color = Color.parseColor(colorHex);
-            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", color);
-        } catch (Exception ignored) {
-            views.setInt(R.id.widget_item_color_bar, "setBackgroundColor", theme.primary);
-        }
+        // Ícono de la materia con su color (en lugar de la barra lateral)
+        SubjectIconHelper.bind(context, views, item, theme.primary);
 
         Intent fillInIntent = new Intent();
         fillInIntent.putExtra("item_type", currentTab);

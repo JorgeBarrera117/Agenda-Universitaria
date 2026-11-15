@@ -191,9 +191,20 @@ function isValidReminder(r) {
   );
 }
 
-function showToast({ title, body, silent }) {
+/** Ícono de una materia que envía la interfaz: solo PNG en data URL y de tamaño razonable. */
+const REMINDER_ICON_PATTERN = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/;
+const MAX_REMINDER_ICON_CHARS = 200000;
+
+function reminderIcon(icon) {
+  if (typeof icon !== 'string' || icon.length > MAX_REMINDER_ICON_CHARS || !REMINDER_ICON_PATTERN.test(icon)) return null;
+  const image = nativeImage.createFromDataURL(icon);
+  return image.isEmpty() ? null : image;
+}
+
+function showToast({ title, body, silent, icon }) {
   if (!Notification.isSupported()) return false;
-  const toast = new Notification({ title, body, silent: Boolean(silent), icon: appIcon(256) });
+  // El ícono de la materia del recordatorio; si no hay (o no es válido), el de la app
+  const toast = new Notification({ title, body, silent: Boolean(silent), icon: reminderIcon(icon) || appIcon(256) });
   toast.on('click', showMainWindow);
   toast.show();
   return true;
@@ -210,7 +221,7 @@ function checkReminders() {
     if (firedReminders.has(key)) continue;
     firedReminders.add(key);
     // El tono elegido lo reproduce la interfaz (Windows solo tiene su sonido genérico)
-    showToast({ title: reminder.title, body: reminder.body, silent: reminder.playTone });
+    showToast({ title: reminder.title, body: reminder.body, silent: reminder.playTone, icon: reminder.icon });
     if (reminder.playTone && mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('reminder-fired');
     }
