@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.70",
+  "latestVersion": "1.7.10.71",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.70/Agenda-Universitaria-v1.7.10.70.apk",
-  "apkSha256": "075cb40dbc97ea15064babb8d6967bbc0a6666490e926ebaaddc9060c1d62804",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.70/Agenda-Universitaria-Setup-v1.7.10.70.exe",
-  "desktopSha256": "e52551b3288e9033289ce04cdebd1fb185826df63c77f040d4fbce9b0be2bec1",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.71/Agenda-Universitaria-v1.7.10.71.apk",
+  "apkSha256": "4ef8b0c7f6d495482434de3d68fe5f231c95e3c9ac3facf360e1817134ed7551",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.71/Agenda-Universitaria-Setup-v1.7.10.71.exe",
+  "desktopSha256": "55e50e1a18df38f4211b24484d2138213b7e487b345c1fef708f11fb58c40983",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Apuntes personales sin materia, con su propia pastilla «Personal»",
-    "Los apuntes nuevos ya vienen con la materia o «Personal» que tengas abierta"
+    "Notas de voz dentro del texto del apunte, y puedes moverlas",
+    "Fotos con tamaño, a un lado del texto y con editor (recortar, girar, dibujar, texto)"
   ]
 }
