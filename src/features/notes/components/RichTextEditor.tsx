@@ -43,6 +43,7 @@ import {
   Heading2,
 } from 'lucide-react';
 import { compressImage } from '../utils/imageCompression';
+import { IMAGE_ACCEPT, isImageFile } from '../../../shared/utils/imageFormats';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -86,7 +87,7 @@ interface ImageClip {
 function imageFilesFrom(data: DataTransfer | null): File[] {
   if (!data) return [];
   // Los archivos vacíos (0 bytes) se descartan: no hay imagen que insertar
-  const files = Array.from(data.files).filter((file) => file.type.startsWith('image/') && file.size > 0);
+  const files = Array.from(data.files).filter((file) => isImageFile(file) && file.size > 0);
   if (files.length > 0) return files;
   return Array.from(data.items)
     .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
@@ -700,7 +701,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   return (
     <div className="relative flex w-full flex-1 flex-col">
       <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleImageInsert} className="hidden" />
-      <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleImageInsert} className="hidden" />
+      <input ref={galleryInputRef} type="file" accept={IMAGE_ACCEPT} onChange={handleImageInsert} className="hidden" />
 
       <div
         onClick={() => {

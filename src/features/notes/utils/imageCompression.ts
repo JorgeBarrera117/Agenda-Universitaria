@@ -1,3 +1,5 @@
+import { toBrowserReadableImage } from '../../../shared/utils/imageFormats';
+
 /**
  * Utilidad de compresión de imágenes en el cliente (Browser-Side).
  * Utiliza HTML5 Canvas y createImageBitmap para redimensionar fotos de cámaras
@@ -5,11 +7,14 @@
  * reduciendo el peso de ~8MB a ~200-300KB sin pérdida perceptible de legibilidad en texto.
  */
 export async function compressImage(
-  file: File,
+  originalFile: File,
   maxWidth = 1600,
   maxHeight = 1600,
   quality = 0.8
 ): Promise<{ blob: Blob; mimeType: string }> {
+  // 0. Las fotos HEIC (iPhone, Samsung) se pasan antes a JPEG: el navegador no las abre
+  const file = await toBrowserReadableImage(originalFile);
+
   // 1. Decodificar la imagen utilizando createImageBitmap (más rápido y respeta orientación EXIF)
   let imageBitmap: ImageBitmap | null = null;
   let fallbackUrl: string | null = null;

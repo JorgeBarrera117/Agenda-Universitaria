@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Camera, ImagePlus, MessageSquareText, Save, Trash2, Wifi } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
 import { STUDENT_STATUS_MAX_LENGTH, STUDENT_STATUS_PRESETS } from '../studentIdentity';
+import { IMAGE_ACCEPT, SUPPORTED_IMAGE_FORMATS_LABEL, isImageFile } from '../../../shared/utils/imageFormats';
 import { AvatarCropModal } from './AvatarCropModal';
 import { StudentAvatar } from './StudentAvatar';
 import type { AppSettings, StudentStatusMode } from '../types';
@@ -50,8 +51,8 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
     // Permite volver a elegir el mismo archivo después
     event.target.value = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setPhotoError('Ese archivo no es una imagen. Elige una foto (JPG o PNG).');
+    if (!isImageFile(file)) {
+      setPhotoError(`Ese archivo no es una imagen. Elige una foto (${SUPPORTED_IMAGE_FORMATS_LABEL}).`);
       return;
     }
     setPhotoError(null);
@@ -125,7 +126,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept={IMAGE_ACCEPT}
             className="hidden"
             onChange={handlePhotoSelected}
             tabIndex={-1}

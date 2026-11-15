@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ZoomIn, ZoomOut } from 'lucide-react';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
+import { SUPPORTED_IMAGE_FORMATS_LABEL, toBrowserReadableImage } from '../../../shared/utils/imageFormats';
 import { cropImageRegionToDataUrl, decodeImage } from '../utils/avatarCrop';
 
 interface AvatarCropModalProps {
@@ -32,6 +33,8 @@ const INITIAL_VIEW: View = { zoom: 1, x: 0, y: 0 };
  * La foto siempre cubre el marco (no quedan bordes vacíos).
  */
 export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ file, onCancel, onConfirm }) => {
+  // Foto lista para mostrarse (las HEIC se convierten a JPEG antes)
+  const [readable, setReadable] = useState<File | null>(null);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [view, setView] = useState<View>(INITIAL_VIEW);
   const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
@@ -46,12 +49,13 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ file, onCancel
   if (file !== prevFile) {
     setPrevFile(file);
     setView(INITIAL_VIEW);
+    setReadable(null);
     setNatural(null);
     setError(null);
   }
 
   // URL para mostrar la foto (se libera al cambiarla o cerrar)
-  const imageUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  const imageUrl = useMemo(() => (readable ? URL.createObjectURL(readable) : null), [readable]);
   useEffect(
     () => () => {
       if (imageUrl) URL.revokeObjectURL(imageUrl);
@@ -59,17 +63,21 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ file, onCancel
     [imageUrl]
   );
 
-  // Medidas reales de la foto (con la orientación de la cámara ya aplicada)
+  // Convierte la foto si hace falta y mide su tamaño real (con la orientación de la cámara aplicada)
   useEffect(() => {
     if (!file) return;
     let active = true;
-    decodeImage(file)
-      .then((bitmap) => {
-        if (active) setNatural({ w: bitmap.width, h: bitmap.height });
+    toBrowserReadableImage(file)
+      .then(async (converted) => {
+        const bitmap = await decodeImage(converted);
+        if (active) {
+          setReadable(converted);
+          setNatural({ w: bitmap.width, h: bitmap.height });
+        }
         bitmap.close();
       })
       .catch(() => {
-        if (active) setError('No se pudo leer esa imagen. Prueba con otra foto (JPG o PNG).');
+        if (active) setError(`No se pudo abrir esa foto. Prueba con otra (${SUPPORTED_IMAGE_FORMATS_LABEL}).`);
       });
     return () => {
       active = false;
@@ -175,7 +183,7 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ file, onCancel
   };
 
   const handleConfirm = async () => {
-    if (!file || !natural || frame <= 0) return;
+    if (!readable || !natural || frame <= 0) return;
     setIsSaving(true);
     setError(null);
     try {
@@ -184,7 +192,7 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ file, onCancel
       const side = frame / scale;
       const x = (natural.w * scale) / 2 - view.x - frame / 2;
       const y = (natural.h * scale) / 2 - view.y - frame / 2;
-      onConfirm(await cropImageRegionToDataUrl(file, { x: x / scale, y: y / scale, side }));
+      onConfirm(await cropImageRegionToDataUrl(readable, { x: x / scale, y: y / scale, side }));
     } catch {
       setError('No se pudo recortar la foto. Prueba con otra imagen.');
     } finally {
@@ -244,7 +252,7 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({ file, onCancel
             </div>
           )}
           {!natural && !error && (
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white/80">Cargando foto…</span>
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white/80">Preparando foto…</span>
           )}
         </div>
 

@@ -39,6 +39,7 @@ import { ChangelogList, ChangelogPreview } from './ChangelogSettings';
 import { UpdateSettings } from './UpdateSettings';
 import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
 import { PageHeader } from '../../../shared/components/PageHeader';
+import { IMAGE_ACCEPT, SUPPORTED_IMAGE_FORMATS_LABEL, toBrowserReadableImage } from '../../../shared/utils/imageFormats';
 import { StudentCredential } from './StudentCredential';
 import { CardStyleSection, ThemeColorSection } from './ThemeStudio';
 import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
@@ -114,9 +115,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const wallpaperInputRef = useRef<HTMLInputElement>(null);
 
   // Procesar y comprimir foto de papel tapiz seleccionada por el usuario
-  const handleCustomWallpaperUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleCustomWallpaperUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const original = e.target.files?.[0];
+    e.target.value = '';
+    if (!original) return;
+
+    // Las fotos HEIC (iPhone, Samsung) se pasan antes a JPEG: el navegador no las abre
+    let file: File;
+    try {
+      file = await toBrowserReadableImage(original);
+    } catch {
+      onShowToast(`No se pudo abrir esa foto. Prueba con otra (${SUPPORTED_IMAGE_FORMATS_LABEL}).`);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -154,7 +165,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       img.src = srcData;
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
   };
 
   const handleRemoveCustomWallpaper = () => {
@@ -465,8 +475,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <input
                     ref={wallpaperInputRef}
                     type="file"
-                    accept="image/*"
-                    onChange={handleCustomWallpaperUpload}
+                    accept={IMAGE_ACCEPT}
+                    onChange={(e) => void handleCustomWallpaperUpload(e)}
                     className="hidden"
                   />
 

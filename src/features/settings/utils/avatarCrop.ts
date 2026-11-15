@@ -1,3 +1,5 @@
+import { isImageFile } from '../../../shared/utils/imageFormats';
+
 /** Zona cuadrada de la foto, en píxeles de la imagen original (ya con la orientación EXIF aplicada). */
 export interface SquareRegion {
   x: number;
@@ -13,7 +15,7 @@ export interface SquareRegion {
  * El resultado (~15-30 KB) es lo bastante pequeño para guardarse junto a los ajustes.
  */
 export async function cropImageRegionToDataUrl(file: File, region: SquareRegion, size = 256, quality = 0.85): Promise<string> {
-  if (!file.type.startsWith('image/')) {
+  if (!isImageFile(file)) {
     throw new Error('El archivo no es una imagen.');
   }
 

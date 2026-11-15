@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { IMAGE_ACCEPT } from '../../../shared/utils/imageFormats';
 import {
   Plus,
   Edit2,
@@ -475,7 +476,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         <input
           ref={readerGalleryInputRef}
           type="file"
-          accept="image/*"
+          accept={IMAGE_ACCEPT}
           multiple
           onChange={handleReaderFiles}
           className="hidden"

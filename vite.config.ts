@@ -9,6 +9,8 @@ import { VitePWA } from 'vite-plugin-pwa';
  * 'unsafe-inline'. En el build de producción se sustituye script-src por 'self' más el hash
  * SHA-256 de cada script inline, de modo que un HTML inyectado (p. ej. en un apunte) no pueda
  * ejecutar manejadores on* ni bloques <script>.
+ * 'wasm-unsafe-eval' solo permite compilar WebAssembly (no eval de JavaScript): lo necesita el
+ * decodificador de fotos HEIC, que corre en un worker creado desde un blob: (ver worker-src).
  */
 function strictScriptCsp(): Plugin {
   return {
@@ -21,7 +23,7 @@ function strictScriptCsp(): Plugin {
         const hashes = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(
           ([, body]) => `'sha256-${createHash('sha256').update(body).digest('base64')}'`
         );
-        const scriptSrc = ["script-src 'self'", ...hashes].join(' ');
+        const scriptSrc = ["script-src 'self' 'wasm-unsafe-eval'", ...hashes].join(' ');
         const updated = html.replace(/script-src [^;]*;/, `${scriptSrc};`);
         if (updated === html) {
           throw new Error('strict-script-csp: no se encontró la directiva script-src en index.html');
@@ -68,7 +70,10 @@ export default defineConfig({
       },
       workbox: {
         // wav: tonos de notificación para preescucha sin conexión
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,wav}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,wav}'],
+        // El decodificador de fotos HEIC (~3 MB) supera el límite por defecto (2 MB) y debe quedar
+        // en caché para convertir fotos sin conexión
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
       }
     })
   ],
