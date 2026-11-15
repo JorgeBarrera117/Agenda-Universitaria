@@ -494,6 +494,93 @@
   margin: 1rem 0;
 }
 
+/* Lista de tareas (TaskList/TaskItem): <ul data-type="taskList"><li data-type="taskItem" data-checked>
+   <label>[casilla]</label><div>contenido</div></li>. En el editor la casilla es un <input> real; en el
+   lector el HTML saneado no trae <input>, así que la casilla se dibuja con label::before/::after. */
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0.125rem;
+  margin: 0.5rem 0;
+}
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] ul[data-type='taskList'] {
+  margin: 0.125rem 0 0.125rem 0.25rem;
+}
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0.25rem 0;
+}
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] > li > label {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Alto de la primera línea de texto: la casilla queda centrada con ella */
+  width: 1.5rem;
+  height: 1.625em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] > li > div {
+  flex: 1;
+  min-width: 0;
+}
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] > li > div > p {
+  margin: 0;
+}
+
+/* Casilla M3: 18 px, borde de 2 px y esquinas de 2 px; marcada = relleno primario con ✓ */
+.ProseMirror ul[data-type='taskList'] > li > label > input[type='checkbox'],
+.note-content ul[data-type='taskList'] > li > label::before {
+  content: '';
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid var(--color-md-on-surface-variant);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+.ProseMirror ul[data-type='taskList'] > li > label > input[type='checkbox']:checked,
+.note-content ul[data-type='taskList'] > li[data-checked='true'] > label::before {
+  border-color: var(--color-md-primary);
+  background-color: var(--color-md-primary);
+}
+.ProseMirror ul[data-type='taskList'] > li > label > input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--color-md-primary);
+  outline-offset: 2px;
+}
+/* ✓ dibujada con dos bordes (sirve para el input y para el lector) */
+.ProseMirror ul[data-type='taskList'] > li[data-checked='true'] > label::after,
+.note-content ul[data-type='taskList'] > li[data-checked='true'] > label::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid var(--color-md-on-primary);
+  border-bottom: 2px solid var(--color-md-on-primary);
+  transform: translate(-50%, -65%) rotate(-45deg);
+  pointer-events: none;
+}
+
+/* Tarea hecha: se tacha TODO su texto (también las líneas siguientes de la misma tarea), pero no
+   las subtareas anidadas, que tienen su propia casilla. */
+:is(.ProseMirror, .note-content) ul[data-type='taskList'] > li[data-checked='true'] > div > :not(ul[data-type='taskList']) {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--color-md-on-surface-variant);
+  color: var(--color-md-on-surface-variant);
+}
+
 /* Resaltador (NoteHighlight.ts): el apunte guarda el nombre del color y aquí se pinta. Modo claro:
    tonos pastel con texto oscuro; modo oscuro: tonos translúcidos con texto claro. Ambos > 4.5:1.
    .note-hl-swatch reutiliza los mismos colores en la paleta de la barra. */

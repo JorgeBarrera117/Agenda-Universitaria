@@ -274,6 +274,33 @@ export const NotesView: React.FC<NotesViewProps> = ({
     return savedNote;
   };
 
+  /**
+   * Marca o desmarca una tarea desde el modo lectura. El lector muestra el HTML saneado (sin
+   * <input>), así que la tarea se ubica por su posición entre todas las del apunte y se cambia su
+   * data-checked en el HTML original, que se guarda en la base de datos.
+   */
+  const handleReaderTaskToggle = async (container: HTMLElement, item: Element | null) => {
+    if (!readingNote || !item) return;
+    const index = Array.from(container.querySelectorAll('ul[data-type="taskList"] > li')).indexOf(item);
+    if (index < 0) return;
+    const doc = new DOMParser().parseFromString(readingNote.content, 'text/html');
+    const target = doc.querySelectorAll('ul[data-type="taskList"] > li')[index];
+    if (!target) return;
+    const checked = target.getAttribute('data-checked') !== 'true';
+    target.setAttribute('data-checked', String(checked));
+    const input = target.querySelector(':scope > label > input[type="checkbox"]');
+    if (input) {
+      if (checked) input.setAttribute('checked', 'checked');
+      else input.removeAttribute('checked');
+    }
+    try {
+      const saved = await updateNote(readingNote.id, { content: doc.body.innerHTML });
+      setReadingNote(saved);
+    } catch {
+      showReaderToast('No se pudo guardar la tarea. Vuelve a intentarlo.');
+    }
+  };
+
   const handleReaderFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !readingNote) return;
@@ -504,7 +531,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 if (target && target.tagName === 'IMG') {
                   const img = target as HTMLImageElement;
                   setZoomedInlineImage({ src: img.src, alt: img.alt || 'Foto del apunte' });
+                  return;
                 }
+                // Casilla de una lista de tareas: se marca/desmarca sin entrar al editor
+                const taskLabel = target?.closest('ul[data-type="taskList"] > li > label');
+                if (taskLabel) void handleReaderTaskToggle(e.currentTarget, taskLabel.parentElement);
               }}
               className="note-content select-text text-[15px] leading-relaxed sm:text-base [&_img]:cursor-zoom-in"
               dangerouslySetInnerHTML={{ __html: readingNoteHtml }}

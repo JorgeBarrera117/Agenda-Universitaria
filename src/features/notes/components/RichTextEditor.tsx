@@ -4,6 +4,7 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
+import { TaskItem, TaskList } from '@tiptap/extension-list';
 import {
   DEFAULT_HIGHLIGHT,
   HIGHLIGHT_COLORS,
@@ -31,6 +32,7 @@ import {
   Strikethrough,
   List,
   ListOrdered,
+  ListChecks,
   Quote,
   Minus,
   Camera,
@@ -264,6 +266,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }),
       Placeholder.configure({ placeholder }),
       NoteHighlight,
+      // Lista de tareas: cada casilla es un elemento; nested permite subtareas y varias líneas por tarea
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+        a11y: {
+          checkboxLabel: (node, checked) => `${checked ? 'Hecha' : 'Pendiente'}: ${node.textContent.trim() || 'tarea sin texto'}`,
+        },
+      }),
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -628,6 +638,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       actions: [
         { id: 'bullet', label: 'Lista con viñetas', icon: List, run: () => chain().toggleBulletList().run(), isActive: editor.isActive('bulletList') },
         { id: 'ordered', label: 'Lista numerada', icon: ListOrdered, run: () => chain().toggleOrderedList().run(), isActive: editor.isActive('orderedList') },
+        { id: 'tasks', label: 'Lista de tareas', icon: ListChecks, run: () => chain().toggleTaskList().run(), isActive: editor.isActive('taskList') },
       ],
     },
     {
