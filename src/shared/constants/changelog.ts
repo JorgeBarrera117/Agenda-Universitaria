@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.68',
+    date: '2026-11-14',
+    title: 'Tu perfil, a tu estilo',
+    changes: [
+      { kind: 'mejora', text: 'En Ajustes, la tarjeta «Mi perfil» invita a personalizarlo: tócala para cambiar tu foto, nombre, carrera y meta.' },
+      { kind: 'nuevo', text: 'Al elegir tu foto de perfil puedes moverla y acercarla para encuadrar solo la parte que quieres, como en WhatsApp.' },
+    ],
+  },
+  {
     version: '1.7.10.67',
     date: '2026-11-14',
     title: 'Ves lo que escribes',
