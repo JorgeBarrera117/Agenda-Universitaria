@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../../shared/components/atoms';
 import type { Subject } from '../../subjects/types';
+import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { DAY_NAMES } from '../types';
 import type { CampusPulse, NextClassPulse, PulseClass } from '../hooks/useCampusPulse';
 
@@ -79,17 +80,21 @@ function ClassDetails({ info }: { info: PulseClass }) {
   );
 }
 
+/** Ícono elegido para la materia (con su color), nombre y código: «En curso» y «Próxima clase». */
 function SubjectTitle({ info }: { info: PulseClass }) {
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <h3 className="truncate text-base font-bold tracking-tight sm:text-lg">
-        {info.subject?.name || 'Clase universitaria'}
-      </h3>
-      {info.subject?.code && (
-        <span className="shrink-0 rounded-md bg-[var(--color-md-on-surface)] px-2 py-0.5 font-mono text-[10px] font-black tracking-wider text-[var(--color-md-surface)]">
-          {info.subject.code}
-        </span>
-      )}
+    <div className="flex min-w-0 items-center gap-2.5">
+      <SubjectBadge icon={info.subject?.icon} color={info.subject?.color} size="lg" />
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        <h3 className="min-w-0 truncate text-base font-bold tracking-tight sm:text-lg">
+          {info.subject?.name || 'Clase universitaria'}
+        </h3>
+        {info.subject?.code && (
+          <span className="shrink-0 rounded-md bg-[var(--color-md-on-surface)] px-2 py-0.5 font-mono text-[10px] font-black tracking-wider text-[var(--color-md-surface)]">
+            {info.subject.code}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
