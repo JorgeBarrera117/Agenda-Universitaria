@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.78",
+  "latestVersion": "1.7.10.79",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.78/Agenda-Universitaria-v1.7.10.78.apk",
-  "apkSha256": "eed868cc55fe0a3147a969f8215b53e1d8ebe827fc56d5eafdebeff05eea22c2",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.78/Agenda-Universitaria-Setup-v1.7.10.78.exe",
-  "desktopSha256": "59eeca6c9d606752d4db0a94e17a2619ac1b27be8384ed73dbca91c9bd6fe1c9",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.79/Agenda-Universitaria-v1.7.10.79.apk",
+  "apkSha256": "877ffc01bcf56aea9e954e3f8501b731dcc66473f19fa7ee85e17c23533566ce",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.79/Agenda-Universitaria-Setup-v1.7.10.79.exe",
+  "desktopSha256": "768c35ebd3c19d45d53e5f8cfac3ffe99302dc8f65d2b609fbdca69b149c3268",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Avisos de clase con el ícono y el color de cada materia",
-    "Widgets con el ícono de la materia y solo los días que usas"
+    "«Próxima clase» y «En curso» con el ícono de la materia",
+    "Avisos con el ícono de la agenda arriba y el de la materia al lado del texto"
   ]
 }
