@@ -32,6 +32,14 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.69',
+    date: '2026-11-14',
+    title: 'Fotos HEIC, sin problema',
+    changes: [
+      { kind: 'nuevo', text: 'Ya puedes usar fotos HEIC/HEIF (el formato de iPhone y de muchos Samsung) en tu foto de perfil, en los apuntes y en el papel tapiz. Se convierten en tu teléfono, sin internet.' },
+    ],
+  },
+  {
     version: '1.7.10.68',
     date: '2026-11-14',
     title: 'Tu perfil, a tu estilo',
