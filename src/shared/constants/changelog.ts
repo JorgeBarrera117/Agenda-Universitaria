@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.71',
+    date: '2026-11-15',
+    title: 'Audios y fotos en el texto',
+    changes: [
+      { kind: 'nuevo', text: 'Las notas de voz ahora van dentro del texto del apunte, donde estaba el cursor, y se escuchan ahí mismo.' },
+      { kind: 'nuevo', text: 'Mueve fotos y notas de voz a cualquier parte del apunte: tócalas, elige «Mover» y toca el sitio nuevo.' },
+      { kind: 'nuevo', text: 'Cambia el tamaño de las fotos arrastrando su esquina y ponlas a un lado con el texto alrededor.' },
+      { kind: 'nuevo', text: 'Edita tus fotos como en WhatsApp: recorta, gira, dibuja y escribe encima.' },
+      { kind: 'mejora', text: 'En PC y en la web, el cursor muestra la mano sobre todo lo que se puede tocar.' },
+    ],
+  },
+  {
     version: '1.7.10.70',
     date: '2026-11-15',
     title: 'Apuntes personales',
