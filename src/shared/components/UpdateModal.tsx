@@ -57,7 +57,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ info, onDownload, onLa
         )}
         {isDesktopApp() && inApp && (
           <p className="rounded-xl bg-[var(--color-md-surface-container)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">
-            Se descarga dentro de la app y se instala sola: la agenda se cierra y vuelve a abrirse actualizada. Tus materias y apuntes se conservan.
+            Se descarga dentro de la app y se abre el asistente de instalación. La agenda se cierra mientras se instala; al terminar, pulsa «Finalizar» y se abre actualizada. Tus materias y apuntes se conservan.
           </p>
         )}
 

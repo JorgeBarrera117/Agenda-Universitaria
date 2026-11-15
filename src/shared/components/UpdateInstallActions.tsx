@@ -85,7 +85,7 @@ export const UpdateInstallActions: React.FC<UpdateInstallActionsProps> = ({ info
       {state.phase === 'installer-opened' && isDesktop && (
         <p className="inline-flex items-center gap-2 text-xs font-semibold leading-relaxed text-[var(--color-md-on-surface)]">
           <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />
-          Instalando… La agenda se cerrará y volverá a abrirse en unos segundos. Tus datos se conservan.
+          Abriendo el instalador… La agenda se cerrará mientras se actualiza; al terminar, pulsa «Finalizar» para abrirla. Tus datos se conservan.
         </p>
       )}
 

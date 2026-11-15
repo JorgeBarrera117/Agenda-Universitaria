@@ -353,8 +353,10 @@ function createWindow(showImmediately) {
 
 /* ------------------------------------------------------------------------------------------------
  * Actualizaciones dentro de la app (como en Android): descarga el instalador desde los releases
- * del repositorio, comprueba su huella SHA-256 y lo ejecuta en silencio; al terminar, el instalador
- * vuelve a abrir la app. Los datos se conservan (misma carpeta de datos).
+ * del repositorio, comprueba su huella SHA-256 y abre el asistente de instalación en modo
+ * actualización (se ve el progreso y al final «Ejecutar Agenda Universitaria»). La agenda se cierra
+ * mientras se instala: Windows no deja reemplazar los archivos de un programa abierto. Los datos se
+ * conservan (misma carpeta de datos).
  * ---------------------------------------------------------------------------------------------- */
 const UPDATE_URL_PATTERN =
   /^https:\/\/github\.com\/jorgebarrera117\/agenda-universitaria\/releases\/download\/[^?#]+\.exe$/i;
@@ -410,16 +412,40 @@ ipcMain.handle('download-update', async (event, options) => {
   }
 });
 
-ipcMain.handle('install-update', () => {
+/** ¿Está `child` dentro de la carpeta `parent`? (sin distinguir mayúsculas, como Windows) */
+function isInsideFolder(child, parent) {
+  if (!parent) return false;
+  const relative = path.relative(parent.toLowerCase(), child.toLowerCase());
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+/**
+ * Argumentos del asistente de instalación:
+ * - --updated: salta la licencia y la elección de carpeta (se instala donde ya está).
+ * - /currentuser o /allusers: salta «¿Para quién instalar?», según dónde está esta copia
+ *   (en %LOCALAPPDATA% = solo este usuario; en Archivos de programa = todos, pide permiso).
+ * La versión portable no está instalada: abre el asistente completo para instalarla.
+ */
+function updateInstallerArgs() {
+  if (process.env.PORTABLE_EXECUTABLE_FILE) return [];
+  const perUser = isInsideFolder(app.getPath('exe'), process.env.LOCALAPPDATA);
+  return ['--updated', perUser ? '/currentuser' : '/allusers'];
+}
+
+ipcMain.handle('install-update', async () => {
   if (!downloadedInstaller || !fs.existsSync(downloadedInstaller)) {
     throw new Error('Primero hay que descargar la actualización.');
   }
-  // /S = sin ventanas; --force-run = el instalador abre la app al terminar
-  const child = spawn(downloadedInstaller, ['/S', '--force-run'], { detached: true, stdio: 'ignore', windowsHide: false });
+  const child = spawn(downloadedInstaller, updateInstallerArgs(), { detached: true, stdio: 'ignore', windowsHide: false });
+  // Solo se cierra la agenda si el instalador de verdad arrancó: si no, se queda abierta y avisa
+  await new Promise((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', () => reject(new Error('No se pudo abrir el instalador. Vuelve a intentarlo.')));
+  });
   child.unref();
   isQuitting = true;
-  // Un momento para que la interfaz muestre "Instalando…" antes de cerrarse
-  setTimeout(() => app.quit(), 600);
+  // Se cierra sola enseguida (antes de que el instalador tenga que forzar su cierre)
+  setTimeout(() => app.quit(), 300);
   return { success: true };
 });
 
