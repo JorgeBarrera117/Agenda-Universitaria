@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.71",
+  "latestVersion": "1.7.10.72",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.71/Agenda-Universitaria-v1.7.10.71.apk",
-  "apkSha256": "4ef8b0c7f6d495482434de3d68fe5f231c95e3c9ac3facf360e1817134ed7551",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.71/Agenda-Universitaria-Setup-v1.7.10.71.exe",
-  "desktopSha256": "55e50e1a18df38f4211b24484d2138213b7e487b345c1fef708f11fb58c40983",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.72/Agenda-Universitaria-v1.7.10.72.apk",
+  "apkSha256": "a83605a4938882ca3e292e6e2bfe6428213b9fb08d1c6fc55fe655f4d9073828",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.72/Agenda-Universitaria-Setup-v1.7.10.72.exe",
+  "desktopSha256": "a4317579dd9f82b677774ceaebe8d8e82fced2c0c6a44f82fb294919e287948d",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Notas de voz dentro del texto del apunte, y puedes moverlas",
-    "Fotos con tamaño, a un lado del texto y con editor (recortar, girar, dibujar, texto)"
+    "En la computadora, «Descargar y actualizar» ya instala la nueva versión",
+    "Se ve el asistente con el progreso y al terminar la agenda se abre actualizada"
   ]
 }
