@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.73",
+  "latestVersion": "1.7.10.74",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.73/Agenda-Universitaria-v1.7.10.73.apk",
-  "apkSha256": "2e47bb51473c5bf0056f71f5efdc45e4776584b86d3e5f100fb9a7ef5362cafe",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.73/Agenda-Universitaria-Setup-v1.7.10.73.exe",
-  "desktopSha256": "6a709c3c34ca599b81868f0577dcc080f44adc913773f60973a4115ef936f4f3",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.74/Agenda-Universitaria-v1.7.10.74.apk",
+  "apkSha256": "c659d3afbdcc7fc12a552303a5753b97d19d2feaef42b0b539ce04e141fc615f",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.74/Agenda-Universitaria-Setup-v1.7.10.74.exe",
+  "desktopSha256": "3fa7c88669e131465a74c4c9cb354c32781afafad5323e23fe0e1cff0a2ebd94",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "El horario respeta los «Días visibles» que elijas en Ajustes",
-    "Tarjetas de la vista semanal con un diseño más claro"
+    "Crea una clase para varios días a la vez, con su horario",
+    "Tarjetas del horario semanal con el ícono de cada materia"
   ]
 }
