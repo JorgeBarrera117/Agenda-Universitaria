@@ -32,6 +32,14 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.77',
+    date: '2026-11-15',
+    title: 'Un mensaje para ti',
+    changes: [
+      { kind: 'nuevo', text: 'En Ajustes → Acerca de la agenda hay un mensaje de ánimo para ti: no te rindas, siempre hay una razón para seguir adelante.' },
+    ],
+  },
+  {
     version: '1.7.10.76',
     date: '2026-11-15',
     title: 'Borra clases desde la ficha',
