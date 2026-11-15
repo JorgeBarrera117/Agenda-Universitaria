@@ -53,7 +53,37 @@ export interface UpdateInfo {
 export type UpdateCheckResult =
   | { status: 'available'; info: UpdateInfo; currentVersion: string }
   | { status: 'up-to-date'; info: UpdateInfo; currentVersion: string }
-  | { status: 'error'; message: string; currentVersion: string };
+  | { status: 'error'; message: string; currentVersion: string }
+  /** Instalada desde Google Play: la tienda se encarga de actualizarla (no se consulta GitHub). */
+  | { status: 'store'; currentVersion: string };
+
+/** Ficha de la app en Google Play (para la versión instalada desde la tienda). */
+export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.agenda.universitaria';
+
+export type AndroidChannel = 'github' | 'play';
+
+let androidChannelPromise: Promise<AndroidChannel> | null = null;
+
+/**
+ * Canal de la app Android (null en la web y en Windows). Se pregunta una vez al puente nativo; una
+ * versión anterior sin getDistribution responde UNIMPLEMENTED y se toma como «github».
+ */
+export function getAndroidChannel(): Promise<AndroidChannel | null> {
+  if (!Capacitor.isNativePlatform()) return Promise.resolve(null);
+  androidChannelPromise ??= WidgetBridge.getDistribution()
+    .then(({ channel }): AndroidChannel => (channel === 'play' ? 'play' : 'github'))
+    .catch((): AndroidChannel => 'github');
+  return androidChannelPromise;
+}
+
+/** Abre la ficha de la app en Google Play (la app de la tienda, o el navegador si no está). */
+export async function openPlayStoreListing(): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    await WidgetBridge.openExternalUrl({ url: PLAY_STORE_URL });
+    return;
+  }
+  window.open(PLAY_STORE_URL, '_blank', 'noopener,noreferrer');
+}
 
 /**
  * ¿remoteVer es posterior a currentVer? Compara numéricamente cada segmento (1.7.10.39 > 1.7.10.38,
@@ -148,6 +178,8 @@ export function getLastUpdateCheck(): UpdateCheckResult | null {
  */
 export async function checkForUpdates(): Promise<UpdateCheckResult> {
   const currentVersion = APP_INFO.version;
+  // Versión de Google Play: no se ofrece el APK de GitHub (la tienda no lo permite ni hace falta)
+  if ((await getAndroidChannel()) === 'play') return remember({ status: 'store', currentVersion });
   const sources = Capacitor.isNativePlatform()
     ? [REMOTE_VERSION_URL]
     : [REMOTE_VERSION_URL, `${import.meta.env.BASE_URL}version.json`];

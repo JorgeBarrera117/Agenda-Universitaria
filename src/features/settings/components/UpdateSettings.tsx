@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Check, RotateCcw, Sparkles, WifiOff } from 'lucide-react';
+import { Check, ExternalLink, RotateCcw, Sparkles, WifiOff } from 'lucide-react';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { UpdateInstallActions } from '../../../shared/components/UpdateInstallActions';
 import {
@@ -8,6 +8,7 @@ import {
   checkForUpdates,
   formatReleaseDate,
   openDownloadUrl,
+  openPlayStoreListing,
   updateUrlFor,
   type UpdateCheckResult,
 } from '../../../shared/services/updateService';
@@ -46,7 +47,8 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
   };
 
   const downloadUrl = result?.status === 'available' ? updateUrlFor(result.info) : undefined;
-  const releaseDate = result && result.status !== 'error' ? formatReleaseDate(result.info.releaseDate) : null;
+  const releaseDate =
+    result && (result.status === 'available' || result.status === 'up-to-date') ? formatReleaseDate(result.info.releaseDate) : null;
 
   return (
     <SettingsCard>
@@ -83,6 +85,24 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
             <Check className="h-4 w-4 shrink-0" aria-hidden="true" />
             Tu app está actualizada a la última versión
           </p>
+        )}
+
+        {result?.status === 'store' && (
+          <div className="space-y-3">
+            <p className="text-xs leading-relaxed text-[var(--color-md-on-surface-variant)]">
+              Instalaste la agenda desde Google Play: la tienda la mantiene actualizada sola.
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                void openPlayStoreListing().catch(() => onShowToast('No se pudo abrir Google Play.'))
+              }
+              className="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--color-md-secondary-container)] px-4 text-sm font-medium text-[var(--color-md-on-secondary-container)] transition-colors hover:brightness-95"
+            >
+              <ExternalLink className="h-[18px] w-[18px]" aria-hidden="true" />
+              Abrir en Google Play
+            </button>
+          </div>
         )}
 
         {result?.status === 'error' && (

@@ -36,3 +36,8 @@ release
 dist-electron
 *.exe
 *.blockmap
+
+# Llave de publicación de Android (Google Play): nunca al repositorio
+android/keystore.properties
+*.jks
+*.keystore

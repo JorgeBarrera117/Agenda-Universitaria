@@ -1,5 +1,22 @@
 apply plugin: 'com.android.application'
 
+/*
+ * Llave de publicación (Google Play). Se lee de android/keystore.properties, que NUNCA se sube a
+ * GitHub (.gitignore). Sin ese archivo todo sigue como siempre: las compilaciones usan la llave de
+ * depuración y solo la versión «play» de publicación (bundlePlayRelease) se niega a compilar.
+ * Formato (ver docs/play-store/guia-publicacion.md):
+ *   storeFile=C:/ruta/a/agenda-upload.jks
+ *   storePassword=...
+ *   keyAlias=agenda-upload
+ *   keyPassword=...
+ */
+def releaseKeyProps = new Properties()
+def releaseKeyFile = rootProject.file('keystore.properties')
+if (releaseKeyFile.exists()) {
+    releaseKeyFile.withInputStream { releaseKeyProps.load(it) }
+}
+def hasReleaseKey = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].every { releaseKeyProps[it] }
+
 android {
     namespace = "com.agenda.universitaria"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,7 +33,33 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    /*
+     * Dos versiones desde el mismo código (todo lo demás se comparte: src/main y la web):
+     * - github: el APK de GitHub Releases, que se actualiza sola desde la app (como siempre).
+     * - play:   para Google Play. Sin el actualizador propio ni el permiso para instalar paquetes;
+     *           las actualizaciones las instala la tienda.
+     * Mismo applicationId y versionCode: solo cambia cómo llegan las actualizaciones.
+     */
+    flavorDimensions = ['distribution']
+    productFlavors {
+        github {
+            dimension 'distribution'
+            isDefault = true
+        }
+        play {
+            dimension 'distribution'
+        }
+    }
+
     signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile file(releaseKeyProps['storeFile'])
+                storePassword releaseKeyProps['storePassword']
+                keyAlias releaseKeyProps['keyAlias']
+                keyPassword releaseKeyProps['keyPassword']
+            }
+        }
         debug {
             storeFile file("${System.properties['user.home']}/.android/debug.keystore")
             storePassword "android"
@@ -31,7 +74,8 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            // Con la llave de publicación si existe; si no, la de depuración (como hasta ahora)
+            signingConfig hasReleaseKey ? signingConfigs.release : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -65,4 +109,34 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+/*
+ * Salvaguardas de la versión de Google Play:
+ * 1. Nunca se firma un paquete de Play con la llave de depuración (Google lo rechazaría y, peor,
+ *    quedaría asociado a una llave pública conocida por cualquiera).
+ * 2. El manifiesto final de «play» no puede pedir REQUEST_INSTALL_PACKAGES: si un cambio futuro
+ *    (o un plugin) lo vuelve a agregar, la compilación se detiene en vez de subirse así a la tienda.
+ */
+gradle.taskGraph.whenReady { graph ->
+    def buildsPlayRelease = graph.allTasks.any { it.project == project && it.name ==~ /(bundle|assemble)PlayRelease/ }
+    if (buildsPlayRelease && !hasReleaseKey) {
+        throw new GradleException(
+            'Falta la llave de publicación: crea android/keystore.properties (ver docs/play-store/guia-publicacion.md).'
+        )
+    }
+}
+
+afterEvaluate {
+    tasks.matching { it.name ==~ /processPlay(Debug|Release)Manifest/ }.configureEach { task ->
+        task.doLast {
+            task.outputs.files.asFileTree.matching { include '**/AndroidManifest.xml' }.each { manifest ->
+                if (manifest.text.contains('android.permission.REQUEST_INSTALL_PACKAGES')) {
+                    throw new GradleException(
+                        "La versión de Google Play no puede pedir REQUEST_INSTALL_PACKAGES (${manifest})."
+                    )
+                }
+            }
+        }
+    }
 }

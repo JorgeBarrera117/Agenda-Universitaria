@@ -36,6 +36,11 @@ export interface WidgetBridgePlugin {
   }): Promise<{ success: boolean; mimeType?: string }>;
   /** Comparte texto (enlace, contacto…) por la hoja de compartir de Android (el WebView no tiene navigator.share). */
   shareText(options: { text: string; title?: string }): Promise<{ success: boolean }>;
+  /**
+   * Canal de distribución de la app Android: «github» (APK de GitHub Releases, se actualiza sola)
+   * o «play» (Google Play, la tienda la actualiza). Lo fija la compilación (android/app/src/<canal>).
+   */
+  getDistribution(): Promise<{ channel: 'github' | 'play' }>;
   /** ¿Puede la app abrir el instalador? (Android 8+: permiso "Instalar apps desconocidas"). */
   canInstallPackages(): Promise<{ allowed: boolean }>;
   /** Abre los ajustes del sistema para conceder ese permiso a esta app. */
