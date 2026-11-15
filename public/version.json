@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.75",
+  "latestVersion": "1.7.10.76",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.75/Agenda-Universitaria-v1.7.10.75.apk",
-  "apkSha256": "87336fa550c3726e4c4bd77776aac1404af8a0447da86aced67cb02bb4f6683b",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.75/Agenda-Universitaria-Setup-v1.7.10.75.exe",
-  "desktopSha256": "35aae5902bcd434894e89d6204b76cfe673d47035899994ebe99c4e7673a4145",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.76/Agenda-Universitaria-v1.7.10.76.apk",
+  "apkSha256": "4b2148903dd91a0bd3db55ef903088a579e7ad82610a3d98dc7e6fe3cf9415b6",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.76/Agenda-Universitaria-Setup-v1.7.10.76.exe",
+  "desktopSha256": "f4c06947ec14e0259103a07dbcff7eec23dcb5d3eac2c799f72ef85b99fdf222",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Edita o agrega clases desde la ficha de cada materia",
-    "Cada tarjeta de la ficha lleva a su propia edición"
+    "Elimina una clase desde la ficha de la materia o al editarla",
+    "La confirmación dice exactamente qué clase se borra"
   ]
 }
