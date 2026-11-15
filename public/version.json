@@ -1,13 +1,14 @@
 {
-  "latestVersion": "1.7.10.67",
+  "latestVersion": "1.7.10.68",
   "releaseDate": "2026-11-14",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.67/Agenda-Universitaria-v1.7.10.67.apk",
-  "apkSha256": "24a9fb8a967b71bff8bdc498708975416957ee5a3b417ec81f5895d95ae2664d",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.67/Agenda-Universitaria-Setup-v1.7.10.67.exe",
-  "desktopSha256": "3b0c95b6b83e6ab5a8877d4953aefa5c88af765beeee7c6d2330a57d7355ad2e",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.68/Agenda-Universitaria-v1.7.10.68.apk",
+  "apkSha256": "7fee4ec449d1ccec45f5bbdfd5c5fded3cdbe6e6da5d20a873ef7c3206420957",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.68/Agenda-Universitaria-Setup-v1.7.10.68.exe",
+  "desktopSha256": "b0542459658a03bc13ea24f029b93f4d8a8fca968cd1c5486a0afaa7fa261ec0",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Al escribir apuntes largos, el cursor ya no se esconde detrás de la barra ni del teclado"
+    "Tarjeta «Mi perfil» más visible en Ajustes",
+    "Recorta tu foto de perfil moviéndola y acercándola, como en WhatsApp"
   ]
 }
