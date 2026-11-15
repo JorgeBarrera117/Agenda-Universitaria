@@ -5,7 +5,7 @@ import type { Subject } from '../../features/subjects/types';
 import type { AppSettings, NotificationSoundTone } from '../../features/settings/types';
 import { notificationToneUrl, resolveNotificationTone } from '../../features/settings/notificationTones';
 import type { ElectronReminder } from '../../electron';
-import { androidSubjectIconResource } from '../../features/subjects/utils/subjectIconResource';
+import { androidSubjectLargeIcon } from '../../features/subjects/utils/subjectIconResource';
 
 /** Título de la notificación de prueba: el nombre de la app ya lo muestra el sistema. */
 const TEST_TITLE = 'Notificaciones activas';
@@ -262,7 +262,7 @@ export class NotificationService {
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `v4_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}`;
+    const currentHash = `v5_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
@@ -320,8 +320,10 @@ export class NotificationService {
           id: generateNotificationId(slot.id, 1),
           ...before,
           channelId,
-          smallIcon: androidSubjectIconResource(subject?.icon),
-          iconColor: subject?.color || APP_COLOR,
+          // Arriba, el ícono de la app; al lado del texto, el de la materia sobre su color
+          smallIcon: 'ic_stat_agenda',
+          largeIcon: androidSubjectLargeIcon(subject?.icon, subject?.color),
+          iconColor: APP_COLOR,
           schedule: {
             on: {
               weekday: priorWeekday,
@@ -341,8 +343,10 @@ export class NotificationService {
           id: generateNotificationId(slot.id, 2),
           ...start,
           channelId,
-          smallIcon: androidSubjectIconResource(subject?.icon),
-          iconColor: subject?.color || APP_COLOR,
+          // Arriba, el ícono de la app; al lado del texto, el de la materia sobre su color
+          smallIcon: 'ic_stat_agenda',
+          largeIcon: androidSubjectLargeIcon(subject?.icon, subject?.color),
+          iconColor: APP_COLOR,
           schedule: {
             on: {
               weekday: capacitorWeekday,
