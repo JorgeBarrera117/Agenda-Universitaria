@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.66',
+    date: '2026-11-14',
+    title: 'Listas de tareas en tus apuntes',
+    changes: [
+      { kind: 'nuevo', text: 'Crea listas de tareas con casillas en tus apuntes (botón «Lista de tareas» de la barra). Al marcar una casilla se tacha todo el texto de esa tarea.' },
+      { kind: 'mejora', text: 'Puedes marcar y desmarcar tareas también desde el modo lectura, sin entrar al editor.' },
+    ],
+  },
+  {
     version: '1.7.10.65',
     date: '2026-11-14',
     title: 'Resaltador de colores',
