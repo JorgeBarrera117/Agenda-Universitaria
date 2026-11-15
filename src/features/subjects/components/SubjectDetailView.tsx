@@ -46,6 +46,8 @@ interface SubjectDetailViewProps {
   onEditSlot?: (slot: ScheduleSlot) => void;
   /** Agregar clases de esta materia al horario (con la materia ya elegida). */
   onAddSlot?: () => void;
+  /** Quitar una clase del horario (el padre pide confirmación). */
+  onDeleteSlot?: (slot: ScheduleSlot) => void;
 }
 
 /** Tarjeta de sección de la ficha: misma superficie que los formularios (FormSheet). */
@@ -101,6 +103,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
   onSelectProfessor,
   onEditSlot,
   onAddSlot,
+  onDeleteSlot,
 }) => {
   // Salida animada (la misma de los formularios): con la flecha y con el botón atrás de Android
   const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
@@ -299,14 +302,14 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
               const virtual = isSlotVirtual(slot);
               const location = describeSlotLocation(slot);
               return (
-                <li key={slot.id} className="py-1 first:pt-0 last:pb-0">
-                  {/* Fila de lista M3: tocarla abre la edición de esa clase */}
+                <li key={slot.id} className="-mx-2 flex items-center gap-1 py-1 first:pt-0 last:pb-0">
+                  {/* Fila de lista M3: tocarla abre la edición de esa clase; el menú ⋮, editar o eliminar */}
                   <button
                     type="button"
                     onClick={() => onEditSlot?.(slot)}
                     disabled={!onEditSlot}
                     aria-label={`Editar la clase del ${DAY_NAMES[slot.dayOfWeek].toLowerCase()}, ${slot.startTime} a ${slot.endTime}`}
-                    className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)] disabled:pointer-events-none"
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)] disabled:pointer-events-none"
                   >
                   <span className="w-20 shrink-0 text-sm font-bold text-[var(--color-md-on-surface)]">{DAY_NAMES[slot.dayOfWeek]}</span>
                   <div className="min-w-0 flex-1 space-y-1">
@@ -325,10 +328,35 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                       </span>
                     </p>
                   </div>
-                  {onEditSlot && (
+                  {onEditSlot && !onDeleteSlot && (
                     <Pencil className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
                   )}
                   </button>
+                  {onDeleteSlot && (
+                    <M3KebabMenu
+                      size="sm"
+                      ariaLabel={`Opciones de la clase del ${DAY_NAMES[slot.dayOfWeek].toLowerCase()}`}
+                      items={[
+                        ...(onEditSlot
+                          ? [
+                              {
+                                id: 'edit',
+                                label: 'Editar clase',
+                                icon: <Pencil className="h-3.5 w-3.5 text-[var(--color-md-primary)]" />,
+                                onClick: () => onEditSlot(slot),
+                              },
+                            ]
+                          : []),
+                        {
+                          id: 'delete',
+                          label: 'Eliminar clase',
+                          icon: <Trash2 className="h-3.5 w-3.5" />,
+                          variant: 'destructive' as const,
+                          onClick: () => onDeleteSlot(slot),
+                        },
+                      ]}
+                    />
+                  )}
                 </li>
               );
             })}

@@ -47,6 +47,7 @@ import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS 
 import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
 import { SubjectDetailView } from './SubjectDetailView';
 import { ScheduleSlotForm } from '../../schedule/components/ScheduleSlotForm';
+import { DeleteSlotDialog } from '../../schedule/components/DeleteSlotDialog';
 import type { ScheduleSlot } from '../../schedule/types';
 
 type CatalogTab = 'active' | 'archived';
@@ -73,7 +74,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 }) => {
   const { subjects, addSubject, updateSubject, removeSubject } = useSubjects();
   const { professors } = useProfessors();
-  const { slots, addSlots, updateSlot } = useSchedule();
+  const { slots, addSlots, updateSlot, removeSlot } = useSchedule();
+  const [slotToDelete, setSlotToDelete] = useState<ScheduleSlot | null>(null);
   // Formulario de clase abierto desde la ficha: editar una clase o agregar clases a la materia
   const [slotEditor, setSlotEditor] = useState<{ subject: Subject; slot?: ScheduleSlot } | null>(null);
   const { notes } = useNotes();
@@ -175,9 +177,25 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
     onError: showToast,
   });
 
+  // Quitar una clase del horario desde la ficha (menú ⋮ de la clase o «Editar clase»)
+  const deleteSlotDialog = (
+    <DeleteSlotDialog
+      slot={slotToDelete}
+      subjectName={slotToDelete ? subjects.find((s) => s.id === slotToDelete.subjectId)?.name : undefined}
+      onCancel={() => setSlotToDelete(null)}
+      onConfirm={async (slot) => {
+        await removeSlot(slot.id);
+        setSlotToDelete(null);
+        if (slotEditor?.slot?.id === slot.id) setSlotEditor(null);
+        showToast('Clase eliminada del horario.');
+      }}
+    />
+  );
+
   // Diálogos y avisos que se usan tanto en el catálogo como en la ficha
   const sharedOverlays = (
     <>
+      {deleteSlotDialog}
       {/* Modal Confirmar Eliminación */}
       <Modal
         isOpen={subjectToDelete !== null}
@@ -266,8 +284,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             }}
             onCancel={() => setSlotEditor(null)}
             backLabel="Volver a la ficha de la materia"
+            onDelete={slot ? () => setSlotToDelete(slot) : undefined}
           />
         </ErrorBoundary>
+        {deleteSlotDialog}
       </div>
     );
   }
@@ -295,6 +315,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           onNavigateToDocs={(subject) => setSelectedSubjectForDocs(subject)}
           onEditSlot={(slot) => setSlotEditor({ subject: selectedSubject, slot })}
           onAddSlot={() => setSlotEditor({ subject: selectedSubject })}
+          onDeleteSlot={(slot) => setSlotToDelete(slot)}
           onSelectProfessor={
             onOpenProfessorDetail
               ? (prof) => {

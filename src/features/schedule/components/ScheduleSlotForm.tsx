@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Building2, Laptop, UserX, Timer, AlertCircle, Check } from 'lucide-react';
+import { Building2, Laptop, UserX, Timer, AlertCircle, Check, Trash2 } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
@@ -37,6 +37,8 @@ interface ScheduleSlotFormProps {
   preset?: ScheduleSlotPreset;
   /** Texto accesible del botón atrás (depende de dónde se abrió el formulario). */
   backLabel?: string;
+  /** Al editar: quitar esta clase del horario (el padre pide confirmación). */
+  onDelete?: () => void;
   /** Una clase por día elegido (al editar, siempre una sola). */
   onSubmit: (data: CreateScheduleSlotDTO[]) => Promise<void>;
   onCancel: () => void;
@@ -107,7 +109,7 @@ function describeDays(days: DayOfWeek[]): string {
   return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
 }
 
-export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData, defaultDay = 1, preset, backLabel = 'Volver al horario', onSubmit, onCancel }) => {
+export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData, defaultDay = 1, preset, backLabel = 'Volver al horario', onDelete, onSubmit, onCancel }) => {
   const { subjects: allSubjects, getSubjectById } = useSubjects();
   // Solo materias en curso: las archivadas (semestres anteriores) no reciben clases nuevas. Si se
   // edita una clase existente, su materia se mantiene en la lista aunque esté archivada.
@@ -517,6 +519,18 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
           </div>
         )}
       </FormSection>
+      {isEditing && onDelete && (
+        <FormSection>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-red-600/50 px-4 text-sm font-medium text-red-700 transition-colors hover:bg-red-600/10 dark:border-red-400/50 dark:text-red-300 dark:hover:bg-red-400/10"
+          >
+            <Trash2 className="h-[18px] w-[18px]" aria-hidden="true" />
+            Eliminar esta clase
+          </button>
+        </FormSection>
+      )}
     </FormSheet>
   );
 };

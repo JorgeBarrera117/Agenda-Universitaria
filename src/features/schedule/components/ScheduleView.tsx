@@ -34,8 +34,8 @@ import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
+import { DeleteSlotDialog } from './DeleteSlotDialog';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
-import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
@@ -124,11 +124,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     setIsModalOpen(false);
   };
 
-  const confirmDelete = async () => {
-    if (slotToDelete) {
-      await removeSlot(slotToDelete.id);
-      setSlotToDelete(null);
-    }
+  const confirmDelete = async (slot: ScheduleSlot) => {
+    await removeSlot(slot.id);
+    setSlotToDelete(null);
+    // Si se borró desde su propio formulario de edición, se vuelve al horario
+    if (editingSlot?.id === slot.id) setIsModalOpen(false);
   };
 
   // Avisos breves (descarga del .agschedule, errores, importación terminada)
@@ -229,6 +229,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       name
     );
 
+  // Confirmación para quitar una clase (desde el menú ⋮ de una tarjeta o desde «Editar clase»)
+  const deleteSlotDialog = (
+    <DeleteSlotDialog
+      slot={slotToDelete}
+      subjectName={slotToDelete ? getSubjectById(slotToDelete.subjectId)?.name : undefined}
+      onCancel={() => setSlotToDelete(null)}
+      onConfirm={confirmDelete}
+    />
+  );
+
   // Vista de Edición / Creación Dedicada a Pantalla Completa
   if (isModalOpen) {
     return (
@@ -243,8 +253,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             defaultDay={activeDay}
             onSubmit={handleSubmit}
             onCancel={() => setIsModalOpen(false)}
+            onDelete={editingSlot ? () => setSlotToDelete(editingSlot) : undefined}
           />
         </ErrorBoundary>
+        {deleteSlotDialog}
       </div>
     );
   }
@@ -753,33 +765,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         )}
       </div>
 
-      {/* Modal Confirmar Eliminación */}
-      <Modal
-        isOpen={slotToDelete !== null}
-        onClose={() => setSlotToDelete(null)}
-        title="¿Retirar Clase del Horario?"
-        maxWidth="sm"
-      >
-        <div className="space-y-3">
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-            ¿Deseas retirar esta cátedra de tu horario semanal? La materia y tus apuntes permanecerán guardados.
-          </p>
-          <ModalActions>
-            <button
-              onClick={() => setSlotToDelete(null)}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 rounded-xl transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={confirmDelete}
-              className="px-3.5 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-2xs cursor-pointer"
-            >
-              Retirar
-            </button>
-          </ModalActions>
-        </div>
-      </Modal>
+      {deleteSlotDialog}
 
       {/* Archivos de la próxima clase, abiertos desde Campus Pulse */}
       {subjectForFiles && (
