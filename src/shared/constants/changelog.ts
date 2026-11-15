@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.74',
+    date: '2026-11-15',
+    title: 'Horario más rápido de armar',
+    changes: [
+      { kind: 'nuevo', text: 'Al crear una clase puedes marcar todos los días en que la tienes, con el mismo horario o uno distinto para cada día.' },
+      { kind: 'mejora', text: 'Las tarjetas de la vista semanal muestran el ícono de cada materia y su nombre completo.' },
+    ],
+  },
+  {
     version: '1.7.10.73',
     date: '2026-11-15',
     title: 'Horario semanal renovado',
