@@ -32,6 +32,17 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.83',
+    date: '2026-11-16',
+    title: '20 fondos y fiestas de fin de año',
+    changes: [
+      { kind: 'nuevo', text: '15 papeles tapiz nuevos (Cuaderno, Matemáticas, Química, Panal, Olas, Espacio, Circuito y más), ordenados por categorías en Ajustes → Apariencia y tema.' },
+      { kind: 'nuevo', text: 'Navidad (1–30 de diciembre): fondo navideño, nieve, gorrito en tu foto y cuenta atrás para Navidad.' },
+      { kind: 'nuevo', text: 'Año Nuevo (31 de diciembre – 31 de enero): fuegos artificiales, chispas de fogata y un fondo con el año viejo, las 12 uvas y el reloj.' },
+      { kind: 'mejora', text: 'Pasar datos entre el teléfono y la PC ahora también está en el menú ⋮ del inicio.' },
+    ],
+  },
+  {
     version: '1.7.10.82',
     date: '2026-11-16',
     title: 'Más fácil de leer y de tocar',
