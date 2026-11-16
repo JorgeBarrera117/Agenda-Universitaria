@@ -1,15 +1,14 @@
 {
-  "latestVersion": "1.7.10.83",
+  "latestVersion": "1.7.10.84",
   "releaseDate": "2026-11-16",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.83/Agenda-Universitaria-v1.7.10.83.apk",
-  "apkSha256": "5b3f0ad95e0af978bdc6144beef5f30cdaba30bde00ef73fd97b83dcb6479b44",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.83/Agenda-Universitaria-Setup-v1.7.10.83.exe",
-  "desktopSha256": "143b989aa9b34e06222d031a0ffabb10d95a79f04ef3e4b92cbab77ac31d262c",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.84/Agenda-Universitaria-v1.7.10.84.apk",
+  "apkSha256": "f7717ae7053b01f9fc25afa7ef9a6e6e02e02ad906a1c158f1335fcb9641b8c3",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.84/Agenda-Universitaria-Setup-v1.7.10.84.exe",
+  "desktopSha256": "8c92ec173bac32c7fb04c9b015acd74b8f2d0ef37a5bcf2fdef42e6619cf17b2",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "15 papeles tapiz nuevos por categorías",
-    "Decoración de Navidad y Año Nuevo automática",
-    "Pasar datos con la PC desde el menú ⋮ del inicio"
+    "Pasar datos entre teléfono y PC ahora incluye la sección Archivos",
+    "Botón «Compartir» más visible en el inicio"
   ]
 }
