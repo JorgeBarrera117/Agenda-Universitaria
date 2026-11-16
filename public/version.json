@@ -1,14 +1,15 @@
 {
-  "latestVersion": "1.7.10.81",
-  "releaseDate": "2026-11-15",
+  "latestVersion": "1.7.10.82",
+  "releaseDate": "2026-11-16",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.81/Agenda-Universitaria-v1.7.10.81.apk",
-  "apkSha256": "5fb9bc280229a3822c799c664eac5111b981d6908c1e5880b801fb7574a0745b",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.81/Agenda-Universitaria-Setup-v1.7.10.81.exe",
-  "desktopSha256": "7a24c5d533dbb163d905c3162f626f24f06d723ae8c05db100da960cf52603e7",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.82/Agenda-Universitaria-v1.7.10.82.apk",
+  "apkSha256": "f9f9a33e154fb32a6142a356096c70de24ca723226edf91e43416f84430192f9",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.82/Agenda-Universitaria-Setup-v1.7.10.82.exe",
+  "desktopSha256": "b509a44665c7b343f96311e70c4e9342e6c068e2e5f198a36ba518b231369619",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Pasa tus datos entre el teléfono y la PC por wifi con un código QR",
-    "Viajan cifrados y el código sirve una sola vez"
+    "Tamaño del texto ajustable en Ajustes → General",
+    "Botones de las ventanas y del menú ⋮ más grandes",
+    "La clase en curso muestra cuánto falta"
   ]
 }
