@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openNotificationSettings: () => ipcRenderer.invoke('open-notification-settings'),
   getLaunchAtLogin: () => ipcRenderer.invoke('get-launch-at-login'),
   setLaunchAtLogin: (enabled) => ipcRenderer.invoke('set-launch-at-login', enabled),
+  // Copia de seguridad automática en Documentos › Agenda Universitaria › Respaldos
+  saveBackupFile: (options) => ipcRenderer.invoke('save-backup-file', options),
   // Actualizaciones: descarga verificada del instalador y su ejecución (la app se cierra y vuelve a abrir)
   downloadUpdate: (options) => ipcRenderer.invoke('download-update', options),
   installUpdate: () => ipcRenderer.invoke('install-update'),

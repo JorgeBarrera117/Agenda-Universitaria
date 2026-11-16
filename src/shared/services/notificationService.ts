@@ -6,6 +6,7 @@ import type { AppSettings, NotificationSoundTone } from '../../features/settings
 import { notificationToneUrl, resolveNotificationTone } from '../../features/settings/notificationTones';
 import type { ElectronReminder } from '../../electron';
 import { androidSubjectLargeIcon } from '../../features/subjects/utils/subjectIconResource';
+import { formatClockTime, formatTimeRange } from '../utils/timeFormat';
 
 /** Título de la notificación de prueba: el nombre de la app ya lo muestra el sistema. */
 const TEST_TITLE = 'Notificaciones activas';
@@ -36,8 +37,61 @@ function resolveChannel(settings: ToneSettings): { channelId: string; sound: str
 /** Versión de escritorio (Electron): sus avisos los muestra y programa el proceso principal. */
 const desktopApi = () => (typeof window !== 'undefined' ? window.electronAPI : undefined);
 
+/** Minutos de anticipación del aviso «antes de la clase» (Ajustes → Notificaciones). */
+function leadMinutes(settings: Pick<AppSettings, 'reminderLeadMinutes'>): number {
+  return settings.reminderLeadMinutes ?? 15;
+}
+
+/**
+ * Día y hora de un aviso que va `minutesBefore` antes de una clase (día 1 = lunes … 7 = domingo).
+ * Si cae antes de medianoche, pasa al día anterior.
+ */
+function shiftBefore(dayOfWeek: number, time: string, minutesBefore: number): { weekday: number; hour: number; minute: number } {
+  const [hours, minutes] = (time || '08:00').split(':').map(Number);
+  let total = hours * 60 + minutes - minutesBefore;
+  let weekday = dayOfWeek;
+  while (total < 0) {
+    total += 24 * 60;
+    weekday = weekday === 1 ? 7 : weekday - 1;
+  }
+  return { weekday, hour: Math.floor(total / 60), minute: total % 60 };
+}
+
+/** Ids de los resúmenes del día: por encima de los de las clases (máx. 999 992), uno por día. */
+const DAILY_SUMMARY_ID_BASE = 1_000_000;
+
+/** Resumen del día: un aviso por cada día con clases, a la hora elegida (Android y escritorio). */
+function buildDailySummaries(
+  slots: ScheduleSlot[],
+  subjects: Subject[],
+  settings: AppSettings
+): { id: number; weekday: number; hour: number; minute: number; title: string; body: string }[] {
+  if (!settings.dailySummaryEnabled) return [];
+  const [hour, minute] = (settings.dailySummaryTime || '07:00').split(':').map(Number);
+  const summaries = [];
+  for (let day = 1; day <= 7; day++) {
+    const daySlots = slots.filter((slot) => slot.dayOfWeek === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
+    if (daySlots.length === 0) continue;
+    const items = daySlots.map((slot) => {
+      const name = subjects.find((s) => s.id === slot.subjectId)?.name || 'Clase';
+      return `${formatClockTime(slot.startTime, settings.timeFormat)} ${name}`;
+    });
+    const shown = items.slice(0, 4).join(' · ');
+    const rest = items.length > 4 ? ` y ${items.length - 4} más` : '';
+    summaries.push({
+      id: DAILY_SUMMARY_ID_BASE + day,
+      weekday: day,
+      hour,
+      minute,
+      title: `Hoy tienes ${daySlots.length} ${daySlots.length === 1 ? 'clase' : 'clases'}`,
+      body: `${shown}${rest}`,
+    });
+  }
+  return summaries;
+}
+
 /** Textos comunes de los recordatorios de una clase (Android y escritorio). */
-function describeSlot(slot: ScheduleSlot, subjects: Subject[]) {
+function describeSlot(slot: ScheduleSlot, subjects: Subject[], settings: AppSettings) {
   const subject = subjects.find((s) => s.id === slot.subjectId);
   const subjectName = subject?.name || 'Asignatura Universitaria';
   const codeTag = subject?.code ? `[${subject.code}] ` : '';
@@ -47,8 +101,14 @@ function describeSlot(slot: ScheduleSlot, subjects: Subject[]) {
       : `Aula: ${slot.classroom || 'Sin asignar'}${slot.building ? ` • ${slot.building}` : ''}`;
   return {
     subject,
-    before: { title: `En 15 min: ${subjectName}`, body: `${codeTag}Tu cátedra comienza a las ${slot.startTime}. ${locationText}` },
-    start: { title: `¡Comienza la clase de ${subjectName}!`, body: `${codeTag}Horario: ${slot.startTime} a ${slot.endTime}. ${locationText}` },
+    before: {
+      title: `En ${leadMinutes(settings)} min: ${subjectName}`,
+      body: `${codeTag}Tu clase comienza a las ${formatClockTime(slot.startTime, settings.timeFormat)}. ${locationText}`,
+    },
+    start: {
+      title: `¡Comienza la clase de ${subjectName}!`,
+      body: `${codeTag}Horario: ${formatTimeRange(slot.startTime, slot.endTime, settings.timeFormat, ' a ')}. ${locationText}`,
+    },
   };
 }
 
@@ -67,21 +127,19 @@ async function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[],
   const playTone = settings.notificationSound && Boolean(resolveNotificationTone(settings.notificationTone).file);
   const reminders: ElectronReminder[] = [];
   for (const slot of slots) {
-    const texts = describeSlot(slot, subjects);
+    const texts = describeSlot(slot, subjects, settings);
     const icon = iconBySubject.get(slot.subjectId);
     const [startH, startM] = (slot.startTime || '08:00').split(':').map(Number);
     if (settings.notify15MinBefore) {
-      let minutes = startH * 60 + startM - 15;
-      let weekday: number = slot.dayOfWeek;
-      if (minutes < 0) {
-        minutes += 24 * 60;
-        weekday = weekday === 1 ? 7 : weekday - 1;
-      }
-      reminders.push({ id: generateNotificationId(slot.id, 1), weekday, hour: Math.floor(minutes / 60), minute: minutes % 60, ...texts.before, playTone, icon });
+      const at = shiftBefore(slot.dayOfWeek, slot.startTime, leadMinutes(settings));
+      reminders.push({ id: generateNotificationId(slot.id, 1), ...at, ...texts.before, playTone, icon });
     }
     if (settings.notifyAtClassStart) {
       reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone, icon });
     }
+  }
+  for (const summary of buildDailySummaries(slots, subjects, settings)) {
+    reminders.push({ ...summary, playTone });
   }
   return reminders;
 }
@@ -262,7 +320,7 @@ export class NotificationService {
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `v5_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}`;
+    const currentHash = `v6_${settings.reminderLeadMinutes ?? 15}_${settings.dailySummaryEnabled ? settings.dailySummaryTime : 'no'}_${settings.timeFormat ?? '24h'}_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
@@ -293,7 +351,7 @@ export class NotificationService {
     const notificationsToSchedule = [];
 
     for (const slot of slots) {
-      const { subject, before, start } = describeSlot(slot, subjects);
+      const { subject, before, start } = describeSlot(slot, subjects, settings);
 
       // Mapeo de DayOfWeek (1=Lun ... 7=Dom) a Capacitor Weekday (1=Dom, 2=Lun ... 7=Sab)
       const capacitorWeekday = (slot.dayOfWeek % 7) + 1;
@@ -301,20 +359,12 @@ export class NotificationService {
       // Extraer hora y minuto de inicio
       const [startH, startM] = (slot.startTime || '08:00').split(':').map(Number);
 
-      // A. Notificación 15 minutos antes
+      // A. Aviso antes de la clase (5 a 60 min, según Ajustes)
       if (settings.notify15MinBefore) {
-        let priorH = startH;
-        let priorM = startM - 15;
-        let priorWeekday = capacitorWeekday;
-
-        if (priorM < 0) {
-          priorM += 60;
-          priorH -= 1;
-        }
-        if (priorH < 0) {
-          priorH += 24;
-          priorWeekday = priorWeekday === 1 ? 7 : priorWeekday - 1;
-        }
+        const at = shiftBefore(slot.dayOfWeek, slot.startTime, leadMinutes(settings));
+        const priorWeekday = (at.weekday % 7) + 1;
+        const priorH = at.hour;
+        const priorM = at.minute;
 
         notificationsToSchedule.push({
           id: generateNotificationId(slot.id, 1),
@@ -359,6 +409,25 @@ export class NotificationService {
           sound,
         });
       }
+    }
+
+    // C. Resumen del día (un aviso por cada día con clases)
+    for (const summary of buildDailySummaries(slots, subjects, settings)) {
+      notificationsToSchedule.push({
+        id: summary.id,
+        title: summary.title,
+        body: summary.body,
+        channelId,
+        smallIcon: 'ic_stat_agenda',
+        largeIcon: 'ic_notification_large',
+        iconColor: APP_COLOR,
+        schedule: {
+          on: { weekday: (summary.weekday % 7) + 1, hour: summary.hour, minute: summary.minute },
+          repeats: true,
+          allowWhileIdle: true,
+        },
+        sound,
+      });
     }
 
     if (notificationsToSchedule.length > 0) {

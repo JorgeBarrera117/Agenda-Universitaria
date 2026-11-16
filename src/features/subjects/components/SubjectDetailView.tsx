@@ -27,6 +27,7 @@ import { DAY_NAMES, type ScheduleSlot } from '../../schedule/types';
 import { describeSlotLocation, isSlotVirtual } from '../../schedule/utils/slotModality';
 import type { Subject } from '../types';
 import { SubjectIcon } from './SubjectIcon';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 
 interface SubjectDetailViewProps {
   subject: Subject;
@@ -105,6 +106,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
   onAddSlot,
   onDeleteSlot,
 }) => {
+  const timeFormatter = useTimeFormatter();
   // Salida animada (la misma de los formularios): con la flecha y con el botón atrás de Android
   const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
   const exit = useCallback(() => runExit(onBack), [runExit, onBack]);
@@ -308,14 +310,14 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                     type="button"
                     onClick={() => onEditSlot?.(slot)}
                     disabled={!onEditSlot}
-                    aria-label={`Editar la clase del ${DAY_NAMES[slot.dayOfWeek].toLowerCase()}, ${slot.startTime} a ${slot.endTime}`}
+                    aria-label={`Editar la clase del ${DAY_NAMES[slot.dayOfWeek].toLowerCase()}, ${timeFormatter.range(slot.startTime, slot.endTime, ' a ')}`}
                     className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)] disabled:pointer-events-none"
                   >
                   <span className="w-20 shrink-0 text-sm font-bold text-[var(--color-md-on-surface)]">{DAY_NAMES[slot.dayOfWeek]}</span>
                   <div className="min-w-0 flex-1 space-y-1">
                     <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-md-primary-container)] px-2 py-0.5 font-mono text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                      {slot.startTime} - {slot.endTime}
+                      {timeFormatter.range(slot.startTime, slot.endTime)}
                     </span>
                     <p className="flex min-w-0 items-center gap-1 text-xs text-[var(--color-md-on-surface-variant)]">
                       {virtual ? (

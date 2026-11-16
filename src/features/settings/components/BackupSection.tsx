@@ -23,6 +23,7 @@ import {
   restoreFromRawJson,
   pickAndRestoreBackup,
 } from '../../../shared/utils/backup';
+import { markBackupDone } from '../../../shared/services/backupScheduleService';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { formInputClass } from '../../../shared/components/form';
@@ -62,6 +63,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
     setIsExporting(true);
     try {
       const res = await saveBackupToDownloads();
+      markBackupDone();
       onShowToast(`Archivo guardado en Descargas: ${res.fileName}`);
     } catch {
       onShowToast('No se pudo guardar en Descargas. Intenta con "Compartir" o "Copiar Texto".');
@@ -76,6 +78,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
     try {
       const res = await shareBackup();
       if (res.canceled) return;
+      markBackupDone();
       onShowToast('Copia lista para compartir o enviarse por WhatsApp/Drive.');
     } catch {
       onShowToast('Error al compartir. Prueba "Copiar Texto JSON".');
@@ -90,6 +93,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
     try {
       const res = await saveBackupWithPicker();
       if (res.canceled) return;
+      markBackupDone();
       onShowToast('Copia de seguridad guardada con éxito.');
     } catch {
       onShowToast('Error al guardar archivo.');
@@ -104,6 +108,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
     try {
       const ok = await copyBackupToClipboard();
       if (ok) {
+        markBackupDone();
         setCopiedRecently(true);
         if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
         copiedTimerRef.current = setTimeout(() => setCopiedRecently(false), 2500);

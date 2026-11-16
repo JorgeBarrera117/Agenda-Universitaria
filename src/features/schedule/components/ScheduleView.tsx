@@ -40,6 +40,7 @@ import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 import { Button, Card, Badge } from '../../../shared/components/atoms';
 import {
   DAY_NAMES,
@@ -79,6 +80,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const { subjects, getSubjectById } = useSubjects();
   const { professors, getProfessorById } = useProfessors();
   const { settings } = useAppSettings();
+  const timeFormatter = useTimeFormatter();
   const isScrolled = useScrollCollapse(48);
 
   // Reloj del campus: se actualiza cada minuto, así "EN CURSO" y el día actual no se quedan
@@ -570,7 +572,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 )}
                                 <p className="flex items-center gap-1.5 text-xs font-medium tabular-nums text-[var(--color-md-on-surface)]">
                                   <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
-                                  {slot.startTime} – {slot.endTime}
+                                  {timeFormatter.range(slot.startTime, slot.endTime)}
                                 </p>
                                 <p className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--color-md-on-surface-variant)]">
                                   {isSlotVirtual(slot) ? (
@@ -726,7 +728,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   <div className="flex items-center gap-1.5 flex-wrap text-xs">
                     <span className="inline-flex items-center gap-1 font-mono font-bold text-[11px] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] px-2.5 py-1 rounded-lg">
                       <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                      {slot.startTime} - {slot.endTime}
+                      {timeFormatter.range(slot.startTime, slot.endTime)}
                     </span>
 
                     {isSlotVirtual(slot) ? (

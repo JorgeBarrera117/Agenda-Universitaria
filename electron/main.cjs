@@ -245,6 +245,40 @@ ipcMain.handle('show-notification', (_event, options) => {
 
 ipcMain.handle('open-notification-settings', () => shell.openExternal('ms-settings:notifications'));
 
+/* ------------------------------------------------------------------------------------------------
+ * Copia de seguridad automática (semanal, la decide la interfaz): se guarda en
+ * Documentos › Agenda Universitaria › Respaldos y se conservan las 8 más recientes.
+ * ---------------------------------------------------------------------------------------------- */
+const BACKUP_FILE_PATTERN = /^agenda_universitaria_backup_[0-9-]+\.json$/;
+const MAX_BACKUP_CHARS = 300 * 1024 * 1024;
+const KEPT_BACKUPS = 8;
+
+ipcMain.handle('save-backup-file', (_event, options) => {
+  const fileName = options && options.fileName;
+  const content = options && options.content;
+  if (typeof fileName !== 'string' || !BACKUP_FILE_PATTERN.test(fileName) || typeof content !== 'string' || content.length > MAX_BACKUP_CHARS) {
+    throw new Error('Copia de seguridad no válida.');
+  }
+  const dir = path.join(app.getPath('documents'), 'Agenda Universitaria', 'Respaldos');
+  fs.mkdirSync(dir, { recursive: true });
+  const target = path.join(dir, fileName);
+  fs.writeFileSync(target, content, 'utf8');
+  // Solo las más recientes: una por semana, unos dos meses de historial
+  const backups = fs
+    .readdirSync(dir)
+    .filter((name) => BACKUP_FILE_PATTERN.test(name))
+    .map((name) => ({ name, time: fs.statSync(path.join(dir, name)).mtimeMs }))
+    .sort((a, b) => b.time - a.time);
+  for (const old of backups.slice(KEPT_BACKUPS)) {
+    try {
+      fs.rmSync(path.join(dir, old.name), { force: true });
+    } catch {
+      // Si un archivo está en uso, se intentará en la próxima copia
+    }
+  }
+  return { success: true, path: target };
+});
+
 ipcMain.handle('get-launch-at-login', () => app.getLoginItemSettings({ path: launcherPath(), args: [START_HIDDEN_ARG] }).openAtLogin);
 
 ipcMain.handle('set-launch-at-login', (_event, enabled) => {

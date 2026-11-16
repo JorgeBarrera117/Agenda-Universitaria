@@ -16,6 +16,8 @@ import { ViewSkeleton } from './shared/components/ViewSkeleton';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
+import { useAppLock } from './features/security/hooks/useAppLock';
+import { AppLockScreen } from './features/security/components/AppLockScreen';
 import { applyTheme, applyCardSurface, applyPerformanceMode, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
@@ -44,6 +46,9 @@ const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: m
 const NotesView = lazy(() => loadNotesView().then((m) => ({ default: m.NotesView })));
 // Solo se carga si hay una versión nueva que anunciar
 // Solo se carga si hay novedades sin ver tras actualizar
+const BackupReminderModal = lazy(() =>
+  import('./shared/components/BackupReminderModal').then((m) => ({ default: m.BackupReminderModal }))
+);
 const WhatsNewModal = lazy(() =>
   import('./shared/components/WhatsNewModal').then((m) => ({ default: m.WhatsNewModal }))
 );
@@ -139,6 +144,8 @@ export function App() {
 
   const { subjectCount, professorsCount, notesCount, documentsCount } = useTabCounts();
   const { settings } = useAppSettings();
+  // Bloqueo con PIN o huella (Ajustes → Bloqueo de la app): tapa la app hasta desbloquear
+  const appLock = useAppLock();
 
   useEffect(() => preloadSecondaryViewsWhenIdle(), []);
 
@@ -249,6 +256,42 @@ export function App() {
     }, 3000);
     return () => window.clearTimeout(timer);
   }, []);
+
+  // Copias de seguridad: 6 s después de abrir, la copia automática semanal si está activa (Android
+  // y Windows); si no, un recordatorio cuando pasan 14 días sin copia. El servicio se carga diferido.
+  const [backupReminder, setBackupReminder] = useState<{ daysWithoutBackup: number | null } | null>(null);
+  const backupSettingsRef = useRef(settings);
+  useEffect(() => {
+    backupSettingsRef.current = settings;
+  }, [settings]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void import('./shared/services/backupScheduleService').then(async (backup) => {
+        const current = backupSettingsRef.current;
+        try {
+          const saved = await backup.runAutoBackupIfDue(current);
+          if (saved) {
+            showToast(`Copia de seguridad semanal guardada en ${saved.location}.`);
+            return;
+          }
+        } catch (err) {
+          console.warn('No se pudo hacer la copia automática:', err);
+        }
+        const reminder = await backup.getBackupReminder(current);
+        if (reminder) setBackupReminder(reminder);
+      });
+    }, 6000);
+    return () => window.clearTimeout(timer);
+  }, [showToast]);
+  const closeBackupReminder = useCallback(() => {
+    void import('./shared/services/backupScheduleService').then((backup) => backup.markBackupReminderShown());
+    setBackupReminder(null);
+  }, []);
+  const openBackupFromReminder = useCallback(() => {
+    closeBackupReminder();
+    setSettingsInitialView('backup');
+    setIsSettingsOpen(true);
+  }, [closeBackupReminder]);
 
   const closeUpdateForToday = useCallback(() => {
     if (pendingUpdate) {
@@ -391,6 +434,17 @@ export function App() {
         </Suspense>
       )}
 
+      {/* El recordatorio de copia espera a que no haya otro aviso abierto */}
+      {backupReminder && !incoming && whatsNew.length === 0 && !pendingUpdate && (
+        <Suspense fallback={null}>
+          <BackupReminderModal
+            daysWithoutBackup={backupReminder.daysWithoutBackup}
+            onBackupNow={openBackupFromReminder}
+            onLater={closeBackupReminder}
+          />
+        </Suspense>
+      )}
+
       {incoming?.kind === 'note' && (
         <Suspense fallback={null}>
           <ImportNoteModal
@@ -450,6 +504,8 @@ export function App() {
           />
         </Suspense>
       )}
+
+      {appLock.locked && <AppLockScreen onUnlock={appLock.unlock} />}
 
       {/* Notificación Toast Contextual Centrada y Translúcida */}
       <ContextualToast

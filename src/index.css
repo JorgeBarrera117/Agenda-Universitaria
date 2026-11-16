@@ -767,6 +767,13 @@
    - Compatible con la arquitectura Keep-Alive DOM (`hidden` -> `block`).
    ============================================================================ */
 
+/* PIN incorrecto: los puntos tiemblan de lado a lado (teclado del bloqueo de la app) */
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
 @keyframes m3-shared-axis-x-right {
   0% {
     opacity: 0.25;

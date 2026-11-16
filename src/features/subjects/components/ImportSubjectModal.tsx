@@ -18,6 +18,7 @@ import {
   type SubjectSharePackage,
 } from '../services/subjectShareService';
 import { SubjectBadge } from './SubjectIcon';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 
 type ImportMode = 'merge' | 'update' | 'create';
 
@@ -40,6 +41,7 @@ interface ImportSubjectModalProps {
  * como nueva; el resumen muestra antes de guardar qué clases se agregan, se quitan o chocan.
  */
 export const ImportSubjectModal: React.FC<ImportSubjectModalProps> = ({ sharePackage, onClose, onImported }) => {
+  const timeFormatter = useTimeFormatter();
   const { subjects } = useSubjects();
   const { professors } = useProfessors();
   const { slots } = useSchedule();
@@ -149,7 +151,7 @@ export const ImportSubjectModal: React.FC<ImportSubjectModalProps> = ({ sharePac
                       <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
                     )}
                     <span className="font-semibold">
-                      {DAY_NAMES[slot.dayOfWeek]} {slot.startTime}–{slot.endTime}
+                      {DAY_NAMES[slot.dayOfWeek]} {timeFormatter.range(slot.startTime, slot.endTime, '–')}
                     </span>
                     <span className="min-w-0 truncate text-[var(--color-md-on-surface-variant)]">
                       {virtual ? `· Virtual${location ? ` (${location})` : ''}` : location ? `· ${location}` : ''}

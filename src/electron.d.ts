@@ -40,6 +40,8 @@ export interface ElectronAPI {
   openNotificationSettings: () => Promise<void>;
   getLaunchAtLogin: () => Promise<boolean>;
   setLaunchAtLogin: (enabled: boolean) => Promise<boolean>;
+  /** Copia de seguridad automática en Documentos › Agenda Universitaria › Respaldos (guarda las 8 últimas). */
+  saveBackupFile: (options: { fileName: string; content: string }) => Promise<{ success: boolean; path: string }>;
   /** Devuelve la función para dejar de escuchar. */
   onReminderFired: (callback: () => void) => () => void;
   /** Descarga el instalador y comprueba su SHA-256 (rechaza enlaces fuera de los releases del repositorio). */

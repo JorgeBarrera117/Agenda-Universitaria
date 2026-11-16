@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { DAY_NAMES, type ScheduleSlot } from '../types';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 
 interface DeleteSlotDialogProps {
   /** Clase a quitar; null = cerrado. */
@@ -19,6 +20,7 @@ interface DeleteSlotDialogProps {
  */
 export const DeleteSlotDialog: React.FC<DeleteSlotDialogProps> = ({ slot, subjectName, onCancel, onConfirm }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const formatter = useTimeFormatter();
 
   const handleConfirm = async () => {
     if (!slot) return;
@@ -36,7 +38,7 @@ export const DeleteSlotDialog: React.FC<DeleteSlotDialogProps> = ({ slot, subjec
         <p className="text-sm text-[var(--color-md-on-surface-variant)]">
           Se quitará del horario la clase{subjectName ? <> de <strong className="text-[var(--color-md-on-surface)]">{subjectName}</strong></> : null} del{' '}
           <strong className="text-[var(--color-md-on-surface)]">
-            {DAY_NAMES[slot.dayOfWeek].toLowerCase()}, {slot.startTime} – {slot.endTime}
+            {DAY_NAMES[slot.dayOfWeek].toLowerCase()}, {formatter.range(slot.startTime, slot.endTime)}
           </strong>
           . La materia y tus apuntes se conservan.
         </p>

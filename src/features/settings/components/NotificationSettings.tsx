@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Bell, CheckCircle2, Clock, ExternalLink, Loader2, Monitor, Send, ShieldAlert, Volume2 } from 'lucide-react';
+import React from 'react';
+import { Bell, CheckCircle2, Clock, ExternalLink, Loader2, Send, ShieldAlert, Sunrise, Volume2 } from 'lucide-react';
 import { M3Switch, SettingsBlock, SettingsCard, ToggleChip } from './SettingsPrimitives';
 import { NotificationTonePicker } from './NotificationTonePicker';
-import type { AppSettings, NotificationSoundTone } from '../types';
+import { formInputClass } from '../../../shared/components/form';
+import { REMINDER_LEAD_OPTIONS, type AppSettings, type NotificationSoundTone, type ReminderLeadMinutes } from '../types';
 
 type SpecificNotificationKey = 'notify15MinBefore' | 'notifyAtClassStart' | 'notificationSound';
 
@@ -15,62 +16,29 @@ interface NotificationSettingsProps {
   onRequestPermission: () => void;
   onTestNotification: () => void;
   onSelectTone: (tone: NotificationSoundTone) => void;
+  /** Cambia otros ajustes de avisos (anticipación, resumen del día). */
+  onUpdate: (partial: Partial<AppSettings>) => void;
 }
 
 const MOMENTS: { key: SpecificNotificationKey; label: string; icon: React.ReactNode }[] = [
-  { key: 'notify15MinBefore', label: '15 min antes', icon: <Clock className="h-4 w-4" /> },
+  { key: 'notify15MinBefore', label: 'Antes de la clase', icon: <Clock className="h-4 w-4" /> },
   { key: 'notifyAtClassStart', label: 'Al iniciar', icon: <Bell className="h-4 w-4" /> },
   { key: 'notificationSound', label: 'Sonido', icon: <Volume2 className="h-4 w-4" /> },
 ];
 
-/**
- * Solo en la versión de escritorio: abrir la app con Windows (oculta en la bandeja) para que los
- * recordatorios lleguen aunque no la abras, y acceso a los ajustes de notificaciones de Windows.
- */
-const DesktopNotificationOptions: React.FC = () => {
+/** Solo en la versión de escritorio: acceso a los ajustes de notificaciones de Windows. */
+const DesktopNotificationLink: React.FC = () => {
   const desktop = window.electronAPI;
-  const [launchAtLogin, setLaunchAtLogin] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (!desktop?.getLaunchAtLogin) return;
-    let active = true;
-    void desktop.getLaunchAtLogin().then((enabled) => {
-      if (active) setLaunchAtLogin(enabled);
-    });
-    return () => {
-      active = false;
-    };
-  }, [desktop]);
-
-  if (!desktop?.getLaunchAtLogin) return null;
-
+  if (!desktop?.openNotificationSettings) return null;
   return (
-    <SettingsBlock
-      title="En esta computadora"
-      description="Al cerrar la ventana, la app sigue en la bandeja del sistema (junto al reloj) para avisarte."
-      icon={<Monitor className="h-4 w-4" />}
+    <button
+      type="button"
+      onClick={() => void desktop.openNotificationSettings()}
+      className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-md-primary)] hover:underline"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Iniciar con Windows</p>
-          <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">Se abre oculta al encender la computadora.</p>
-        </div>
-        <M3Switch
-          checked={launchAtLogin ?? false}
-          disabled={launchAtLogin === null}
-          onChange={(enabled) => void desktop.setLaunchAtLogin(enabled).then(setLaunchAtLogin)}
-          label="Iniciar con Windows"
-        />
-      </div>
-      <button
-        type="button"
-        onClick={() => void desktop.openNotificationSettings()}
-        className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--color-md-primary)] hover:underline"
-      >
-        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-        Ajustes de notificaciones de Windows
-      </button>
-    </SettingsBlock>
+      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+      Ajustes de notificaciones de Windows
+    </button>
   );
 };
 
@@ -83,6 +51,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   onRequestPermission,
   onTestNotification,
   onSelectTone,
+  onUpdate,
 }) => (
   <SettingsCard>
     <section className="flex items-center justify-between gap-3">
@@ -148,6 +117,58 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           />
         ))}
       </div>
+      {settings.notificationsEnabled && settings.notify15MinBefore && (
+        <div className="mt-3 space-y-1.5">
+          <p className="text-xs font-semibold text-[var(--color-md-on-surface)]">¿Cuánto antes?</p>
+          <div role="radiogroup" aria-label="Minutos de anticipación" className="flex flex-wrap gap-2">
+            {REMINDER_LEAD_OPTIONS.map((minutes) => {
+              const selected = (settings.reminderLeadMinutes ?? 15) === minutes;
+              return (
+                <button
+                  key={minutes}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => onUpdate({ reminderLeadMinutes: minutes as ReminderLeadMinutes })}
+                  className={`h-8 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                    selected
+                      ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
+                      : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/[0.06]'
+                  }`}
+                >
+                  {minutes === 60 ? '1 h' : `${minutes} min`}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </SettingsBlock>
+
+    <SettingsBlock
+      title="Resumen del día"
+      description="Cada mañana, un aviso con las clases que tienes ese día."
+      icon={<Sunrise className="h-4 w-4" />}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <label htmlFor="daily-summary-time" className={`flex items-center gap-2 text-xs font-semibold ${settings.dailySummaryEnabled ? 'text-[var(--color-md-on-surface)]' : 'text-[var(--color-md-on-surface-variant)]'}`}>
+          Hora del aviso
+          <input
+            id="daily-summary-time"
+            type="time"
+            value={settings.dailySummaryTime || '07:00'}
+            disabled={!settings.notificationsEnabled || !settings.dailySummaryEnabled}
+            onChange={(e) => e.target.value && onUpdate({ dailySummaryTime: e.target.value })}
+            className={`${formInputClass} w-32 font-mono font-bold disabled:opacity-50`}
+          />
+        </label>
+        <M3Switch
+          checked={Boolean(settings.dailySummaryEnabled)}
+          disabled={!settings.notificationsEnabled}
+          onChange={(enabled) => onUpdate({ dailySummaryEnabled: enabled })}
+          label="Resumen del día"
+        />
+      </div>
     </SettingsBlock>
 
     {settings.notificationsEnabled && settings.notificationSound && (
@@ -156,6 +177,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       </SettingsBlock>
     )}
 
-    <DesktopNotificationOptions />
+    <DesktopNotificationLink />
   </SettingsCard>
 );

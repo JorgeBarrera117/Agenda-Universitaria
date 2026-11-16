@@ -4,6 +4,8 @@ import {
   Moon,
   Monitor,
   BellRing,
+  LockKeyhole,
+  Clock,
   Calendar,
   Camera,
   Database,
@@ -21,6 +23,10 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { NotificationService } from '../../../shared/services/notificationService';
 import { BackupSection } from './BackupSection';
+import { BackupScheduleSettings } from './BackupScheduleSettings';
+import { GeneralSettings } from './GeneralSettings';
+import { SecuritySettings } from '../../security/components/SecuritySettings';
+import { isLockEnabled } from '../../security/services/appLockService';
 import { applyTheme, paletteDisplayName } from '../../../shared/utils/theme';
 import {
   getCustomWallpaperDataUrl,
@@ -53,7 +59,9 @@ export type SettingsCategory =
   | 'backup'
   | 'about'
   | 'changelog'
-  | 'profile';
+  | 'profile'
+  | 'general'
+  | 'security';
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -71,6 +79,8 @@ const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
   about: 'Acerca de la agenda',
   changelog: 'Novedades de la versión',
   profile: 'Mi perfil',
+  general: 'General',
+  security: 'Bloqueo de la app',
 };
 
 const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: string }[] = [
@@ -326,6 +336,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const scheduleViewLabel =
     settings.defaultScheduleView === 'weekly' ? 'Semana' : 'Por día';
 
+  // El estado del bloqueo vive aparte de los ajustes: se relee al volver al menú principal
+  const lockActive = activeSubView === null && isLockEnabled();
+
   const visibleDaysLabel =
     settings.visibleDays === 'mon-fri' ? 'Lun - Vie' : settings.visibleDays === 'mon-sat' ? 'Lun - Sáb' : 'Toda la semana';
 
@@ -389,7 +402,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
             </SettingsGroup>
 
-            <SettingsGroup title="Almacenamiento y sistema">
+            <SettingsGroup title="Sistema">
+              <SettingsRow
+                icon={<Clock className="h-4 w-4" />}
+                title="General"
+                subtitle={window.electronAPI?.getLaunchAtLogin ? 'Formato de hora e inicio con Windows' : 'Formato de hora'}
+                value={settings.timeFormat === '12h' ? '12 h' : '24 h'}
+                onClick={() => setActiveSubView('general')}
+              />
+              <SettingsRow
+                icon={<LockKeyhole className="h-4 w-4" />}
+                title="Bloqueo de la app"
+                subtitle="PIN o huella al abrir la agenda"
+                value={lockActive ? 'Activo' : 'Apagado'}
+                valueTone={lockActive ? 'active' : 'neutral'}
+                onClick={() => setActiveSubView('security')}
+              />
+            </SettingsGroup>
+
+            <SettingsGroup title="Datos y app">
               <SettingsRow
                 icon={<Database className="h-4 w-4" />}
                 title="Datos y copias de seguridad"
@@ -885,6 +916,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onRequestPermission={() => void handleRequestPermission()}
                 onTestNotification={() => void handleTestNotification()}
                 onSelectTone={(tone) => void updateSettings({ notificationTone: tone })}
+                onUpdate={(partial) => updateSettings(partial)}
               />
             )}
 
@@ -894,6 +926,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             )}
 
             {/* ---------------- SUB-VISTA 5: DATOS Y RESPALDOS ---------------- */}
+            {activeSubView === 'general' && <GeneralSettings />}
+
+            {activeSubView === 'security' && <SecuritySettings onShowToast={onShowToast} />}
+
+            {activeSubView === 'backup' && <BackupScheduleSettings />}
             {activeSubView === 'backup' && (
               <BackupSection
                 onShowToast={onShowToast}

@@ -123,7 +123,24 @@ export interface AppSettings {
   notify15MinBefore: boolean;
   notificationSound: boolean;
   notificationTone: NotificationSoundTone;
+  /** Minutos de anticipación del aviso «antes de la clase» (notify15MinBefore lo activa). */
+  reminderLeadMinutes?: ReminderLeadMinutes;
+  /** Resumen del día: un aviso a esta hora con las clases de hoy. */
+  dailySummaryEnabled?: boolean;
+  /** Hora del resumen (HH:MM, 24 h). */
+  dailySummaryTime?: string;
+  /** Cómo se muestran las horas: 15:00 o 3:00 p. m. */
+  timeFormat?: TimeFormat;
+  /** Copia de seguridad automática semanal (Android: Descargas; Windows: Documentos). */
+  autoBackupEnabled?: boolean;
+  /** Avisar si hace tiempo que no se hace una copia de seguridad. */
+  backupReminderEnabled?: boolean;
 }
+
+export type TimeFormat = '24h' | '12h';
+
+export const REMINDER_LEAD_OPTIONS = [5, 10, 15, 30, 60] as const;
+export type ReminderLeadMinutes = (typeof REMINDER_LEAD_OPTIONS)[number];
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
@@ -147,4 +164,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notify15MinBefore: true,
   notificationSound: true,
   notificationTone: 'chime_school_jp',
+  reminderLeadMinutes: 15,
+  dailySummaryEnabled: false,
+  dailySummaryTime: '07:00',
+  timeFormat: '24h',
+  autoBackupEnabled: false,
+  backupReminderEnabled: true,
 };

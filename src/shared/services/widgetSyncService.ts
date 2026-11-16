@@ -8,6 +8,7 @@ import type { AppSettings, CustomPaletteSettings, MaterialColorTheme, ThemeMode 
 import { getDisplayedDays } from '../../features/schedule/utils/visibleDays';
 import { androidSubjectIconResource } from '../../features/subjects/utils/subjectIconResource';
 import { PERSONAL_COLOR, PERSONAL_ICON } from '../../features/notes/utils/personalNotes';
+import { formatTimeRange } from '../utils/timeFormat';
 import { MATERIAL_COLOR_PALETTES, isValidCustomPalette } from '../utils/theme';
 import { WidgetBridge } from '../plugins/widgetBridge';
 
@@ -46,6 +47,8 @@ export class WidgetSyncService {
       customPalette?: CustomPaletteSettings;
       /** Días visibles del horario (el widget por día muestra solo esos y los que tienen clases). */
       visibleDays?: AppSettings['visibleDays'];
+      /** Formato de hora de Ajustes → General. */
+      timeFormat?: AppSettings['timeFormat'];
     }
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
@@ -109,7 +112,8 @@ export class WidgetSyncService {
     // Días del widget por día: el rango de Ajustes más los días con clases (igual que la app)
     const visibleDays = getDisplayedDays(themeSettings?.visibleDays ?? 'mon-fri', slots.map((s) => s.dayOfWeek));
 
-    const currentHash = `${todayDay}_${isDark ? 'dark' : 'light'}_${paletteName}_${visibleDays.join('')}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.icon}_${s.color}`).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
+    const timeFormat = themeSettings?.timeFormat ?? '24h';
+    const currentHash = `${timeFormat}_${todayDay}_${isDark ? 'dark' : 'light'}_${paletteName}_${visibleDays.join('')}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.icon}_${s.color}`).join(',')}|${professors.length}|${notes.length}:${notes.slice(0, 10).map((n) => `${n.id}_${n.updatedAt}`).join(',')}`;
     if (currentHash === this.lastWidgetHash) {
       return;
     }
@@ -169,7 +173,7 @@ export class WidgetSyncService {
         return {
           id: slot.id,
           title: subject ? subject.name : 'Clase Universitaria',
-          timeOrDate: `${slot.startTime} - ${slot.endTime}`,
+          timeOrDate: formatTimeRange(slot.startTime, slot.endTime, timeFormat, ' - '),
           details: detailsParts.length > 0 ? detailsParts.join(' • ') : (isToday ? 'Clase de hoy' : DAY_NAMES[slot.dayOfWeek]),
           color: subject ? subject.color : '#3b82f6',
           icon: androidSubjectIconResource(subject?.icon),
@@ -247,7 +251,7 @@ export class WidgetSyncService {
           return {
             id: slot.id,
             title: subject ? subject.name : 'Clase Universitaria',
-            timeOrDate: `${slot.startTime} - ${slot.endTime}`,
+            timeOrDate: formatTimeRange(slot.startTime, slot.endTime, timeFormat, ' - '),
             details: detailsParts.length > 0 ? detailsParts.join(' • ') : (isToday ? 'Clase de hoy' : DAY_NAMES[slot.dayOfWeek]),
             color: subject ? subject.color : '#3b82f6',
             icon: androidSubjectIconResource(subject?.icon),

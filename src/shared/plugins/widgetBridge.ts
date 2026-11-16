@@ -52,6 +52,10 @@ export interface WidgetBridgePlugin {
   downloadUpdate(options: { url: string; sha256: string }): Promise<{ success: boolean; versionName?: string; sizeBytes?: number }>;
   /** Abre el instalador con el APK verificado; rechaza con code "INSTALL_PERMISSION" si falta el permiso. */
   installDownloadedUpdate(): Promise<void>;
+  /** ¿Hay huella, rostro o bloqueo de pantalla configurado para desbloquear la agenda? */
+  getBiometricStatus(): Promise<{ available: boolean }>;
+  /** Pide la huella o el bloqueo del teléfono (BiometricPrompt). */
+  authenticateBiometric(options: { title: string; subtitle?: string }): Promise<{ success: boolean; error?: string }>;
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */

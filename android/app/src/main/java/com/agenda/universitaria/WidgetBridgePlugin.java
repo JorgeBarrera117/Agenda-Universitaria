@@ -20,7 +20,11 @@ import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import androidx.activity.result.ActivityResult;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.FragmentActivity;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -607,6 +611,65 @@ public class WidgetBridgePlugin extends Plugin {
     @PluginMethod
     public void installDownloadedUpdate(PluginCall call) {
         AppUpdater.install(getContext(), call);
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Bloqueo de la agenda: huella, rostro o el bloqueo de pantalla del teléfono (BiometricPrompt)
+    // ---------------------------------------------------------------------------------------
+
+    /** Huella/rostro o, como respaldo, el PIN/patrón del teléfono. */
+    private static final int LOCK_AUTHENTICATORS =
+        BiometricManager.Authenticators.BIOMETRIC_WEAK | BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+
+    @PluginMethod
+    public void getBiometricStatus(PluginCall call) {
+        int status = BiometricManager.from(getContext()).canAuthenticate(LOCK_AUTHENTICATORS);
+        JSObject ret = new JSObject();
+        ret.put("available", status == BiometricManager.BIOMETRIC_SUCCESS);
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void authenticateBiometric(PluginCall call) {
+        String title = call.getString("title", "Desbloquear la agenda");
+        String subtitle = call.getString("subtitle", "");
+        if (!(getActivity() instanceof FragmentActivity)) {
+            call.reject("No se puede mostrar el desbloqueo en esta pantalla.");
+            return;
+        }
+        FragmentActivity activity = (FragmentActivity) getActivity();
+        activity.runOnUiThread(() -> {
+            BiometricPrompt prompt = new BiometricPrompt(
+                activity,
+                ContextCompat.getMainExecutor(activity),
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                        JSObject ret = new JSObject();
+                        ret.put("success", true);
+                        call.resolve(ret);
+                    }
+
+                    @Override
+                    public void onAuthenticationError(int errorCode, CharSequence errString) {
+                        // Cancelado o error: la app sigue pidiendo el PIN
+                        JSObject ret = new JSObject();
+                        ret.put("success", false);
+                        ret.put("error", errString.toString());
+                        call.resolve(ret);
+                    }
+                }
+            );
+            BiometricPrompt.PromptInfo.Builder info = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle(title)
+                .setAllowedAuthenticators(LOCK_AUTHENTICATORS);
+            if (subtitle != null && !subtitle.isEmpty()) info.setSubtitle(subtitle);
+            try {
+                prompt.authenticate(info.build());
+            } catch (Exception e) {
+                call.reject("No se pudo mostrar el desbloqueo: " + e.getMessage());
+            }
+        });
     }
 
     private static final String AGNOTE_DEFAULT_MIME = "application/vnd.agenda-universitaria.note+json";

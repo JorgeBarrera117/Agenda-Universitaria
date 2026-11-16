@@ -14,6 +14,7 @@ import {
 import { Button } from '../../../shared/components/atoms';
 import type { Subject } from '../../subjects/types';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 import { DAY_NAMES } from '../types';
 import type { CampusPulse, NextClassPulse, PulseClass } from '../hooks/useCampusPulse';
 
@@ -45,18 +46,19 @@ function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
 }
 
-function nextClassWhen(next: NextClassPulse): string {
+function nextClassWhen(next: NextClassPulse, formatTime: (time: string) => string): string {
   if (next.daysAhead === 0) return `Empieza en ${formatDuration(next.minutesUntilStart)}`;
-  if (next.daysAhead === 1) return `Mañana a las ${next.slot.startTime}`;
-  return `${DAY_NAMES[next.dayOfWeek]} a las ${next.slot.startTime}`;
+  if (next.daysAhead === 1) return `Mañana a las ${formatTime(next.slot.startTime)}`;
+  return `${DAY_NAMES[next.dayOfWeek]} a las ${formatTime(next.slot.startTime)}`;
 }
 
 function ClassDetails({ info }: { info: PulseClass }) {
+  const formatter = useTimeFormatter();
   return (
     <ul className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
       <li className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-md-card-bg)] px-2 py-0.5 font-mono">
         <Clock className="h-3 w-3" aria-hidden="true" />
-        {info.slot.startTime} - {info.slot.endTime}
+        {formatter.range(info.slot.startTime, info.slot.endTime)}
       </li>
       {(info.isVirtual || info.location) && (
         <li className="inline-flex min-w-0 items-center gap-1 rounded-lg bg-[var(--color-md-card-bg)] px-2 py-0.5">
@@ -104,6 +106,7 @@ function SubjectTitle({ info }: { info: PulseClass }) {
  * (con progreso), la próxima clase y el resumen de la jornada. Se puede plegar a una sola línea.
  */
 export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTakeNote, onOpenFiles }) => {
+  const formatter = useTimeFormatter();
   const [isCollapsed, setIsCollapsed] = useState(readCollapsed);
   const contentId = useId();
   const { currentClass, nextClass, daySummary, isDayFinished } = pulse;
@@ -134,7 +137,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
   const collapsedSummary = currentClass
     ? `${currentClass.subject?.name || 'Clase'} · faltan ${formatDuration(currentClass.minutesRemaining)}`
     : nextClass
-      ? `Próxima: ${nextClass.subject?.name || 'Clase'} · ${nextClassWhen(nextClass).toLowerCase()}`
+      ? `Próxima: ${nextClass.subject?.name || 'Clase'} · ${nextClassWhen(nextClass, formatter.time).toLowerCase()}`
       : '¡Jornada de hoy completada!';
 
   const dayPill = [
@@ -239,7 +242,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1.5 text-sm font-bold">
                     <CalendarClock className="h-4 w-4" aria-hidden="true" />
-                    {nextClassWhen(nextClass)}
+                    {nextClassWhen(nextClass, formatter.time)}
                   </span>
                   {onOpenFiles && nextClass.subject && (
                     <Button
