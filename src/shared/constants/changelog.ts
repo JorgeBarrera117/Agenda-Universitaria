@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.85',
+    date: '2026-11-16',
+    title: 'De teléfono a teléfono',
+    changes: [
+      { kind: 'nuevo', text: 'Pasa tus datos de un teléfono a otro con un código QR: en el inicio, Compartir → Pasar datos con otro dispositivo. Funciona por wifi o con el punto de acceso de uno de los teléfonos, sin internet.' },
+      { kind: 'mejora', text: 'Se pasa todo, incluida la sección Archivos, cifrado y con un código que sirve una sola vez.' },
+    ],
+  },
+  {
     version: '1.7.10.84',
     date: '2026-11-16',
     title: 'Tus archivos también viajan',
