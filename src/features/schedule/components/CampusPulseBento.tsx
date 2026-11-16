@@ -17,6 +17,7 @@ import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 import { DAY_NAMES } from '../types';
 import type { CampusPulse, NextClassPulse, PulseClass } from '../hooks/useCampusPulse';
+import { formatDuration } from '../utils/duration';
 
 interface CampusPulseBentoProps {
   pulse: CampusPulse;
@@ -32,14 +33,6 @@ function readCollapsed(): boolean {
   } catch {
     return false;
   }
-}
-
-function formatDuration(totalMinutes: number): string {
-  if (totalMinutes < 1) return 'menos de 1 min';
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours === 0) return `${minutes} min`;
-  return minutes === 0 ? `${hours} h` : `${hours} h ${String(minutes).padStart(2, '0')} min`;
 }
 
 function plural(count: number, singular: string, pluralForm: string): string {

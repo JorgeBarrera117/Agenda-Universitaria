@@ -26,6 +26,7 @@ import { scheduleImportedMessage } from '../utils/importMessages';
 import { useSchedule } from '../hooks/useSchedule';
 import { useCampusPulse } from '../hooks/useCampusPulse';
 import { CampusPulseBento } from './CampusPulseBento';
+import { ClassProgressBar } from './ClassProgressBar';
 import { isSlotVirtual } from '../utils/slotModality';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
@@ -508,6 +509,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             isToday &&
                             nowTimeString >= slot.startTime &&
                             nowTimeString < slot.endTime;
+                          const progress = isNow && pulse.currentClass?.slot.id === slot.id ? pulse.currentClass : null;
 
                           return (
                             /* Tarjeta rellena M3 teñida con el color de la materia: icono de la materia y
@@ -515,12 +517,20 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                Las acciones viven en el menú ⋮; tocar la tarjeta abre la ficha de la materia. */
                             <article
                               key={slot.id}
-                              style={{
-                                backgroundColor: `color-mix(in srgb, ${color} 9%, var(--color-md-card-bg))`,
-                                borderColor: isNow ? undefined : `color-mix(in srgb, ${color} 30%, transparent)`,
-                              }}
+                              style={
+                                isNow
+                                  ? {
+                                      // Clase en curso (M3): relleno tonal y contorno en el color primario del tema
+                                      backgroundColor: 'color-mix(in srgb, var(--color-md-primary-container) 75%, var(--color-md-card-bg))',
+                                      borderColor: 'var(--color-md-primary)',
+                                    }
+                                  : {
+                                      backgroundColor: `color-mix(in srgb, ${color} 9%, var(--color-md-card-bg))`,
+                                      borderColor: `color-mix(in srgb, ${color} 30%, transparent)`,
+                                    }
+                              }
                               className={`content-auto group relative overflow-hidden rounded-2xl border p-2.5 pr-1 transition-[box-shadow,transform] duration-150 ease-out hover:shadow-md active:scale-[0.99] ${
-                                isNow ? 'border-emerald-500 ring-2 ring-emerald-500/40' : ''
+                                isNow ? 'ring-1 ring-inset ring-[var(--color-md-primary)]' : ''
                               }`}
                             >
                               {/* Encabezado: icono elegido para la materia (con su color) y menú. El nombre va
@@ -565,8 +575,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                               <div className="mt-1.5 space-y-1 pr-2">
                                 {isNow && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden="true" />
+                                  <span className="inline-flex items-center rounded-full bg-[var(--color-md-primary)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-md-on-primary)]">
                                     En curso
                                   </span>
                                 )}
@@ -589,6 +598,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                     <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                                     <span className="truncate">{professor.name}</span>
                                   </p>
+                                )}
+                                {progress && (
+                                  <div className="pt-1">
+                                    <ClassProgressBar percent={progress.progressPercent} minutesRemaining={progress.minutesRemaining} compact />
+                                  </div>
                                 )}
                               </div>
                             </article>
@@ -646,6 +660,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 activeDay === currentDayOfWeek &&
                 nowTimeString >= slot.startTime &&
                 nowTimeString < slot.endTime;
+              const progress = isNow && pulse.currentClass?.slot.id === slot.id ? pulse.currentClass : null;
 
               return (
                 <Card
@@ -653,9 +668,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   padding="compact"
                   accentColor={isNow ? undefined : subject?.color}
                   interactive
-                  className={`content-auto flex flex-col gap-2.5 ${
-                    isNow ? 'border-emerald-500 ring-2 ring-emerald-400/40' : ''
-                  }`}
+                  style={
+                    isNow
+                      ? {
+                          // Clase en curso (M3): relleno tonal y contorno en el color primario del tema
+                          background: 'color-mix(in srgb, var(--color-md-primary-container) 70%, var(--md-card-surface))',
+                          borderColor: 'var(--color-md-primary)',
+                        }
+                      : undefined
+                  }
+                  className={`content-auto flex flex-col gap-2.5 ${isNow ? 'ring-1 ring-inset ring-[var(--color-md-primary)]' : ''}`}
                 >
                   {/* Cabecera: materia protagonista, código/estado debajo y docente justo después */}
                   <div className="flex items-start gap-3">
@@ -680,9 +702,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             </span>
                           )}
                           {isNow && (
-                            <Badge variant="success" size="xs" className="motion-safe:animate-pulse">
-                              EN CURSO
-                            </Badge>
+                            <span className="inline-flex items-center rounded-md bg-[var(--color-md-primary)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--color-md-on-primary)]">
+                              En curso
+                            </span>
                           )}
                         </div>
                       )}
@@ -726,7 +748,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                   {/* Horario destacado + modalidad o aula */}
                   <div className="flex items-center gap-1.5 flex-wrap text-xs">
-                    <span className="inline-flex items-center gap-1 font-mono font-bold text-[11px] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] px-2.5 py-1 rounded-lg">
+                    <span
+                      className={`inline-flex items-center gap-1 font-mono font-bold text-[11px] px-2.5 py-1 rounded-lg ${
+                        isNow
+                          ? 'bg-[var(--md-card-surface)] text-[var(--color-md-on-surface)]'
+                          : 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
+                      }`}
+                    >
                       <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                       {timeFormatter.range(slot.startTime, slot.endTime)}
                     </span>
@@ -744,6 +772,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       </span>
                     ) : null}
                   </div>
+
+                  {progress && <ClassProgressBar percent={progress.progressPercent} minutesRemaining={progress.minutesRemaining} />}
 
                   {/* Pie anclado abajo: la acción principal en la zona del pulgar */}
                   {onNavigateToNotes && (
