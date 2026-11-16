@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.82',
+    date: '2026-11-16',
+    title: 'Más fácil de leer y de tocar',
+    changes: [
+      { kind: 'nuevo', text: 'Ajustes → General → Tamaño del texto: elige Pequeño, Normal, Grande o Muy grande y las letras de toda la app cambian al instante.' },
+      { kind: 'mejora', text: 'Los botones de las ventanas (Cancelar, Guardar, Eliminar…) y las opciones del menú ⋮ son más grandes y fáciles de tocar; «Cancelar» ahora tiene contorno.' },
+      { kind: 'mejora', text: 'La clase en curso se resalta con el color de tu tema (sin el borde verde brillante) y muestra cuánto falta para que termine.' },
+    ],
+  },
+  {
     version: '1.7.10.81',
     date: '2026-11-15',
     title: 'Pasa tus datos entre el teléfono y la PC',
