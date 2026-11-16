@@ -9,3 +9,10 @@ export function canHostTransfer(): boolean {
 export function canScanTransfer(): boolean {
   return Capacitor.getPlatform() === 'android';
 }
+
+/** Texto del acceso directo según el dispositivo, o null si aquí no se puede transferir (web). */
+export function transferShortcutLabel(): string | null {
+  if (canHostTransfer()) return 'Pasar datos con el teléfono';
+  if (canScanTransfer()) return 'Pasar datos con la PC';
+  return null;
+}

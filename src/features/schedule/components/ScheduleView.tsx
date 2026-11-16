@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Import,
+  MonitorSmartphone,
   Share2,
   UserRound,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ import { useCampusPulse } from '../hooks/useCampusPulse';
 import { CampusPulseBento } from './CampusPulseBento';
 import { ClassProgressBar } from './ClassProgressBar';
 import { SeasonalGreeting } from '../../../shared/seasons/SeasonalGreeting';
+import { transferShortcutLabel } from '../../transfer/services/transferAvailability';
 import { isSlotVirtual } from '../utils/slotModality';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
@@ -71,6 +73,10 @@ const SubjectDocumentsModal = lazy(() =>
 const ImportScheduleModal = lazy(() =>
   import('./ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
+// Y con la transferencia por QR entre el teléfono y la PC (menú ⋮)
+const TransferLauncher = lazy(() =>
+  import('../../transfer/components/TransferLauncher').then((m) => ({ default: m.TransferLauncher }))
+);
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onNavigateToNotes,
@@ -91,6 +97,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const currentDayOfWeek = pulse.todayDayOfWeek;
   const nowTimeString = pulse.nowTimeString;
   const [subjectForFiles, setSubjectForFiles] = useState<Subject | null>(null);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferLabel] = useState(transferShortcutLabel);
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(currentDayOfWeek);
   const [viewMode, setViewMode] = useState<'weekly' | 'daily'>(
@@ -358,7 +366,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           {/* Compartir o importar el horario completo (.agschedule) */}
           <input {...agschedulePicker.inputProps} />
           <M3KebabMenu
-            ariaLabel="Compartir o importar el horario"
+            ariaLabel="Compartir, importar o pasar datos"
             items={[
               {
                 id: 'share-agschedule',
@@ -372,8 +380,24 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                 onClick: agschedulePicker.open,
               },
+              // Acceso directo a pasar los datos por QR (solo en las apps de Android y Windows)
+              ...(transferLabel
+                ? [
+                    {
+                      id: 'device-transfer',
+                      label: transferLabel,
+                      icon: <MonitorSmartphone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+                      onClick: () => setTransferOpen(true),
+                    },
+                  ]
+                : []),
             ]}
           />
+          {transferOpen && (
+            <Suspense fallback={null}>
+              <TransferLauncher onClose={() => setTransferOpen(false)} onShowToast={showToast} />
+            </Suspense>
+          )}
         </div>
       </div>
 

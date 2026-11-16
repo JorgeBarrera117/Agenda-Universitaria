@@ -148,11 +148,10 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
 
           <ol className="list-decimal space-y-1 pl-5 text-sm text-[var(--color-md-on-surface)]">
             <li>
-              En el teléfono abre <strong>Ajustes → Datos y copias de seguridad</strong>.
+              En el teléfono, en el inicio, toca <strong>⋮ → Pasar datos con la PC</strong> (también está en Ajustes → Datos
+              y copias de seguridad).
             </li>
-            <li>
-              Toca <strong>Escanear código de la PC</strong> y apunta la cámara a este código.
-            </li>
+            <li>Apunta la cámara a este código.</li>
           </ol>
 
           {!toPc && (

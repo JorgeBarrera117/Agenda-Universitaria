@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useState } from 'react';
 import { MonitorSmartphone, ScanQrCode, Send, Download } from 'lucide-react';
 import { SettingsBlock, SettingsCard } from '../../settings/components/SettingsPrimitives';
 import { canHostTransfer, canScanTransfer } from '../services/transferAvailability';
+import { TransferTile } from './TransferTile';
 import type { TransferDirection } from '../services/transferProtocol';
 
 // Se cargan al abrirlas: el lector de QR y el generador solo hacen falta en ese momento
@@ -31,7 +32,7 @@ export const DeviceTransferCard: React.FC<DeviceTransferCardProps> = ({ onShowTo
         description={
           host
             ? 'Por tu wifi, sin cables ni internet. El teléfono y la computadora deben estar en la misma red.'
-            : 'Abre la app de Windows en Ajustes → Datos y copias de seguridad → Pasar datos con el teléfono, y escanea el código que aparece. Los dos deben estar en la misma red wifi.'
+            : 'En la app de Windows, en el inicio, toca ⋮ → Pasar datos con el teléfono y escanea el código que aparece. Los dos deben estar en la misma red wifi.'
         }
         icon={<MonitorSmartphone className="h-4 w-4" />}
       >
@@ -67,27 +68,3 @@ export const DeviceTransferCard: React.FC<DeviceTransferCardProps> = ({ onShowTo
     </SettingsCard>
   );
 };
-
-const TransferTile: React.FC<{ icon: React.ReactNode; title: string; subtitle: string; onClick: () => void }> = ({
-  icon,
-  title,
-  subtitle,
-  onClick,
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="flex min-h-[52px] w-full items-center gap-3 rounded-xl border border-transparent bg-[var(--color-md-primary-container)] px-3 py-2 text-left text-[var(--color-md-on-primary-container)] transition-all duration-150 ease-out hover:brightness-[0.97] active:scale-[0.98]"
-  >
-    <span
-      aria-hidden="true"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]"
-    >
-      {icon}
-    </span>
-    <span className="min-w-0">
-      <span className="block truncate text-xs font-bold">{title}</span>
-      <span className="block truncate text-11px opacity-80">{subtitle}</span>
-    </span>
-  </button>
-);
