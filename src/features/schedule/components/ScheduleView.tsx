@@ -27,6 +27,7 @@ import { useSchedule } from '../hooks/useSchedule';
 import { useCampusPulse } from '../hooks/useCampusPulse';
 import { CampusPulseBento } from './CampusPulseBento';
 import { ClassProgressBar } from './ClassProgressBar';
+import { SeasonalGreeting } from '../../../shared/seasons/SeasonalGreeting';
 import { isSlotVirtual } from '../utils/slotModality';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
@@ -375,6 +376,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           />
         </div>
       </div>
+
+      {/* Saludo de temporada (Navidad), solo del 1 de diciembre al 6 de enero */}
+      <SeasonalGreeting />
 
       {/* 2. CAMPUS PULSE: clase en curso, próxima clase y resumen de la jornada en tiempo real */}
       <CampusPulseBento

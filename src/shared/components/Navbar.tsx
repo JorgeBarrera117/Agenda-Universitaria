@@ -12,6 +12,8 @@ import {
 import { StudentAvatar } from '../../features/settings/components/StudentAvatar';
 import { CUSTOM_STATUS_ICON, findStatusPreset } from '../../features/settings/studentIdentity';
 import type { StudentStatusMode } from '../../features/settings/types';
+import { useSeason } from '../seasons/useSeason';
+import { SantaHat } from '../seasons/SantaHat';
 
 export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes' | 'documents';
 
@@ -44,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   studentStatusMode = 'network',
   studentCustomStatus,
 }) => {
+  const season = useSeason();
   const firstName = studentName?.trim().split(/\s+/)[0];
   const customStatus = studentStatusMode === 'custom' ? studentCustomStatus?.trim() : undefined;
   const StatusIcon = customStatus ? (findStatusPreset(customStatus)?.icon ?? CUSTOM_STATUS_ICON) : null;
@@ -152,6 +155,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 name={studentName}
                 className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[var(--color-md-outline-variant)]/50 dark:ring-white/10 text-sm lg:text-base"
               />
+              {/* Navidad: gorrito sobre la foto (se va solo al terminar la temporada) */}
+              {season === 'christmas' && (
+                <SantaHat className="pointer-events-none absolute -left-2.5 -top-3 h-6 w-6 -rotate-[22deg] drop-shadow-sm lg:-top-3.5 lg:h-7 lg:w-7" />
+              )}
               <span
                 aria-hidden="true"
                 className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-full border-2 border-[var(--color-md-surface-container)] transition-colors duration-200 ${

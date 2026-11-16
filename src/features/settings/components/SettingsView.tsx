@@ -11,6 +11,7 @@ import {
   Database,
   Info,
   Sparkles,
+  Snowflake,
   Image as ImageIcon,
   Sliders,
   Trash2,
@@ -523,6 +524,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     customPreview={customWallpaperPreview}
                     onRequestUpload={() => wallpaperInputRef.current?.click()}
                   />
+
+                  {/* Decoración de temporada: Navidad del 1 de diciembre al 6 de enero (shared/seasons) */}
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] px-3 py-2.5">
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <Snowflake className="h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold text-[var(--color-md-on-surface)]">Decoración de temporada</span>
+                        <span className="block text-xs leading-snug text-[var(--color-md-on-surface-variant)]">
+                          Del 1 de diciembre al 6 de enero: fondo navideño, nieve y saludo con la cuenta atrás.
+                        </span>
+                      </span>
+                    </span>
+                    <M3Switch
+                      checked={settings.seasonalDecorations !== false}
+                      onChange={(seasonalDecorations) => updateSettings({ ...settings, seasonalDecorations })}
+                      label="Decoración de temporada"
+                    />
+                  </div>
 
                   {/* Acciones de Fotografía Personalizada */}
                   {(settings.wallpaperStyle === 'custom' || customWallpaperPreview) && (

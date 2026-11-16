@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAppSettings } from '../../features/settings/hooks/useAppSettings';
 import type { WallpaperStyle } from '../../features/settings/types';
-import { getPatternMask, isPatternWallpaper, patternMaskSize } from '../wallpapers/wallpaperPatterns';
+import { getPatternMask, getSeasonalMask, isPatternWallpaper, patternMaskSize } from '../wallpapers/wallpaperPatterns';
+import { useSeason } from '../seasons/useSeason';
 
 export const CUSTOM_WALLPAPER_STORAGE_KEY = 'agenda_custom_wallpaper_v1';
 
@@ -75,7 +76,13 @@ export const AppWallpaper: React.FC = () => {
   const blurPx = Math.max(0, Math.min(20, settings.wallpaperBlur ?? 0));
   const tintWithTheme = settings.wallpaperTintWithTheme ?? true;
 
-  const patternData = useMemo(() => (isPatternWallpaper(style) ? getPatternMask(style) : null), [style]);
+  // En temporada (Navidad) el patrón elegido se cambia por el de la temporada; la foto propia y
+  // el fondo liso se respetan
+  const season = useSeason();
+  const patternData = useMemo(() => {
+    if (!isPatternWallpaper(style)) return null;
+    return season ? getSeasonalMask(season) : getPatternMask(style);
+  }, [style, season]);
 
   if (style === 'none') return null;
 

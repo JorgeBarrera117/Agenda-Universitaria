@@ -11,6 +11,7 @@ import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
 import { AppWallpaper } from './shared/components/AppWallpaper';
+import { SeasonalSnowfall } from './shared/seasons/SeasonalSnowfall';
 import { BackgroundSyncManager } from './shared/components/BackgroundSyncManager';
 import { ViewSkeleton } from './shared/components/ViewSkeleton';
 import { ScheduleView } from './features/schedule/components/ScheduleView';
@@ -405,6 +406,7 @@ export function App() {
     >
       {/* Papel Tapiz Adaptativo al Tema (Fijo en GPU, z-0) */}
       <AppWallpaper />
+      <SeasonalSnowfall />
 
       {/* Sincronización de notificaciones y widget Android, aislada del árbol visual */}
       <BackgroundSyncManager />

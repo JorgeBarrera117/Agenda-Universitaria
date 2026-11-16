@@ -158,6 +158,8 @@ export interface AppSettings {
   backupReminderEnabled?: boolean;
   /** Tamaño del texto de toda la app (accesibilidad). */
   textScale?: TextScale;
+  /** Decoración de temporada (Navidad, del 1 de diciembre al 6 de enero). Activa salvo que se apague. */
+  seasonalDecorations?: boolean;
 }
 
 export type TimeFormat = '24h' | '12h';
@@ -204,4 +206,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoBackupEnabled: false,
   backupReminderEnabled: true,
   textScale: 'normal',
+  seasonalDecorations: true,
 };

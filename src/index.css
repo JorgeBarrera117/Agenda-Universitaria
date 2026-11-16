@@ -803,6 +803,28 @@ body {
   40%, 80% { transform: translateX(8px); }
 }
 
+/* Nieve de temporada (shared/seasons/SeasonalSnowfall.tsx): solo transform, en la GPU */
+@keyframes season-snow-fall {
+  from { transform: translate3d(0, -12vh, 0); }
+  to { transform: translate3d(var(--snow-drift, 0px), 112vh, 0); }
+}
+
+.season-snowflake {
+  position: absolute;
+  top: 0;
+  border-radius: 9999px;
+  animation-name: season-snow-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .season-snowflake {
+    display: none;
+  }
+}
+
 @keyframes m3-shared-axis-x-right {
   0% {
     opacity: 0.25;

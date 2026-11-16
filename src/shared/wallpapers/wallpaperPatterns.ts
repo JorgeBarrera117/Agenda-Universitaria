@@ -482,6 +482,72 @@ export const WALLPAPER_PATTERNS: Record<PatternWallpaperId, WallpaperPattern> = 
   },
 };
 
+/* ------------------------------------------------------------------ Temporadas */
+
+/** Copo de nieve de seis brazos centrado en (x, y). */
+const snowflake = (x: number, y: number, r: number) => {
+  const b = r * 0.3;
+  const arm = `<path d="M0 ${-r}V${r}M${-b} ${-r * 0.82}L0 ${-r * 0.55}L${b} ${-r * 0.82}M${-b} ${r * 0.82}L0 ${r * 0.55}L${b} ${r * 0.82}"/>`;
+  return `<g transform="translate(${x} ${y})">${[0, 60, 120].map((a) => `<g transform="rotate(${a})">${arm}</g>`).join('')}</g>`;
+};
+
+/**
+ * Patrones que la app pone sola durante una temporada (ver shared/seasons). No aparecen en la
+ * galería: sustituyen al patrón elegido mientras dura la temporada.
+ */
+const SEASONAL_PATTERNS: Record<'christmas', Omit<WallpaperPattern, 'category'>> = {
+  christmas: {
+    label: 'Navidad',
+    width: 220,
+    svg: svg(
+      220,
+      220,
+      `${STROKE} stroke-width="1.7"`,
+      `<g transform="translate(18 16)">
+        <path d="M20 4L32 16H26L36 28H28L40 42H0L12 28H4L14 16H8Z"/>
+        <path d="M17 42V50H23V42"/>
+        <circle cx="16" cy="30" r="1.6" fill="black" stroke="none"/>
+        <circle cx="25" cy="22" r="1.6" fill="black" stroke="none"/>
+      </g>
+      ${sparkle(38, 14, 6)}
+      ${snowflake(150, 34, 16)}
+      <g transform="translate(96 82)">
+        <rect x="0" y="10" width="32" height="24" rx="3"/>
+        <rect x="-3" y="4" width="38" height="8" rx="2"/>
+        <path d="M16 4V34"/>
+        <path d="M16 4C10 -6 3 -1 16 4C29 -1 22 -6 16 4"/>
+      </g>
+      <path d="M38 150V112C38 104 44 98 51 98C58 98 64 104 64 112" stroke-width="6" stroke-dasharray="5 4"/>
+      <g transform="translate(160 132)">
+        <path d="M2 30C7 26 7 21 7 14C7 7 11 3 17 3C23 3 27 7 27 14C27 21 27 26 32 30Z"/>
+        <path d="M14 34A3 3 0 0 0 20 34"/>
+        <path d="M13 3C11 -2 17 -2 17 3C17 -2 23 -2 21 3"/>
+      </g>
+      <g transform="translate(96 168)">
+        <circle cx="12" cy="22" r="12"/>
+        <rect x="8" y="6" width="8" height="5" rx="1"/>
+        <path d="M12 6C12 2 15 1 16 3"/>
+        <path d="M2 18C8 22 16 22 22 18" stroke-width="1.2"/>
+      </g>
+      ${snowflake(194, 196, 9)}
+      ${snowflake(30, 196, 7)}
+      ${snowflake(80, 50, 6)}
+      ${sparkle(194, 92, 5)}
+      ${sparkle(130, 140, 4)}
+      <circle cx="76" cy="132" r="2" fill="black" stroke="none"/>
+      <circle cx="200" cy="10" r="2" fill="black" stroke="none"/>
+      <circle cx="12" cy="88" r="2" fill="black" stroke="none"/>`
+    ),
+  },
+};
+
+/** Máscara del patrón de una temporada. */
+export function getSeasonalMask(season: keyof typeof SEASONAL_PATTERNS): PatternMask {
+  const entry = SEASONAL_PATTERNS[season];
+  const encoded = encodeURIComponent(entry.svg.replace(/\s+/g, ' ').trim());
+  return { dataUri: `url("data:image/svg+xml,${encoded}")`, width: entry.width, height: entry.height ?? entry.width };
+}
+
 export function isPatternWallpaper(style: WallpaperStyle): style is PatternWallpaperId {
   return style !== 'custom' && style !== 'none' && style in WALLPAPER_PATTERNS;
 }
