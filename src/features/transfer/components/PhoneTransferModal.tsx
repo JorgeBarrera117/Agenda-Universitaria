@@ -25,8 +25,8 @@ function errorMessage(error: unknown, fallback: string): string {
 }
 
 /**
- * App de Android: escanea el QR de la PC, se conecta y, tras confirmar, envía o recibe los datos.
- * La dirección (enviar o recibir) la elige la PC y va dentro del QR.
+ * App de Android: escanea el QR de la PC o de otro teléfono, se conecta y, tras confirmar, envía o
+ * recibe los datos. La dirección (enviar o recibir) la elige quien muestra el QR y va dentro de él.
  */
 export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose, onShowToast }) => {
   const [phase, setPhase] = useState<Phase>({ kind: 'scanning', hint: null });
@@ -45,7 +45,7 @@ export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose,
     setPhase({ kind: 'connecting' });
     void connectToPc(invite)
       .then((connection) => setPhase({ kind: 'confirm', invite, connection }))
-      .catch((error: unknown) => setPhase({ kind: 'error', message: errorMessage(error, 'No se pudo conectar con la computadora.') }));
+      .catch((error: unknown) => setPhase({ kind: 'error', message: errorMessage(error, 'No se pudo conectar con el otro dispositivo.') }));
     return true;
   }, []);
 
@@ -54,14 +54,14 @@ export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose,
       if (invite.direction === 'to-pc') {
         setPhase({ kind: 'working', label: 'Preparando, cifrando y enviando tus datos…' });
         await sendBackupToPc(connection, invite);
-        setPhase({ kind: 'done', message: `Datos enviados a «${connection.pcName}». Termina de confirmar en la computadora.` });
+        setPhase({ kind: 'done', message: `Datos enviados a «${connection.pcName}». Termina de confirmar allí.` });
       } else {
-        setPhase({ kind: 'working', label: 'Recibiendo los datos de la computadora…' });
+        setPhase({ kind: 'working', label: `Recibiendo los datos de «${connection.pcName}»…` });
         const jsonText = await receiveBackupFromPc(connection, invite);
         setPhase({ kind: 'working', label: 'Guardando los datos…' });
         await restoreFromRawJson(jsonText);
         setPhase({ kind: 'done', message: `Listo: este teléfono ya tiene los datos de «${connection.pcName}».` });
-        onShowToast('Datos de la computadora guardados en este teléfono.');
+        onShowToast(`Datos de «${connection.pcName}» guardados en este teléfono.`);
       }
     } catch (error: unknown) {
       setPhase({ kind: 'error', message: errorMessage(error, 'La transferencia falló. Vuelve a intentarlo.') });
@@ -74,12 +74,12 @@ export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose,
   };
 
   return (
-    <Modal isOpen onClose={close} title="Pasar datos con la PC" maxWidth="md">
+    <Modal isOpen onClose={close} title="Escanear un código" maxWidth="md">
       {phase.kind === 'scanning' && (
         <div className="space-y-4">
           <QrScanner onDetected={handleDetected} />
           <p role="status" className="min-h-[2.5rem] text-center text-sm text-[var(--color-md-on-surface-variant)]">
-            {phase.hint ?? 'Apunta la cámara al código que muestra la app de Windows.'}
+            {phase.hint ?? 'Apunta la cámara al código que muestra la PC o el otro teléfono.'}
           </p>
           <ModalActions>
             <Button variant="ghost" size="sm" onClick={close}>
@@ -89,7 +89,7 @@ export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose,
         </div>
       )}
 
-      {phase.kind === 'connecting' && <StatusLine icon={<Loader2 className="h-5 w-5 animate-spin" />} text="Conectando con la computadora…" />}
+      {phase.kind === 'connecting' && <StatusLine icon={<Loader2 className="h-5 w-5 animate-spin" />} text="Conectando con el otro dispositivo…" />}
 
       {phase.kind === 'confirm' && (
         <div className="space-y-4">
@@ -100,14 +100,13 @@ export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose,
           {phase.invite.direction === 'to-pc' ? (
             <p className="text-sm text-[var(--color-md-on-surface-variant)]">
               Se enviará una copia de todos tus datos (materias, horario, apuntes con sus fotos y audios, y la sección
-              Archivos) a la computadora.
-              Allí tendrás que confirmar antes de que se guarden.
+              Archivos) a «{phase.connection.pcName}». Allí tendrás que confirmar antes de que se guarden.
             </p>
           ) : (
             <p className="flex items-start gap-2 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-3 text-xs text-[var(--color-md-on-surface)]">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-              Las materias, docentes, horario, apuntes y archivos de este teléfono se reemplazarán por los de la
-              computadora. No se puede deshacer: si quieres conservar lo de aquí, haz antes una copia.
+              Las materias, docentes, horario, apuntes y archivos de este teléfono se reemplazarán por los de
+              «{phase.connection.pcName}». No se puede deshacer: si quieres conservar lo de aquí, haz antes una copia.
             </p>
           )}
           <ModalActions>

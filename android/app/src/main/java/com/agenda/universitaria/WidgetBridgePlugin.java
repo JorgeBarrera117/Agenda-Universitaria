@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.provider.OpenableColumns;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -26,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentActivity;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -42,6 +44,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -611,6 +614,84 @@ public class WidgetBridgePlugin extends Plugin {
     @PluginMethod
     public void installDownloadedUpdate(PluginCall call) {
         AppUpdater.install(getContext(), call);
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Pasar datos de teléfono a teléfono: este teléfono hace de servidor temporal (como la PC)
+    // y muestra el QR. Ver LocalTransferServer.java y src/features/transfer.
+    // ---------------------------------------------------------------------------------------
+
+    private LocalTransferServer transferServer;
+
+    /** Nombre que verá el otro dispositivo: el que el usuario puso al teléfono, o la marca y el modelo. */
+    private String transferDeviceName() {
+        try {
+            String name = Settings.Global.getString(getContext().getContentResolver(), "device_name");
+            if (name != null && !name.trim().isEmpty()) return name.trim();
+        } catch (Exception ignored) {
+            // Algunos fabricantes no lo exponen
+        }
+        String brand = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.substring(0, 1).toUpperCase(Locale.ROOT) + Build.MANUFACTURER.substring(1);
+        return (brand + " " + Build.MODEL).trim();
+    }
+
+    private synchronized void stopTransferServerInternal() {
+        if (transferServer != null) {
+            transferServer.stop();
+            transferServer = null;
+        }
+    }
+
+    @PluginMethod
+    public void startTransferServer(PluginCall call) {
+        String mode = "send".equals(call.getString("mode")) ? "send" : "receive";
+        String payload = call.getString("payload");
+        stopTransferServerInternal();
+        try {
+            final LocalTransferServer[] holder = new LocalTransferServer[1];
+            LocalTransferServer server = new LocalTransferServer(
+                mode,
+                payload == null ? null : payload.getBytes(StandardCharsets.UTF_8),
+                transferDeviceName(),
+                (type, data) -> {
+                    JSObject event = new JSObject();
+                    event.put("type", type);
+                    if (data != null) event.put("payload", data);
+                    notifyListeners("transferEvent", event);
+                    if (!"connected".equals(type)) {
+                        synchronized (WidgetBridgePlugin.this) {
+                            if (transferServer == holder[0]) transferServer = null;
+                        }
+                    }
+                }
+            );
+            holder[0] = server;
+            LocalTransferServer.Info info = server.start();
+            synchronized (this) {
+                transferServer = server;
+            }
+            JSObject result = new JSObject();
+            result.put("port", info.port);
+            result.put("hosts", new JSArray(info.hosts));
+            result.put("token", info.token);
+            result.put("pcName", transferDeviceName());
+            result.put("expiresAt", info.expiresAt);
+            call.resolve(result);
+        } catch (IllegalArgumentException e) {
+            call.reject(e.getMessage());
+        } catch (Exception e) {
+            if ("NO_LAN".equals(e.getMessage())) {
+                call.reject("Este teléfono no está conectado a una red wifi ni tiene el punto de acceso activado.", "NO_LAN");
+            } else {
+                call.reject("No se pudo preparar la transferencia: " + e.getMessage());
+            }
+        }
+    }
+
+    @PluginMethod
+    public void stopTransferServer(PluginCall call) {
+        stopTransferServerInternal();
+        call.resolve();
     }
 
     // ---------------------------------------------------------------------------------------

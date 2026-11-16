@@ -58,6 +58,21 @@ export interface WidgetBridgePlugin {
   authenticateBiometric(options: { title: string; subtitle?: string }): Promise<{ success: boolean; error?: string }>;
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
+  /**
+   * Pasar datos de teléfono a teléfono: abre el servidor temporal en la red local (ver
+   * LocalTransferServer.java). `send` entrega `payload`, ya cifrado. Emite "transferEvent".
+   * Rechaza con code "NO_LAN" si no hay wifi ni punto de acceso.
+   */
+  startTransferServer(options: {
+    mode: 'receive' | 'send';
+    payload?: string;
+  }): Promise<{ port: number; hosts: string[]; token: string; pcName: string; expiresAt: number }>;
+  stopTransferServer(): Promise<void>;
+  /** Eventos del servidor de transferencia: connected, received (con payload), sent, expired, blocked, error. */
+  addListener(
+    eventName: 'transferEvent',
+    listener: (event: { type: string; payload?: string }) => void
+  ): Promise<PluginListenerHandle>;
   /** Archivo con el que se abrió la app (VIEW/SEND); se retiene hasta que haya un listener. */
   addListener(
     eventName: 'incomingFile',

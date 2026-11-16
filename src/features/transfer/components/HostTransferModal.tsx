@@ -4,11 +4,12 @@ import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { restoreFromRawJson } from '../../../shared/utils/backup';
 import { QrCodeSvg } from './QrCodeSvg';
-import { onPcTransferEvent, startPcTransfer, stopPcTransfer, type PcTransferSession } from '../services/pcTransferService';
+import { onHostTransferEvent, startHostTransfer, stopHostTransfer, type HostTransferSession } from '../services/hostTransferService';
+import { hostKind } from '../services/transferAvailability';
 import { openTransferPayload } from '../services/transferCrypto';
 import { describeBackupSummary, summarizeBackupJson, type BackupSummary, type TransferDirection } from '../services/transferProtocol';
 
-interface PcTransferModalProps {
+interface HostTransferModalProps {
   direction: TransferDirection;
   onClose: () => void;
   onShowToast: (message: string) => void;
@@ -16,7 +17,7 @@ interface PcTransferModalProps {
 
 type Phase =
   | { kind: 'preparing' }
-  | { kind: 'waiting'; session: PcTransferSession; connected: boolean }
+  | { kind: 'waiting'; session: HostTransferSession; connected: boolean }
   | { kind: 'confirm'; jsonText: string; summary: BackupSummary | null }
   | { kind: 'restoring' }
   | { kind: 'done'; message: string }
@@ -33,22 +34,35 @@ function formatRemaining(ms: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
+/** Textos según quién muestra el QR: la PC (el otro es el teléfono) o un teléfono (el otro es otro teléfono). */
+function hostTexts() {
+  const isPc = hostKind() !== 'phone';
+  return {
+    isPc,
+    here: isPc ? 'esta computadora' : 'este teléfono',
+    other: isPc ? 'el teléfono' : 'el otro teléfono',
+    fromOther: isPc ? 'del teléfono' : 'del otro teléfono',
+    toOther: isPc ? 'al teléfono' : 'al otro teléfono',
+  };
+}
+
 /**
- * App de Windows: muestra el QR y espera al teléfono. Recibir del teléfono pide confirmación (con
- * lo que trae el respaldo) antes de reemplazar los datos de la PC.
+ * Anfitrión (app de Windows o un teléfono Android): muestra el QR y espera al otro dispositivo.
+ * Al recibir, pide confirmación (con lo que trae el respaldo) antes de reemplazar los datos.
  */
-export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onClose, onShowToast }) => {
+export const HostTransferModal: React.FC<HostTransferModalProps> = ({ direction, onClose, onShowToast }) => {
+  const [texts] = useState(hostTexts);
   const [phase, setPhase] = useState<Phase>({ kind: 'preparing' });
   const [now, setNow] = useState(() => Date.now());
-  const sessionRef = useRef<PcTransferSession | null>(null);
+  const sessionRef = useRef<HostTransferSession | null>(null);
   const runId = useRef(0);
 
   const start = useCallback(() => {
     const id = ++runId.current;
-    startPcTransfer(direction).then(
+    startHostTransfer(direction).then(
       (session) => {
         if (id !== runId.current) {
-          stopPcTransfer();
+          stopHostTransfer();
           return;
         }
         sessionRef.current = session;
@@ -66,13 +80,13 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
     start();
     return () => {
       runId.current += 1;
-      stopPcTransfer();
+      stopHostTransfer();
     };
   }, [start]);
 
   useEffect(
     () =>
-      onPcTransferEvent((event) => {
+      onHostTransferEvent((event) => {
         switch (event.type) {
           case 'connected':
             setPhase((current) => (current.kind === 'waiting' ? { ...current, connected: true } : current));
@@ -86,10 +100,10 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
             break;
           }
           case 'sent':
-            setPhase({ kind: 'done', message: 'Listo: el teléfono ya recibió los datos de esta computadora.' });
+            setPhase({ kind: 'done', message: `Listo: ${texts.other} ya recibió los datos de ${texts.here}.` });
             break;
           case 'expired':
-            setPhase({ kind: 'error', message: 'El código venció sin que el teléfono se conectara. Genera uno nuevo.' });
+            setPhase({ kind: 'error', message: `El código venció sin que ${texts.other} se conectara. Genera uno nuevo.` });
             break;
           case 'blocked':
             setPhase({ kind: 'error', message: 'Se cerró la conexión por demasiados intentos no válidos desde la red.' });
@@ -99,7 +113,7 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
             break;
         }
       }),
-    []
+    [texts]
   );
 
   // Cuenta atrás del código
@@ -118,8 +132,8 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
     setPhase({ kind: 'restoring' });
     try {
       await restoreFromRawJson(jsonText);
-      setPhase({ kind: 'done', message: 'Listo: esta computadora ya tiene los datos del teléfono.' });
-      onShowToast('Datos del teléfono guardados en esta computadora.');
+      setPhase({ kind: 'done', message: `Listo: ${texts.here} ya tiene los datos ${texts.fromOther}.` });
+      onShowToast(`Datos ${texts.fromOther} guardados en ${texts.here}.`);
     } catch (error: unknown) {
       setPhase({ kind: 'error', message: cleanError(error, 'No se pudieron guardar los datos recibidos.') });
     }
@@ -133,7 +147,12 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
   const toPc = direction === 'to-pc';
 
   return (
-    <Modal isOpen onClose={close} title={toPc ? 'Recibir del teléfono' : 'Enviar al teléfono'} maxWidth="md">
+    <Modal
+      isOpen
+      onClose={close}
+      title={toPc ? `Recibir ${texts.fromOther}` : `Enviar ${texts.toOther}`}
+      maxWidth="md"
+    >
       {phase.kind === 'preparing' && (
         <StatusLine icon={<Loader2 className="h-5 w-5 animate-spin" />} text={toPc ? 'Preparando la conexión…' : 'Preparando y cifrando tus datos…'} />
       )}
@@ -142,21 +161,21 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
         <div className="space-y-4">
           <div className="flex justify-center">
             <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-black/10">
-              <QrCodeSvg value={phase.session.inviteText} size={224} label="Código para escanear con el teléfono" />
+              <QrCodeSvg value={phase.session.inviteText} size={224} label={`Código para escanear con ${texts.other}`} />
             </div>
           </div>
 
           <ol className="list-decimal space-y-1 pl-5 text-sm text-[var(--color-md-on-surface)]">
             <li>
-              En el teléfono, en el inicio, toca <strong>⋮ → Pasar datos con la PC</strong> (también está en Ajustes → Datos
-              y copias de seguridad).
+              En {texts.other}, en el inicio, toca <strong>Compartir → Pasar datos con otro dispositivo → Escanear un código</strong>.
             </li>
             <li>Apunta la cámara a este código.</li>
           </ol>
 
           {!toPc && (
             <p className="text-xs text-[var(--color-md-on-surface-variant)]">
-              El teléfono reemplazará sus materias, horario, apuntes y archivos por los de esta computadora.
+              {texts.isPc ? 'El teléfono' : 'El otro teléfono'} reemplazará sus materias, horario, apuntes y archivos por los de{' '}
+              {texts.here}.
             </p>
           )}
 
@@ -167,20 +186,22 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
             {phase.connected ? (
               <>
                 <Smartphone className="h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-                Teléfono conectado. Confirma en el teléfono para continuar…
+                Conectado. Confirma en {texts.other} para continuar…
               </>
             ) : (
               <>
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--color-md-primary)]" aria-hidden="true" />
-                Esperando al teléfono · el código vence en {formatRemaining(phase.session.expiresAt - now)}
+                Esperando {texts.toOther} · el código vence en {formatRemaining(phase.session.expiresAt - now)}
               </>
             )}
           </p>
 
           <p className="flex items-start gap-2 text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">
             <Wifi className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            Los dos deben estar en la misma red wifi. Si Windows pregunta, permite el acceso en redes privadas. Los datos
-            viajan cifrados y no pasan por internet.
+            {texts.isPc
+              ? 'Los dos deben estar en la misma red wifi. Si Windows pregunta, permite el acceso en redes privadas.'
+              : 'Los dos deben estar en la misma red wifi. Sin wifi, activa el punto de acceso de este teléfono y conecta el otro a él.'}{' '}
+            Los datos viajan cifrados y no pasan por internet.
           </p>
 
           <ModalActions>
@@ -194,7 +215,7 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
       {phase.kind === 'confirm' && (
         <div className="space-y-4">
           <p className="text-sm text-[var(--color-md-on-surface)]">
-            Llegaron los datos del teléfono
+            Llegaron los datos {texts.fromOther}
             {phase.summary ? (
               <>
                 : <strong>{describeBackupSummary(phase.summary)}</strong>.
@@ -205,8 +226,8 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
           </p>
           <p className="flex items-start gap-2 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-3 text-xs text-[var(--color-md-on-surface)]">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-            Las materias, docentes, horario, apuntes y archivos de esta computadora se reemplazarán por los del teléfono.
-            No se puede deshacer.
+            Las materias, docentes, horario, apuntes y archivos de {texts.here} se reemplazarán por los {texts.fromOther}. No se
+            puede deshacer.
           </p>
           <ModalActions>
             <Button variant="ghost" size="sm" onClick={close}>

@@ -4,7 +4,8 @@ import { openTransferPayload, sealTransferPayload } from './transferCrypto';
 import { TRANSFER_BASE_PATH, type TransferInvite } from './transferProtocol';
 
 /**
- * Lado del teléfono: se conecta al servidor temporal de la PC que indica el QR.
+ * Lado del que escanea: se conecta al servidor temporal del otro dispositivo (la PC u otro
+ * teléfono) que indica el QR.
  *
  * Las peticiones se hacen con CapacitorHttp (HTTP nativo de Android), no con fetch: la app corre
  * en https://localhost y la vista web bloquea las peticiones http:// a la red local por ser
@@ -62,12 +63,12 @@ function asRecord(data: unknown): Record<string, unknown> | null {
   return typeof data === 'object' && data !== null && !Array.isArray(data) ? (data as Record<string, unknown>) : null;
 }
 
-const EXPIRED_MESSAGE = 'El código ya no es válido. En la computadora, genera uno nuevo y vuelve a escanearlo.';
+const EXPIRED_MESSAGE = 'El código ya no es válido. En el otro dispositivo, genera uno nuevo y vuelve a escanearlo.';
 
 function failureFor(status: number): PhoneTransferError {
   if (status === 403 || status === 410) return new PhoneTransferError('expired', EXPIRED_MESSAGE);
-  if (status === 413) return new PhoneTransferError('too-large', 'Tus datos superan el tamaño máximo que acepta la computadora.');
-  return new PhoneTransferError('failed', `La computadora respondió con un error (${status}). Vuelve a intentarlo.`);
+  if (status === 413) return new PhoneTransferError('too-large', 'Tus datos superan el tamaño máximo que acepta el otro dispositivo.');
+  return new PhoneTransferError('failed', `El otro dispositivo respondió con un error (${status}). Vuelve a intentarlo.`);
 }
 
 /** Prueba las direcciones del QR a la vez y se queda con la primera que responde. */
@@ -82,9 +83,9 @@ export async function connectToPc(invite: TransferInvite): Promise<PcConnection>
       throw new PhoneTransferError('unreachable', 'La dirección no corresponde a la Agenda Universitaria.');
     }
     if (body.mode !== expectedMode) {
-      throw new PhoneTransferError('wrong-direction', 'La computadora espera otra operación. Genera un código nuevo.');
+      throw new PhoneTransferError('wrong-direction', 'El otro dispositivo espera otra operación. Genera un código nuevo.');
     }
-    return { baseUrl, pcName: typeof body.pcName === 'string' && body.pcName ? body.pcName : 'tu computadora' };
+    return { baseUrl, pcName: typeof body.pcName === 'string' && body.pcName ? body.pcName : 'el otro dispositivo' };
   });
 
   try {
@@ -95,7 +96,7 @@ export async function connectToPc(invite: TransferInvite): Promise<PcConnection>
     if (known) throw known;
     throw new PhoneTransferError(
       'unreachable',
-      'No se pudo conectar con la computadora. Revisa que los dos estén en la misma red wifi y que Windows permita la app en redes privadas.'
+      'No se pudo conectar. Revisa que los dos estén en la misma red wifi (o en el punto de acceso del otro teléfono) y, si es una PC, que Windows permita la app en redes privadas.'
     );
   }
 }
@@ -108,7 +109,7 @@ export async function sendBackupToPc(connection: PcConnection, invite: TransferI
   try {
     result = await request('POST', `${connection.baseUrl}/upload`, invite.token, TRANSFER_TIMEOUT_MS, sealed);
   } catch {
-    throw new PhoneTransferError('unreachable', 'Se cortó la conexión con la computadora. Vuelve a intentarlo.');
+    throw new PhoneTransferError('unreachable', 'Se cortó la conexión con el otro dispositivo. Vuelve a intentarlo.');
   }
   if (result.status !== 200) throw failureFor(result.status);
 }
@@ -119,7 +120,7 @@ export async function receiveBackupFromPc(connection: PcConnection, invite: Tran
   try {
     result = await request('GET', `${connection.baseUrl}/download`, invite.token, TRANSFER_TIMEOUT_MS);
   } catch {
-    throw new PhoneTransferError('unreachable', 'Se cortó la conexión con la computadora. Vuelve a intentarlo.');
+    throw new PhoneTransferError('unreachable', 'Se cortó la conexión con el otro dispositivo. Vuelve a intentarlo.');
   }
   if (result.status !== 200 || typeof result.data !== 'string') throw failureFor(result.status);
   return openTransferPayload(result.data, invite.key, 'to-phone');
