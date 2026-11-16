@@ -31,6 +31,27 @@ export interface ElectronNotificationOptions {
   silent?: boolean;
 }
 
+/** Sesión de transferencia abierta en la PC: lo que el QR le dice al teléfono. */
+export interface ElectronTransferSessionInfo {
+  port: number;
+  /** Direcciones IPv4 privadas de la PC, la más probable primero. */
+  hosts: string[];
+  /** Token de un solo uso (base64url). */
+  token: string;
+  pcName: string;
+  /** Momento (ms) en que el servidor se cierra solo. */
+  expiresAt: number;
+}
+
+export type ElectronTransferEvent =
+  | { type: 'connected' }
+  /** El teléfono subió sus datos (cifrados, en base64). */
+  | { type: 'received'; payload: string }
+  | { type: 'sent' }
+  | { type: 'expired' }
+  | { type: 'blocked' }
+  | { type: 'error'; message: string };
+
 export interface ElectronAPI {
   isElectron: boolean;
   platform: string;
@@ -42,6 +63,11 @@ export interface ElectronAPI {
   setLaunchAtLogin: (enabled: boolean) => Promise<boolean>;
   /** Copia de seguridad automática en Documentos › Agenda Universitaria › Respaldos (guarda las 8 últimas). */
   saveBackupFile: (options: { fileName: string; content: string }) => Promise<{ success: boolean; path: string }>;
+  /** Abre el servidor temporal en la red local. `send` entrega `payload` (ya cifrado) al teléfono. */
+  startTransfer: (options: { mode: 'receive' | 'send'; payload?: string }) => Promise<ElectronTransferSessionInfo>;
+  stopTransfer: () => Promise<void>;
+  /** Devuelve la función para dejar de escuchar. */
+  onTransferEvent: (callback: (event: ElectronTransferEvent) => void) => () => void;
   /** Devuelve la función para dejar de escuchar. */
   onReminderFired: (callback: () => void) => () => void;
   /** Descarga el instalador y comprueba su SHA-256 (rechaza enlaces fuera de los releases del repositorio). */

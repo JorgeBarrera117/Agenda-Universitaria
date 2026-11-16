@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pasar datos con la PC por wifi: el teléfono se conecta por http:// al servidor temporal que abre
+  la app de Windows en la red local (192.168.x.x, 10.x.x.x…). Android bloquea http sin cifrar por
+  defecto, y no permite habilitarlo por rangos de IP, así que se permite en general.
+
+  Es seguro porque:
+  - lo que viaja va cifrado de extremo a extremo (AES-256-GCM) con una clave que solo está en el QR;
+  - la app solo acepta direcciones de redes locales en ese QR;
+  - el resto de conexiones de la app (actualizaciones en GitHub) usan https.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -279,6 +279,43 @@ ipcMain.handle('save-backup-file', (_event, options) => {
   return { success: true, path: target };
 });
 
+/* ----------------------------------------------------------------------------------------------
+ * Pasar datos con el teléfono por la red local (código QR). Ver transferServer.cjs.
+ * ---------------------------------------------------------------------------------------------- */
+const { createTransferSession } = require('./transferServer.cjs');
+const MAX_TRANSFER_CHARS = 512 * 1024 * 1024;
+let transferSession = null;
+
+function stopTransferSession() {
+  if (transferSession) {
+    transferSession.stop();
+    transferSession = null;
+  }
+}
+
+ipcMain.handle('transfer-start', async (event, options) => {
+  stopTransferSession();
+  const mode = options && options.mode === 'send' ? 'send' : 'receive';
+  const payload = mode === 'send' ? options && options.payload : undefined;
+  if (mode === 'send' && (typeof payload !== 'string' || payload.length === 0 || payload.length > MAX_TRANSFER_CHARS)) {
+    throw new Error('No hay datos válidos para enviar.');
+  }
+  const sender = event.sender;
+  let session = null;
+  session = await createTransferSession({
+    mode,
+    payload,
+    onEvent: (transferEvent) => {
+      if (!sender.isDestroyed()) sender.send('transfer-event', transferEvent);
+      if (transferEvent.type !== 'connected' && transferSession === session) transferSession = null;
+    },
+  });
+  transferSession = session;
+  return session.info;
+});
+
+ipcMain.handle('transfer-stop', () => stopTransferSession());
+
 ipcMain.handle('get-launch-at-login', () => app.getLoginItemSettings({ path: launcherPath(), args: [START_HIDDEN_ARG] }).openAtLogin);
 
 ipcMain.handle('set-launch-at-login', (_event, enabled) => {
@@ -567,4 +604,5 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   isQuitting = true;
+  stopTransferSession();
 });

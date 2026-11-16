@@ -24,6 +24,7 @@ import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { NotificationService } from '../../../shared/services/notificationService';
 import { BackupSection } from './BackupSection';
 import { BackupScheduleSettings } from './BackupScheduleSettings';
+import { DeviceTransferCard } from '../../transfer/components/DeviceTransferCard';
 import { GeneralSettings } from './GeneralSettings';
 import { SecuritySettings } from '../../security/components/SecuritySettings';
 import { isLockEnabled } from '../../security/services/appLockService';
@@ -930,6 +931,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {activeSubView === 'security' && <SecuritySettings onShowToast={onShowToast} />}
 
+            {activeSubView === 'backup' && <DeviceTransferCard onShowToast={onShowToast} />}
             {activeSubView === 'backup' && <BackupScheduleSettings />}
             {activeSubView === 'backup' && (
               <BackupSection

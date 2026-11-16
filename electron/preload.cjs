@@ -13,6 +13,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setLaunchAtLogin: (enabled) => ipcRenderer.invoke('set-launch-at-login', enabled),
   // Copia de seguridad automática en Documentos › Agenda Universitaria › Respaldos
   saveBackupFile: (options) => ipcRenderer.invoke('save-backup-file', options),
+  // Pasar datos con el teléfono por la red local (código QR)
+  startTransfer: (options) => ipcRenderer.invoke('transfer-start', options),
+  stopTransfer: () => ipcRenderer.invoke('transfer-stop'),
+  onTransferEvent: (callback) => {
+    const listener = (_event, transferEvent) => callback(transferEvent);
+    ipcRenderer.on('transfer-event', listener);
+    return () => ipcRenderer.removeListener('transfer-event', listener);
+  },
   // Actualizaciones: descarga verificada del instalador y su ejecución (la app se cierra y vuelve a abrir)
   downloadUpdate: (options) => ipcRenderer.invoke('download-update', options),
   installUpdate: () => ipcRenderer.invoke('install-update'),
