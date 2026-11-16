@@ -1,15 +1,15 @@
 {
-  "latestVersion": "1.7.10.82",
+  "latestVersion": "1.7.10.83",
   "releaseDate": "2026-11-16",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.82/Agenda-Universitaria-v1.7.10.82.apk",
-  "apkSha256": "f9f9a33e154fb32a6142a356096c70de24ca723226edf91e43416f84430192f9",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.82/Agenda-Universitaria-Setup-v1.7.10.82.exe",
-  "desktopSha256": "b509a44665c7b343f96311e70c4e9342e6c068e2e5f198a36ba518b231369619",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.83/Agenda-Universitaria-v1.7.10.83.apk",
+  "apkSha256": "5b3f0ad95e0af978bdc6144beef5f30cdaba30bde00ef73fd97b83dcb6479b44",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.83/Agenda-Universitaria-Setup-v1.7.10.83.exe",
+  "desktopSha256": "143b989aa9b34e06222d031a0ffabb10d95a79f04ef3e4b92cbab77ac31d262c",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Tamaño del texto ajustable en Ajustes → General",
-    "Botones de las ventanas y del menú ⋮ más grandes",
-    "La clase en curso muestra cuánto falta"
+    "15 papeles tapiz nuevos por categorías",
+    "Decoración de Navidad y Año Nuevo automática",
+    "Pasar datos con la PC desde el menú ⋮ del inicio"
   ]
 }
