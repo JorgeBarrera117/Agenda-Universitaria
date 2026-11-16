@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.84',
+    date: '2026-11-16',
+    title: 'Tus archivos también viajan',
+    changes: [
+      { kind: 'mejora', text: 'Al pasar datos entre el teléfono y la PC ahora también se pasa la sección Archivos (PDF, documentos y enlaces de cada materia).' },
+      { kind: 'mejora', text: 'En el inicio, el menú de tres puntos ahora es el botón «Compartir», y los ⋮ de las tarjetas se ven como botones.' },
+    ],
+  },
+  {
     version: '1.7.10.83',
     date: '2026-11-16',
     title: '20 fondos y fiestas de fin de año',
