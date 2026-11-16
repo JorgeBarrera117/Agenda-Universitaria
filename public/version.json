@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.84",
+  "latestVersion": "1.7.10.85",
   "releaseDate": "2026-11-16",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.84/Agenda-Universitaria-v1.7.10.84.apk",
-  "apkSha256": "f7717ae7053b01f9fc25afa7ef9a6e6e02e02ad906a1c158f1335fcb9641b8c3",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.84/Agenda-Universitaria-Setup-v1.7.10.84.exe",
-  "desktopSha256": "8c92ec173bac32c7fb04c9b015acd74b8f2d0ef37a5bcf2fdef42e6619cf17b2",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.85/Agenda-Universitaria-v1.7.10.85.apk",
+  "apkSha256": "2a3c96431051e554a482379a578dc4caa6d8436f660faf8074181bbed36febfe",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.85/Agenda-Universitaria-Setup-v1.7.10.85.exe",
+  "desktopSha256": "2d8062f7eb84b806e19358f73b2efe297fc28bb62e4c85c04a85c67e80191bb4",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Pasar datos entre teléfono y PC ahora incluye la sección Archivos",
-    "Botón «Compartir» más visible en el inicio"
+    "Pasa tus datos de un teléfono a otro con un código QR",
+    "Funciona por wifi o con el punto de acceso, sin internet"
   ]
 }
