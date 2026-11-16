@@ -14,6 +14,7 @@ import { CUSTOM_STATUS_ICON, findStatusPreset } from '../../features/settings/st
 import type { StudentStatusMode } from '../../features/settings/types';
 import { useSeason } from '../seasons/useSeason';
 import { SantaHat } from '../seasons/SantaHat';
+import { PartyHat } from '../seasons/PartyHat';
 
 export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes' | 'documents';
 
@@ -155,9 +156,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 name={studentName}
                 className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-2xl shadow-xs ring-1 ring-[var(--color-md-outline-variant)]/50 dark:ring-white/10 text-sm lg:text-base"
               />
-              {/* Navidad: gorrito sobre la foto (se va solo al terminar la temporada) */}
+              {/* Temporada: gorro de Navidad o de fiesta sobre la foto (se va solo al terminar) */}
               {season === 'christmas' && (
                 <SantaHat className="pointer-events-none absolute -left-2.5 -top-3 h-6 w-6 -rotate-[22deg] drop-shadow-sm lg:-top-3.5 lg:h-7 lg:w-7" />
+              )}
+              {season === 'newyear' && (
+                <PartyHat className="pointer-events-none absolute -left-2 -top-3.5 h-6 w-6 -rotate-[18deg] drop-shadow-sm lg:-top-4 lg:h-7 lg:w-7" />
               )}
               <span
                 aria-hidden="true"

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { PartyPopper, TreePine, X } from 'lucide-react';
+import { Flame, PartyPopper, TreePine, X } from 'lucide-react';
 import { useSeason } from './useSeason';
-import { christmasGreeting } from './seasonService';
+import { seasonGreeting } from './seasonService';
 
 const DISMISS_KEY = 'agenda_season_greeting_hidden_on';
 
@@ -35,11 +35,11 @@ export const SeasonalGreeting: React.FC = () => {
     return () => window.clearInterval(timer);
   }, []);
 
-  if (season !== 'christmas' || hidden) return null;
+  if (!season || hidden) return null;
 
-  const greeting = christmasGreeting(now);
-  const newYear = now.getMonth() === 0 || (now.getMonth() === 11 && now.getDate() === 31);
-  const Icon = newYear ? PartyPopper : TreePine;
+  const greeting = seasonGreeting(season, now);
+  // 31 de diciembre: la fogata del año viejo; en enero, la fiesta; en Navidad, el árbol
+  const Icon = season === 'christmas' ? TreePine : now.getMonth() === 11 ? Flame : PartyPopper;
 
   const hideForToday = () => {
     try {

@@ -525,14 +525,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onRequestUpload={() => wallpaperInputRef.current?.click()}
                   />
 
-                  {/* Decoración de temporada: Navidad del 1 de diciembre al 6 de enero (shared/seasons) */}
+                  {/* Decoración de temporada: Navidad (1–30 dic) y Año Nuevo (31 dic–31 ene), ver shared/seasons */}
                   <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] px-3 py-2.5">
                     <span className="flex min-w-0 items-center gap-2.5">
                       <Snowflake className="h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
                       <span className="min-w-0">
                         <span className="block text-sm font-bold text-[var(--color-md-on-surface)]">Decoración de temporada</span>
                         <span className="block text-xs leading-snug text-[var(--color-md-on-surface-variant)]">
-                          Del 1 de diciembre al 6 de enero: fondo navideño, nieve y saludo con la cuenta atrás.
+                          Navidad (1–30 dic) con nieve, y Año Nuevo (31 dic–31 ene) con fuegos artificiales y el año viejo.
                         </span>
                       </span>
                     </span>

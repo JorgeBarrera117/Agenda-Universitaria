@@ -377,7 +377,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       </div>
 
-      {/* Saludo de temporada (Navidad), solo del 1 de diciembre al 6 de enero */}
+      {/* Saludo de temporada: Navidad (1–30 dic) y Año Nuevo (31 dic–31 ene) */}
       <SeasonalGreeting />
 
       {/* 2. CAMPUS PULSE: clase en curso, próxima clase y resumen de la jornada en tiempo real */}

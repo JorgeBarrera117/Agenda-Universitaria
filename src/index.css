@@ -819,8 +819,73 @@ body {
   will-change: transform;
 }
 
+/* Año Nuevo (shared/seasons/NewYearFireworks.tsx): estallidos y chispas de fogata */
+@keyframes season-firework-spark {
+  0% { transform: rotate(var(--spark-angle)) translate3d(0, 0, 0) scaleY(0.4); opacity: 0; }
+  2% { opacity: 0.95; }
+  13% { transform: rotate(var(--spark-angle)) translate3d(0, var(--spark-distance), 0) scaleY(1); opacity: 0.85; }
+  20% { transform: rotate(var(--spark-angle)) translate3d(0, calc(var(--spark-distance) * 1.12), 0) scaleY(0.6); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes season-firework-flash {
+  0% { transform: scale(0.2); opacity: 0; }
+  3% { transform: scale(1); opacity: 0.55; }
+  12% { transform: scale(2.4); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes season-ember-rise {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
+  10% { opacity: 0.85; }
+  100% { transform: translate3d(var(--ember-drift, 0px), -62vh, 0) scale(0.3); opacity: 0; }
+}
+
+.season-firework-spark {
+  position: absolute;
+  left: -1.5px;
+  top: -5px;
+  width: 3px;
+  height: 10px;
+  border-radius: 9999px;
+  opacity: 0;
+  animation-name: season-firework-spark;
+  animation-timing-function: cubic-bezier(0.15, 0.7, 0.3, 1);
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+.season-firework-flash {
+  position: absolute;
+  left: -10px;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  opacity: 0;
+  filter: blur(4px);
+  animation-name: season-firework-flash;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+.season-ember {
+  position: absolute;
+  bottom: -8px;
+  border-radius: 9999px;
+  box-shadow: 0 0 6px currentColor;
+  animation-name: season-ember-rise;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .season-snowflake {
+  .season-snowflake,
+  .season-firework-spark,
+  .season-firework-flash,
+  .season-ember {
     display: none;
   }
 }

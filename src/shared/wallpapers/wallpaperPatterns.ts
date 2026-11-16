@@ -495,7 +495,81 @@ const snowflake = (x: number, y: number, r: number) => {
  * Patrones que la app pone sola durante una temporada (ver shared/seasons). No aparecen en la
  * galería: sustituyen al patrón elegido mientras dura la temporada.
  */
-const SEASONAL_PATTERNS: Record<'christmas', Omit<WallpaperPattern, 'category'>> = {
+/** Estallido de fuego artificial: rayos y puntas alrededor de (x, y). */
+const firework = (x: number, y: number, r: number, rays = 10) =>
+  `<g transform="translate(${x} ${y})">${Array.from({ length: rays }, (_, i) => {
+    const a = (i * 360) / rays;
+    return `<g transform="rotate(${a})"><path d="M0 ${-r * 0.35}V${-r * 0.8}"/><circle cx="0" cy="${-r}" r="${Math.max(1, r * 0.08)}" fill="black" stroke="none"/></g>`;
+  }).join('')}</g>`;
+
+/**
+ * Año Nuevo en Ecuador:
+ * - el año viejo (monigote con sombrero) y la fogata donde se quema a medianoche;
+ * - los fuegos artificiales;
+ * - las 12 uvas, el reloj marcando las 12 y las copas del brindis.
+ */
+const NEW_YEAR_PATTERN: Omit<WallpaperPattern, 'category'> = {
+  label: 'Año Nuevo',
+  width: 220,
+  svg: svg(
+    220,
+    220,
+    `${STROKE} stroke-width="1.7"`,
+    `<g transform="translate(140 10)">
+      <path d="M8 14H40"/>
+      <path d="M14 14C14 6 18 2 24 2C30 2 34 6 34 14"/>
+      <circle cx="24" cy="22" r="8"/>
+      <circle cx="21" cy="21" r="1" fill="black" stroke="none"/>
+      <circle cx="27" cy="21" r="1" fill="black" stroke="none"/>
+      <path d="M21 25.5C23 27 25 27 27 25.5"/>
+      <path d="M14 32H34L36 54H12Z"/>
+      <path d="M24 32V54M19 40H21M27 46H29"/>
+      <path d="M14 34L2 46M34 34L46 46"/>
+      <path d="M17 54L15 68M31 54L33 68"/>
+    </g>
+    <g transform="translate(18 132)">
+      <path d="M22 2C29 10 33 15 30 24C28 30 25 33 21 33C16 33 12 29 11 24C10 18 13 14 16 9C17 14 19 16 21 17C20 11 20 7 22 2Z"/>
+      <path d="M21 33C19 29 20 25 23 22C25 26 25 30 23 33"/>
+      <path d="M2 44L42 33M2 33L42 44"/>
+      <circle cx="8" cy="8" r="1.4" fill="black" stroke="none"/>
+      <circle cx="38" cy="4" r="1.2" fill="black" stroke="none"/>
+      <circle cx="44" cy="16" r="1" fill="black" stroke="none"/>
+    </g>
+    ${firework(46, 44, 26, 12)}
+    ${firework(110, 110, 16, 9)}
+    ${firework(196, 168, 14, 8)}
+    <g transform="translate(150 96)">
+      <path d="M16 0V6M16 6C16 3 21 1 24 3"/>
+      <circle cx="10" cy="12" r="4.5"/><circle cx="19" cy="12" r="4.5"/>
+      <circle cx="6" cy="20" r="4.5"/><circle cx="15" cy="20" r="4.5"/><circle cx="24" cy="20" r="4.5"/>
+      <circle cx="10" cy="28" r="4.5"/><circle cx="19" cy="28" r="4.5"/>
+      <circle cx="14" cy="36" r="4.5"/>
+    </g>
+    <g transform="translate(78 160)">
+      <circle cx="18" cy="18" r="16"/>
+      <path d="M18 18V7M18 18V9" stroke-width="2"/>
+      <path d="M18 3V5M33 18H31M18 33V31M3 18H5"/>
+      <circle cx="18" cy="18" r="1.6" fill="black" stroke="none"/>
+    </g>
+    <g transform="translate(18 80)">
+      <path d="M2 2H16L14 14C13 18 5 18 4 14Z" transform="rotate(-14 9 10)"/>
+      <path d="M9 17V28M4 28H14" transform="rotate(-14 9 10)"/>
+      <path d="M26 2H40L38 14C37 18 29 18 28 14Z" transform="rotate(14 33 10)"/>
+      <path d="M33 17V28M28 28H38" transform="rotate(14 33 10)"/>
+      <path d="M18 -4L21 -9M21 -2L26 -5M16 -2L12 -7"/>
+    </g>
+    ${sparkle(96, 22, 6)}
+    ${sparkle(206, 70, 5)}
+    ${sparkle(140, 200, 5)}
+    <rect x="72" y="70" width="5" height="2.4" rx="1" fill="black" stroke="none" transform="rotate(30 74 71)"/>
+    <rect x="190" y="124" width="5" height="2.4" rx="1" fill="black" stroke="none" transform="rotate(-25 192 125)"/>
+    <rect x="58" y="206" width="5" height="2.4" rx="1" fill="black" stroke="none" transform="rotate(60 60 207)"/>
+    <circle cx="128" cy="62" r="1.8" fill="black" stroke="none"/>
+    <circle cx="8" cy="200" r="1.8" fill="black" stroke="none"/>`
+  ),
+};
+
+const SEASONAL_PATTERNS: Record<'christmas' | 'newyear', Omit<WallpaperPattern, 'category'>> = {
   christmas: {
     label: 'Navidad',
     width: 220,
@@ -539,6 +613,7 @@ const SEASONAL_PATTERNS: Record<'christmas', Omit<WallpaperPattern, 'category'>>
       <circle cx="12" cy="88" r="2" fill="black" stroke="none"/>`
     ),
   },
+  newyear: NEW_YEAR_PATTERN,
 };
 
 /** Máscara del patrón de una temporada. */
