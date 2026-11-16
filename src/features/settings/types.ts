@@ -40,6 +40,14 @@ export interface PaletteRecipe {
   backgroundSource: BackgroundSource;
   /** Solo cuando backgroundSource es 'custom'. */
   backgroundColor: string | null;
+  /**
+   * Usar el principal y el acento tal cual se eligieron (desde 1.7.10.86). Sin esto, Material You
+   * los lleva a sus tonos estándar. Ausente en recetas anteriores = desactivado, para que no
+   * cambien al abrirlas.
+   */
+  exactColors?: boolean;
+  /** Color del texto principal; null o ausente = automático (del fondo). */
+  textColor?: string | null;
 }
 
 /** Paleta propia: la receta y los tokens ya calculados (la app no recalcula al arrancar). */

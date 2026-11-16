@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, Pipette, Wand2 } from 'lucide-react';
+import { AlertTriangle, Check, ChevronRight, Moon, Paintbrush, Plus, RotateCcw, Sun, Type, Wand2, X } from 'lucide-react';
 import { M3ColorPickerModal } from '../../../shared/components/form';
 import type { GeneratedTokens } from '../../../shared/utils/paletteGenerator';
 import type { ThemeTokenSet } from '../../../shared/utils/theme';
 import type { BackgroundSource, BackgroundTint, CustomPaletteSettings, PaletteRecipe, PaletteStyle } from '../types';
+import { M3Switch } from './SettingsPrimitives';
 
 interface CustomPaletteCreatorProps {
   /** Receta con la que empieza (la de tu paleta guardada o una nueva desde la paleta activa). */
@@ -13,18 +14,23 @@ interface CustomPaletteCreatorProps {
   onApply: (palette: CustomPaletteSettings) => void;
 }
 
-type Slot = 'primary' | 'accent' | 'background';
-
-/** Colores de partida para elegir con un toque (el resto con el selector o escribiendo el código). */
-const QUICK_COLORS = ['#E53935', '#FB8C00', '#FDD835', '#43A047', '#00ACC1', '#1E88E5', '#3949AB', '#8E24AA', '#D81B60', '#6D4C41'];
-
-const HEX_INPUT = /^#?([0-9a-f]{6})$/i;
+/** Valores de fábrica del creador (el azul de la app, estilo equilibrado y colores exactos). */
+const DEFAULT_CREATOR_RECIPE: PaletteRecipe = {
+  seed: '#00639B',
+  style: 'balanced',
+  accent: null,
+  backgroundTint: 'neutral',
+  backgroundSource: 'primary',
+  backgroundColor: null,
+  exactColors: true,
+  textColor: null,
+};
 
 const STYLE_OPTIONS: { value: PaletteStyle; label: string; description: string }[] = [
   { value: 'balanced', label: 'Equilibrado', description: 'Colores suaves y armónicos.' },
   { value: 'vibrant', label: 'Vibrante', description: 'Todo más intenso y saturado.' },
   { value: 'expressive', label: 'Expresivo', description: 'El acento contrasta con el principal.' },
-  { value: 'fidelity', label: 'Fiel', description: 'Respeta tu color lo más posible.' },
+  { value: 'fidelity', label: 'Fiel', description: 'Respeta la viveza de tu color.' },
   { value: 'monochrome', label: 'Monocromo', description: 'Grises; tu color vive solo en el acento.' },
 ];
 
@@ -40,157 +46,168 @@ const SOURCE_OPTIONS: { value: BackgroundSource; label: string }[] = [
   { value: 'custom', label: 'Otro color' },
 ];
 
-const chipClass = (selected: boolean) =>
-  `inline-flex min-h-[36px] items-center justify-center rounded-full border px-3 text-xs font-bold transition-all duration-150 active:scale-95 ${
-    selected
-      ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-      : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline)]'
-  }`;
+type PickerTarget = 'seed' | 'accent' | 'textColor' | 'backgroundColor';
 
-/** Muestras rápidas + selector libre + código hexadecimal para un color. */
-const ColorField: React.FC<{ value: string; onPick: (color: string) => void; label: string }> = ({ value, onPick, label }) => {
-  const [hexInput, setHexInput] = useState(value);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const hexInvalid = hexInput.trim() !== '' && !HEX_INPUT.test(hexInput.trim());
-
-  const pick = (color: string) => {
-    const normalized = color.toUpperCase();
-    setHexInput(normalized);
-    onPick(normalized);
-  };
-
-  return (
-    <div className="space-y-2">
-      <div role="group" aria-label={`Colores rápidos para ${label}`} className="flex flex-wrap gap-2">
-        {QUICK_COLORS.map((color) => (
-          <button
-            key={color}
-            type="button"
-            onClick={() => pick(color)}
-            aria-label={`Usar el color ${color}`}
-            aria-pressed={value === color}
-            className="flex h-8 w-8 items-center justify-center rounded-full ring-1 ring-[var(--color-md-outline-variant)] transition-transform duration-150 active:scale-90"
-            style={{ backgroundColor: color }}
-          >
-            {value === color && <Check className="h-4 w-4 text-white drop-shadow" aria-hidden="true" />}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        {/* Selector propio de la app (el <input type="color"> abre en Android un diálogo del sistema) */}
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          aria-label={`Elegir cualquier color para ${label}`}
-          aria-haspopup="dialog"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ring-[var(--color-md-outline-variant)] transition-transform duration-150 active:scale-95"
-          style={{ backgroundColor: value }}
-        >
-          <Pipette className="h-4 w-4 text-white drop-shadow" aria-hidden="true" />
-        </button>
-        <M3ColorPickerModal
-          isOpen={pickerOpen}
-          initialColor={value}
-          onClose={() => setPickerOpen(false)}
-          onApply={pick}
-          title={`Elige ${label}`}
-          showIconContrastHint={false}
-        />
-        <input
-          type="text"
-          maxLength={7}
-          value={hexInput}
-          onChange={(e) => {
-            setHexInput(e.target.value);
-            const match = HEX_INPUT.exec(e.target.value.trim());
-            if (match) onPick(`#${match[1].toUpperCase()}`);
-          }}
-          placeholder="#00639B"
-          aria-label={`Código del color para ${label}`}
-          aria-invalid={hexInvalid}
-          className="h-11 min-w-0 flex-1 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] px-3 font-mono text-sm text-[var(--color-md-on-surface)] outline-none focus:border-[var(--color-md-primary)]"
-        />
-      </div>
-      {hexInvalid && <p className="text-11px font-semibold text-red-700 dark:text-red-300">Escribe el color como #RRGGBB, por ejemplo #3AA0E0.</p>}
-    </div>
-  );
+const PICKER_TITLES: Record<PickerTarget, string> = {
+  seed: 'Color principal',
+  accent: 'Color de acento',
+  textColor: 'Color del texto',
+  backgroundColor: 'Tono del fondo',
 };
 
-/** Mini maqueta de la app con los colores generados (claro u oscuro). */
-const PalettePreview: React.FC<{ label: string; tokens: ThemeTokenSet }> = ({ label, tokens }) => (
-  <div className="min-w-0 flex-1 space-y-1">
-    <p className="text-10px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">{label}</p>
-    <div
-      className="relative space-y-1.5 rounded-xl p-2 pb-7"
-      style={{ backgroundColor: tokens.surface, border: `1px solid ${tokens.outlineVariant}` }}
-      aria-hidden="true"
-    >
-      <div className="space-y-1.5 rounded-lg p-2" style={{ backgroundColor: tokens.cardBg, border: `1px solid ${tokens.outlineVariant}` }}>
-        <p className="truncate text-11px font-bold" style={{ color: tokens.onSurface }}>
+const chipClass = (selected: boolean) =>
+  `inline-flex min-h-9 shrink-0 items-center justify-center gap-1 rounded-lg border px-3 text-xs font-semibold transition-colors duration-150 ${
+    selected
+      ? 'border-transparent bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]'
+      : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/[0.06]'
+  }`;
+
+/**
+ * Maqueta de la app con los colores calculados. Muestra cada color en el sitio donde se usa:
+ * barra superior, tarjeta, texto, chip, botón, botón flotante y barra inferior.
+ */
+const PalettePreview: React.FC<{ tokens: ThemeTokenSet }> = ({ tokens }) => (
+  <div
+    className="relative overflow-hidden rounded-2xl"
+    style={{ backgroundColor: tokens.surface, border: `1px solid ${tokens.outlineVariant}` }}
+    aria-hidden="true"
+  >
+    <div className="flex items-center gap-2 px-3 py-2" style={{ backgroundColor: tokens.surfaceContainer }}>
+      <span className="h-5 w-5 rounded-md" style={{ backgroundColor: tokens.primary }} />
+      <span className="text-xs font-bold" style={{ color: tokens.onSurface }}>
+        Mi agenda
+      </span>
+    </div>
+    <div className="space-y-2 p-3 pb-11">
+      <div className="space-y-1.5 rounded-xl p-2.5" style={{ backgroundColor: tokens.cardBg, border: `1px solid ${tokens.outlineVariant}` }}>
+        <p className="text-sm font-bold" style={{ color: tokens.onSurface }}>
           Cálculo Diferencial
         </p>
-        <p className="truncate text-10px" style={{ color: tokens.onSurfaceVariant }}>
-          Lun 08:00 – 10:00
+        <p className="text-xs" style={{ color: tokens.onSurfaceVariant }}>
+          Lun 08:00 – 10:00 · Aula 204
         </p>
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="flex items-center gap-1.5 pt-0.5">
           <span
-            className="rounded-full px-2 py-0.5 text-9px font-bold"
+            className="rounded-md px-2 py-0.5 text-10px font-bold"
             style={{ backgroundColor: tokens.secondaryContainer, color: tokens.onSecondaryContainer }}
           >
             MAT-101
           </span>
-          <span className="ml-auto rounded-full px-2 py-0.5 text-9px font-bold" style={{ backgroundColor: tokens.primary, color: tokens.onPrimary }}>
-            Botón
+          <span className="text-11px font-semibold" style={{ color: tokens.primary }}>
+            Ver archivos
+          </span>
+          <span className="ml-auto rounded-full px-3 py-1 text-11px font-bold" style={{ backgroundColor: tokens.primary, color: tokens.onPrimary }}>
+            Tomar apunte
           </span>
         </div>
       </div>
-      {/* Barra inferior con la pestaña activa y el botón flotante en el acento */}
-      <div
-        className="absolute inset-x-0 bottom-0 flex h-6 items-center gap-1 rounded-b-xl px-2"
-        style={{ backgroundColor: tokens.surfaceContainer, borderTop: `1px solid ${tokens.outlineVariant}` }}
-      >
-        <span className="h-3 w-7 rounded-full" style={{ backgroundColor: tokens.accentContainer ?? tokens.primaryContainer }} />
-        <span className="h-1.5 w-4 rounded-full" style={{ backgroundColor: tokens.outlineVariant }} />
-        <span className="h-1.5 w-4 rounded-full" style={{ backgroundColor: tokens.outlineVariant }} />
-      </div>
-      <span
-        className="absolute bottom-[3px] right-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-md text-10px font-black"
-        style={{ backgroundColor: tokens.accent ?? tokens.primary, color: tokens.onAccent ?? tokens.onPrimary }}
-      >
-        +
-      </span>
     </div>
+    <div
+      className="absolute inset-x-0 bottom-0 flex h-9 items-center gap-2 px-3"
+      style={{ backgroundColor: tokens.surfaceContainer, borderTop: `1px solid ${tokens.outlineVariant}` }}
+    >
+      <span className="h-4 w-9 rounded-full" style={{ backgroundColor: tokens.accentContainer ?? tokens.primaryContainer }} />
+      <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: tokens.outlineVariant }} />
+      <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: tokens.outlineVariant }} />
+    </div>
+    {/* Botón flotante (acento) sobre la barra inferior, sin tapar la tarjeta */}
+    <span
+      className="absolute bottom-1 right-2 flex h-7 w-7 items-center justify-center rounded-lg shadow-sm"
+      style={{ backgroundColor: tokens.accent ?? tokens.primary, color: tokens.onAccent ?? tokens.onPrimary }}
+    >
+      <Plus className="h-4 w-4" />
+    </span>
+  </div>
+);
+
+/** Fila de lista M3: muestra el color resultante, su valor y abre el selector al tocarla. */
+const ColorRow: React.FC<{
+  label: string;
+  value: string;
+  swatch: string;
+  onClick: () => void;
+  onReset?: () => void;
+  warning?: string | null;
+  icon?: React.ReactNode;
+}> = ({ label, value, swatch, onClick, onReset, warning, icon }) => (
+  <div className="flex items-center">
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-14 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-[var(--color-md-on-surface)]/[0.05]"
+    >
+      <span
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-1 ring-[var(--color-md-outline-variant)]"
+        style={{ backgroundColor: swatch }}
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-[var(--color-md-on-surface)]">{label}</span>
+        <span className="block truncate font-mono text-xs text-[var(--color-md-on-surface-variant)]">{value}</span>
+        {warning && (
+          <span className="mt-0.5 flex items-start gap-1 text-11px leading-snug text-[var(--color-md-on-surface-variant)]">
+            <AlertTriangle className="mt-px h-3 w-3 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            {warning}
+          </span>
+        )}
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-outline)]" aria-hidden="true" />
+    </button>
+    {onReset && (
+      <button
+        type="button"
+        onClick={onReset}
+        aria-label={`Volver ${label.toLowerCase()} a automático`}
+        title="Volver a automático"
+        className="mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/[0.08]"
+      >
+        <X className="h-4 w-4" aria-hidden="true" />
+      </button>
+    )}
   </div>
 );
 
 /**
- * "Crea tu paleta": tres colores (principal, acento y fondo) y un estilo de Material You. La app
- * calcula los colores de claro y oscuro con contraste legible. La librería de color se descarga
- * solo aquí, al abrir esta sección.
+ * "Crea tu paleta" (Material You):
+ * - Vista previa arriba, con claro/oscuro, para ver cada cambio al momento.
+ * - Lista de colores (principal, acento, texto y fondo); cada uno abre el selector.
+ * - Colores exactos: tal cual los eliges (solo se aclaran en oscuro si no se verían).
+ * - Estilo y "Restablecer" para volver a los valores de fábrica.
+ * La librería de color se descarga solo al abrir esta sección.
  */
 export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ initialRecipe, isActive, onApply }) => {
   const [recipe, setRecipe] = useState<PaletteRecipe>(initialRecipe);
-  const [slot, setSlot] = useState<Slot>('primary');
   const [preview, setPreview] = useState<GeneratedTokens | null>(null);
+  const [mode, setMode] = useState<'light' | 'dark'>(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  );
+  const [picker, setPicker] = useState<PickerTarget | null>(null);
+  const [backgroundOpen, setBackgroundOpen] = useState(false);
   const [appliedKey, setAppliedKey] = useState<string | null>(isActive ? JSON.stringify(initialRecipe) : null);
+  const [contrast, setContrast] = useState<{ primary: number; text: number } | null>(null);
   // Solo vale el resultado de la última receta pedida (si se cambian rápido, las anteriores se ignoran)
   const requestRef = useRef(0);
 
   const generate = (next: PaletteRecipe) => {
     const request = ++requestRef.current;
-    void import('../../../shared/utils/paletteGenerator').then(({ generatePaletteTokens }) => {
-      if (request === requestRef.current) setPreview(generatePaletteTokens(next));
+    void import('../../../shared/utils/paletteGenerator').then(({ generatePaletteTokens, contrastRatio }) => {
+      if (request !== requestRef.current) return;
+      const tokens = generatePaletteTokens(next);
+      setPreview(tokens);
+      setContrast({
+        primary: contrastRatio(tokens.light.primary, tokens.light.cardBg),
+        text: Math.min(contrastRatio(tokens.light.onSurface, tokens.light.cardBg), contrastRatio(tokens.dark.onSurface, tokens.dark.cardBg)),
+      });
     });
   };
 
-  // Vista previa inicial, una sola vez al abrir la sección (carga diferida de la librería).
-  // Después, la receta vive en el estado local: cambios externos no pisan lo que se está editando.
+  // Vista previa inicial, una sola vez al abrir la sección (carga diferida de la librería)
   const initialRecipeRef = useRef(initialRecipe);
+  const generateRef = useRef(generate);
   useEffect(() => {
-    const request = ++requestRef.current;
-    void import('../../../shared/utils/paletteGenerator').then(({ generatePaletteTokens }) => {
-      if (request === requestRef.current) setPreview(generatePaletteTokens(initialRecipeRef.current));
-    });
+    generateRef.current(initialRecipeRef.current);
   }, []);
 
   const update = (changes: Partial<PaletteRecipe>) => {
@@ -200,107 +217,90 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
   };
 
   const isApplied = appliedKey === JSON.stringify(recipe);
+  const isDefault = JSON.stringify(recipe) === JSON.stringify(DEFAULT_CREATOR_RECIPE);
   const activeStyle = STYLE_OPTIONS.find((o) => o.value === recipe.style) ?? STYLE_OPTIONS[0];
+  const tokens = preview?.[mode];
   const light = preview?.light;
   const tintLabel = TINT_OPTIONS.find((o) => o.value === recipe.backgroundTint)?.label ?? 'Neutro';
+  const sourceLabel = SOURCE_OPTIONS.find((o) => o.value === recipe.backgroundSource)?.label ?? '';
 
-  const slots: { id: Slot; label: string; detail: string; swatch: string }[] = [
-    { id: 'primary', label: 'Principal', detail: recipe.seed, swatch: light?.primary ?? recipe.seed },
-    { id: 'accent', label: 'Acento', detail: recipe.accent ?? 'Automático', swatch: light?.accent ?? recipe.accent ?? recipe.seed },
-    { id: 'background', label: 'Fondo', detail: tintLabel, swatch: light?.surfaceContainerHigh ?? '#E2E7EF' },
-  ];
+  const pickerValue =
+    picker === 'seed'
+      ? recipe.seed
+      : picker === 'accent'
+        ? (recipe.accent ?? light?.accent ?? recipe.seed)
+        : picker === 'textColor'
+          ? (recipe.textColor ?? light?.onSurface ?? '#191C20')
+          : (recipe.backgroundColor ?? '#C2A57A');
+
+  const primaryWarning =
+    contrast && contrast.primary < 3 ? 'Muy claro: los textos e íconos de este color costarán leerse en modo claro.' : null;
+  const textWarning = contrast && recipe.textColor && contrast.text < 4.5 ? 'Poco contraste con el fondo: puede costar leerlo.' : null;
 
   return (
     <div className="space-y-3">
-      {/* Estilo */}
-      <div className="space-y-1.5">
-        <p className="text-11px font-bold text-[var(--color-md-on-surface)]">Estilo</p>
-        <div role="radiogroup" aria-label="Estilo de la paleta" className="flex flex-wrap gap-1.5">
-          {STYLE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={recipe.style === option.value}
-              onClick={() => update({ style: option.value })}
-              className={chipClass(recipe.style === option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-11px text-[var(--color-md-on-surface-variant)]" aria-live="polite">
-          {activeStyle.description}
-        </p>
-      </div>
-
-      {/* Los tres colores: se toca uno para editarlo */}
-      <div className="space-y-1.5">
-        <p className="text-11px font-bold text-[var(--color-md-on-surface)]">Colores</p>
-        <div role="tablist" aria-label="Color que estás editando" className="grid grid-cols-3 gap-1.5">
-          {slots.map((item) => {
-            const selected = slot === item.id;
-            return (
+      {/* Vista previa con claro / oscuro */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Vista previa</p>
+          <div role="radiogroup" aria-label="Modo de la vista previa" className="flex rounded-full border border-[var(--color-md-outline-variant)] p-0.5">
+            {(['light', 'dark'] as const).map((m) => (
               <button
-                key={item.id}
+                key={m}
                 type="button"
-                role="tab"
-                aria-selected={selected}
-                aria-controls="palette-slot-editor"
-                onClick={() => setSlot(item.id)}
-                className={`flex min-w-0 flex-col items-center gap-1 rounded-xl border-2 px-1 py-2 transition-all duration-150 active:scale-[0.97] ${
-                  selected
-                    ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]/40'
-                    : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)]'
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => setMode(m)}
+                className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-semibold transition-colors ${
+                  mode === m
+                    ? 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]'
+                    : 'text-[var(--color-md-on-surface-variant)]'
                 }`}
               >
-                <span
-                  className="h-7 w-7 rounded-full ring-1 ring-[var(--color-md-outline-variant)]"
-                  style={{ backgroundColor: item.swatch }}
-                  aria-hidden="true"
-                />
-                <span className="text-11px font-bold text-[var(--color-md-on-surface)]">{item.label}</span>
-                <span className="max-w-full truncate text-10px text-[var(--color-md-on-surface-variant)]">{item.detail}</span>
+                {m === 'light' ? <Sun className="h-3.5 w-3.5" aria-hidden="true" /> : <Moon className="h-3.5 w-3.5" aria-hidden="true" />}
+                {m === 'light' ? 'Claro' : 'Oscuro'}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
+        {tokens ? <PalettePreview tokens={tokens} /> : <div className="h-40 animate-pulse rounded-2xl bg-[var(--color-md-surface-container-high)]" />}
       </div>
 
-      <div
-        id="palette-slot-editor"
-        role="tabpanel"
-        className="space-y-2.5 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] p-2.5"
-      >
-        {slot === 'primary' && (
-          <>
-            <p className="text-11px text-[var(--color-md-on-surface-variant)]">Botones, enlaces y partes resaltadas.</p>
-            <ColorField key="primary" label="el color principal" value={recipe.seed} onPick={(seed) => update({ seed })} />
-          </>
-        )}
-
-        {slot === 'accent' && (
-          <>
-            <p className="text-11px text-[var(--color-md-on-surface-variant)]">
-              Botón flotante, pestaña activa, etiquetas y chips.
-            </p>
-            <button type="button" aria-pressed={recipe.accent === null} onClick={() => update({ accent: null })} className={chipClass(recipe.accent === null)}>
-              {recipe.accent === null && <Check className="mr-1 h-3.5 w-3.5" aria-hidden="true" />}
-              Automático (según el estilo)
-            </button>
-            <ColorField
-              key={`accent-${recipe.accent === null ? 'auto' : 'manual'}`}
-              label="el acento"
-              value={recipe.accent ?? light?.accent ?? recipe.seed}
-              onPick={(accent) => update({ accent })}
-            />
-          </>
-        )}
-
-        {slot === 'background' && (
-          <>
-            <div className="space-y-1">
-              <p className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Cuánto color lleva el fondo</p>
+      {/* Colores: lista compacta; cada fila abre el selector */}
+      <div className="overflow-hidden rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] divide-y divide-[var(--color-md-outline-variant)]">
+        <ColorRow
+          label="Principal"
+          value={recipe.seed}
+          swatch={light?.primary ?? recipe.seed}
+          warning={primaryWarning}
+          onClick={() => setPicker('seed')}
+        />
+        <ColorRow
+          label="Acento"
+          value={recipe.accent ?? 'Automático'}
+          swatch={light?.accent ?? recipe.accent ?? recipe.seed}
+          onClick={() => setPicker('accent')}
+          onReset={recipe.accent ? () => update({ accent: null }) : undefined}
+        />
+        <ColorRow
+          label="Texto"
+          value={recipe.textColor ?? 'Automático'}
+          swatch={light?.cardBg ?? '#FFFFFF'}
+          icon={<Type className="h-4 w-4" style={{ color: light?.onSurface ?? recipe.textColor ?? '#191C20' }} />}
+          warning={textWarning}
+          onClick={() => setPicker('textColor')}
+          onReset={recipe.textColor ? () => update({ textColor: null }) : undefined}
+        />
+        <div>
+          <ColorRow
+            label="Fondo"
+            value={`${tintLabel} · ${sourceLabel}`}
+            swatch={light?.surfaceContainerHigh ?? '#E2E7EF'}
+            icon={<Paintbrush className="h-4 w-4 text-[var(--color-md-on-surface-variant)]" />}
+            onClick={() => setBackgroundOpen((open) => !open)}
+          />
+          {backgroundOpen && (
+            <div className="space-y-2 px-3 pb-3">
               <div role="radiogroup" aria-label="Cuánto color lleva el fondo" className="flex flex-wrap gap-1.5">
                 {TINT_OPTIONS.map((option) => (
                   <button
@@ -311,13 +311,11 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
                     onClick={() => update({ backgroundTint: option.value })}
                     className={chipClass(recipe.backgroundTint === option.value)}
                   >
+                    {recipe.backgroundTint === option.value && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                     {option.label}
                   </button>
                 ))}
               </div>
-            </div>
-            <div className="space-y-1">
-              <p className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Tono del fondo</p>
               <div role="radiogroup" aria-label="Tono del fondo" className="flex flex-wrap gap-1.5">
                 {SOURCE_OPTIONS.map((option) => (
                   <button
@@ -325,54 +323,109 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
                     type="button"
                     role="radio"
                     aria-checked={recipe.backgroundSource === option.value}
-                    onClick={() =>
+                    onClick={() => {
                       update({
                         backgroundSource: option.value,
                         backgroundColor: option.value === 'custom' ? (recipe.backgroundColor ?? '#C2A57A') : recipe.backgroundColor,
                         // Elegir un tono sin tinte no se notaría: pasa a "Suave"
                         backgroundTint: recipe.backgroundTint === 'neutral' && option.value !== 'primary' ? 'soft' : recipe.backgroundTint,
-                      })
-                    }
+                      });
+                      if (option.value === 'custom') setPicker('backgroundColor');
+                    }}
                     className={chipClass(recipe.backgroundSource === option.value)}
                   >
+                    {recipe.backgroundSource === option.value && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                     {option.label}
+                    {option.value === 'custom' && recipe.backgroundColor && recipe.backgroundSource === 'custom' && (
+                      <span className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10" style={{ backgroundColor: recipe.backgroundColor }} />
+                    )}
                   </button>
                 ))}
               </div>
             </div>
-            {recipe.backgroundSource === 'custom' && (
-              <ColorField
-                key="background"
-                label="el fondo"
-                value={recipe.backgroundColor ?? '#C2A57A'}
-                onPick={(backgroundColor) => update({ backgroundColor })}
-              />
-            )}
-          </>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Vista previa en claro y oscuro */}
-      {preview && (
-        <div className="flex gap-2">
-          <PalettePreview label="Claro" tokens={preview.light} />
-          <PalettePreview label="Oscuro" tokens={preview.dark} />
-        </div>
-      )}
+      {/* Colores exactos */}
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] px-3 py-2.5">
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold text-[var(--color-md-on-surface)]">Usar mis colores exactos</span>
+          <span className="block text-xs leading-snug text-[var(--color-md-on-surface-variant)]">
+            {recipe.exactColors
+              ? 'Tal cual los eliges. En oscuro solo se aclaran si no se verían.'
+              : 'Material You ajusta los tonos para que combinen y se lean bien.'}
+          </span>
+        </span>
+        <M3Switch checked={recipe.exactColors === true} onChange={(exactColors) => update({ exactColors })} label="Usar mis colores exactos" />
+      </div>
 
-      <button
-        type="button"
-        disabled={!preview || isApplied}
-        onClick={() => {
-          if (!preview) return;
-          onApply({ seed: recipe.seed, recipe, light: preview.light, dark: preview.dark });
-          setAppliedKey(JSON.stringify(recipe));
+      {/* Estilo */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Estilo</p>
+        <div role="radiogroup" aria-label="Estilo de la paleta" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+          {STYLE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={recipe.style === option.value}
+              onClick={() => update({ style: option.value })}
+              className={chipClass(recipe.style === option.value)}
+            >
+              {recipe.style === option.value && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-[var(--color-md-on-surface-variant)]" aria-live="polite">
+          {activeStyle.description}
+        </p>
+      </div>
+
+      {/* Acciones: en el teléfono, "Usar" ocupa la fila y "Restablecer" va debajo; en escritorio, en fila */}
+      <div className="flex flex-col-reverse gap-2 sm:flex-row">
+        <button
+          type="button"
+          disabled={isDefault}
+          onClick={() => {
+            setRecipe(DEFAULT_CREATOR_RECIPE);
+            generate(DEFAULT_CREATOR_RECIPE);
+            setBackgroundOpen(false);
+          }}
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--color-md-outline)] px-4 text-sm font-semibold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/[0.08] disabled:opacity-40 sm:min-h-10"
+        >
+          <RotateCcw className="h-4 w-4" aria-hidden="true" />
+          Restablecer
+        </button>
+        <button
+          type="button"
+          disabled={!preview || isApplied}
+          onClick={() => {
+            if (!preview) return;
+            onApply({ seed: recipe.seed, recipe, light: preview.light, dark: preview.dark });
+            setAppliedKey(JSON.stringify(recipe));
+          }}
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--color-md-primary)] px-4 text-sm font-bold text-[var(--color-md-on-primary)] shadow-2xs transition-all duration-150 active:scale-[0.98] disabled:opacity-50 sm:min-h-10"
+        >
+          {isApplied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Wand2 className="h-4 w-4" aria-hidden="true" />}
+          {isApplied ? 'Tu paleta está en uso' : 'Usar esta paleta'}
+        </button>
+      </div>
+
+      {/* Selector de color (el mismo para los cuatro): devuelve el color exacto elegido */}
+      <M3ColorPickerModal
+        isOpen={picker !== null}
+        initialColor={pickerValue}
+        onClose={() => setPicker(null)}
+        onApply={(color) => {
+          const value = color.toUpperCase();
+          if (picker) update({ [picker]: value } as Partial<PaletteRecipe>);
+          setPicker(null);
         }}
-        className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-md-primary)] px-4 text-sm font-bold text-[var(--color-md-on-primary)] shadow-2xs transition-all duration-150 active:scale-[0.98] disabled:opacity-50"
-      >
-        {isApplied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Wand2 className="h-4 w-4" aria-hidden="true" />}
-        {isApplied ? 'Tu paleta está en uso' : 'Usar esta paleta'}
-      </button>
+        title={picker ? PICKER_TITLES[picker] : 'Color'}
+        showIconContrastHint={false}
+      />
     </div>
   );
 };

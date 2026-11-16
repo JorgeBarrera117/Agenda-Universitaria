@@ -204,7 +204,7 @@ export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
           >
             <p className="text-xs font-bold text-[var(--color-md-on-surface)]">{customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}</p>
             <p className="text-11px text-[var(--color-md-on-surface-variant)]">
-              Elige un color y la app calcula el resto para claro y oscuro.
+              Toca cada color para cambiarlo; la vista previa se actualiza al momento.
             </p>
             <CustomPaletteCreator
               initialRecipe={
@@ -216,6 +216,8 @@ export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
                   backgroundTint: 'neutral',
                   backgroundSource: 'primary',
                   backgroundColor: null,
+                  exactColors: true,
+                  textColor: null,
                 }
               }
               isActive={currentPalette === 'custom'}

@@ -123,6 +123,91 @@ export function generatePaletteTokens(recipe: PaletteRecipe): GeneratedTokens {
 
   const hex = (palette: TonalPalette, tone: number) => hexFromArgb(palette.tone(tone)).toUpperCase();
 
+  const tokens = buildTokens(hex, { primary, accent, neutral, neutralVariant, primaryToneLight, primaryToneDark });
+
+  // Colores exactos: el principal y el acento elegido se usan tal cual; solo en oscuro se aclaran
+  // si se perderían sobre el fondo oscuro
+  if (recipe.exactColors) {
+    applyExactRole(tokens, 'primary', recipe.seed, primary, hex);
+    if (recipe.accent && isHexColor(recipe.accent)) applyExactRole(tokens, 'accent', recipe.accent, accent, hex);
+  }
+
+  // Texto propio: exacto en claro; en oscuro, el mismo tono de color pero claro para que se lea
+  if (recipe.textColor && isHexColor(recipe.textColor)) {
+    const text = hctOf(recipe.textColor);
+    const textPalette = TonalPalette.fromHueAndChroma(text.hue, Math.min(text.chroma, 16));
+    tokens.light.onSurface = recipe.textColor.toUpperCase();
+    tokens.light.onSurfaceVariant = hexFromArgb(Hct.from(text.hue, text.chroma, clamp(text.tone + 18, 0, 45)).toInt()).toUpperCase();
+    tokens.dark.onSurface = hex(textPalette, 92);
+    tokens.dark.onSurfaceVariant = hex(textPalette, 80);
+  }
+
+  return tokens;
+}
+
+/* ------------------------------------------------------------------ Contraste y colores exactos */
+
+function relativeLuminance(color: string): number {
+  const channel = (offset: number) => {
+    const v = parseInt(color.slice(offset, offset + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
+}
+
+/** Contraste WCAG entre dos colores #RRGGBB (1 a 21). Texto normal legible: 4.5 o más. */
+export function contrastRatio(a: string, b: string): number {
+  const la = relativeLuminance(a);
+  const lb = relativeLuminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/** El mismo color, más claro u oscuro (en HCT, así no cambia de tono ni de viveza). */
+function shiftTone(color: string, delta: number): string {
+  const h = hctOf(color);
+  return hexFromArgb(Hct.from(h.hue, h.chroma, clamp(h.tone + delta, 0, 100)).toInt()).toUpperCase();
+}
+
+/** Texto sobre un color: blanco o el tono más oscuro de su paleta, el que más contraste dé. */
+function onColorFor(color: string, darkText: string): string {
+  return contrastRatio('#FFFFFF', color) >= contrastRatio(darkText, color) ? '#FFFFFF' : darkText;
+}
+
+type HexFn = (palette: TonalPalette, tone: number) => string;
+
+function applyExactRole(tokens: GeneratedTokens, role: 'primary' | 'accent', chosen: string, palette: TonalPalette, hex: HexFn): void {
+  const exact = chosen.toUpperCase();
+  const darkText = hex(palette, 10);
+  const lightHover = shiftTone(exact, hctOf(exact).tone < 15 ? 8 : -7);
+  // En oscuro: el color tal cual si destaca sobre el fondo (3:1, lo mínimo para botones e íconos)
+  const darkColor = contrastRatio(exact, tokens.dark.surface) >= 3 ? exact : hex(palette, 80);
+
+  if (role === 'primary') {
+    tokens.light.primary = exact;
+    tokens.light.primaryHover = lightHover;
+    tokens.light.onPrimary = onColorFor(exact, darkText);
+    tokens.dark.primary = darkColor;
+    tokens.dark.primaryHover = shiftTone(darkColor, -8);
+    tokens.dark.onPrimary = onColorFor(darkColor, darkText);
+  } else {
+    tokens.light.accent = exact;
+    tokens.light.onAccent = onColorFor(exact, darkText);
+    tokens.dark.accent = darkColor;
+    tokens.dark.onAccent = onColorFor(darkColor, darkText);
+  }
+}
+
+interface ToneSources {
+  primary: TonalPalette;
+  accent: TonalPalette;
+  neutral: TonalPalette;
+  neutralVariant: TonalPalette;
+  primaryToneLight: number;
+  primaryToneDark: number;
+}
+
+/** Tokens de Material 3 a partir de las paletas tonales (niveles fijos, contraste garantizado). */
+function buildTokens(hex: HexFn, { primary, accent, neutral, neutralVariant, primaryToneLight, primaryToneDark }: ToneSources): GeneratedTokens {
   return {
     light: {
       primary: hex(primary, primaryToneLight),
