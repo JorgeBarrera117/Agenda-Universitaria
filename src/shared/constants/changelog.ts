@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.81',
+    date: '2026-11-15',
+    title: 'Pasa tus datos entre el teléfono y la PC',
+    changes: [
+      { kind: 'nuevo', text: 'Pasa tus materias, horario y apuntes entre el teléfono y la computadora por tu wifi: la app de Windows muestra un código QR y el teléfono lo escanea. Sin cables ni internet.' },
+      { kind: 'nuevo', text: 'Los datos viajan cifrados y el código sirve una sola vez. Antes de reemplazar nada, el dispositivo que recibe te muestra lo que llega y te pide confirmar.' },
+    ],
+  },
+  {
     version: '1.7.10.80',
     date: '2026-11-15',
     title: 'Ajustes más completos y bloqueo con PIN',
