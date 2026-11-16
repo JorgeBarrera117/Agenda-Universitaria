@@ -102,7 +102,7 @@ export async function connectToPc(invite: TransferInvite): Promise<PcConnection>
 
 /** Teléfono → PC: arma el respaldo, lo cifra y lo sube. */
 export async function sendBackupToPc(connection: PcConnection, invite: TransferInvite): Promise<void> {
-  const { jsonString } = await generateBackupData();
+  const { jsonString } = await generateBackupData({ includeDocuments: true });
   const sealed = await sealTransferPayload(jsonString, invite.key, 'to-pc');
   let result: HttpResult;
   try {

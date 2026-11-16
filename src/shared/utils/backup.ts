@@ -7,6 +7,7 @@ import type { ScheduleSlot } from '../../features/schedule/types';
 import { WidgetBridge } from '../plugins/widgetBridge';
 import { sanitizeNoteHtml } from './sanitizeHtml';
 import { SAFE_AUDIO_DATA_URL, SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from './dataUrl';
+import { exportDocuments, prepareDocuments, replaceAllDocuments } from '../../features/subjects/services/documentStorage';
 
 export interface ExportResult {
   method: 'downloads' | 'share' | 'file-picker' | 'clipboard' | 'download';
@@ -14,10 +15,18 @@ export interface ExportResult {
   fileName?: string;
 }
 
+export interface BackupOptions {
+  /**
+   * Incluir la sección Archivos (documentos de cada materia, con su contenido). La usa la
+   * transferencia entre dispositivos; las copias en archivo no la llevan para no crecer de más.
+   */
+  includeDocuments?: boolean;
+}
+
 /**
  * Genera la cadena JSON y el nombre de archivo con todos los datos del semestre actual.
  */
-export async function generateBackupData(): Promise<{ jsonString: string; fileName: string }> {
+export async function generateBackupData(options: BackupOptions = {}): Promise<{ jsonString: string; fileName: string }> {
   const subjects = await db.subjects.toArray();
   const professors = await db.professors.toArray();
   const scheduleSlots = await db.scheduleSlots.toArray();
@@ -59,6 +68,8 @@ export async function generateBackupData(): Promise<{ jsonString: string; fileNa
       images: serializedImages,
       // Notas de voz (desde 1.7.10.63); los respaldos anteriores simplemente no traen esta sección
       audios: serializedAudios,
+      // Archivos de las materias: solo en la transferencia. Si falta, al restaurar no se tocan.
+      ...(options.includeDocuments ? { documents: await exportDocuments() } : {}),
     },
   };
 
@@ -275,6 +286,9 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
   }
 
   const backup = parseBackupPayload(parsed);
+  // Archivos: se validan y convierten ANTES de borrar nada (si algo falla, no se pierde nada)
+  const rawDocuments = (parsed as { data?: { documents?: unknown } }).data?.documents;
+  const documents = rawDocuments === undefined ? null : prepareDocuments(rawDocuments);
 
   await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios], async () => {
     await db.subjects.clear();
@@ -291,6 +305,8 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
     if (backup.images.length) await db.noteImages.bulkAdd(backup.images);
     if (backup.audios.length) await db.noteAudios.bulkAdd(backup.audios);
   });
+
+  if (documents) await replaceAllDocuments(documents);
 }
 
 type UnknownRecord = Record<string, unknown>;

@@ -79,6 +79,8 @@ export interface BackupSummary {
   professors: number;
   scheduleSlots: number;
   notes: number;
+  /** Archivos de las materias (null si el respaldo no trae esa sección). */
+  documents: number | null;
 }
 
 export function summarizeBackupJson(jsonText: string): BackupSummary | null {
@@ -96,6 +98,7 @@ export function summarizeBackupJson(jsonText: string): BackupSummary | null {
       professors: count('professors'),
       scheduleSlots: count('scheduleSlots'),
       notes: count('notes'),
+      documents: Array.isArray((data as Record<string, unknown>).documents) ? count('documents') : null,
     };
   } catch {
     return null;
@@ -108,6 +111,7 @@ export function describeBackupSummary(summary: BackupSummary): string {
     part(summary.subjects, 'materia', 'materias'),
     part(summary.scheduleSlots, 'clase en el horario', 'clases en el horario'),
     part(summary.notes, 'apunte', 'apuntes'),
+    ...(summary.documents !== null ? [part(summary.documents, 'archivo', 'archivos')] : []),
     part(summary.professors, 'docente', 'docentes'),
   ].join(' · ');
 }

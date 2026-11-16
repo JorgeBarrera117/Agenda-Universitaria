@@ -2,6 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { WidgetBridge } from '../../../shared/plugins/widgetBridge';
 import { isShareCanceled, shareText, type ShareOutcome } from '../../../shared/utils/shareText';
+import {
+  DOCUMENTS_CHANGED_EVENT,
+  DOCUMENTS_STORAGE_KEY as STORAGE_KEY,
+  deleteBlob,
+  getBlob,
+  saveBlob,
+  writeStoredDocuments,
+} from '../services/documentStorage';
+
+// Se mantiene la exportación para quienes ya escuchan el evento desde aquí
+export { DOCUMENTS_CHANGED_EVENT };
 
 // Helper para convertir Blob a base64 puro (sin prefijo data:...)
 function blobToBase64(blob: Blob): Promise<string> {
@@ -30,13 +41,6 @@ export interface SubjectDocumentItem {
   blob?: Blob;
 }
 
-const STORAGE_KEY = 'agenda_subject_documents_metadata_v1';
-const DB_NAME = 'AgendaDocsCacheDB';
-const STORE_NAME = 'blobs';
-
-// Los metadatos viven en localStorage (no en Dexie), así que cada instancia del hook carga su
-// propia copia. Este evento avisa a los demás consumidores (p. ej. los contadores de pestañas).
-export const DOCUMENTS_CHANGED_EVENT = 'agenda_documents_updated';
 
 /** Resultado de compartir un documento: igual que shareText, más la descarga como último recurso. */
 export type DocumentShareOutcome = ShareOutcome | 'downloaded';
@@ -48,10 +52,6 @@ function shareFileName(doc: SubjectDocumentItem): string {
   return `${doc.name}.${ext}`;
 }
 
-function writeStoredDocuments(docs: SubjectDocumentItem[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
-  window.dispatchEvent(new Event(DOCUMENTS_CHANGED_EVENT));
-}
 
 let cachedRaw: string | null = null;
 let cachedCount = 0;
@@ -69,54 +69,6 @@ export function readStoredDocumentsCount(): number {
   } catch {
     return 0;
   }
-}
-
-// Inicializador de base de datos aislada para blobs sin alterar la DB principal
-function openDocsDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveBlob(id: string, blob: Blob): Promise<void> {
-  const db = await openDocsDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.put({ id, blob });
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function getBlob(id: string): Promise<Blob | null> {
-  const db = await openDocsDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.get(id);
-    req.onsuccess = () => resolve(req.result ? req.result.blob : null);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function deleteBlob(id: string): Promise<void> {
-  const db = await openDocsDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
 }
 
 export function useSubjectDocuments(subjectId?: string) {

@@ -156,7 +156,7 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
 
           {!toPc && (
             <p className="text-xs text-[var(--color-md-on-surface-variant)]">
-              El teléfono reemplazará sus materias, horario y apuntes por los de esta computadora.
+              El teléfono reemplazará sus materias, horario, apuntes y archivos por los de esta computadora.
             </p>
           )}
 
@@ -205,8 +205,8 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
           </p>
           <p className="flex items-start gap-2 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-3 text-xs text-[var(--color-md-on-surface)]">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-            Las materias, docentes, horario y apuntes de esta computadora se reemplazarán por los del teléfono. No se puede
-            deshacer.
+            Las materias, docentes, horario, apuntes y archivos de esta computadora se reemplazarán por los del teléfono.
+            No se puede deshacer.
           </p>
           <ModalActions>
             <Button variant="ghost" size="sm" onClick={close}>

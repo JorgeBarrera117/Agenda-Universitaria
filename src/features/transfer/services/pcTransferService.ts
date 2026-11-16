@@ -21,7 +21,7 @@ export async function startPcTransfer(direction: TransferDirection): Promise<PcT
   const key = createTransferKey();
   let payload: string | undefined;
   if (direction === 'to-phone') {
-    const { jsonString } = await generateBackupData();
+    const { jsonString } = await generateBackupData({ includeDocuments: true });
     payload = await sealTransferPayload(jsonString, key, 'to-phone');
   }
 

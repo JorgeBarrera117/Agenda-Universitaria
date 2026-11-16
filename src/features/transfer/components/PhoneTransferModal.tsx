@@ -99,14 +99,15 @@ export const PhoneTransferModal: React.FC<PhoneTransferModalProps> = ({ onClose,
           </p>
           {phase.invite.direction === 'to-pc' ? (
             <p className="text-sm text-[var(--color-md-on-surface-variant)]">
-              Se enviará una copia de todos tus datos (materias, horario y apuntes con sus fotos y audios) a la computadora.
+              Se enviará una copia de todos tus datos (materias, horario, apuntes con sus fotos y audios, y la sección
+              Archivos) a la computadora.
               Allí tendrás que confirmar antes de que se guarden.
             </p>
           ) : (
             <p className="flex items-start gap-2 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-3 text-xs text-[var(--color-md-on-surface)]">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-              Las materias, docentes, horario y apuntes de este teléfono se reemplazarán por los de la computadora. No se
-              puede deshacer: si quieres conservar lo de aquí, haz antes una copia.
+              Las materias, docentes, horario, apuntes y archivos de este teléfono se reemplazarán por los de la
+              computadora. No se puede deshacer: si quieres conservar lo de aquí, haz antes una copia.
             </p>
           )}
           <ModalActions>
