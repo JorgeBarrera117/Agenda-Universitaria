@@ -10,7 +10,6 @@ import {
   Camera,
   Database,
   Info,
-  Check,
   Sparkles,
   Image as ImageIcon,
   Sliders,
@@ -32,8 +31,9 @@ import { applyTheme, paletteDisplayName } from '../../../shared/utils/theme';
 import {
   getCustomWallpaperDataUrl,
   saveCustomWallpaperDataUrl,
-  getPatternMaskDataUri,
 } from '../../../shared/components/AppWallpaper';
+import { getPatternMask, isPatternWallpaper, patternMaskSize } from '../../../shared/wallpapers/wallpaperPatterns';
+import { WallpaperPicker } from './WallpaperPicker';
 import { APP_INFO } from '../../../shared/constants/appInfo';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
@@ -50,7 +50,7 @@ import { IMAGE_ACCEPT, SUPPORTED_IMAGE_FORMATS_LABEL, toBrowserReadableImage } f
 import { StudentCredential } from './StudentCredential';
 import { CardStyleSection, ThemeColorSection } from './ThemeStudio';
 import { StudentProfileForm, type ProfileFields } from './StudentProfileForm';
-import type { AppSettings, CardSurfaceStyle, CustomPaletteSettings, MaterialColorTheme, WallpaperStyle } from '../types';
+import type { AppSettings, CardSurfaceStyle, CustomPaletteSettings, MaterialColorTheme } from '../types';
 
 export type SettingsCategory =
   | 'appearance'
@@ -516,95 +516,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     className="hidden"
                   />
 
-                  {/* Galería de Estilos de Papel Tapiz Compacta */}
-                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                    {(
-                      [
-                        { id: 'campus', label: 'Campus', desc: 'Doodles de estudio' },
-                        { id: 'blueprint', label: 'Ingeniería', desc: 'Cuadrícula técnica' },
-                        { id: 'constellation', label: 'Nodos', desc: 'Grafo / Red' },
-                        { id: 'topographic', label: 'Relieve', desc: 'Topográfico, ondas suaves' },
-                        { id: 'dots', label: 'Puntos', desc: 'Bullet journal' },
-                        { id: 'custom', label: 'Mi Foto', desc: customWallpaperPreview ? 'Cargada' : 'Subir...' },
-                        { id: 'none', label: 'Fondo Liso', desc: 'Sin tapiz' },
-                      ] as { id: WallpaperStyle; label: string; desc: string }[]
-                    ).map((item) => {
-                      const currentStyle = settings.wallpaperStyle || 'campus';
-                      const isSelected = currentStyle === item.id;
-                      const previewPattern =
-                        item.id !== 'custom' && item.id !== 'none'
-                          ? getPatternMaskDataUri(item.id)
-                          : null;
-
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          title={item.desc}
-                          aria-pressed={isSelected}
-                          onClick={() => {
-                            if (item.id === 'custom' && !customWallpaperPreview) {
-                              wallpaperInputRef.current?.click();
-                              return;
-                            }
-                            updateSettings({ ...settings, wallpaperStyle: item.id });
-                          }}
-                          className={`p-1.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1 text-center relative overflow-hidden group ${
-                            isSelected
-                              ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]/35 shadow-2xs'
-                              : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] hover:border-[var(--color-md-outline)]'
-                          }`}
-                        >
-                          {/* Miniatura del patrón o foto */}
-                          <div className="w-full h-10 rounded-lg bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)]/60 relative overflow-hidden flex items-center justify-center">
-                            {item.id === 'none' && (
-                              <span className="text-10px font-bold text-[var(--color-md-on-surface-variant)]">
-                                Liso
-                              </span>
-                            )}
-                            {item.id === 'custom' && (
-                              customWallpaperPreview ? (
-                                <img
-                                  src={customWallpaperPreview}
-                                  alt="Miniatura fondo"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex flex-col items-center gap-0.5 text-[var(--color-md-primary)]">
-                                  <ImageIcon className="w-4 h-4" />
-                                  <span className="text-9px font-bold">Subir</span>
-                                </div>
-                              )
-                            )}
-                            {previewPattern && (
-                              <div
-                                style={{
-                                  backgroundColor: 'var(--color-md-primary)',
-                                  WebkitMaskImage: previewPattern.dataUri,
-                                  maskImage: previewPattern.dataUri,
-                                  WebkitMaskRepeat: 'repeat',
-                                  maskRepeat: 'repeat',
-                                  WebkitMaskSize: `${Math.round(previewPattern.baseSize * 0.4)}px`,
-                                  maskSize: `${Math.round(previewPattern.baseSize * 0.4)}px`,
-                                  opacity: 0.55,
-                                }}
-                                className="w-full h-full"
-                              />
-                            )}
-                            {isSelected && (
-                              <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center shadow-2xs">
-                                <Check className="w-2.5 h-2.5 stroke-[3]" />
-                              </div>
-                            )}
-                          </div>
-
-                          <span className="text-10px font-bold text-[var(--color-md-on-surface)] block truncate">
-                            {item.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {/* Galería por categorías (ver WallpaperPicker y wallpaperPatterns.ts) */}
+                  <WallpaperPicker
+                    value={settings.wallpaperStyle || 'campus'}
+                    onChange={(wallpaperStyle) => updateSettings({ ...settings, wallpaperStyle })}
+                    customPreview={customWallpaperPreview}
+                    onRequestUpload={() => wallpaperInputRef.current?.click()}
+                  />
 
                   {/* Acciones de Fotografía Personalizada */}
                   {(settings.wallpaperStyle === 'custom' || customWallpaperPreview) && (
@@ -811,16 +729,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           ) : (
                             settings.wallpaperStyle !== 'custom' &&
                             (() => {
-                              const p = getPatternMaskDataUri(
-                                (settings.wallpaperStyle || 'campus') as Exclude<
-                                  WallpaperStyle,
-                                  'custom' | 'none'
-                                >
-                              );
-                              const sz = Math.max(
-                                14,
-                                Math.round(p.baseSize * ((settings.wallpaperScale ?? 100) / 100) * 0.55)
-                              );
+                              const style = settings.wallpaperStyle || 'campus';
+                              if (!isPatternWallpaper(style)) return null;
+                              const p = getPatternMask(style);
+                              const sz = patternMaskSize(p, ((settings.wallpaperScale ?? 100) / 100) * 0.55);
                               return (
                                 <div
                                   style={{
@@ -829,8 +741,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                     maskImage: p.dataUri,
                                     WebkitMaskRepeat: 'repeat',
                                     maskRepeat: 'repeat',
-                                    WebkitMaskSize: `${sz}px ${sz}px`,
-                                    maskSize: `${sz}px ${sz}px`,
+                                    WebkitMaskSize: sz,
+                                    maskSize: sz,
                                     opacity: (settings.wallpaperOpacity ?? 16) / 100,
                                     filter:
                                       (settings.wallpaperBlur ?? 0) > 0

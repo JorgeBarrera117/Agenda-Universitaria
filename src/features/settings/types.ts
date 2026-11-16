@@ -54,12 +54,33 @@ export interface CustomPaletteSettings {
 /** Acabado de las tarjetas: sólido (actual), cristal translúcido o plano con bordes marcados. */
 export type CardSurfaceStyle = 'solid' | 'glass' | 'bordered';
 
+/** Papeles tapiz: los patrones viven en src/shared/wallpapers/wallpaperPatterns.ts. */
 export type WallpaperStyle =
+  // Estudio
   | 'campus'
-  | 'blueprint'
-  | 'constellation'
-  | 'topographic'
+  | 'notebook'
+  | 'math'
+  | 'chemistry'
+  | 'biology'
+  // Geométricos
   | 'dots'
+  | 'grid'
+  | 'blueprint'
+  | 'hexagons'
+  | 'triangles'
+  | 'diagonal'
+  | 'crosses'
+  // Naturaleza y espacio
+  | 'topographic'
+  | 'waves'
+  | 'leaves'
+  | 'clouds'
+  | 'space'
+  // Tecnología
+  | 'constellation'
+  | 'code'
+  | 'circuit'
+  // Personal
   | 'custom'
   | 'none';
 
