@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.80',
+    date: '2026-11-15',
+    title: 'Ajustes más completos y bloqueo con PIN',
+    changes: [
+      { kind: 'nuevo', text: 'Bloqueo de la app con PIN (y huella en Android), con un código de recuperación por si lo olvidas.' },
+      { kind: 'nuevo', text: 'Ajustes → General: elige ver las horas en formato de 12 o de 24 horas. «Iniciar con Windows» ahora está aquí.' },
+      { kind: 'nuevo', text: 'Resumen del día: un aviso a la hora que elijas con las clases que tienes hoy.' },
+      { kind: 'mejora', text: 'Elige con cuánta anticipación te avisa cada clase: 5, 10, 15, 30 minutos o 1 hora.' },
+      { kind: 'nuevo', text: 'Copia de seguridad automática cada semana (teléfono y Windows) y un recordatorio si llevas tiempo sin hacer una.' },
+    ],
+  },
+  {
     version: '1.7.10.79',
     date: '2026-11-15',
     title: 'Tu próxima clase, con su ícono',
