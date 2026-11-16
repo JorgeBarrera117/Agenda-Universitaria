@@ -87,7 +87,7 @@ const TransferTile: React.FC<{ icon: React.ReactNode; title: string; subtitle: s
     </span>
     <span className="min-w-0">
       <span className="block truncate text-xs font-bold">{title}</span>
-      <span className="block truncate text-[11px] opacity-80">{subtitle}</span>
+      <span className="block truncate text-11px opacity-80">{subtitle}</span>
     </span>
   </button>
 );

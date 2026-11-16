@@ -62,12 +62,13 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({ icon, title, subtitle,
       {icon}
     </span>
     <span className="min-w-0 flex-1">
-      <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{title}</span>
-      <span className="block truncate text-xs text-[var(--color-md-on-surface-variant)]">{subtitle}</span>
+      {/* Dos líneas antes de cortar: con el texto grande los títulos no deben quedar a medias */}
+      <span className="block line-clamp-2 text-sm font-bold leading-snug text-[var(--color-md-on-surface)]">{title}</span>
+      <span className="block line-clamp-2 text-xs leading-snug text-[var(--color-md-on-surface-variant)]">{subtitle}</span>
     </span>
     {value !== undefined && (
       <span
-        className={`max-w-[40%] shrink-0 truncate rounded-lg px-2 py-0.5 text-[11px] font-semibold ${
+        className={`max-w-[40%] shrink-0 truncate rounded-lg px-2 py-0.5 text-11px font-semibold ${
           valueTone === 'active'
             ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
             : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'

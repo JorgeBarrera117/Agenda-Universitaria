@@ -180,7 +180,7 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
                 {subjects.map((subject) => (
                   <li
                     key={subject.id}
-                    className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-0.5 text-[10.5px] font-semibold text-[var(--color-md-on-surface-variant)]"
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-0.5 text-11px font-semibold text-[var(--color-md-on-surface-variant)]"
                   >
                     <SubjectBadge icon={subject.icon} color={subject.color} size="xs" />
                     <span className="truncate">{subject.name}</span>
@@ -231,7 +231,7 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
                 <div className="min-w-0">
-                  <dt className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">Cubículo u oficina</dt>
+                  <dt className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Cubículo u oficina</dt>
                   <dd className="break-words text-sm text-[var(--color-md-on-surface)]">{professor.office}</dd>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
               <div className="flex items-start gap-3">
                 <CalendarCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
                 <div className="min-w-0">
-                  <dt className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">Asesorías y notas</dt>
+                  <dt className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Asesorías y notas</dt>
                   <dd className="whitespace-pre-line break-words text-sm text-[var(--color-md-on-surface)]">{professor.notes}</dd>
                 </div>
               </div>
@@ -270,7 +270,7 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{subject.name}</span>
                     {subject.code && (
-                      <span className="block font-mono text-[11px] text-[var(--color-md-on-surface-variant)]">{subject.code}</span>
+                      <span className="block font-mono text-11px text-[var(--color-md-on-surface-variant)]">{subject.code}</span>
                     )}
                   </span>
                   {onSelectSubject && (

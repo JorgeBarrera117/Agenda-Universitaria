@@ -517,7 +517,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   </span>
                   <span className="truncate">{readingCategory.name}</span>
                   {readingCategory.code && (
-                    <span className="font-mono text-[10px] text-[var(--color-md-on-surface-variant)]">
+                    <span className="font-mono text-10px text-[var(--color-md-on-surface-variant)]">
                       {readingCategory.code}
                     </span>
                   )}
@@ -561,7 +561,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 if (taskLabel) void handleReaderTaskToggle(e.currentTarget, taskLabel.parentElement);
               }}
               ref={readerContentRef}
-              className="note-content select-text text-[15px] leading-relaxed sm:text-base [&_img]:cursor-zoom-in"
+              className="note-content select-text text-15px leading-relaxed sm:text-base [&_img]:cursor-zoom-in"
               dangerouslySetInnerHTML={{ __html: readingNoteHtml }}
             />
             {readerVoiceSlots.map((slot, index) =>
@@ -978,7 +978,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               >
                 {/* Cabecera de la Tarjeta */}
                 <div className="flex items-start justify-between gap-1.5">
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <div className="flex items-start gap-1.5 min-w-0 flex-1">
                     <div
                       className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 shadow-2xs text-white"
                       style={{
@@ -988,7 +988,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       <SubjectIcon icon={category.icon} className="w-3 h-3 text-white" />
                     </div>
 
-                    <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
                       {note.title || 'Documento'}
                     </h3>
                   </div>
@@ -1039,13 +1039,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     />
                     <div className="absolute top-1 left-1 flex items-center gap-1">
                       {imageCount > 0 && (
-                        <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-800 bg-amber-50/95 px-1 py-0.5 rounded shadow-2xs">
+                        <span className="inline-flex items-center gap-0.5 text-8px font-bold text-amber-800 bg-amber-50/95 px-1 py-0.5 rounded shadow-2xs">
                           <Camera className="w-2.5 h-2.5" aria-hidden="true" />
                           <span>{imageCount}</span>
                         </span>
                       )}
                       {audioCount > 0 && (
-                        <span className="inline-flex items-center gap-0.5 rounded bg-[var(--color-md-primary-container)] px-1 py-0.5 text-[8px] font-bold text-[var(--color-md-on-primary-container)] shadow-2xs">
+                        <span className="inline-flex items-center gap-0.5 rounded bg-[var(--color-md-primary-container)] px-1 py-0.5 text-8px font-bold text-[var(--color-md-on-primary-container)] shadow-2xs">
                           <Mic className="w-2.5 h-2.5" aria-hidden="true" />
                           <span>{audioCount}</span>
                           <span className="sr-only">notas de voz</span>
@@ -1054,7 +1054,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     </div>
                     {preview.hasText && (
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 pt-4">
-                        <p className="text-[9px] text-white/95 leading-tight line-clamp-1 font-medium drop-shadow-xs">
+                        <p className="text-9px text-white/95 leading-tight line-clamp-1 font-medium drop-shadow-xs">
                           {preview.cleanText}
                         </p>
                       </div>
@@ -1066,7 +1066,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     <div className="space-y-1 min-h-0">
                       <div className="w-1/2 h-1 rounded-full bg-slate-300 dark:bg-slate-400 mb-1" />
                       <p
-                        className={`text-[9.5px] leading-snug line-clamp-4 font-sans ${
+                        className={`text-10px leading-snug line-clamp-4 font-sans ${
                           preview.hasText ? 'text-slate-600 dark:text-slate-700' : 'italic text-slate-400 dark:text-slate-500'
                         }`}
                       >
@@ -1078,13 +1078,13 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                       <div className="flex items-center gap-1">
                         {imageCount > 0 && (
-                          <span className="inline-flex items-center gap-0.5 text-[8px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
+                          <span className="inline-flex items-center gap-0.5 text-8px font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
                             <Camera className="w-2.5 h-2.5" aria-hidden="true" />
                             <span>{imageCount}</span>
                           </span>
                         )}
                         {audioCount > 0 && (
-                          <span className="inline-flex items-center gap-0.5 rounded bg-[var(--color-md-primary-container)] px-1 py-0.5 text-[8px] font-bold text-[var(--color-md-on-primary-container)]">
+                          <span className="inline-flex items-center gap-0.5 rounded bg-[var(--color-md-primary-container)] px-1 py-0.5 text-8px font-bold text-[var(--color-md-on-primary-container)]">
                             <Mic className="w-2.5 h-2.5" aria-hidden="true" />
                             <span>{audioCount}</span>
                             <span className="sr-only">notas de voz</span>
@@ -1104,11 +1104,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 )}
 
                 {/* Pie de la Tarjeta */}
-                <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                <div className="flex items-center justify-between text-10px text-slate-500 dark:text-slate-400">
                   <span className="truncate max-w-[80px] font-medium">
                     {category.name}
                   </span>
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
+                  <span className="text-9px text-slate-400 dark:text-slate-500 font-medium">
                     {dateFormatted}
                   </span>
                 </div>
@@ -1149,7 +1149,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors leading-tight">
                       {note.title || 'Documento sin título'}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-1.5 text-11px text-slate-500 dark:text-slate-400 mt-0.5">
                       <span className="truncate max-w-[120px] font-semibold text-slate-600 dark:text-slate-300">
                         {category.name}
                       </span>

@@ -48,7 +48,7 @@ function nextClassWhen(next: NextClassPulse, formatTime: (time: string) => strin
 function ClassDetails({ info }: { info: PulseClass }) {
   const formatter = useTimeFormatter();
   return (
-    <ul className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
+    <ul className="flex flex-wrap items-center gap-1.5 text-11px font-semibold">
       <li className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-md-card-bg)] px-2 py-0.5 font-mono">
         <Clock className="h-3 w-3" aria-hidden="true" />
         {formatter.range(info.slot.startTime, info.slot.endTime)}
@@ -85,7 +85,7 @@ function SubjectTitle({ info }: { info: PulseClass }) {
           {info.subject?.name || 'Clase universitaria'}
         </h3>
         {info.subject?.code && (
-          <span className="shrink-0 rounded-md bg-[var(--color-md-on-surface)] px-2 py-0.5 font-mono text-[10px] font-black tracking-wider text-[var(--color-md-surface)]">
+          <span className="shrink-0 rounded-md bg-[var(--color-md-on-surface)] px-2 py-0.5 font-mono text-10px font-black tracking-wider text-[var(--color-md-surface)]">
             {info.subject.code}
           </span>
         )}
@@ -147,7 +147,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
     >
       {/* Cabecera: estado + píldora del día + plegar/desplegar */}
       <div className="flex items-center gap-2 px-1.5 pb-1">
-        <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
+        <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-0.5 text-11px font-bold text-[var(--color-md-on-primary-container)]">
           {currentClass ? (
             <span className="relative flex h-2 w-2" aria-hidden="true">
               <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--color-md-primary)] opacity-60 motion-safe:animate-ping" />
@@ -159,7 +159,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
           {status.label}
         </span>
         {isCollapsed && (
-          <span className="truncate text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+          <span className="truncate text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
             {collapsedSummary}
           </span>
         )}
@@ -185,7 +185,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
             {currentClass ? (
               <>
                 <div className="min-w-0 space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">En curso ahora</p>
+                  <p className="text-11px font-bold uppercase tracking-wider opacity-80">En curso ahora</p>
                   <SubjectTitle info={currentClass} />
                   <ClassDetails info={currentClass} />
                 </div>
@@ -225,7 +225,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
             ) : nextClass ? (
               <>
                 <div className="min-w-0 space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">
+                  <p className="text-11px font-bold uppercase tracking-wider opacity-80">
                     {nextClass.daysAhead === 0 ? 'Próxima clase hoy' : 'Próxima clase'}
                   </p>
                   <SubjectTitle info={nextClass} />
@@ -264,7 +264,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
           {/* Tarjeta secundaria: resumen de la jornada (fila compacta en móvil, columna en escritorio) */}
           <div className="flex items-center gap-4 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] p-3.5 text-[var(--color-md-on-surface)] sm:flex-col sm:items-stretch sm:justify-between sm:gap-2">
             <div className="shrink-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)]">
+              <p className="text-11px font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)]">
                 Tu jornada
               </p>
               {daySummary.totalToday === 0 ? (
@@ -305,7 +305,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
                   })}
                 </div>
 
-                <span className="self-start rounded-full bg-[var(--color-md-secondary-container)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-md-on-secondary-container)]">
+                <span className="self-start rounded-full bg-[var(--color-md-secondary-container)] px-2.5 py-0.5 text-11px font-bold text-[var(--color-md-on-secondary-container)]">
                   {dayPill}
                 </span>
               </div>

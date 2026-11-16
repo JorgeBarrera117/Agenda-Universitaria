@@ -43,18 +43,18 @@ export const ChangelogEntryCard: React.FC<ChangelogEntryCardProps> = ({ entry, i
     <header className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <h3 className="text-sm font-black text-[var(--color-md-on-surface)]">v{entry.version}</h3>
       {isCurrent && (
-        <span className="rounded-full bg-[var(--color-md-primary)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-md-on-primary)]">
+        <span className="rounded-full bg-[var(--color-md-primary)] px-2 py-0.5 text-10px font-bold text-[var(--color-md-on-primary)]">
           Tu versión
         </span>
       )}
-      <span className="text-[11px] text-[var(--color-md-on-surface-variant)]">{formatDate(entry.date)}</span>
+      <span className="text-11px text-[var(--color-md-on-surface-variant)]">{formatDate(entry.date)}</span>
     </header>
     <p className="text-xs font-bold text-[var(--color-md-on-surface)]">{entry.title}</p>
     <ul className="space-y-1.5">
       {entry.changes.map((change, index) => (
         <li key={index} className="flex items-start gap-2 text-xs leading-relaxed text-[var(--color-md-on-surface)]">
           <span
-            className={`mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${KIND_STYLES[change.kind].className}`}
+            className={`mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-10px font-semibold ${KIND_STYLES[change.kind].className}`}
           >
             {KIND_STYLES[change.kind].icon}
             {CHANGE_KIND_LABELS[change.kind]}

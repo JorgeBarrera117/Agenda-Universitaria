@@ -40,7 +40,7 @@ const OptionRow: React.FC<{
     </span>
     <div className="min-w-0 flex-1">
       <p className="text-xs font-bold text-[var(--color-md-on-surface)]">{title}</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">{description}</p>
+      <p className="mt-0.5 text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">{description}</p>
     </div>
     <M3Switch checked={checked} onChange={(value) => onChange?.(value)} label={title} disabled={locked} />
   </div>
@@ -120,7 +120,7 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
             return (
               <li key={label} className="flex min-w-0 flex-1 items-center gap-1.5" aria-current={current ? 'step' : undefined}>
                 <span
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-11px font-bold ${
                     done || current
                       ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
                       : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
@@ -129,7 +129,7 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
                   {done ? <Check className="h-3.5 w-3.5 stroke-[3]" aria-hidden="true" /> : index + 1}
                 </span>
                 <span
-                  className={`truncate text-[11px] font-semibold ${
+                  className={`truncate text-11px font-semibold ${
                     current ? 'text-[var(--color-md-on-surface)]' : 'text-[var(--color-md-on-surface-variant)]'
                   }`}
                 >
@@ -195,7 +195,7 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
               className={formInputClass}
               autoFocus
             />
-            <p className={`text-[11px] ${nameError ? 'font-semibold text-red-700 dark:text-red-300' : 'text-[var(--color-md-on-surface-variant)]'}`}>
+            <p className={`text-11px ${nameError ? 'font-semibold text-red-700 dark:text-red-300' : 'text-[var(--color-md-on-surface-variant)]'}`}>
               {nameError ?? `Termina: ${currentName}. Aparecerá en tu credencial y en el horario.`}
             </p>
           </section>
@@ -225,7 +225,7 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
               checked
               locked
             />
-            <p className="flex items-start gap-2 text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">
+            <p className="flex items-start gap-2 text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
               {plural(notes.length, 'apunte', 'apuntes')}, sus fotos y tus archivos no se borran.
               {backup.status !== 'done' && ' Antes de aplicar se descargará la copia de seguridad.'}

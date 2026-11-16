@@ -244,7 +244,7 @@ export const SecuritySettings: React.FC<SecuritySettingsProps> = ({ onShowToast 
               })}
             </div>
             {config.lockAfterMinutes === 0 && (
-              <p className="mt-2 text-[11px] text-[var(--color-md-on-surface-variant)]">
+              <p className="mt-2 text-11px text-[var(--color-md-on-surface-variant)]">
                 Con «Siempre» también se pide al volver de tomar una foto o de compartir un archivo.
               </p>
             )}

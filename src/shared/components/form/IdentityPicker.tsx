@@ -46,7 +46,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
         <div className="min-w-0 sm:max-w-[120px]">
           <p className="truncate text-sm font-black text-[var(--color-md-on-surface)]">{previewTitle}</p>
           {previewSubtitle && (
-            <p className="truncate font-mono text-[11px] text-[var(--color-md-on-surface-variant)]">{previewSubtitle}</p>
+            <p className="truncate font-mono text-11px text-[var(--color-md-on-surface-variant)]">{previewSubtitle}</p>
           )}
         </div>
       </div>

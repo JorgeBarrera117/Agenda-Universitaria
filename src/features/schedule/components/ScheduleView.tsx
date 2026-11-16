@@ -277,7 +277,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               {settings.semesterName}
             </Badge>
           </div>
-          <p className="text-[11px] sm:text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
+          <p className="text-11px sm:text-xs text-[var(--color-md-on-surface-variant)] font-medium mt-0.5">
             Planificación de bloques lectivos, aulas y cátedras universitarias.
           </p>
         </div>
@@ -414,14 +414,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     />
                   )}
                   <span
-                    className={`text-[11px] sm:text-xs font-black uppercase tracking-wider block leading-tight text-center ${
+                    className={`text-11px sm:text-xs font-black uppercase tracking-wider block leading-tight text-center ${
                       isSelected ? 'text-[var(--color-md-on-primary)]' : 'text-[var(--color-md-on-surface)]'
                     }`}
                   >
                     {SHORT_DAY_NAMES[day as DayOfWeek]}
                   </span>
                   <span
-                    className={`text-[9px] sm:text-[10px] block mt-0.5 leading-none ${
+                    className={`text-9px sm:text-10px block mt-0.5 leading-none ${
                       isSelected ? 'text-[var(--color-md-on-primary)] font-bold' : 'text-[var(--color-md-on-surface-variant)]'
                     }`}
                   >
@@ -474,7 +474,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           {DAY_NAMES[day]}
                         </h3>
                         {isToday && (
-                          <span className="shrink-0 rounded-full bg-[var(--color-md-primary)] px-2 py-px text-[10px] font-semibold leading-4 text-[var(--color-md-on-primary)]">
+                          <span className="shrink-0 rounded-full bg-[var(--color-md-primary)] px-2 py-px text-10px font-semibold leading-4 text-[var(--color-md-on-primary)]">
                             Hoy
                           </span>
                         )}
@@ -569,13 +569,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                 />
                               </div>
 
-                              <h4 className="mt-1.5 pr-1.5 text-[13px] font-medium leading-snug text-[var(--color-md-on-surface)] line-clamp-2 [overflow-wrap:anywhere]">
+                              <h4 className="mt-1.5 pr-1.5 text-13px font-medium leading-snug text-[var(--color-md-on-surface)] line-clamp-2 [overflow-wrap:anywhere]">
                                 {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
                               </h4>
 
                               <div className="mt-1.5 space-y-1 pr-2">
                                 {isNow && (
-                                  <span className="inline-flex items-center rounded-full bg-[var(--color-md-primary)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-md-on-primary)]">
+                                  <span className="inline-flex items-center rounded-full bg-[var(--color-md-primary)] px-2 py-0.5 text-10px font-semibold text-[var(--color-md-on-primary)]">
                                     En curso
                                   </span>
                                 )}
@@ -622,7 +622,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       <div className={viewMode === 'weekly' ? 'block sm:hidden space-y-2.5' : 'space-y-2.5'}>
         <div className="flex items-center justify-between bg-[var(--color-md-card-bg)] px-3.5 py-2.5 rounded-2xl border border-[var(--color-md-outline-variant)] shadow-2xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)] block leading-none">
+            <span className="text-10px font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)] block leading-none">
               Horario del día
             </span>
             <h3 className="text-sm sm:text-base font-black text-[var(--color-md-on-surface)] mt-0.5">
@@ -696,13 +696,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       {(subject?.code || isNow) && (
                         <div className="flex items-center gap-1.5 flex-wrap mt-1">
                           {subject?.code && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-10px font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
                               <span className="sr-only">Código: </span>
                               {subject.code}
                             </span>
                           )}
                           {isNow && (
-                            <span className="inline-flex items-center rounded-md bg-[var(--color-md-primary)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--color-md-on-primary)]">
+                            <span className="inline-flex items-center rounded-md bg-[var(--color-md-primary)] px-1.5 py-0.5 text-10px font-bold uppercase tracking-wide text-[var(--color-md-on-primary)]">
                               En curso
                             </span>
                           )}
@@ -749,7 +749,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   {/* Horario destacado + modalidad o aula */}
                   <div className="flex items-center gap-1.5 flex-wrap text-xs">
                     <span
-                      className={`inline-flex items-center gap-1 font-mono font-bold text-[11px] px-2.5 py-1 rounded-lg ${
+                      className={`inline-flex items-center gap-1 font-mono font-bold text-11px px-2.5 py-1 rounded-lg ${
                         isNow
                           ? 'bg-[var(--md-card-surface)] text-[var(--color-md-on-surface)]'
                           : 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
@@ -760,12 +760,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     </span>
 
                     {isSlotVirtual(slot) ? (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-1 rounded-lg text-[11px] font-semibold">
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-1 rounded-lg text-11px font-semibold">
                         <Laptop className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>Virtual</span>
                       </span>
                     ) : slot.classroom ? (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-1 rounded-lg text-[11px] font-medium min-w-0 max-w-full">
+                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-1 rounded-lg text-11px font-medium min-w-0 max-w-full">
                         <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
                         <span className="sr-only">Aula: </span>
                         <span className="truncate">{slot.classroom}</span>
@@ -784,7 +784,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                         onClick={() => onNavigateToNotes(slot.subjectId)}
                         aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
                         icon={<FileEdit className="w-3 h-3" />}
-                        className={`${ABOVE_STRETCHED_CLASS} shrink-0 text-[11px] py-1 px-3 h-7 whitespace-nowrap`}
+                        className={`${ABOVE_STRETCHED_CLASS} shrink-0 text-11px py-1 px-3 h-7 whitespace-nowrap`}
                       >
                         Tomar apunte
                       </Button>

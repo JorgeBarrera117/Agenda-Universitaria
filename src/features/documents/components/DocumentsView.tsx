@@ -455,7 +455,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                 />
                 <span className="max-w-[120px] sm:max-w-none truncate">{subj.name}</span>
                 {count > 0 && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
+                  <span className="text-10px font-mono px-1.5 py-0.2 rounded-full bg-black/10 dark:bg-white/10">
                     {count}
                   </span>
                 )}
@@ -465,7 +465,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         </div>
 
         {/* Chips de Categoría de Formato */}
-        <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 p-1 backdrop-blur-md select-none text-[11px] font-bold [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 p-1 backdrop-blur-md select-none text-11px font-bold [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <span className="text-[var(--color-md-on-surface-variant)] shrink-0 mx-1 flex items-center gap-1">
             <Filter className="w-3 h-3" /> Tipo:
           </span>
@@ -548,11 +548,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono font-bold text-[9px] px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
+                      <span className="font-mono font-bold text-9px px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
                         {visuals.label}
                       </span>
                       {doc.sizeBytes && (
-                        <span className="text-[10px] sm:text-[11px] font-semibold text-[#72777F] dark:text-[#8C9199]">
+                        <span className="text-10px sm:text-11px font-semibold text-[#72777F] dark:text-[#8C9199]">
                           {formatFileSize(doc.sizeBytes)}
                         </span>
                       )}
@@ -612,7 +612,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                 </div>
 
                 {/* Parte Inferior: Materia asignada y Acción Primaria Descongestionada */}
-                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 text-[11px]">
+                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 text-11px">
                   {/* Chip de Materia (Ahora con más del 70% de espacio disponible) */}
                   <div className="flex items-center gap-1 min-w-0 flex-1">
                     {subj ? (
@@ -623,12 +623,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                           size="sm"
                           className="w-4 h-4 rounded-md shadow-2xs ring-1 ring-white/10 shrink-0"
                         />
-                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate text-[11px]">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate text-11px">
                           {subj.name}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">
+                      <span className="text-slate-400 dark:text-slate-500 italic text-11px">
                         Sin asignatura
                       </span>
                     )}
@@ -642,7 +642,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                       e.stopPropagation();
                       handleOpenDoc(doc);
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50 shrink-0"
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-11px font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50 shrink-0"
                   >
                     <ArrowUpRight className={`w-3 h-3 ${isOpening ? 'animate-spin' : ''}`} />
                     <span>{isOpening ? 'Abriendo...' : 'Abrir'}</span>

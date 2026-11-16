@@ -108,7 +108,7 @@ export const DocumentReassignView: React.FC<DocumentReassignViewProps> = ({
 
       {/* 2. TARJETA RESUMEN DEL ARCHIVO */}
       <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 space-y-2.5 shadow-2xs">
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-[#00639B]/10 dark:bg-[#92CCFF]/15 text-[#00639B] dark:text-[#92CCFF] border border-[#00639B]/20 uppercase tracking-wider">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-10px font-mono font-black bg-[#00639B]/10 dark:bg-[#92CCFF]/15 text-[#00639B] dark:text-[#92CCFF] border border-[#00639B]/20 uppercase tracking-wider">
           Documento a reasignar
         </span>
         <div className="flex items-center gap-3.5 pt-1">
@@ -132,7 +132,7 @@ export const DocumentReassignView: React.FC<DocumentReassignViewProps> = ({
       {/* 3. SELECCIÓN DE NUEVA MATERIA */}
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 space-y-3.5 shadow-2xs">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-[#00639B]/10 dark:bg-[#92CCFF]/15 text-[#00639B] dark:text-[#92CCFF] border border-[#00639B]/20 uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-10px font-mono font-black bg-[#00639B]/10 dark:bg-[#92CCFF]/15 text-[#00639B] dark:text-[#92CCFF] border border-[#00639B]/20 uppercase tracking-wider">
             Nueva Materia
           </span>
 
@@ -149,7 +149,7 @@ export const DocumentReassignView: React.FC<DocumentReassignViewProps> = ({
 
           {/* Tarjetas Visuales de Materias Disponibles */}
           <div className="pt-2 space-y-2">
-            <span className="text-[10px] font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
+            <span className="text-10px font-bold text-[#72777F] dark:text-[#8C9199] uppercase tracking-wider block">
               O toca directamente una materia:
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -176,7 +176,7 @@ export const DocumentReassignView: React.FC<DocumentReassignViewProps> = ({
                           {subj.name}
                         </span>
                         {subj.code && (
-                          <span className="text-[10px] font-mono text-[#72777F] dark:text-[#8C9199] truncate block">
+                          <span className="text-10px font-mono text-[#72777F] dark:text-[#8C9199] truncate block">
                             {subj.code}
                           </span>
                         )}

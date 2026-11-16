@@ -69,7 +69,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // 3. Tamaños calibrados Material Design 3 con Accesibilidad Visual (WCAG 2.1 AAA en Desktop)
     const sizeStyles: Record<ButtonSize, string> = {
-      xs: 'px-3 py-1 sm:px-3.5 sm:py-1.5 text-xs sm:text-[13px] rounded-full gap-1.5 font-bold',
+      xs: 'px-3 py-1 sm:px-3.5 sm:py-1.5 text-xs sm:text-13px rounded-full gap-1.5 font-bold',
       sm: 'px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm rounded-full gap-2 font-bold',
       md: 'px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm rounded-full gap-2 font-bold',
       lg: 'px-6 sm:px-7 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] text-sm sm:text-base rounded-full gap-2.5 font-extrabold tracking-wide',

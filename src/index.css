@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+/* Texto Grande o Muy grande (Ajustes → General): para reacomodar lo que no cabe en fila */
+@custom-variant text-large (&:where([data-text-scale='large'] *, [data-text-scale='xlarge'] *));
 
 @theme {
   --font-sans: 'Roboto', 'Google Sans', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -34,6 +36,33 @@
   --color-md-on-surface-variant: #43474E;
   --color-md-outline: #72777F;
   --color-md-outline-variant: #C3C7D0;
+
+  /* Tamaño del texto ajustable (Ajustes → General → Tamaño del texto): toda la escala tipográfica
+     se multiplica por --text-scale. Solo crece el texto; márgenes y alturas se mantienen, como el
+     "tamaño de fuente" de Android. Los tamaños en px son los finos que usan etiquetas y chips. */
+  --text-xs: calc(0.75rem * var(--text-scale, 1));
+  --text-sm: calc(0.875rem * var(--text-scale, 1));
+  --text-base: calc(1rem * var(--text-scale, 1));
+  --text-lg: calc(1.125rem * var(--text-scale, 1));
+  --text-xl: calc(1.25rem * var(--text-scale, 1));
+  --text-2xl: calc(1.5rem * var(--text-scale, 1));
+  --text-3xl: calc(1.875rem * var(--text-scale, 1));
+  --text-4xl: calc(2.25rem * var(--text-scale, 1));
+  --text-8px: calc(8px * var(--text-scale, 1));
+  --text-9px: calc(9px * var(--text-scale, 1));
+  --text-10px: calc(10px * var(--text-scale, 1));
+  --text-11px: calc(11px * var(--text-scale, 1));
+  --text-13px: calc(13px * var(--text-scale, 1));
+  --text-15px: calc(15px * var(--text-scale, 1));
+}
+
+:root {
+  --text-scale: 1;
+}
+
+/* Texto sin clase de tamaño (párrafos, campos de formulario…) también sigue el ajuste */
+body {
+  font-size: calc(1rem * var(--text-scale));
 }
 
 :root {
@@ -458,7 +487,7 @@
 
 :is(.ProseMirror, .note-content) h1 {
   font-family: var(--font-google-brand);
-  font-size: 1.5rem;
+  font-size: calc(1.5rem * var(--text-scale));
   font-weight: 500;
   letter-spacing: -0.015em;
   color: var(--color-md-on-surface);
@@ -468,7 +497,7 @@
 
 :is(.ProseMirror, .note-content) h2 {
   font-family: var(--font-google-brand);
-  font-size: 1.25rem;
+  font-size: calc(1.25rem * var(--text-scale));
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--color-md-on-surface);

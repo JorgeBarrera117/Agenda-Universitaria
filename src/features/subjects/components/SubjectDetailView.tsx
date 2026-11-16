@@ -185,7 +185,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
             >
               {subject.name}
             </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-11px">
               {subject.isArchived && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-[var(--color-md-secondary-container)] px-2 py-1 font-semibold text-[var(--color-md-on-secondary-container)]">
                   <Archive className="h-3.5 w-3.5" aria-hidden="true" />
@@ -245,7 +245,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold text-[var(--color-md-on-surface)]">{item.label}</span>
-              <span className="block text-[11px] text-[var(--color-md-on-surface-variant)]">
+              <span className="block text-11px text-[var(--color-md-on-surface-variant)]">
                 {item.count} {item.key === 'notes' ? (item.count === 1 ? 'apunte' : 'apuntes') : item.count === 1 ? 'archivo' : 'archivos'}
               </span>
             </span>
@@ -261,7 +261,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
           trailing={
             <span className="flex items-center gap-1">
               {sortedSlots.length > 0 && (
-                <span className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+                <span className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
                   {sortedSlots.length} {sortedSlots.length === 1 ? 'clase' : 'clases'} · {formatDuration(weeklyMinutes)}/sem
                 </span>
               )}
@@ -315,7 +315,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                   >
                   <span className="w-20 shrink-0 text-sm font-bold text-[var(--color-md-on-surface)]">{DAY_NAMES[slot.dayOfWeek]}</span>
                   <div className="min-w-0 flex-1 space-y-1">
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-md-primary-container)] px-2 py-0.5 font-mono text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-md-primary-container)] px-2 py-0.5 font-mono text-11px font-bold text-[var(--color-md-on-primary-container)]">
                       <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                       {timeFormatter.range(slot.startTime, slot.endTime)}
                     </span>
@@ -379,7 +379,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
             <ProfessorAvatar name={professor.name} icon={professor.icon} color={professor.color} size="contact" shape="circle" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{professor.name}</span>
-              <span className="block truncate text-[11px] text-[var(--color-md-on-surface-variant)]">
+              <span className="block truncate text-11px text-[var(--color-md-on-surface-variant)]">
                 {professor.email || professor.phone || professor.office || 'Ver ficha de contacto'}
               </span>
             </span>

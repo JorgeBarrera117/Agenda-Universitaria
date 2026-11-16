@@ -238,7 +238,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
                   <p className="text-xs font-medium opacity-80">
                     {fileType.label} · {formatFileSize(selectedFile.size)}
                   </p>
-                  <p className="mt-1 flex items-center gap-1 text-[11px] font-bold">
+                  <p className="mt-1 flex items-center gap-1 text-11px font-bold">
                     <FileCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span className="truncate">Listo para vincular{currentSubject ? ` a ${currentSubject.name}` : ''}</span>
                   </p>
@@ -283,7 +283,7 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
                   {ACCEPTED_LABELS.map((label) => (
                     <span
                       key={label}
-                      className="rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]"
+                      className="rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-0.5 text-11px font-semibold text-[var(--color-md-on-surface-variant)]"
                     >
                       {label}
                     </span>

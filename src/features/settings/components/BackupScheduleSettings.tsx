@@ -90,7 +90,7 @@ export const BackupScheduleSettings: React.FC = () => {
       )}
 
       {!autoAvailable && (
-        <p className="text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">
+        <p className="text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">
           En el navegador no se pueden guardar copias solas (siempre pide permiso para descargar). En el teléfono o en la
           computadora sí.
         </p>

@@ -23,6 +23,13 @@
             document.documentElement.classList.add('dark');
             document.documentElement.style.colorScheme = 'dark';
           }
+          // Tamaño del texto antes de pintar (ver TEXT_SCALE_FACTORS en settings/types.ts)
+          var scales = { small: 0.9, normal: 1, large: 1.15, xlarge: 1.3 };
+          var textScale = stored ? scales[JSON.parse(stored).textScale] : undefined;
+          if (textScale) {
+            document.documentElement.style.setProperty('--text-scale', String(textScale));
+            document.documentElement.setAttribute('data-text-scale', JSON.parse(stored).textScale);
+          }
         } catch (e) {}
       })();
     </script>

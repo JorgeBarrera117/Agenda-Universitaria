@@ -4,7 +4,9 @@ import type {
   MaterialColorTheme,
   PresetPalette,
   ThemeMode,
+  TextScale,
 } from '../../features/settings/types';
+import { TEXT_SCALE_FACTORS } from '../../features/settings/types';
 import { GENERATED_PALETTES } from './generatedPalettes';
 
 export interface ThemeTokenSet {
@@ -597,6 +599,14 @@ export function paletteDisplayName(palette: MaterialColorTheme): string {
 export function applyCardSurface(style: CardSurfaceStyle = 'solid'): void {
   if (typeof document === 'undefined') return;
   document.documentElement.setAttribute('data-card-surface', style);
+}
+
+/** Tamaño del texto: fija --text-scale en :root (index.css multiplica con él toda la tipografía). */
+export function applyTextScale(scale: TextScale = 'normal'): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.style.setProperty('--text-scale', String(TEXT_SCALE_FACTORS[scale] ?? 1));
+  // Para la variante text-large: (index.css), que reacomoda lo que no cabe en fila
+  document.documentElement.setAttribute('data-text-scale', scale);
 }
 
 /**

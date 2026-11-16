@@ -123,7 +123,7 @@ export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
           icon={<Palette className="h-3.5 w-3.5" aria-hidden="true" />}
           title="Paleta"
           aside={
-            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
+            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-1 text-11px font-bold text-[var(--color-md-on-primary-container)]">
               <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-md-primary)]" aria-hidden="true" />
               <span className="truncate">{paletteDisplayName(currentPalette)}</span>
             </span>
@@ -192,7 +192,7 @@ export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
         </div>
 
         {activeSubtitle && !creatorOpen && (
-          <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" aria-live="polite">
+          <p className="text-11px text-[var(--color-md-on-surface-variant)]" aria-live="polite">
             {activeSubtitle}
           </p>
         )}
@@ -203,7 +203,7 @@ export const ThemeColorSection: React.FC<ThemeColorSectionProps> = ({
             className="m3-tab-enter-right space-y-2 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-3"
           >
             <p className="text-xs font-bold text-[var(--color-md-on-surface)]">{customPalette ? 'Editar tu paleta' : 'Crea tu paleta'}</p>
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">
               Elige un color y la app calcula el resto para claro y oscuro.
             </p>
             <CustomPaletteCreator
@@ -248,7 +248,7 @@ export const CardStyleSection: React.FC<CardStyleSectionProps> = ({ settings, on
           options={CARD_SURFACE_OPTIONS}
           ariaLabel="Acabado de tarjetas"
         />
-        <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" aria-live="polite">
+        <p className="text-11px text-[var(--color-md-on-surface-variant)]" aria-live="polite">
           {settings.performanceMode && settings.cardSurfaceStyle === 'glass'
             ? 'Con el Modo Ultra Fluidez activo, el cristal se muestra como superficie sólida.'
             : surfaceOption.description}
@@ -261,7 +261,7 @@ export const CardStyleSection: React.FC<CardStyleSectionProps> = ({ settings, on
       >
         <div className="min-w-0">
           <SectionHeader icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} title="Modo Ultra Fluidez (Bajo consumo)" />
-          <p className="mt-0.5 text-[11px] text-[var(--color-md-on-surface-variant)]">
+          <p className="mt-0.5 text-11px text-[var(--color-md-on-surface-variant)]">
             Desactiva desenfoques pesados y sombras para máxima velocidad y ahorro de batería.
           </p>
         </div>

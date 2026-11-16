@@ -49,17 +49,17 @@ export const StudentCredential: React.FC<StudentCredentialProps> = ({ settings, 
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-bold uppercase tracking-wider opacity-80">Mi perfil</span>
+          <span className="block text-11px font-bold uppercase tracking-wider opacity-80">Mi perfil</span>
           <span className="block truncate text-base font-black">{name || 'Personaliza tu perfil'}</span>
           <span className="block truncate text-xs font-medium opacity-90">
             {career || (hasProfile ? 'Añade tu carrera o facultad' : 'Agrega tu foto, nombre y carrera')}
           </span>
           <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-full bg-[var(--color-md-card-bg)]/70 px-2 py-0.5 text-[10px] font-bold">
+            <span className="inline-flex items-center rounded-full bg-[var(--color-md-card-bg)]/70 px-2 py-0.5 text-10px font-bold">
               {settings.semesterName || 'Ciclo académico'}
             </span>
             {goal && (
-              <span className="inline-flex min-w-0 max-w-full items-center gap-1 text-[10px] font-semibold opacity-90">
+              <span className="inline-flex min-w-0 max-w-full items-center gap-1 text-10px font-semibold opacity-90">
                 <Target className="h-3 w-3 shrink-0" aria-hidden="true" />
                 <span className="truncate">{goal}</span>
               </span>

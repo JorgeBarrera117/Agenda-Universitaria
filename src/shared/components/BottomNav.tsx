@@ -85,7 +85,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 {/* M3 Badges */}
                 {badge && badge.count > 0 && (
                   <span
-                    className={`absolute -top-1 -right-0.5 z-20 px-1 min-w-[15px] h-3.5 rounded-full text-[9px] font-bold ${badge.color} flex items-center justify-center shadow-xs transition-transform duration-200 ease-out ${
+                    className={`absolute -top-1 -right-0.5 z-20 px-1 min-w-[15px] h-3.5 rounded-full text-9px font-bold ${badge.color} flex items-center justify-center shadow-xs transition-transform duration-200 ease-out ${
                       isActive ? 'scale-105' : 'scale-100'
                     }`}
                   >
@@ -96,7 +96,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
               {/* M3 Label text */}
               <span
-                className={`text-[10px] sm:text-[11px] tracking-[0.1px] mt-0.5 sm:mt-1 transition-all duration-200 ease-out leading-tight truncate max-w-full px-0.5 ${
+                className={`text-10px sm:text-11px tracking-[0.1px] mt-0.5 sm:mt-1 transition-all duration-200 ease-out leading-tight truncate max-w-full px-0.5 ${
                   isActive
                     ? 'font-bold text-[var(--color-md-on-surface)] translate-y-0 opacity-100'
                     : 'font-medium text-[var(--color-md-on-surface-variant)] opacity-85 group-hover:opacity-100'

@@ -281,7 +281,7 @@ export const M3Select = <T extends string | number = string>({
                 />
               ) : null}
               <div className="min-w-0 flex-1">
-                <div className={`truncate font-semibold leading-tight ${large ? 'text-[15px]' : 'text-sm'}`}>{option.label}</div>
+                <div className={`truncate font-semibold leading-tight ${large ? 'text-15px' : 'text-sm'}`}>{option.label}</div>
                 {option.sublabel && (
                   <div
                     className={`mt-0.5 truncate font-mono text-xs ${
@@ -438,7 +438,7 @@ export const M3Select = <T extends string | number = string>({
       {popup}
 
       {/* Mensaje de error de validación si existe */}
-      {error && <p className="mt-1 pl-1 text-[11px] font-medium text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-1 pl-1 text-11px font-medium text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 };

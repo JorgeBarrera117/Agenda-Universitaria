@@ -39,7 +39,7 @@ const ContactRow: React.FC<ContactRowProps> = ({ icon, label, value, multiline }
       {icon}
     </span>
     <div className="min-w-0 flex-1">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">{label}</p>
+      <p className="text-10px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">{label}</p>
       <p
         className={`text-xs font-semibold text-[var(--color-md-on-surface)] ${
           multiline ? 'whitespace-pre-line leading-relaxed' : 'break-words'
@@ -122,7 +122,7 @@ export const ImportProfessorModal: React.FC<ImportProfessorModalProps> = ({ shar
     const previous = replacedProfessorName(subjectId);
     if (!previous) return null;
     return (
-      <p className="flex items-start gap-1.5 text-[11px] font-semibold text-amber-800 dark:text-amber-200">
+      <p className="flex items-start gap-1.5 text-11px font-semibold text-amber-800 dark:text-amber-200">
         <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Hoy la tiene asignada {previous}; al guardar pasará a este contacto.
       </p>
@@ -137,7 +137,7 @@ export const ImportProfessorModal: React.FC<ImportProfessorModalProps> = ({ shar
           <ProfessorAvatar name={professor.name} icon={professor.icon} color={professor.color} size="xl" />
           <div className="min-w-0 flex-1">
             <h3 className="line-clamp-2 text-sm font-black text-[var(--color-md-on-surface)]">{professor.name}</h3>
-            <p className="mt-0.5 text-[11px] text-[var(--color-md-on-surface-variant)]">Compartido el {sharedOn}</p>
+            <p className="mt-0.5 text-11px text-[var(--color-md-on-surface-variant)]">Compartido el {sharedOn}</p>
           </div>
         </section>
 
@@ -187,10 +187,10 @@ export const ImportProfessorModal: React.FC<ImportProfessorModalProps> = ({ shar
                 ]}
               />
               {row.match && row.selected === row.match.id && (
-                <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">Ya tienes esta materia: se vinculará.</p>
+                <p className="text-11px text-[var(--color-md-on-surface-variant)]">Ya tienes esta materia: se vinculará.</p>
               )}
               {!row.match && row.selected === CREATE && (
-                <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">No la tienes: se creará al guardar.</p>
+                <p className="text-11px text-[var(--color-md-on-surface-variant)]">No la tienes: se creará al guardar.</p>
               )}
               {row.selected !== CREATE && row.selected !== SKIP && renderReplaceWarning(row.selected)}
             </div>

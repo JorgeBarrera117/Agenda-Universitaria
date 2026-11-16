@@ -165,7 +165,7 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
                 {tone.label}
               </span>
               <span
-                className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-px text-[10px] font-bold ${
+                className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-px text-10px font-bold ${
                   isSelected
                     ? 'bg-[var(--color-md-surface)]/60 text-[var(--color-md-on-primary-container)]'
                     : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
@@ -201,7 +201,7 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
           </button>
         ) : (
           // El tono del sistema no se puede reproducir desde la app
-          <span className="shrink-0 px-2 text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+          <span className="shrink-0 px-2 text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
             (Sonido del sistema)
           </span>
         )}
@@ -216,7 +216,7 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
         if (tones.length === 0) return null;
         return (
           <div key={group.id} className="space-y-1.5">
-            <p className="px-1 text-[11px] font-bold text-[var(--color-md-on-surface-variant)]">{group.label}</p>
+            <p className="px-1 text-11px font-bold text-[var(--color-md-on-surface-variant)]">{group.label}</p>
             <div className="grid gap-1.5 sm:grid-cols-2">{tones.map(renderTone)}</div>
           </div>
         );

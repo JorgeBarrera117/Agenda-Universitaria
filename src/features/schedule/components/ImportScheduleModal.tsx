@@ -86,7 +86,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
             </span>
             <div className="min-w-0">
               <h3 className="truncate text-sm font-black text-[var(--color-md-on-surface)]">{incomingSemester ?? 'Horario completo'}</h3>
-              <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">Compartido el {sharedOn}</p>
+              <p className="text-11px text-[var(--color-md-on-surface-variant)]">Compartido el {sharedOn}</p>
             </div>
           </div>
           <dl className="grid grid-cols-3 gap-2 text-center">
@@ -99,7 +99,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
                 <dt className="sr-only">{stat.label}</dt>
                 <dd>
                   <span className="block text-lg font-black leading-none text-[var(--color-md-on-surface)]">{stat.value}</span>
-                  <span className="text-[10px] font-semibold text-[var(--color-md-on-surface-variant)]">{stat.label}</span>
+                  <span className="text-10px font-semibold text-[var(--color-md-on-surface-variant)]">{stat.label}</span>
                 </dd>
               </div>
             ))}
@@ -112,7 +112,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
             <li key={index} className="flex items-center gap-2 text-xs text-[var(--color-md-on-surface)]">
               <SubjectBadge icon={subject.icon} color={subject.color} size="sm" />
               <span className="min-w-0 flex-1 truncate font-semibold">{subject.name}</span>
-              <span className="shrink-0 text-[11px] text-[var(--color-md-on-surface-variant)]">
+              <span className="shrink-0 text-11px text-[var(--color-md-on-surface-variant)]">
                 {classesPerSubject[index]} {classesPerSubject[index] === 1 ? 'clase' : 'clases'}
               </span>
             </li>
@@ -122,7 +122,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
         {/* Modo */}
         <section className="space-y-2 border-t border-[var(--color-md-outline-variant)] pt-3">
           <SegmentedControl value={mode} onChange={setMode} options={MODE_OPTIONS} ariaLabel="Cómo importar el horario" />
-          <p className="text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">{MODE_HELP[mode]}</p>
+          <p className="text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">{MODE_HELP[mode]}</p>
           <ImportPlanSummary plan={plan} />
           {canAdoptSemester && (
             <label className="flex cursor-pointer items-start gap-2 text-xs text-[var(--color-md-on-surface)]">
@@ -134,7 +134,7 @@ export const ImportScheduleModal: React.FC<ImportScheduleModalProps> = ({ shareP
               />
               <span>
                 Cambiar el nombre del semestre a «{incomingSemester}»
-                <span className="block text-[11px] text-[var(--color-md-on-surface-variant)]">Ahora: {settings.semesterName}</span>
+                <span className="block text-11px text-[var(--color-md-on-surface-variant)]">Ahora: {settings.semesterName}</span>
               </span>
             </label>
           )}

@@ -407,7 +407,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <SettingsRow
                 icon={<Clock className="h-4 w-4" />}
                 title="General"
-                subtitle={window.electronAPI?.getLaunchAtLogin ? 'Formato de hora e inicio con Windows' : 'Formato de hora'}
+                subtitle={
+                  window.electronAPI?.getLaunchAtLogin
+                    ? 'Tamaño del texto, formato de hora e inicio con Windows'
+                    : 'Tamaño del texto y formato de hora'
+                }
                 value={settings.timeFormat === '12h' ? '12 h' : '24 h'}
                 onClick={() => setActiveSubView('general')}
               />
@@ -496,7 +500,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         });
                         onShowToast('Papel tapiz restablecido a valores por defecto');
                       }}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--color-md-primary)] hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1 text-11px font-bold text-[var(--color-md-primary)] hover:underline cursor-pointer"
                     >
                       <RotateCcw className="w-3 h-3" />
                       <span>Por defecto</span>
@@ -554,7 +558,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           {/* Miniatura del patrón o foto */}
                           <div className="w-full h-10 rounded-lg bg-[var(--color-md-surface)] border border-[var(--color-md-outline-variant)]/60 relative overflow-hidden flex items-center justify-center">
                             {item.id === 'none' && (
-                              <span className="text-[10px] font-bold text-[var(--color-md-on-surface-variant)]">
+                              <span className="text-10px font-bold text-[var(--color-md-on-surface-variant)]">
                                 Liso
                               </span>
                             )}
@@ -568,7 +572,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               ) : (
                                 <div className="flex flex-col items-center gap-0.5 text-[var(--color-md-primary)]">
                                   <ImageIcon className="w-4 h-4" />
-                                  <span className="text-[9px] font-bold">Subir</span>
+                                  <span className="text-9px font-bold">Subir</span>
                                 </div>
                               )
                             )}
@@ -594,7 +598,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             )}
                           </div>
 
-                          <span className="text-[10px] font-bold text-[var(--color-md-on-surface)] block truncate">
+                          <span className="text-10px font-bold text-[var(--color-md-on-surface)] block truncate">
                             {item.label}
                           </span>
                         </button>
@@ -645,7 +649,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     >
                       <Sliders className="w-3.5 h-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
                       <span className="min-w-0 flex-1 text-xs font-bold text-[var(--color-md-on-surface)]">Ajustar fondo</span>
-                      <span className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+                      <span className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
                         Intensidad {settings.wallpaperOpacity ?? 16}%
                       </span>
                       <ChevronDown
@@ -663,7 +667,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 1. Control de Opacidad */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-[11px]">
+                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-11px">
                             Opacidad / Visibilidad
                           </span>
                           <span className="font-mono font-extrabold text-[var(--color-md-primary)] text-xs">
@@ -684,7 +688,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           }
                           className="w-full accent-[var(--color-md-primary)] cursor-pointer h-1.5 rounded-lg"
                         />
-                        <div className="flex items-center justify-between text-[10px] text-[var(--color-md-on-surface-variant)]">
+                        <div className="flex items-center justify-between text-10px text-[var(--color-md-on-surface-variant)]">
                           <button
                             type="button"
                             onClick={() => updateSettings({ ...settings, wallpaperOpacity: 14 })}
@@ -712,7 +716,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 2. Control de Tamaño / Escala */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-[11px]">
+                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-11px">
                             Escala del Patrón
                           </span>
                           <span className="font-mono font-extrabold text-[var(--color-md-primary)] text-xs">
@@ -738,7 +742,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 3. Control de Desenfoque (Blur) */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-[11px]">
+                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-11px">
                             Desenfoque Suave (Blur)
                           </span>
                           <span className="font-mono font-extrabold text-[var(--color-md-primary)] text-xs">
@@ -768,7 +772,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             <span className="text-xs font-bold text-[var(--color-md-on-surface)] block">
                               Fusionar foto con tema
                             </span>
-                            <span className="text-[10px] text-[var(--color-md-on-surface-variant)]">
+                            <span className="text-10px text-[var(--color-md-on-surface-variant)]">
                               Aplica matiz armónico sobre tu imagen
                             </span>
                           </div>
@@ -841,14 +845,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                           {/* Mini-tarjeta de ejemplo */}
                           <div className="relative z-10 bg-[var(--color-md-card-bg)]/92 backdrop-blur-xs border border-[var(--color-md-outline-variant)] rounded-lg px-2.5 py-1.5 shadow-xs flex items-center gap-2 max-w-xs w-full">
-                            <div className="w-6 h-6 rounded-md bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center font-black text-[10px] shrink-0">
+                            <div className="w-6 h-6 rounded-md bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] flex items-center justify-center font-black text-10px shrink-0">
                               AU
                             </div>
                             <div className="min-w-0 flex-1">
                               <span className="text-xs font-extrabold text-[var(--color-md-on-surface)] block truncate">
                                 Ingeniería de Software
                               </span>
-                              <span className="text-[9px] text-[var(--color-md-on-surface-variant)] block truncate">
+                              <span className="text-9px text-[var(--color-md-on-surface-variant)] block truncate">
                                 Tarjeta sobre el tapiz
                               </span>
                             </div>
@@ -873,7 +877,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 </SettingsGroup>
 
-                <p className="px-1 text-[11px] text-[var(--color-md-on-surface-variant)] leading-snug">
+                <p className="px-1 text-11px text-[var(--color-md-on-surface-variant)] leading-snug">
                   Todo se guarda en este dispositivo y se aplica al instante.
                 </p>
               </div>

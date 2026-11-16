@@ -340,7 +340,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
               <span className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] block group-hover:text-[#386A20] dark:group-hover:text-[#B1F194] transition-colors truncate">
                 Consultar asesorías y cubículos
               </span>
-              <span className="text-[11px] text-[var(--color-md-on-surface-variant)] block mt-0.5 truncate">
+              <span className="text-11px text-[var(--color-md-on-surface-variant)] block mt-0.5 truncate">
                 Directorio rápido de horarios de atención y oficinas
               </span>
             </div>
@@ -448,7 +448,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                         return (
                           <li
                             key={sid}
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] max-w-full"
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-11px font-semibold bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] max-w-full"
                           >
                             <SubjectBadge icon={sub.icon} color={sub.color} size="xs" />
                             <span className="truncate max-w-[160px] sm:max-w-[220px]">{sub.name}</span>
@@ -583,13 +583,13 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                       {p.name}
                     </div>
                     {p.office && (
-                      <div className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 font-medium">
+                      <div className="flex items-center gap-1 text-10px text-amber-600 dark:text-amber-400 mt-0.5 font-medium">
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span>Cubículo: {p.office}</span>
                       </div>
                     )}
                     {p.notes && (
-                      <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">
+                      <div className="flex items-center gap-1 text-10px text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">
                         <CalendarCheck className="w-3 h-3 shrink-0" />
                         <span>Asesorías: {p.notes}</span>
                       </div>

@@ -115,7 +115,7 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
         {result?.status === 'available' && (
           <section className="space-y-3 rounded-2xl border border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] p-3 text-[var(--color-md-on-primary-container)]">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-md-primary)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-md-on-primary)]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-md-primary)] px-2.5 py-0.5 text-11px font-bold text-[var(--color-md-on-primary)]">
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                 Nueva versión disponible
               </span>
@@ -144,13 +144,13 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
                   onOpenPage={() => (downloadUrl ? void handleDownload(downloadUrl) : undefined)}
                 />
                 {isNative && !canInstallInApp(result.info) && (
-                  <p className="text-[11px] leading-relaxed opacity-90">
+                  <p className="text-11px leading-relaxed opacity-90">
                     Se abrirá GitHub para descargar el APK. Instálalo encima de la app actual: tus materias y apuntes se conservan.
                   </p>
                 )}
               </>
             ) : (
-              <p className="text-[11px]">La descarga todavía no está disponible. Vuelve a intentarlo más tarde.</p>
+              <p className="text-11px">La descarga todavía no está disponible. Vuelve a intentarlo más tarde.</p>
             )}
           </section>
         )}

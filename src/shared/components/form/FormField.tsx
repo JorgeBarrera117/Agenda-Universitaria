@@ -22,6 +22,6 @@ export const FormField: React.FC<FormFieldProps> = ({ htmlFor, label, required =
       )}
     </label>
     {children}
-    {hint && <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">{hint}</p>}
+    {hint && <p className="text-11px text-[var(--color-md-on-surface-variant)]">{hint}</p>}
   </div>
 );

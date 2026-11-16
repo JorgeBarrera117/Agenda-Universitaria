@@ -174,10 +174,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             type="button"
             onClick={onClose}
             disabled={isClosing}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-container)] hover:text-[var(--color-md-on-primary-container)] active:scale-95"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-surface-container-high)] sm:h-10 sm:w-10 text-[var(--color-md-on-surface-variant)] transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-container)] hover:text-[var(--color-md-on-primary-container)] active:scale-95"
             aria-label="Cerrar diálogo"
           >
-            <X className="h-4 w-4" aria-hidden="true" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6">{children}</div>
@@ -195,10 +195,28 @@ interface ModalActionsProps {
   className?: string;
 }
 
+/**
+ * Botones de acción accesibles (M3), sin tocar cada diálogo:
+ * - Alto: 48 px en el teléfono (el área táctil mínima de M3) y 40 px en escritorio.
+ * - Etiqueta de 14 px (label-large).
+ * - El botón de texto ("Cancelar") lleva contorno fino (botón outlined de M3), para que se vea
+ *   dónde tocar.
+ */
+const ACTION_BUTTONS =
+  '[&>button]:min-h-12 [&>button]:px-5 [&>button]:text-sm sm:[&>button]:min-h-10 sm:[&>button]:px-6 ' +
+  '[&>button.bg-transparent]:border [&>button.bg-transparent]:border-[var(--color-md-outline)]';
+
+/**
+ * Agrupación:
+ * - Teléfono: los botones se reparten el ancho (dos por fila). Si son tres, el último (la acción
+ *   principal) baja y ocupa la fila entera, junto al pulgar.
+ * - Escritorio: alineados a la derecha, con la acción principal al final, como en M3.
+ */
 const ACTIONS_LAYOUT: Record<NonNullable<ModalActionsProps['layout']>, string> = {
-  end: 'flex items-center justify-end gap-2',
-  between: 'flex items-center justify-between gap-2',
-  stack: 'flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end',
+  end: 'flex flex-wrap items-center gap-3 [&>button]:flex-1 [&>button]:basis-32 sm:flex-nowrap sm:justify-end sm:[&>button]:flex-none sm:[&>button]:basis-auto',
+  between:
+    'flex flex-wrap items-center gap-3 [&>button]:flex-1 [&>button]:basis-32 sm:flex-nowrap sm:justify-between sm:[&>button]:flex-none sm:[&>button]:basis-auto',
+  stack: 'flex flex-col-reverse gap-3 [&>button]:w-full sm:flex-row sm:items-center sm:justify-end sm:[&>button]:w-auto',
 };
 
 /**
@@ -208,7 +226,7 @@ const ACTIONS_LAYOUT: Record<NonNullable<ModalActionsProps['layout']>, string> =
  */
 export const ModalActions: React.FC<ModalActionsProps> = ({ children, layout = 'end', className = '' }) => (
   <div
-    className={`sticky -bottom-5 z-10 -mx-5 -mb-5 mt-4 border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] px-5 py-3 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:py-4 ${ACTIONS_LAYOUT[layout]} ${className}`}
+    className={`sticky -bottom-5 z-10 -mx-5 -mb-5 mt-4 border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] px-5 py-3 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:py-4 ${ACTIONS_LAYOUT[layout]} ${ACTION_BUTTONS} ${className}`}
   >
     {children}
   </div>

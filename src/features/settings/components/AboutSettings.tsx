@@ -14,10 +14,10 @@ export const AboutSettings: React.FC = () => (
       <div className="min-w-0">
         <h3 className="truncate text-base font-black text-[var(--color-md-on-surface)]">{APP_INFO.name}</h3>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-md-on-primary-container)]">
+          <span className="rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-0.5 text-11px font-bold text-[var(--color-md-on-primary-container)]">
             Versión {APP_INFO.version}
           </span>
-          <span className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">“{APP_INFO.slogan}”</span>
+          <span className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">“{APP_INFO.slogan}”</span>
         </div>
       </div>
     </header>
@@ -50,11 +50,11 @@ export const AboutSettings: React.FC = () => (
         <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
         Un mensaje para ti
       </h4>
-      <p className="text-[13px] leading-relaxed">
+      <p className="text-13px leading-relaxed">
         No te rindas. Puede que hoy tengas menos recursos, menos tiempo o más obstáculos que otros, pero tus
         circunstancias no definen hasta dónde puedes llegar. Siempre hay una razón para seguir adelante.
       </p>
-      <p className="text-[13px] leading-relaxed">
+      <p className="text-13px leading-relaxed">
         Aunque parezca que todo el mundo está en contra, persigue tus sueños con constancia y sin dejar de ser humilde:
         aprende de cada caída, agradece cada ayuda y nunca pases por encima de nadie para avanzar.
       </p>
@@ -64,7 +64,7 @@ export const AboutSettings: React.FC = () => (
         </blockquote>
         <figcaption className="mt-1 text-xs font-medium text-[var(--color-md-on-surface-variant)]">Filipenses 4:13</figcaption>
       </figure>
-      <p className="text-[13px] leading-relaxed">
+      <p className="text-13px leading-relaxed">
         Creas o no en Dios, que estas palabras te recuerden que no estás solo y que tienes más fuerza de la que imaginas.
       </p>
       <p className="text-right text-xs font-semibold">— {APP_INFO.author}</p>

@@ -145,7 +145,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         visibleDays: item.id as AppSettings['visibleDays'],
                       }))
                     }
-                    className={`py-1.5 px-2 rounded-xl text-[11px] font-bold text-center transition-all cursor-pointer border ${
+                    className={`py-1.5 px-2 rounded-xl text-11px font-bold text-center transition-all cursor-pointer border ${
                       draftSettings.visibleDays === item.id
                         ? 'bg-cove-blue text-white border-cove-blue shadow-2xs'
                         : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -200,7 +200,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <span>Alta Nitidez (1080p)</span>
               </button>
             </div>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className="text-11px text-slate-400 dark:text-slate-500">
               La calidad equilibrada reduce el tamaño en más de un 70% preservando fórmulas y apuntes perfectamente legibles.
             </p>
           </div>
@@ -217,7 +217,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <span className="font-black text-slate-900 dark:text-white block text-xs sm:text-sm">
               Agenda Universitaria PWA
             </span>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+            <p className="text-11px text-slate-500 dark:text-slate-400 leading-snug">
               Arquitectura Offline-First con persistencia en IndexedDB (Dexie.js). Sin rastreo ni intermediarios.
             </p>
           </div>

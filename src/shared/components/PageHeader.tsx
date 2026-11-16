@@ -18,11 +18,11 @@ interface PageHeaderProps {
 
 /** Botón de icono para las acciones del encabezado (deshacer, compartir…), 36px como el de volver. */
 export const PAGE_HEADER_ICON_BUTTON =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-md-on-surface-variant)] transition-colors duration-150 hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)] active:scale-95 disabled:pointer-events-none disabled:opacity-40';
+  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--color-md-on-surface-variant)] transition-colors duration-150 hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)] active:scale-95 disabled:pointer-events-none disabled:opacity-40';
 
 /** Acción principal del encabezado (Guardar). */
 export const PAGE_HEADER_PRIMARY_BUTTON =
-  'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-4 text-xs font-bold text-[var(--color-md-on-primary)] shadow-xs transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-95 disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-5 text-sm font-bold text-[var(--color-md-on-primary)] shadow-xs transition-all duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-95 disabled:pointer-events-none disabled:opacity-50';
 
 /** Estas pantallas ocultan el Navbar: el encabezado se pega al borde superior. */
 const topEdge = () => 0;
@@ -76,7 +76,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         <div className="min-w-0 flex-1">
           <Title className="truncate text-base font-black tracking-tight text-[var(--color-md-on-surface)] sm:text-lg">{title}</Title>
           {subtitle && (
-            <p className="truncate text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">{subtitle}</p>
+            <p className="truncate text-11px font-medium text-[var(--color-md-on-surface-variant)]">{subtitle}</p>
           )}
         </div>
 

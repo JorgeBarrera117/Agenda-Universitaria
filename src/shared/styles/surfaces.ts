@@ -10,7 +10,7 @@ export const HEADER_SCRIM_CLASS =
 
 /** Chip tonal para etiquetas de sección (p. ej. "Directorio alfabético · 5 docentes"). */
 export const TONAL_CHIP_CLASS =
-  'inline-flex items-center rounded-full border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 px-3 py-1 text-[11px] font-bold text-[var(--color-md-on-surface-variant)] shadow-2xs backdrop-blur-sm';
+  'inline-flex items-center rounded-full border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 px-3 py-1 text-11px font-bold text-[var(--color-md-on-surface-variant)] shadow-2xs backdrop-blur-sm';
 
 /**
  * Botón que cubre toda la tarjeta (patrón "stretched link"): va en el título y su ::after se

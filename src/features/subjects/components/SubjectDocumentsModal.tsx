@@ -161,10 +161,10 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
           <SubjectBadge icon={subject.icon} color={subject.color} size="md" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-10px sm:text-11px font-mono font-black bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-2xs">
                 {subject.code || 'ASIGNATURA'}
               </span>
-              <span className="text-[11px] font-bold text-[#72777F] dark:text-[#8C9199]">
+              <span className="text-11px font-bold text-[#72777F] dark:text-[#8C9199]">
                 Acceso Directo a Documentos
               </span>
             </div>
@@ -319,7 +319,7 @@ export const SubjectDocumentsModal: React.FC<SubjectDocumentsModalProps> = ({
                       <h4 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
                         {doc.name}
                       </h4>
-                      <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-[#72777F] dark:text-[#8C9199] mt-0.5 flex-wrap">
+                      <div className="flex items-center gap-2 text-10px sm:text-11px text-[#72777F] dark:text-[#8C9199] mt-0.5 flex-wrap">
                         <span className="font-mono font-bold px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#43474E] dark:text-[#C3C7D0]">
                           {visuals.label}
                         </span>

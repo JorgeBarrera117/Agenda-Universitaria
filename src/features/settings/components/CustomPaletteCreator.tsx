@@ -111,7 +111,7 @@ const ColorField: React.FC<{ value: string; onPick: (color: string) => void; lab
           className="h-11 min-w-0 flex-1 rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] px-3 font-mono text-sm text-[var(--color-md-on-surface)] outline-none focus:border-[var(--color-md-primary)]"
         />
       </div>
-      {hexInvalid && <p className="text-[11px] font-semibold text-red-700 dark:text-red-300">Escribe el color como #RRGGBB, por ejemplo #3AA0E0.</p>}
+      {hexInvalid && <p className="text-11px font-semibold text-red-700 dark:text-red-300">Escribe el color como #RRGGBB, por ejemplo #3AA0E0.</p>}
     </div>
   );
 };
@@ -119,27 +119,27 @@ const ColorField: React.FC<{ value: string; onPick: (color: string) => void; lab
 /** Mini maqueta de la app con los colores generados (claro u oscuro). */
 const PalettePreview: React.FC<{ label: string; tokens: ThemeTokenSet }> = ({ label, tokens }) => (
   <div className="min-w-0 flex-1 space-y-1">
-    <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">{label}</p>
+    <p className="text-10px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">{label}</p>
     <div
       className="relative space-y-1.5 rounded-xl p-2 pb-7"
       style={{ backgroundColor: tokens.surface, border: `1px solid ${tokens.outlineVariant}` }}
       aria-hidden="true"
     >
       <div className="space-y-1.5 rounded-lg p-2" style={{ backgroundColor: tokens.cardBg, border: `1px solid ${tokens.outlineVariant}` }}>
-        <p className="truncate text-[11px] font-bold" style={{ color: tokens.onSurface }}>
+        <p className="truncate text-11px font-bold" style={{ color: tokens.onSurface }}>
           Cálculo Diferencial
         </p>
-        <p className="truncate text-[10px]" style={{ color: tokens.onSurfaceVariant }}>
+        <p className="truncate text-10px" style={{ color: tokens.onSurfaceVariant }}>
           Lun 08:00 – 10:00
         </p>
         <div className="flex flex-wrap items-center gap-1">
           <span
-            className="rounded-full px-2 py-0.5 text-[9px] font-bold"
+            className="rounded-full px-2 py-0.5 text-9px font-bold"
             style={{ backgroundColor: tokens.secondaryContainer, color: tokens.onSecondaryContainer }}
           >
             MAT-101
           </span>
-          <span className="ml-auto rounded-full px-2 py-0.5 text-[9px] font-bold" style={{ backgroundColor: tokens.primary, color: tokens.onPrimary }}>
+          <span className="ml-auto rounded-full px-2 py-0.5 text-9px font-bold" style={{ backgroundColor: tokens.primary, color: tokens.onPrimary }}>
             Botón
           </span>
         </div>
@@ -154,7 +154,7 @@ const PalettePreview: React.FC<{ label: string; tokens: ThemeTokenSet }> = ({ la
         <span className="h-1.5 w-4 rounded-full" style={{ backgroundColor: tokens.outlineVariant }} />
       </div>
       <span
-        className="absolute bottom-[3px] right-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-md text-[10px] font-black"
+        className="absolute bottom-[3px] right-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-md text-10px font-black"
         style={{ backgroundColor: tokens.accent ?? tokens.primary, color: tokens.onAccent ?? tokens.onPrimary }}
       >
         +
@@ -214,7 +214,7 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
     <div className="space-y-3">
       {/* Estilo */}
       <div className="space-y-1.5">
-        <p className="text-[11px] font-bold text-[var(--color-md-on-surface)]">Estilo</p>
+        <p className="text-11px font-bold text-[var(--color-md-on-surface)]">Estilo</p>
         <div role="radiogroup" aria-label="Estilo de la paleta" className="flex flex-wrap gap-1.5">
           {STYLE_OPTIONS.map((option) => (
             <button
@@ -229,14 +229,14 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" aria-live="polite">
+        <p className="text-11px text-[var(--color-md-on-surface-variant)]" aria-live="polite">
           {activeStyle.description}
         </p>
       </div>
 
       {/* Los tres colores: se toca uno para editarlo */}
       <div className="space-y-1.5">
-        <p className="text-[11px] font-bold text-[var(--color-md-on-surface)]">Colores</p>
+        <p className="text-11px font-bold text-[var(--color-md-on-surface)]">Colores</p>
         <div role="tablist" aria-label="Color que estás editando" className="grid grid-cols-3 gap-1.5">
           {slots.map((item) => {
             const selected = slot === item.id;
@@ -259,8 +259,8 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
                   style={{ backgroundColor: item.swatch }}
                   aria-hidden="true"
                 />
-                <span className="text-[11px] font-bold text-[var(--color-md-on-surface)]">{item.label}</span>
-                <span className="max-w-full truncate text-[10px] text-[var(--color-md-on-surface-variant)]">{item.detail}</span>
+                <span className="text-11px font-bold text-[var(--color-md-on-surface)]">{item.label}</span>
+                <span className="max-w-full truncate text-10px text-[var(--color-md-on-surface-variant)]">{item.detail}</span>
               </button>
             );
           })}
@@ -274,14 +274,14 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
       >
         {slot === 'primary' && (
           <>
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">Botones, enlaces y partes resaltadas.</p>
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">Botones, enlaces y partes resaltadas.</p>
             <ColorField key="primary" label="el color principal" value={recipe.seed} onPick={(seed) => update({ seed })} />
           </>
         )}
 
         {slot === 'accent' && (
           <>
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">
               Botón flotante, pestaña activa, etiquetas y chips.
             </p>
             <button type="button" aria-pressed={recipe.accent === null} onClick={() => update({ accent: null })} className={chipClass(recipe.accent === null)}>
@@ -300,7 +300,7 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
         {slot === 'background' && (
           <>
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">Cuánto color lleva el fondo</p>
+              <p className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Cuánto color lleva el fondo</p>
               <div role="radiogroup" aria-label="Cuánto color lleva el fondo" className="flex flex-wrap gap-1.5">
                 {TINT_OPTIONS.map((option) => (
                   <button
@@ -317,7 +317,7 @@ export const CustomPaletteCreator: React.FC<CustomPaletteCreatorProps> = ({ init
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">Tono del fondo</p>
+              <p className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Tono del fondo</p>
               <div role="radiogroup" aria-label="Tono del fondo" className="flex flex-wrap gap-1.5">
                 {SOURCE_OPTIONS.map((option) => (
                   <button

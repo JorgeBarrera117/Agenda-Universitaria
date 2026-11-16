@@ -364,7 +364,7 @@ export const VoiceNoteCard: React.FC<VoiceNoteCardProps> = ({ audio, onRename, o
             background: `linear-gradient(to right, var(--color-md-primary) ${progress}%, var(--color-md-outline-variant) ${progress}%)`,
           }}
         />
-        <p className="font-mono text-[11px] tabular-nums text-[var(--color-md-on-surface-variant)]">
+        <p className="font-mono text-11px tabular-nums text-[var(--color-md-on-surface-variant)]">
           {formatDuration(currentMs)} / {formatDuration(audio.durationMs)}
         </p>
       </div>
@@ -502,7 +502,7 @@ export const VoiceNoteEmbed: React.FC<VoiceNoteEmbedProps> = ({ audioId, fallbac
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[var(--color-md-on-surface)]">{fallbackName || 'Nota de voz'}</p>
-          <p className="text-[11px]">Esta grabación ya no está disponible.</p>
+          <p className="text-11px">Esta grabación ya no está disponible.</p>
         </div>
         {onRemoved && (
           <button

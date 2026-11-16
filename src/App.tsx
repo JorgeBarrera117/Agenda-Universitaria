@@ -18,7 +18,7 @@ import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { useAppLock } from './features/security/hooks/useAppLock';
 import { AppLockScreen } from './features/security/components/AppLockScreen';
-import { applyTheme, applyCardSurface, applyPerformanceMode, setupSystemThemeListener } from './shared/utils/theme';
+import { applyTheme, applyCardSurface, applyPerformanceMode, applyTextScale, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
 import { useTabCounts } from './shared/hooks/useTabCounts';
@@ -159,6 +159,11 @@ export function App() {
   useLayoutEffect(() => {
     applyCardSurface(settings.cardSurfaceStyle);
   }, [settings.cardSurfaceStyle]);
+
+  // Tamaño del texto (accesibilidad), antes del primer pintado
+  useLayoutEffect(() => {
+    applyTextScale(settings.textScale);
+  }, [settings.textScale]);
 
   // Modo Ultra Fluidez, también antes del primer pintado
   useLayoutEffect(() => {

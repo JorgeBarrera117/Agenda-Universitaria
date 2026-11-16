@@ -127,7 +127,7 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
           )}
           <div className="min-w-0 flex-1">
             <h3 className="line-clamp-2 text-sm font-black text-[var(--color-md-on-surface)]">{sharePackage.note.title}</h3>
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-11px text-[var(--color-md-on-surface-variant)]">
               {origin && (
                 <span className="inline-flex items-center gap-1 font-semibold">
                   <span
@@ -141,7 +141,7 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
               <span>Compartido el {sharedOn}</span>
             </p>
             {photoCount > 0 && (
-              <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-md-on-surface-variant)]">
+              <p className="mt-0.5 inline-flex items-center gap-1 text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
                 <ImageIcon className="h-3 w-3" aria-hidden="true" />
                 {photoCount} {photoCount === 1 ? 'foto' : 'fotos'}
               </p>
@@ -181,12 +181,12 @@ export const ImportNoteModal: React.FC<ImportNoteModalProps> = ({ sharePackage, 
             </div>
           )}
           {matching && selected === matching.id && (
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">
               Coincide con la materia de origen del apunte.
             </p>
           )}
           {!matching && origin && selected !== NEW_SUBJECT && (
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">
               {selected === PERSONAL_CHOICE
                 ? `No tienes «${origin.name}»: el apunte se guardará en tus apuntes personales.`
                 : `No tienes «${origin.name}»: el apunte se guardará en la materia que elegiste.`}

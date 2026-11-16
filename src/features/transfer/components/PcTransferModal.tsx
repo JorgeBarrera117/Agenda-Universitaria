@@ -178,7 +178,7 @@ export const PcTransferModal: React.FC<PcTransferModalProps> = ({ direction, onC
             )}
           </p>
 
-          <p className="flex items-start gap-2 text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">
+          <p className="flex items-start gap-2 text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">
             <Wifi className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             Los dos deben estar en la misma red wifi. Si Windows pregunta, permite el acceso en redes privadas. Los datos
             viajan cifrados y no pasan por internet.

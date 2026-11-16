@@ -162,31 +162,31 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-[15px] lg:text-lg xl:text-xl font-extrabold tracking-tight text-[var(--color-md-on-surface)] leading-tight whitespace-nowrap truncate max-w-[200px] sm:max-w-none">
+                <h1 className="text-sm sm:text-15px lg:text-lg xl:text-xl font-extrabold tracking-tight text-[var(--color-md-on-surface)] leading-tight whitespace-nowrap truncate max-w-[200px] sm:max-w-none">
                   {firstName ? `Hola, ${firstName}` : 'Agenda Universitaria'}
                 </h1>
                 <span className="hidden 2xl:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shrink-0">
                   Campus Digital
                 </span>
               </div>
-              <div className="flex md:max-lg:hidden landscape:max-lg:hidden items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs lg:text-[13px] text-[var(--color-md-on-surface-variant)] font-medium whitespace-nowrap">
+              <div className="flex md:max-lg:hidden landscape:max-lg:hidden items-center gap-1.5 sm:gap-2 mt-0.5 text-11px sm:text-xs lg:text-13px text-[var(--color-md-on-surface-variant)] font-medium whitespace-nowrap">
                 <span className="capitalize">{capitalizedDate}</span>
                 <span>•</span>
                 {customStatus && StatusIcon ? (
                   <span
-                    className="inline-flex min-w-0 max-w-[150px] sm:max-w-[220px] items-center gap-1 rounded-full bg-[var(--color-md-primary-container)] px-2 py-px text-[11px] lg:text-xs font-semibold text-[var(--color-md-on-primary-container)]"
+                    className="inline-flex min-w-0 max-w-[150px] sm:max-w-[220px] items-center gap-1 rounded-full bg-[var(--color-md-primary-container)] px-2 py-px text-11px lg:text-xs font-semibold text-[var(--color-md-on-primary-container)]"
                     title={customStatus}
                   >
                     <StatusIcon className="w-3 h-3 lg:w-3.5 lg:h-3.5 shrink-0" aria-hidden="true" />
                     <span className="truncate">{customStatus}</span>
                   </span>
                 ) : isOnline ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px] lg:text-xs font-semibold shrink-0">
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-11px lg:text-xs font-semibold shrink-0">
                     <Wifi className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
                     En línea
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[11px] lg:text-xs font-semibold shrink-0">
+                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 text-11px lg:text-xs font-semibold shrink-0">
                     <WifiOff className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
                     Offline
                   </span>
@@ -218,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => onTabChange(item.id)}
-                  className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-[15px] whitespace-nowrap relative z-10 transition-all duration-200 ease-out active:scale-95 cursor-pointer select-none ${
+                  className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-15px whitespace-nowrap relative z-10 transition-all duration-200 ease-out active:scale-95 cursor-pointer select-none ${
                     isActive
                       ? 'text-[var(--color-md-on-accent-container)] font-bold'
                       : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/5 font-medium'
@@ -232,7 +232,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>{item.label}</span>
                   {badgeCount > 0 && (
                     <span
-                      className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-[10px] lg:text-xs font-bold flex items-center justify-center transition-colors ${
+                      className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-10px lg:text-xs font-bold flex items-center justify-center transition-colors ${
                         isActive
                           ? 'bg-[var(--color-md-on-accent-container)] text-[var(--color-md-accent-container)]'
                           : 'bg-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface)]'

@@ -65,7 +65,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
 
             {this.state.error && (
-              <div className="p-3 rounded-2xl bg-[var(--color-md-surface-container-high)]/50 border border-[var(--color-md-outline-variant)]/40 text-left overflow-x-auto text-[11px] font-mono text-red-600 dark:text-red-400 max-h-32">
+              <div className="p-3 rounded-2xl bg-[var(--color-md-surface-container-high)]/50 border border-[var(--color-md-outline-variant)]/40 text-left overflow-x-auto text-11px font-mono text-red-600 dark:text-red-400 max-h-32">
                 <span className="font-bold">{this.state.error.name}: </span>
                 {this.state.error.message}
               </div>

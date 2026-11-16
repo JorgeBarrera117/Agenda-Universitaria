@@ -29,7 +29,7 @@ export const ClassProgressBar: React.FC<ClassProgressBarProps> = ({ percent, min
         style={{ width: `${percent}%` }}
       />
     </div>
-    <p className={`${compact ? 'text-[10px]' : 'text-[11px]'} font-medium tabular-nums text-[var(--color-md-on-surface-variant)]`}>
+    <p className={`${compact ? 'text-10px' : 'text-11px'} font-medium tabular-nums text-[var(--color-md-on-surface-variant)]`}>
       Quedan {formatDuration(minutesRemaining)}
     </p>
   </div>

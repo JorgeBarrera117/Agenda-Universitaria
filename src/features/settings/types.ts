@@ -135,9 +135,21 @@ export interface AppSettings {
   autoBackupEnabled?: boolean;
   /** Avisar si hace tiempo que no se hace una copia de seguridad. */
   backupReminderEnabled?: boolean;
+  /** Tamaño del texto de toda la app (accesibilidad). */
+  textScale?: TextScale;
 }
 
 export type TimeFormat = '24h' | '12h';
+
+export type TextScale = 'small' | 'normal' | 'large' | 'xlarge';
+
+/** Multiplicador de la escala tipográfica para cada tamaño de texto. */
+export const TEXT_SCALE_FACTORS: Record<TextScale, number> = {
+  small: 0.9,
+  normal: 1,
+  large: 1.15,
+  xlarge: 1.3,
+};
 
 export const REMINDER_LEAD_OPTIONS = [5, 10, 15, 30, 60] as const;
 export type ReminderLeadMinutes = (typeof REMINDER_LEAD_OPTIONS)[number];
@@ -170,4 +182,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   timeFormat: '24h',
   autoBackupEnabled: false,
   backupReminderEnabled: true,
+  textScale: 'normal',
 };

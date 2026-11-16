@@ -32,7 +32,7 @@ export const Badge: React.FC<BadgeProps> = ({
     'inline-flex items-center gap-1 font-bold leading-none select-none tracking-tight';
 
   const sizeStyles: Record<BadgeSize, string> = {
-    xs: 'px-2 py-0.5 text-[10px] rounded-md font-mono',
+    xs: 'px-2 py-0.5 text-10px rounded-md font-mono',
     sm: 'px-2.5 py-1 text-xs rounded-lg font-medium',
     md: 'px-3 py-1.5 text-xs sm:text-sm rounded-lg font-medium',
   };

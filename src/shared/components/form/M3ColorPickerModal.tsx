@@ -282,7 +282,7 @@ export const M3ColorPickerModal: React.FC<M3ColorPickerModalProps> = ({
             />
           </div>
           {!isHexValid && (
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">Escribe 6 caracteres hexadecimales (0-9, A-F).</p>
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">Escribe 6 caracteres hexadecimales (0-9, A-F).</p>
           )}
         </div>
 

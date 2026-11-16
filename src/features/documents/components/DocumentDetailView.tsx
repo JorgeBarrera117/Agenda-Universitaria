@@ -207,7 +207,7 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono font-black text-[10px] px-2 py-0.5 rounded-md bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
+                <span className="font-mono font-black text-10px px-2 py-0.5 rounded-md bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
                   {visuals.label}
                 </span>
                 {doc.sizeBytes && (
@@ -282,7 +282,7 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
                   {subject.name}
                 </span>
                 {subject.code && (
-                  <span className="inline-flex items-center px-1.5 py-0.2 rounded font-mono text-[9px] font-black bg-black text-white dark:bg-white dark:text-black tracking-wider mt-0.5">
+                  <span className="inline-flex items-center px-1.5 py-0.2 rounded font-mono text-9px font-black bg-black text-white dark:bg-white dark:text-black tracking-wider mt-0.5">
                     {subject.code}
                   </span>
                 )}
@@ -349,7 +349,7 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
           <div className="space-y-2.5 text-xs">
             {/* Base de Datos IndexedDB */}
             <div className="p-3 rounded-xl bg-[#E2E7EF]/40 dark:bg-[#272A2F]/40 space-y-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
+              <span className="text-10px font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
                 Persistencia en Base de Datos Local PWA:
               </span>
               <span className="font-mono text-xs text-[#191C20] dark:text-[#E2E2E6] break-all">
@@ -360,19 +360,19 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
             {/* Ruta Interna Sandboxed Android */}
             <div className="p-3 rounded-xl bg-[#E2E7EF]/40 dark:bg-[#272A2F]/40 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
+                <span className="text-10px font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
                   Ruta Sandboxed en Android:
                 </span>
                 <button
                   type="button"
                   onClick={() => handleCopyText(androidInternalPath, 'path')}
-                  className="text-[10px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors cursor-pointer"
+                  className="text-10px font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors cursor-pointer"
                 >
                   {copiedField === 'path' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedField === 'path' ? 'Copiada' : 'Copiar'}</span>
                 </button>
               </div>
-              <div className="font-mono text-[11px] text-[#191C20] dark:text-[#E2E2E6] break-all select-all">
+              <div className="font-mono text-11px text-[#191C20] dark:text-[#E2E2E6] break-all select-all">
                 {androidInternalPath}
               </div>
             </div>
@@ -380,19 +380,19 @@ export const DocumentDetailView: React.FC<DocumentDetailViewProps> = ({
             {/* URI FileProvider */}
             <div className="p-3 rounded-xl bg-[#E2E7EF]/40 dark:bg-[#272A2F]/40 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
+                <span className="text-10px font-bold uppercase tracking-wider text-[#72777F] dark:text-[#8C9199] block">
                   URI Segura FileProvider:
                 </span>
                 <button
                   type="button"
                   onClick={() => handleCopyText(androidContentUri, 'uri')}
-                  className="text-[10px] font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors cursor-pointer"
+                  className="text-10px font-bold text-[#00639B] dark:text-[#92CCFF] flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-[#D0E4FF]/40 dark:hover:bg-[#004B76]/30 transition-colors cursor-pointer"
                 >
                   {copiedField === 'uri' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedField === 'uri' ? 'Copiada' : 'Copiar'}</span>
                 </button>
               </div>
-              <div className="font-mono text-[11px] text-[#00639B] dark:text-[#92CCFF] break-all select-all">
+              <div className="font-mono text-11px text-[#00639B] dark:text-[#92CCFF] break-all select-all">
                 {androidContentUri}
               </div>
             </div>

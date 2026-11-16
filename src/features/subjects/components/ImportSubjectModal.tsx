@@ -94,9 +94,9 @@ export const ImportSubjectModal: React.FC<ImportSubjectModalProps> = ({ sharePac
           <SubjectBadge icon={subject.icon} color={subject.color} size="lg" />
           <div className="min-w-0 flex-1">
             <h3 className="line-clamp-2 text-sm font-black text-[var(--color-md-on-surface)]">{subject.name}</h3>
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-11px text-[var(--color-md-on-surface-variant)]">
               {subject.code && (
-                <span className="rounded bg-[var(--color-md-on-surface)] px-1.5 font-mono text-[10px] font-bold text-[var(--color-md-surface)]">
+                <span className="rounded bg-[var(--color-md-on-surface)] px-1.5 font-mono text-10px font-bold text-[var(--color-md-surface)]">
                   {subject.code}
                 </span>
               )}
@@ -169,7 +169,7 @@ export const ImportSubjectModal: React.FC<ImportSubjectModalProps> = ({ sharePac
             <>
               <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Ya tienes «{match.name}»</p>
               <SegmentedControl value={mode} onChange={setChosenMode} options={MODE_OPTIONS} ariaLabel="Qué hacer con la materia" />
-              <p className="text-[11px] leading-relaxed text-[var(--color-md-on-surface-variant)]">{modeHelp[mode]}</p>
+              <p className="text-11px leading-relaxed text-[var(--color-md-on-surface-variant)]">{modeHelp[mode]}</p>
             </>
           ) : (
             <p className="text-xs text-[var(--color-md-on-surface-variant)]">No tienes esta materia: se agregará como nueva.</p>

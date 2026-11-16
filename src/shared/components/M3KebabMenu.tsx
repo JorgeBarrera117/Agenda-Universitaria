@@ -219,7 +219,7 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
                   role="menuitem"
                   disabled={item.disabled}
                   onClick={(e) => handleItemClick(e, item)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-[13px] font-semibold transition-colors text-left cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none active:scale-[0.98] ${
+                  className={`w-full flex min-h-12 sm:min-h-10 items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors text-left cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none active:scale-[0.98] ${
                     isDestructive
                       ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-500/10'
                       : isPrimary
@@ -228,7 +228,7 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
                   }`}
                 >
                   {item.icon && (
-                    <span className="shrink-0 flex items-center justify-center w-4 h-4">
+                    <span className="shrink-0 flex items-center justify-center w-5 h-5 [&>svg]:w-[18px] [&>svg]:h-[18px]">
                       {item.icon}
                     </span>
                   )}

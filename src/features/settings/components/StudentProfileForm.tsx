@@ -120,7 +120,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
               </button>
             )}
           </div>
-          <p className="text-[11px] text-[var(--color-md-on-surface-variant)]" role={photoError ? 'alert' : undefined}>
+          <p className="text-11px text-[var(--color-md-on-surface-variant)]" role={photoError ? 'alert' : undefined}>
             {photoError ?? 'Al elegirla podrás moverla y acercarla para encuadrarla. Se guarda solo en este dispositivo.'}
           </p>
           <input
@@ -149,7 +149,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
           placeholder="ej. Ana Martínez"
           className={inputClassName}
         />
-        <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+        <p className="text-11px text-[var(--color-md-on-surface-variant)]">
           Aparece en el saludo de la barra superior.
         </p>
       </div>
@@ -182,7 +182,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
           placeholder="ej. Aprobar Cálculo con más de 4.0"
           className={`${inputClassName} resize-none`}
         />
-        <p className="text-right text-[11px] text-[var(--color-md-on-surface-variant)]">
+        <p className="text-right text-11px text-[var(--color-md-on-surface-variant)]">
           {semesterGoal.length}/{FIELD_LIMITS.semesterGoal}
         </p>
       </div>
@@ -191,7 +191,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
       <section aria-label="Estado en la barra superior" className="space-y-2 border-t border-[var(--color-md-outline-variant)] pt-3">
         <div>
           <p className="text-xs font-bold text-[var(--color-md-on-surface)]">Estado en la barra superior</p>
-          <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+          <p className="text-11px text-[var(--color-md-on-surface-variant)]">
             Se muestra junto a la fecha. El punto de tu foto siempre indica si estás en línea.
           </p>
         </div>
@@ -239,7 +239,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
                 placeholder="ej. Biblioteca hasta las 6"
                 className={inputClassName}
               />
-              <p className="flex justify-between gap-2 text-[11px] text-[var(--color-md-on-surface-variant)]">
+              <p className="flex justify-between gap-2 text-11px text-[var(--color-md-on-surface-variant)]">
                 <span>{customStatus.trim() ? '' : 'Sin frase se mostrará la conectividad.'}</span>
                 <span>
                   {customStatus.length}/{STUDENT_STATUS_MAX_LENGTH}

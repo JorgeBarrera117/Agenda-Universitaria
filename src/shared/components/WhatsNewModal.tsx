@@ -53,7 +53,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ entries, onClose, 
             </React.Fragment>
           ))}
           {hidden > 0 && (
-            <p className="text-[11px] text-[var(--color-md-on-surface-variant)]">
+            <p className="text-11px text-[var(--color-md-on-surface-variant)]">
               Y {hidden} {hidden === 1 ? 'versión más' : 'versiones más'} en el historial completo.
             </p>
           )}

@@ -298,7 +298,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       attributes: {
         // pb-44: espacio al final para que la última línea pueda subir por encima de la barra fija
         class:
-          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-[15px] sm:text-base leading-relaxed max-w-none pb-44',
+          'min-h-full flex-1 w-full py-2 px-0.5 sm:px-1 focus:outline-none text-[var(--color-md-on-surface)] text-15px sm:text-base leading-relaxed max-w-none pb-44',
         'aria-label': 'Contenido del apunte',
       },
       // El cursor se considera "a la vista" solo si no queda bajo la cabecera fija (arriba) ni
@@ -947,7 +947,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 px-1 text-[11px] text-[var(--color-md-on-surface-variant)]">
+                <p className="mt-2 px-1 text-11px text-[var(--color-md-on-surface-variant)]">
                   También puedes arrastrar la esquina de la foto.
                 </p>
               </div>
@@ -1061,7 +1061,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </div>
         )}
 
-        <div className="mx-auto flex max-w-3xl items-center justify-end gap-2 px-1 pt-0.5 text-[11px] font-medium text-[var(--color-md-on-surface-variant)]">
+        <div className="mx-auto flex max-w-3xl items-center justify-end gap-2 px-1 pt-0.5 text-11px font-medium text-[var(--color-md-on-surface-variant)]">
           {notice && (
             <span className="mr-auto line-clamp-2 text-[var(--color-md-on-surface)]" role="status">
               {notice.text}
