@@ -1,16 +1,14 @@
 {
-  "latestVersion": "1.7.10.80",
+  "latestVersion": "1.7.10.81",
   "releaseDate": "2026-11-15",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.80/Agenda-Universitaria-v1.7.10.80.apk",
-  "apkSha256": "df2d9f8bdc0bdae26a551f4cdd7657cd5f0c2d468cea8b827eea88f85c29678d",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.80/Agenda-Universitaria-Setup-v1.7.10.80.exe",
-  "desktopSha256": "907325972927c4e897d21a37c56a422dc7307e72c23356d95f608c01199ef4f0",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.81/Agenda-Universitaria-v1.7.10.81.apk",
+  "apkSha256": "5fb9bc280229a3822c799c664eac5111b981d6908c1e5880b801fb7574a0745b",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.81/Agenda-Universitaria-Setup-v1.7.10.81.exe",
+  "desktopSha256": "7a24c5d533dbb163d905c3162f626f24f06d723ae8c05db100da960cf52603e7",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Bloqueo de la app con PIN o huella",
-    "Formato de hora de 12 o 24 horas",
-    "Resumen del día y aviso de clase con la anticipación que elijas",
-    "Copia de seguridad automática semanal y recordatorio"
+    "Pasa tus datos entre el teléfono y la PC por wifi con un código QR",
+    "Viajan cifrados y el código sirve una sola vez"
   ]
 }
