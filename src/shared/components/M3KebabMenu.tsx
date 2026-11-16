@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { MoreVertical } from 'lucide-react';
+import { ChevronDown, MoreVertical } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../hooks/useBackButton';
 import { useExitTransition, MOTION_EXIT_MS } from '../hooks/useExitTransition';
 
@@ -21,6 +21,13 @@ export interface M3KebabMenuProps {
   align?: 'left' | 'right';
   /** Tamaño del botón disparador: sm (32px visual con 44px tap target) o md (36px visual) */
   size?: 'sm' | 'md';
+  /**
+   * Con texto, el disparador es un botón tonal M3 con ícono, etiqueta y flecha (▾). Así se
+   * reconoce como botón: para menús importantes y sueltos, no dentro de tarjetas.
+   */
+  label?: string;
+  /** Ícono del botón con texto (por defecto, los tres puntos). */
+  icon?: React.ReactNode;
 }
 
 /**
@@ -40,6 +47,8 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
   className = '',
   align = 'right',
   size = 'sm',
+  label,
+  icon,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -167,24 +176,50 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
       className={`relative inline-flex items-center justify-center ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Botón Disparador (Touch Target ampliado mínimo 44x44px) */}
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={toggleMenu}
-        aria-label={ariaLabel}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        className={`relative flex items-center justify-center rounded-full transition-all duration-150 ease-out cursor-pointer active:scale-95 ${triggerSizeClasses} ${
-          isOpen
-            ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
-            : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
-        }`}
-      >
-        {/* Pseudo-elemento táctil invisible de 44x44px para cumplir WCAG en pantallas móviles */}
-        <span className="absolute -inset-1.5 sm:inset-0 rounded-full" aria-hidden="true" />
-        <MoreVertical className={iconSizeClasses} />
-      </button>
+      {label ? (
+        /* Botón tonal con texto (M3 filled tonal button): se entiende sin adivinar */
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={toggleMenu}
+          aria-label={ariaLabel}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+          className={`inline-flex h-10 items-center gap-1.5 rounded-full pl-3.5 pr-3 text-sm font-semibold transition-all duration-150 ease-out active:scale-95 ${
+            isOpen
+              ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
+              : 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:shadow-2xs hover:brightness-[0.97]'
+          }`}
+        >
+          <span className="flex h-4 w-4 items-center justify-center [&>svg]:h-4 [&>svg]:w-4" aria-hidden="true">
+            {icon ?? <MoreVertical />}
+          </span>
+          <span>{label}</span>
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+      ) : (
+        /* Botón de ícono con contenedor tonal suave: el círculo indica que se puede tocar */
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={toggleMenu}
+          aria-label={ariaLabel}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+          className={`relative flex items-center justify-center rounded-full transition-all duration-150 ease-out cursor-pointer active:scale-95 ${triggerSizeClasses} ${
+            isOpen
+              ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
+              : 'bg-[var(--color-md-on-surface)]/[0.07] text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-on-surface)]/[0.12]'
+          }`}
+        >
+          {/* Pseudo-elemento táctil invisible de 44x44px para cumplir WCAG en pantallas móviles */}
+          <span className="absolute -inset-1.5 sm:inset-0 rounded-full" aria-hidden="true" />
+          <MoreVertical className={iconSizeClasses} />
+        </button>
+      )}
 
       {/* Menú Desplegable Renderizado en Portal Fuera de la Tarjeta (Inmune a overflow:hidden) */}
       {isOpen &&

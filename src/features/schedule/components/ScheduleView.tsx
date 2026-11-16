@@ -367,16 +367,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <input {...agschedulePicker.inputProps} />
           <M3KebabMenu
             ariaLabel="Compartir, importar o pasar datos"
+            label="Compartir"
+            icon={<Share2 />}
             items={[
               {
                 id: 'share-agschedule',
-                label: 'Compartir (.agschedule)',
+                label: 'Compartir horario',
                 icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                 onClick: () => void handleShareSchedule(),
               },
               {
                 id: 'import-agschedule',
-                label: 'Importar (.agschedule)',
+                label: 'Importar horario',
                 icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
                 onClick: agschedulePicker.open,
               },
