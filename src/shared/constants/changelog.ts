@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.86',
+    date: '2026-11-16',
+    title: 'Tu estilo, a tu manera',
+    changes: [
+      { kind: 'mejora', text: 'Crea tu paleta: tus colores se usan exactos, ahora puedes elegir también el color del texto, y hay vista previa arriba y un botón para restablecer.' },
+      { kind: 'mejora', text: 'Los acabados de tarjeta (Elevada, Cristal y Con borde) ahora se distinguen claramente y tienen vista previa.' },
+      { kind: 'mejora', text: 'La intensidad del papel tapiz llega al 100 % y tiene atajos: Sutil, Medio, Intenso y Máximo.' },
+    ],
+  },
+  {
     version: '1.7.10.85',
     date: '2026-11-16',
     title: 'De teléfono a teléfono',
