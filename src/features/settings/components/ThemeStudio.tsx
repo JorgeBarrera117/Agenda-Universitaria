@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Check, Frame, Layers, Monitor, Moon, Palette, Plus, Sparkles, Sun, X, Zap } from 'lucide-react';
+import { Check, Layers, Monitor, Moon, Palette, Plus, Sun, X, Zap } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
 import {
   MATERIAL_COLOR_PALETTES,
@@ -9,6 +9,7 @@ import {
 } from '../../../shared/utils/theme';
 import { M3Switch } from './SettingsPrimitives';
 import { CustomPaletteCreator } from './CustomPaletteCreator';
+import { CardSurfacePicker } from './CardSurfacePicker';
 import type {
   AppSettings,
   CardSurfaceStyle,
@@ -22,27 +23,6 @@ const THEME_OPTIONS: SegmentedOption<ThemeMode>[] = [
   { value: 'light', label: 'Claro', icon: <Sun className="h-4 w-4 shrink-0" aria-hidden="true" /> },
   { value: 'dark', label: 'Oscuro', icon: <Moon className="h-4 w-4 shrink-0" aria-hidden="true" /> },
   { value: 'system', label: 'Auto', icon: <Monitor className="h-4 w-4 shrink-0" aria-hidden="true" /> },
-];
-
-const CARD_SURFACE_OPTIONS: (SegmentedOption<CardSurfaceStyle> & { description: string })[] = [
-  {
-    value: 'solid',
-    label: 'Sólido',
-    icon: <Layers className="h-4 w-4 shrink-0" aria-hidden="true" />,
-    description: 'Superficie limpia y opaca.',
-  },
-  {
-    value: 'glass',
-    label: 'Cristal',
-    icon: <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />,
-    description: 'Translúcido: deja ver el papel tapiz detrás de las tarjetas.',
-  },
-  {
-    value: 'bordered',
-    label: 'Bordeado',
-    icon: <Frame className="h-4 w-4 shrink-0" aria-hidden="true" />,
-    description: 'Plano, sin sombras y con bordes de alto contraste.',
-  },
 ];
 
 const PRESET_KEYS = Object.keys(MATERIAL_COLOR_PALETTES) as PresetPalette[];
@@ -238,23 +218,20 @@ interface CardStyleSectionProps {
 
 /** Bloque "Tarjetas y rendimiento": acabado de tarjetas y Modo Ultra Fluidez. */
 export const CardStyleSection: React.FC<CardStyleSectionProps> = ({ settings, onCardSurfaceChange, onPerformanceModeChange }) => {
-  const surfaceOption = CARD_SURFACE_OPTIONS.find((o) => o.value === settings.cardSurfaceStyle) ?? CARD_SURFACE_OPTIONS[0];
-
   return (
     <div className="space-y-4">
       <section className="space-y-2" aria-label="Acabado de tarjetas">
         <SectionHeader icon={<Layers className="h-3.5 w-3.5" aria-hidden="true" />} title="Acabado de tarjetas" />
-        <SegmentedControl
+        <CardSurfacePicker
           value={settings.cardSurfaceStyle}
           onChange={onCardSurfaceChange}
-          options={CARD_SURFACE_OPTIONS}
-          ariaLabel="Acabado de tarjetas"
+          wallpaperStyle={settings.wallpaperStyle || 'campus'}
         />
-        <p className="text-11px text-[var(--color-md-on-surface-variant)]" aria-live="polite">
-          {settings.performanceMode && settings.cardSurfaceStyle === 'glass'
-            ? 'Con el Modo Ultra Fluidez activo, el cristal se muestra como superficie sólida.'
-            : surfaceOption.description}
-        </p>
+        {settings.performanceMode && settings.cardSurfaceStyle === 'glass' && (
+          <p className="text-xs text-[var(--color-md-on-surface-variant)]">
+            Con el Modo Ultra Fluidez activo, el cristal se muestra sin transparencia para ahorrar batería.
+          </p>
+        )}
       </section>
 
       <section

@@ -143,7 +143,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
   return (
     <section
       aria-label="Resumen de la jornada"
-      className="rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-2 shadow-2xs sm:rounded-3xl sm:p-2.5"
+      className="md-card rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] p-2 shadow-2xs sm:rounded-3xl sm:p-2.5"
     >
       {/* Cabecera: estado + píldora del día + plegar/desplegar */}
       <div className="flex items-center gap-2 px-1.5 pb-1">
@@ -262,7 +262,7 @@ export const CampusPulseBento: React.FC<CampusPulseBentoProps> = ({ pulse, onTak
           </div>
 
           {/* Tarjeta secundaria: resumen de la jornada (fila compacta en móvil, columna en escritorio) */}
-          <div className="flex items-center gap-4 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] p-3.5 text-[var(--color-md-on-surface)] sm:flex-col sm:items-stretch sm:justify-between sm:gap-2">
+          <div className="md-card flex items-center gap-4 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] p-3.5 text-[var(--color-md-on-surface)] sm:flex-col sm:items-stretch sm:justify-between sm:gap-2">
             <div className="shrink-0">
               <p className="text-11px font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)]">
                 Tu jornada

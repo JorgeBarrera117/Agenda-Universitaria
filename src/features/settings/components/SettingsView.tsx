@@ -86,9 +86,9 @@ const SUBVIEW_TITLES: Record<SettingsCategory, string> = {
 };
 
 const CARD_SURFACE_OPTIONS: { id: CardSurfaceStyle; label: string; description: string }[] = [
-  { id: 'solid', label: 'Sólido', description: 'Superficie limpia y opaca' },
+  { id: 'solid', label: 'Elevada', description: 'Sin borde, con sombra suave' },
   { id: 'glass', label: 'Cristal', description: 'Translúcido sobre el papel tapiz' },
-  { id: 'bordered', label: 'Bordeado', description: 'Plano, sin sombra, alto contraste' },
+  { id: 'bordered', label: 'Con borde', description: 'Plana, con contorno marcado' },
 ];
 
 export const SettingsView: React.FC<SettingsViewProps> = ({

@@ -381,7 +381,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
       {/* 2. RESUMEN MÉTRICO COMPACTO (Jerarquía Nivel 2) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
         {/* Métrica 1: Asignaturas */}
-        <div className="p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
+        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <BookOpen className="w-4 h-4" />
           </div>
@@ -396,7 +396,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </div>
 
         {/* Métrica 2: Créditos */}
-        <div className="p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
+        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Award className="w-4 h-4" />
           </div>
@@ -411,7 +411,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </div>
 
         {/* Métrica 3: Bloques */}
-        <div className="p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
+        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4" />
           </div>

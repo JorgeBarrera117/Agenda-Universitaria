@@ -415,7 +415,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* 3. SELECTOR DE DÍAS (Móvil y Vista Diaria) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
-        <div className="bg-[var(--color-md-surface-container)] p-1 rounded-2xl border border-[var(--color-md-outline-variant)]/40 shadow-2xs">
+        <div className="md-card bg-[var(--color-md-surface-container)] p-1 rounded-2xl border border-[var(--color-md-outline-variant)]/40 shadow-2xs">
           <div className="flex items-stretch gap-1 sm:gap-2 overflow-x-auto custom-scrollbar p-0.5">
             {displayedDays.map((day) => {
               const isSelected = activeDay === day;
@@ -650,7 +650,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* 5. VISTA DIARIA (Compacta y Fluida) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden space-y-2.5' : 'space-y-2.5'}>
-        <div className="flex items-center justify-between bg-[var(--color-md-card-bg)] px-3.5 py-2.5 rounded-2xl border border-[var(--color-md-outline-variant)] shadow-2xs">
+        <div className="md-card flex items-center justify-between bg-[var(--color-md-card-bg)] px-3.5 py-2.5 rounded-2xl border border-[var(--color-md-outline-variant)] shadow-2xs">
           <div>
             <span className="text-10px font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)] block leading-none">
               Horario del día

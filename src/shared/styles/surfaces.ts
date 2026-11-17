@@ -6,7 +6,7 @@
 
 /** Cápsula de cabecera de pantalla: título, insignias, subtítulo y acciones principales. */
 export const HEADER_SCRIM_CLASS =
-  'rounded-2xl border border-[var(--color-md-outline-variant)]/30 bg-[var(--color-md-surface)]/70 p-3 shadow-2xs backdrop-blur-md';
+  'md-card rounded-2xl border border-[var(--color-md-outline-variant)]/30 bg-[var(--color-md-surface)]/70 p-3 shadow-2xs backdrop-blur-md';
 
 /** Chip tonal para etiquetas de sección (p. ej. "Directorio alfabético · 5 docentes"). */
 export const TONAL_CHIP_CLASS =
