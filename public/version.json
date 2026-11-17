@@ -1,14 +1,15 @@
 {
-  "latestVersion": "1.7.10.85",
+  "latestVersion": "1.7.10.86",
   "releaseDate": "2026-11-16",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.85/Agenda-Universitaria-v1.7.10.85.apk",
-  "apkSha256": "2a3c96431051e554a482379a578dc4caa6d8436f660faf8074181bbed36febfe",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.85/Agenda-Universitaria-Setup-v1.7.10.85.exe",
-  "desktopSha256": "2d8062f7eb84b806e19358f73b2efe297fc28bb62e4c85c04a85c67e80191bb4",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.86/Agenda-Universitaria-v1.7.10.86.apk",
+  "apkSha256": "8b9c60fec294f5324850b9563867bc630d3720a556fe568aaa3e45723ba27b02",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.86/Agenda-Universitaria-Setup-v1.7.10.86.exe",
+  "desktopSha256": "266b9af8cf5172d1fee52027708cecc845b6066bd8f350f7b7e31ac288c2596e",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Pasa tus datos de un teléfono a otro con un código QR",
-    "Funciona por wifi o con el punto de acceso, sin internet"
+    "Crea tu paleta con colores exactos y color de texto",
+    "Acabados de tarjeta que se distinguen, con vista previa",
+    "Intensidad del papel tapiz hasta 100 %"
   ]
 }
