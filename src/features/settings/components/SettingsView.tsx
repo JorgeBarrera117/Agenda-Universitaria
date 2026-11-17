@@ -10,6 +10,7 @@ import {
   Camera,
   Database,
   Info,
+  Check,
   Sparkles,
   Snowflake,
   Image as ImageIcon,
@@ -601,20 +602,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       className="space-y-3 border-t border-[var(--color-md-outline-variant)] p-3"
                     >
 
-                      {/* 1. Control de Opacidad */}
-                      <div className="space-y-1">
+                      {/* 1. Intensidad del fondo: de casi invisible (4 %) a máxima (100 %). Para nada
+                          de dibujo está "Fondo liso" en la galería. */}
+                      <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-[var(--color-md-on-surface-variant)] text-11px">
-                            Opacidad / Visibilidad
-                          </span>
+                          <label htmlFor="wallpaper-intensity" className="font-semibold text-[var(--color-md-on-surface-variant)] text-xs">
+                            Intensidad del fondo
+                          </label>
                           <span className="font-mono font-extrabold text-[var(--color-md-primary)] text-xs">
                             {settings.wallpaperOpacity ?? 16}%
                           </span>
                         </div>
                         <input
+                          id="wallpaper-intensity"
                           type="range"
                           min={4}
-                          max={90}
+                          max={100}
                           step={2}
                           value={settings.wallpaperOpacity ?? 16}
                           onChange={(e) =>
@@ -625,28 +628,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           }
                           className="w-full accent-[var(--color-md-primary)] cursor-pointer h-1.5 rounded-lg"
                         />
-                        <div className="flex items-center justify-between text-10px text-[var(--color-md-on-surface-variant)]">
-                          <button
-                            type="button"
-                            onClick={() => updateSettings({ ...settings, wallpaperOpacity: 14 })}
-                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
-                          >
-                            Sutil (14%)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateSettings({ ...settings, wallpaperOpacity: 32 })}
-                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
-                          >
-                            Medio (32%)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateSettings({ ...settings, wallpaperOpacity: 60 })}
-                            className="hover:text-[var(--color-md-primary)] font-bold cursor-pointer"
-                          >
-                            Intenso (60%)
-                          </button>
+                        <div className="flex justify-between text-10px text-[var(--color-md-on-surface-variant)]" aria-hidden="true">
+                          <span>4%</span>
+                          <span>100%</span>
+                        </div>
+                        {/* Atajos (chips M3): se marcan cuando coinciden con el valor actual */}
+                        <div role="group" aria-label="Atajos de intensidad" className="flex flex-wrap gap-1.5">
+                          {[
+                            { label: 'Sutil', value: 14 },
+                            { label: 'Medio', value: 32 },
+                            { label: 'Intenso', value: 60 },
+                            { label: 'Máximo', value: 100 },
+                          ].map((preset) => {
+                            const selected = (settings.wallpaperOpacity ?? 16) === preset.value;
+                            return (
+                              <button
+                                key={preset.value}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() => updateSettings({ ...settings, wallpaperOpacity: preset.value })}
+                                className={`inline-flex min-h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+                                  selected
+                                    ? 'border-transparent bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]'
+                                    : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/[0.06]'
+                                }`}
+                              >
+                                {selected && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                                {preset.label} · {preset.value}%
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
 
