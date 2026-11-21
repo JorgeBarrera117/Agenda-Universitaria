@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus } from 'lucide-react';
-import { useScrollCollapse } from '../hooks/useScrollCollapse';
 
 export interface DockPosition {
   side: 'left' | 'right';
@@ -132,7 +131,6 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   // Estado de arrastre activo y estado de espera de activación segura (previene clics fantasma o por error)
   const [isDragging, setIsDragging] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
-  const isScrolled = useScrollCollapse(48);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const actionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blockGhostClickUntilRef = useRef<number>(0);
@@ -372,9 +370,9 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   const fabElement = (
     <div
       className={
-        isScrolled || isDragging
-          ? 'block'
-          : 'block sm:pointer-events-none'
+        // En pantallas anchas aparece solo tras desplazarse: lo decide el CSS (variante scrolled:,
+        // ver useScrolledAttribute) para no volver a dibujar el botón cada vez que se cruza el umbral
+        isDragging ? 'block' : 'block sm:pointer-events-none scrolled:sm:pointer-events-auto'
       }
     >
       <button
@@ -403,18 +401,14 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
         className={`fixed top-0 left-0 z-40 w-14 h-14 rounded-2xl flex items-center justify-center ${currentTheme.bg} ${currentTheme.text} ${currentTheme.shadow} border border-white/20 dark:border-white/10 touch-none select-none cursor-grab active:cursor-grabbing ${
           isDragging
             ? `shadow-2xl ${currentTheme.dragRing} opacity-95`
-            : isScrolled
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-100 sm:opacity-0 sm:pointer-events-none'
+            : 'opacity-100 sm:opacity-0 sm:pointer-events-none scrolled:sm:opacity-100 scrolled:sm:pointer-events-auto'
         } ${className}`}
       >
         <span
           className={`flex items-center justify-center transition-transform duration-200 ${
             isDragging
               ? 'scale-110'
-              : isScrolled
-                ? 'scale-100 group-active:scale-90'
-                : 'scale-100 sm:scale-50 group-active:scale-90'
+              : 'scale-100 sm:scale-50 scrolled:sm:scale-100 group-active:scale-90'
           }`}
         >
           {icon || <Plus className="w-6 h-6 stroke-[2.4]" />}
