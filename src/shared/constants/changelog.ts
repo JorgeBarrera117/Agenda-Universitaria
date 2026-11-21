@@ -32,6 +32,14 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.91',
+    date: '2026-11-21',
+    title: 'Horario semanal con tu estilo',
+    changes: [
+      { kind: 'correccion', text: 'En la vista Semana del horario (la de PC), las tarjetas ahora tienen el color de cada materia, la sombra de Elevada y el mismo diseño que el resto de la app.' },
+    ],
+  },
+  {
     version: '1.7.10.90',
     date: '2026-11-21',
     title: 'Contactos y tarjetas con tu color',
