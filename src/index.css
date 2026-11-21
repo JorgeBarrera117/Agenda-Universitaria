@@ -203,15 +203,15 @@ body {
 /*
  * Tarjetas con el color de su materia o docente (Card con tint, --card-tint).
  * Base (navegadores sin colores relativos): el color mezclado con la superficie del acabado.
+ * Solo cambia el relleno: el contorno lo decide el acabado (Elevada sin borde, Cristal con su filo
+ * de luz). Un contorno de color alrededor de cada tarjeta se veía recargado.
  */
 :root .md-card.card-tinted {
   background-color: color-mix(in srgb, var(--card-tint) 13%, var(--md-card-surface));
-  border-color: color-mix(in srgb, var(--card-tint) 38%, transparent);
 }
 
 .dark:root .md-card.card-tinted {
   background-color: color-mix(in srgb, var(--card-tint) 20%, var(--md-card-surface));
-  border-color: color-mix(in srgb, var(--card-tint) 45%, transparent);
 }
 
 /*
@@ -223,15 +223,12 @@ body {
 @supports (color: oklch(from red l c h)) {
   :root .md-card.card-tinted {
     --tint-bg: oklch(from var(--card-tint) 0.955 clamp(0.012, calc(c * 0.3), 0.045) h);
-    --tint-border: oklch(from var(--card-tint) 0.84 clamp(0.02, calc(c * 0.6), 0.1) h);
     --tint-outline: oklch(from var(--card-tint) 0.56 clamp(0.03, c, 0.16) h);
     background-color: var(--tint-bg);
-    border-color: var(--tint-border);
   }
 
   .dark:root .md-card.card-tinted {
     --tint-bg: oklch(from var(--card-tint) 0.3 clamp(0.015, calc(c * 0.4), 0.06) h);
-    --tint-border: oklch(from var(--card-tint) 0.42 clamp(0.02, calc(c * 0.6), 0.09) h);
     --tint-outline: oklch(from var(--card-tint) 0.72 clamp(0.03, c, 0.14) h);
   }
 
