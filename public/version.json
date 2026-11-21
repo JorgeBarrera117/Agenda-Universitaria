@@ -1,15 +1,14 @@
 {
-  "latestVersion": "1.7.10.86",
-  "releaseDate": "2026-11-16",
+  "latestVersion": "1.7.10.87",
+  "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.86/Agenda-Universitaria-v1.7.10.86.apk",
-  "apkSha256": "8b9c60fec294f5324850b9563867bc630d3720a556fe568aaa3e45723ba27b02",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.86/Agenda-Universitaria-Setup-v1.7.10.86.exe",
-  "desktopSha256": "266b9af8cf5172d1fee52027708cecc845b6066bd8f350f7b7e31ac288c2596e",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.87/Agenda-Universitaria-v1.7.10.87.apk",
+  "apkSha256": "49ea72ab1ced9e11993e96da8e4a84ba60d3ca878a7670b21b779546ab5d6f38",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.87/Agenda-Universitaria-Setup-v1.7.10.87.exe",
+  "desktopSha256": "7f6867489e7b53feee3a51c38b7bec95c5541d7ce81819c61ed8329a3edb3358",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Crea tu paleta con colores exactos y color de texto",
-    "Acabados de tarjeta que se distinguen, con vista previa",
-    "Intensidad del papel tapiz hasta 100 %"
+    "Toca tu foto para ir directo a Mi perfil",
+    "Guardar arriba y aviso antes de salir sin guardar"
   ]
 }
