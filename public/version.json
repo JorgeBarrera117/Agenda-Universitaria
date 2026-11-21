@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.88",
+  "latestVersion": "1.7.10.89",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.88/Agenda-Universitaria-v1.7.10.88.apk",
-  "apkSha256": "5ac418f59b797ddae4c841ac37a7b9de25265bdb0ea68cb09325cd176ad8933b",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.88/Agenda-Universitaria-Setup-v1.7.10.88.exe",
-  "desktopSha256": "fac29b8acf1a45fae08e23f1d1dd511def287c3409ce422d840985ae986e5b03",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.89/Agenda-Universitaria-v1.7.10.89.apk",
+  "apkSha256": "ab62a1bb05f7dbf3cfffa133d2343d1c48653b8a6b7036a11069925d607ed451",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.89/Agenda-Universitaria-Setup-v1.7.10.89.exe",
+  "desktopSha256": "c5ff2201e3b195a3a595e5b7697f0dbbef1dfb95c2cfc395282b78c159e37403",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Scroll y cambio de sección más rápidos, sobre todo en teléfonos",
-    "Modo Ultra Fluidez automático en teléfonos con poca memoria"
+    "Cristal igual de fluido que el sólido en teléfonos",
+    "Barra de búsqueda flotante, sin franja de fondo"
   ]
 }
