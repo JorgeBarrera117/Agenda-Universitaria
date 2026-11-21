@@ -56,6 +56,11 @@ export interface WidgetBridgePlugin {
   getBiometricStatus(): Promise<{ available: boolean }>;
   /** Pide la huella o el bloqueo del teléfono (BiometricPrompt). */
   authenticateBiometric(options: { title: string; subtitle?: string }): Promise<{ success: boolean; error?: string }>;
+  /**
+   * Abre "Crear contacto" en la app de contactos del teléfono con los datos ya escritos (sin
+   * permisos: el estudiante revisa y guarda). Rechaza si no hay app de contactos.
+   */
+  addContact(options: { name: string; phone?: string; email?: string; notes?: string }): Promise<{ success: boolean }>;
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /**

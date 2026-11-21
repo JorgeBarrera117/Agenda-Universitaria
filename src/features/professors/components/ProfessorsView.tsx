@@ -33,6 +33,7 @@ import {
 } from '../../../shared/styles/surfaces';
 import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
 import { ProfessorDetailView } from './ProfessorDetailView';
+import { ProfessorContactSheet } from './ProfessorContactSheet';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { SearchField } from '../../../shared/components/SearchField';
@@ -171,6 +172,24 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
     }
   };
 
+  // "Contacto": el estudiante elige llamar, WhatsApp, Telegram o en qué app guardarlo
+  const [contactProf, setContactProf] = useState<Professor | null>(null);
+  const contactSubjectNames = useMemo(
+    () =>
+      (contactProf?.subjectIds || [])
+        .map((sid) => subjectMap.get(sid)?.name)
+        .filter((name): name is string => Boolean(name)),
+    [contactProf, subjectMap]
+  );
+  const contactSheet = (
+    <ProfessorContactSheet
+      professor={contactProf}
+      subjectNames={contactSubjectNames}
+      onClose={() => setContactProf(null)}
+      onNotify={showToast}
+    />
+  );
+
   // Compartir como archivo .agcontact: quien lo recibe lo abre directo en su agenda
   const handleShareAgcontact = async (prof: Professor) => {
     const subjectNames = (prof.subjectIds || [])
@@ -259,6 +278,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           onDelete={() => setProfToDelete(selectedProfessor)}
           onShareAgcontact={() => void handleShareAgcontact(selectedProfessor)}
           onShareText={() => void handleShareProfessor(selectedProfessor)}
+          onOpenContact={() => setContactProf(selectedProfessor)}
           onSelectSubject={
             onOpenSubjectDetail
               ? (subject) => {
@@ -270,6 +290,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           }
         />
         {deleteModal}
+        {contactSheet}
         <ContextualToast message={toast?.text ?? null} bottomOffset="compact" onClose={() => setToast(null)} />
       </>
     );
@@ -404,14 +425,16 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
           {filteredProfessors.map((prof) => {
-            // Una sola acción de contacto visible: el correo si existe, si no el teléfono.
-            // El otro canal, editar y eliminar quedan en el menú ⋮.
-            const primaryContact: 'email' | 'phone' | null = prof.email ? 'email' : prof.phone ? 'phone' : null;
+            // Acciones visibles: Correo (si hay correo) y Contacto (si hay teléfono: llamar,
+            // WhatsApp, Telegram o guardarlo). La principal va rellena; la otra, tonal.
+            const hasEmail = Boolean(prof.email?.trim());
+            const hasPhone = Boolean(prof.phone?.trim());
 
             return (
             <Card
               key={prof.id}
               padding="compact"
+              tint={prof.color}
               interactive
               className="content-auto flex flex-col gap-2.5 group"
             >
@@ -459,15 +482,13 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                 <M3KebabMenu
                   className={ABOVE_STRETCHED_CLASS}
                   items={[
-                    ...(prof.phone && primaryContact !== 'phone'
+                    ...(hasPhone
                       ? [
                           {
-                            id: 'call',
-                            label: `Llamar (${prof.phone})`,
+                            id: 'contact',
+                            label: 'Contacto (llamar, WhatsApp…)',
                             icon: <Phone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-                            onClick: () => {
-                              window.location.href = `tel:${prof.phone}`;
-                            },
+                            onClick: () => setContactProf(prof),
                           },
                         ]
                       : []),
@@ -525,20 +546,33 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
               )}
 
               {/* Pie anclado abajo: una única acción de contacto en la zona del pulgar */}
-              {primaryContact && (
-                <div className="mt-auto flex items-center justify-end pt-2 border-t border-[var(--color-md-outline-variant)]">
-                  <a
-                    href={primaryContact === 'email' ? `mailto:${prof.email}` : `tel:${prof.phone}`}
-                    className="relative z-10 inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
-                    aria-label={primaryContact === 'email' ? `Enviar correo a ${prof.name}` : `Llamar a ${prof.name}`}
-                  >
-                    {primaryContact === 'email' ? (
-                      <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    ) : (
+              {(hasEmail || hasPhone) && (
+                <div className="mt-auto flex items-center justify-end gap-2 pt-2 border-t border-[var(--color-md-outline-variant)]">
+                  {hasPhone && (
+                    <button
+                      type="button"
+                      onClick={() => setContactProf(prof)}
+                      className={`relative z-10 inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] ${
+                        hasEmail
+                          ? 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:bg-[var(--color-md-surface-container-high)]'
+                          : 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs'
+                      }`}
+                      aria-label={`Contactar a ${prof.name}: llamar, WhatsApp, Telegram o guardar`}
+                    >
                       <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    )}
-                    <span>{primaryContact === 'email' ? 'Correo' : 'Llamar'}</span>
-                  </a>
+                      <span>Contacto</span>
+                    </button>
+                  )}
+                  {hasEmail && (
+                    <a
+                      href={`mailto:${prof.email?.trim()}`}
+                      className="relative z-10 inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
+                      aria-label={`Enviar correo a ${prof.name}`}
+                    >
+                      <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                      <span>Correo</span>
+                    </a>
+                  )}
                 </div>
               )}
             </Card>
@@ -546,6 +580,8 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           })}
         </div>
       )}
+
+      {contactSheet}
 
       {/* Modal Directorio de Asesorías y Cubículos */}
       <Modal

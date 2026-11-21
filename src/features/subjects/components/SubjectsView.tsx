@@ -506,6 +506,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
               <Card
                 key={subject.id}
                 padding="compact"
+                tint={subject.color}
                 interactive
                 className="flex flex-col gap-2.5 group"
               >

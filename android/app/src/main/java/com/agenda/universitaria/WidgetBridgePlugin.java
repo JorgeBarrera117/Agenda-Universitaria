@@ -14,6 +14,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.OpenableColumns;
@@ -931,6 +932,46 @@ public class WidgetBridgePlugin extends Plugin {
      * frontend ya filtra los dominios de confianza, y aquí se rechaza cualquier otro esquema
      * (intent:, file:, javascript:…) por si llegara uno.
      */
+    /**
+     * Abre la pantalla "Crear contacto" de la app de contactos que elija el estudiante, con el
+     * nombre, teléfono, correo y notas ya escritos. No pide permisos: el estudiante revisa y guarda.
+     */
+    @PluginMethod
+    public void addContact(PluginCall call) {
+        String name = call.getString("name", "");
+        if (name == null || name.trim().isEmpty()) {
+            call.reject("El contacto no tiene nombre.");
+            return;
+        }
+        Intent intent = new Intent(ContactsContract.Intents.Insert.ACTION);
+        intent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
+        intent.putExtra(ContactsContract.Intents.Insert.NAME, name.trim());
+        String phone = call.getString("phone");
+        if (phone != null && !phone.trim().isEmpty()) {
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, phone.trim());
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE_TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
+        }
+        String email = call.getString("email");
+        if (email != null && !email.trim().isEmpty()) {
+            intent.putExtra(ContactsContract.Intents.Insert.EMAIL, email.trim());
+            intent.putExtra(ContactsContract.Intents.Insert.EMAIL_TYPE, ContactsContract.CommonDataKinds.Email.TYPE_WORK);
+        }
+        String notes = call.getString("notes");
+        if (notes != null && !notes.trim().isEmpty()) {
+            intent.putExtra(ContactsContract.Intents.Insert.NOTES, notes.trim());
+        }
+        intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, "Docente");
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            getContext().startActivity(intent);
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("No hay una app de contactos para guardar el número.");
+        }
+    }
+
     @PluginMethod
     public void openExternalUrl(PluginCall call) {
         String url = call.getString("url");

@@ -31,6 +31,8 @@ interface ProfessorDetailViewProps {
   onShareAgcontact: () => void;
   /** Compartir la ficha como texto (WhatsApp sin la app instalada, portapapeles…). */
   onShareText?: () => void;
+  /** Abre "Contacto": llamar, WhatsApp, Telegram o guardarlo en la app que elija el estudiante. */
+  onOpenContact: () => void;
   onSelectSubject?: (subject: Subject) => void;
 }
 
@@ -100,6 +102,7 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
   onDelete,
   onShareAgcontact,
   onShareText,
+  onOpenContact,
   onSelectSubject,
 }) => {
   // Salida animada (la misma de los formularios): con la flecha y con el botón atrás de Android
@@ -113,8 +116,6 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
 
   const phone = professor.phone?.trim();
   const email = professor.email?.trim();
-  // tel: solo con dígitos y "+" (los espacios o guiones del número guardado confunden a algunos marcadores)
-  const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
 
   return (
     <div className={`${isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'} mx-auto w-full max-w-3xl space-y-3 pb-10`}>
@@ -196,8 +197,14 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
       <section className={SECTION_CLASS}>
         <SectionTitle icon={<UserRound className="h-4 w-4" />}>Contacto directo</SectionTitle>
         <div className="flex flex-col">
-          {phone && telHref && (
-            <ContactRow icon={<Phone className="h-[18px] w-[18px]" />} label="Llamar" value={phone} href={telHref} tone="primary" />
+          {phone && (
+            <ContactRow
+              icon={<Phone className="h-[18px] w-[18px]" />}
+              label="Contacto"
+              value={`${phone} · llamar, WhatsApp, Telegram o guardar`}
+              onClick={onOpenContact}
+              tone="primary"
+            />
           )}
           {email && (
             <ContactRow

@@ -200,6 +200,54 @@ body {
   background-color: var(--md-card-surface);
 }
 
+/*
+ * Tarjetas con el color de su materia o docente (Card con tint, --card-tint).
+ * Base (navegadores sin colores relativos): el color mezclado con la superficie del acabado.
+ */
+:root .md-card.card-tinted {
+  background-color: color-mix(in srgb, var(--card-tint) 13%, var(--md-card-surface));
+  border-color: color-mix(in srgb, var(--card-tint) 38%, transparent);
+}
+
+.dark:root .md-card.card-tinted {
+  background-color: color-mix(in srgb, var(--card-tint) 20%, var(--md-card-surface));
+  border-color: color-mix(in srgb, var(--card-tint) 45%, transparent);
+}
+
+/*
+ * Variantes tonales al estilo Material 3: del color se conserva el tono (h) y se fija la
+ * luminosidad (L, en OKLCH, perceptual). Así cualquier color da un pastel claro en modo claro y
+ * uno profundo en modo oscuro: un azul marino casi negro o un amarillo muy claro también se ven,
+ * cosa que la mezcla simple no logra. La viveza se acota para que el texto siempre se lea.
+ */
+@supports (color: oklch(from red l c h)) {
+  :root .md-card.card-tinted {
+    --tint-bg: oklch(from var(--card-tint) 0.955 clamp(0.012, calc(c * 0.3), 0.045) h);
+    --tint-border: oklch(from var(--card-tint) 0.84 clamp(0.02, calc(c * 0.6), 0.1) h);
+    --tint-outline: oklch(from var(--card-tint) 0.56 clamp(0.03, c, 0.16) h);
+    background-color: var(--tint-bg);
+    border-color: var(--tint-border);
+  }
+
+  .dark:root .md-card.card-tinted {
+    --tint-bg: oklch(from var(--card-tint) 0.3 clamp(0.015, calc(c * 0.4), 0.06) h);
+    --tint-border: oklch(from var(--card-tint) 0.42 clamp(0.02, calc(c * 0.6), 0.09) h);
+    --tint-outline: oklch(from var(--card-tint) 0.72 clamp(0.03, c, 0.14) h);
+  }
+
+  /* Cristal: la misma variante, translúcida (el papel tapiz se sigue viendo detrás) */
+  :root[data-card-surface='glass'] .md-card.card-tinted {
+    background-color: oklch(from var(--tint-bg) l c h / 0.62);
+  }
+
+  /* Cristal esmerilado de pantallas táctiles: opaca, el patrón difuminado va encima (::before) */
+  @media (hover: none) and (pointer: coarse) {
+    :root[data-card-surface='glass'][data-wallpaper-frost] .md-card.card-tinted {
+      background-color: var(--tint-bg);
+    }
+  }
+}
+
 /* Con borde (outlined): plana, del color del fondo y con un contorno marcado */
 :root[data-card-surface='bordered'] {
   --md-card-surface: var(--color-md-surface);
@@ -211,6 +259,17 @@ body {
   --tw-shadow: 0 0 #0000;
   box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000),
     var(--tw-ring-shadow, 0 0 #0000);
+}
+
+/* Con borde y con color propio: el contorno marcado toma el color de la materia o del docente */
+:root[data-card-surface='bordered'] .md-card.card-tinted {
+  border-color: color-mix(in srgb, var(--card-tint) 70%, var(--color-md-outline));
+}
+
+@supports (color: oklch(from red l c h)) {
+  :root[data-card-surface='bordered'] .md-card.card-tinted {
+    border-color: var(--tint-outline);
+  }
 }
 
 /*

@@ -6,6 +6,11 @@ export type CardPadding = 'none' | 'compact' | 'normal' | 'relaxed';
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   padding?: CardPadding;
   interactive?: boolean;
+  /**
+   * Color propio del elemento (materia, docente): la tarjeta toma una variante clara de ese color
+   * en modo claro y una oscura en modo oscuro, sobre el acabado elegido (ver .card-tinted en index.css).
+   */
+  tint?: string;
   className?: string;
 }
 
@@ -14,6 +19,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     {
       padding = 'normal',
       interactive = false,
+      tint,
       className = '',
       style,
       children,
@@ -38,8 +44,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        style={style}
-        className={`${CARD_SURFACE_CLASS} ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
+        style={tint ? ({ ...style, '--card-tint': tint } as React.CSSProperties) : style}
+        className={`${CARD_SURFACE_CLASS} ${tint ? 'card-tinted' : ''} ${paddingStyles[padding]} ${interactiveStyles} ${className}`}
         {...props}
       >
         {children}
