@@ -1,14 +1,13 @@
 {
-  "latestVersion": "1.7.10.90",
+  "latestVersion": "1.7.10.91",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.90/Agenda-Universitaria-v1.7.10.90.apk",
-  "apkSha256": "834785c965234a25857123c814dae9a371b7fd4de4a93d16b9f423e76c27536b",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.90/Agenda-Universitaria-Setup-v1.7.10.90.exe",
-  "desktopSha256": "373e879c81a3bc207427b6dad8627ff4af8db4d7370320ef122451ebb9c0e8d0",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.91/Agenda-Universitaria-v1.7.10.91.apk",
+  "apkSha256": "40c57073d3d9aa4ce8009b5d133f97546b76e1f51731685d5eb8df9f556308ab",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.91/Agenda-Universitaria-Setup-v1.7.10.91.exe",
+  "desktopSha256": "96adc2a72560b037de623427e9dfa13960dc29d024024b98d2c32f07cf1e0828",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Contacto del profesor: llamar, WhatsApp, Telegram o guardarlo",
-    "Tarjetas con el color que elegiste, en claro y en oscuro"
+    "Horario semanal (PC) con el color y la sombra de tus tarjetas"
   ]
 }
