@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.92',
+    date: '2026-11-21',
+    title: 'Nueva pestaña Agenda',
+    changes: [
+      { kind: 'nuevo', text: 'Agenda: anota tareas, exámenes, recordatorios y días libres, con calendario del mes y avisos a la hora, 1 hora, 1 día o 2 días antes.' },
+      { kind: 'nuevo', text: 'Los días libres (feriados, vacaciones) silencian los avisos de tus clases.' },
+      { kind: 'nuevo', text: 'En Horario, «Próximos en tu agenda» te muestra lo urgente y te lleva a ese día.' },
+      { kind: 'mejora', text: 'Barra de 4 pestañas: Horario, Agenda, Materias (con Profesores) y Biblioteca (Apuntes y Archivos). Se cambia con el selector de arriba.' },
+      { kind: 'mejora', text: 'Las copias de seguridad y el paso de datos por QR incluyen la agenda.' },
+    ],
+  },
+  {
     version: '1.7.10.91',
     date: '2026-11-21',
     title: 'Horario semanal con tu estilo',
