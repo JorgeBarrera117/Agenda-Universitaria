@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.87',
+    date: '2026-11-21',
+    title: 'Tu perfil, más a mano',
+    changes: [
+      { kind: 'mejora', text: 'Toca tu foto en la barra superior para ir directo a Mi perfil.' },
+      { kind: 'mejora', text: 'En Mi perfil, el botón Guardar está arriba y, si sales con cambios sin guardar, la app te pregunta antes.' },
+    ],
+  },
+  {
     version: '1.7.10.86',
     date: '2026-11-16',
     title: 'Tu estilo, a tu manera',
