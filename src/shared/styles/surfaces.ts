@@ -23,3 +23,16 @@ export const STRETCHED_CARD_BUTTON_CLASS =
 
 /** Controles dentro de una tarjeta con STRETCHED_CARD_BUTTON_CLASS: por encima del botón estirado. */
 export const ABOVE_STRETCHED_CLASS = 'relative z-10';
+
+/**
+ * Superficie común de las tarjetas de lista (Horario, Materias, Profesores, Apuntes, Archivos).
+ * - Neutra: sigue la paleta y el acabado que elija el estudiante (md-card, ver index.css).
+ * - El color de cada materia va en su ícono y sus chips, no en el fondo ni en el borde: así todas
+ *   las secciones se ven iguales y el texto se lee igual en cualquier color.
+ */
+export const CARD_SURFACE_CLASS =
+  'md-card relative rounded-[24px] sm:rounded-[28px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] text-[var(--color-md-on-surface)] shadow-[0_1px_3px_1px_rgba(0,0,0,0.05),0_1px_2px_0_rgba(0,0,0,0.08)] transition-[transform,box-shadow,border-color] duration-150 ease-out';
+
+/** Respuesta al cursor y al toque de una tarjeta que se puede abrir. */
+export const CARD_INTERACTIVE_CLASS =
+  'hover:-translate-y-0.5 hover:shadow-[0_4px_8px_3px_rgba(0,0,0,0.08),0_1px_3px_0_rgba(0,0,0,0.15)] active:scale-[0.98]';

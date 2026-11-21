@@ -52,7 +52,7 @@ import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButto
 import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
-import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
+import { CARD_INTERACTIVE_CLASS, CARD_SURFACE_CLASS, HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { notePlainText, parseNotePreview, type NotePreviewData } from '../utils/notePreview';
 import { PERSONAL_CATEGORY, PERSONAL_CHOICE, getNoteCategory } from '../utils/personalNotes';
 
@@ -970,7 +970,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               <div
                 key={note.id}
                 onClick={() => handleOpenRead(note)}
-                className="bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl sm:rounded-3xl content-auto p-2.5 sm:p-3 flex flex-col justify-between shadow-2xs hover:shadow-sm hover:border-[#00639B]/40 transition-[box-shadow,border-color] cursor-pointer group relative"
+                className={`${CARD_SURFACE_CLASS} ${CARD_INTERACTIVE_CLASS} content-auto p-2.5 sm:p-3.5 flex flex-col justify-between cursor-pointer group`}
               >
                 {/* Cabecera de la Tarjeta */}
                 <div className="flex items-start justify-between gap-1.5">
@@ -984,7 +984,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                       <SubjectIcon icon={category.icon} className="w-3 h-3 text-white" />
                     </div>
 
-                    <h3 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors">
+                    <h3 className="text-xs font-bold text-[var(--color-md-on-surface)] line-clamp-2 leading-snug group-hover:text-[var(--color-md-primary)] transition-colors">
                       {note.title || 'Documento'}
                     </h3>
                   </div>
@@ -1100,11 +1100,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 )}
 
                 {/* Pie de la Tarjeta */}
-                <div className="flex items-center justify-between text-10px text-slate-500 dark:text-slate-400">
+                <div className="flex items-center justify-between text-10px text-[var(--color-md-on-surface-variant)]">
                   <span className="truncate max-w-[80px] font-medium">
                     {category.name}
                   </span>
-                  <span className="text-9px text-slate-400 dark:text-slate-500 font-medium">
+                  <span className="text-9px text-[var(--color-md-outline)] font-medium">
                     {dateFormatted}
                   </span>
                 </div>

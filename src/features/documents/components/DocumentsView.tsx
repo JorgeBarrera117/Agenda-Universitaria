@@ -28,7 +28,7 @@ import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { DocumentLinkForm } from './DocumentLinkForm';
 import { DocumentDetailView } from './DocumentDetailView';
 import { DocumentReassignView } from './DocumentReassignView';
-import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
+import { CARD_INTERACTIVE_CLASS, CARD_SURFACE_CLASS, HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 
 interface DocumentsViewProps {
   isActive?: boolean;
@@ -529,8 +529,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               <div
                 key={doc.id}
                 onClick={() => !isOpening && handleOpenDoc(doc)}
-                className={`content-auto p-3 rounded-2xl sm:rounded-3xl bg-[#FDFBFF] dark:bg-[#1D2024] border border-[#C2C7CE]/60 dark:border-[#42474E]/60 flex flex-col justify-between gap-2.5 shadow-2xs hover:shadow-xs hover:border-[#00639B]/50 transition-[transform,box-shadow,border-color] cursor-pointer group active:scale-[0.99] select-none ${
-                  isOpening ? 'opacity-70 ring-2 ring-[#00639B]/40' : ''
+                className={`${CARD_SURFACE_CLASS} ${CARD_INTERACTIVE_CLASS} content-auto p-2.5 sm:p-3.5 flex flex-col justify-between gap-2.5 cursor-pointer group select-none ${
+                  isOpening ? 'opacity-70 ring-2 ring-[var(--color-md-primary)]/40' : ''
                 }`}
               >
                 {/* Parte Superior: Ícono, Título y Ficha Técnica */}
@@ -544,16 +544,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono font-bold text-9px px-1.5 py-0.2 rounded bg-[#E2E7EF] dark:bg-[#272A2F] text-[#41474D] dark:text-[#C2C7CF]">
+                      <span className="font-mono font-bold text-9px px-1.5 py-0.2 rounded bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
                         {visuals.label}
                       </span>
                       {doc.sizeBytes && (
-                        <span className="text-10px sm:text-11px font-semibold text-[#72777F] dark:text-[#8C9199]">
+                        <span className="text-10px sm:text-11px font-semibold text-[var(--color-md-outline)]">
                           {formatFileSize(doc.sizeBytes)}
                         </span>
                       )}
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-[#191C20] dark:text-[#E2E2E6] truncate group-hover:text-[#00639B] dark:group-hover:text-[#92CCFF] transition-colors mt-0.5 leading-snug">
+                    <h4 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] truncate group-hover:text-[var(--color-md-primary)] transition-colors mt-0.5 leading-snug">
                       {doc.name}
                     </h4>
                   </div>
@@ -608,7 +608,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                 </div>
 
                 {/* Parte Inferior: Materia asignada y Acción Primaria Descongestionada */}
-                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 text-11px">
+                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-[var(--color-md-outline-variant)]/50 text-11px">
                   {/* Chip de Materia (Ahora con más del 70% de espacio disponible) */}
                   <div className="flex items-center gap-1 min-w-0 flex-1">
                     {subj ? (
@@ -619,12 +619,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                           size="sm"
                           className="w-4 h-4 rounded-md shadow-2xs ring-1 ring-white/10 shrink-0"
                         />
-                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate text-11px">
+                        <span className="font-bold text-[var(--color-md-on-surface-variant)] truncate text-11px">
                           {subj.name}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-slate-400 dark:text-slate-500 italic text-11px">
+                      <span className="text-[var(--color-md-outline)] italic text-11px">
                         Sin asignatura
                       </span>
                     )}

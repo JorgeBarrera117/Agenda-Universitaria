@@ -692,7 +692,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 <Card
                   key={slot.id}
                   padding="compact"
-                  accentColor={isNow ? undefined : subject?.color}
                   interactive
                   style={
                     isNow
