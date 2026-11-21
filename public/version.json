@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.89",
+  "latestVersion": "1.7.10.90",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.89/Agenda-Universitaria-v1.7.10.89.apk",
-  "apkSha256": "ab62a1bb05f7dbf3cfffa133d2343d1c48653b8a6b7036a11069925d607ed451",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.89/Agenda-Universitaria-Setup-v1.7.10.89.exe",
-  "desktopSha256": "c5ff2201e3b195a3a595e5b7697f0dbbef1dfb95c2cfc395282b78c159e37403",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.90/Agenda-Universitaria-v1.7.10.90.apk",
+  "apkSha256": "834785c965234a25857123c814dae9a371b7fd4de4a93d16b9f423e76c27536b",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.90/Agenda-Universitaria-Setup-v1.7.10.90.exe",
+  "desktopSha256": "373e879c81a3bc207427b6dad8627ff4af8db4d7370320ef122451ebb9c0e8d0",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Cristal igual de fluido que el sólido en teléfonos",
-    "Barra de búsqueda flotante, sin franja de fondo"
+    "Contacto del profesor: llamar, WhatsApp, Telegram o guardarlo",
+    "Tarjetas con el color que elegiste, en claro y en oscuro"
   ]
 }
