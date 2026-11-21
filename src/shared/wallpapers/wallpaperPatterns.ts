@@ -620,7 +620,7 @@ const SEASONAL_PATTERNS: Record<'christmas' | 'newyear', Omit<WallpaperPattern, 
 export function getSeasonalMask(season: keyof typeof SEASONAL_PATTERNS): PatternMask {
   const entry = SEASONAL_PATTERNS[season];
   const encoded = encodeURIComponent(entry.svg.replace(/\s+/g, ' ').trim());
-  return { dataUri: `url("data:image/svg+xml,${encoded}")`, width: entry.width, height: entry.height ?? entry.width };
+  return { dataUri: `url("data:image/svg+xml,${encoded}")`, svg: entry.svg, width: entry.width, height: entry.height ?? entry.width };
 }
 
 export function isPatternWallpaper(style: WallpaperStyle): style is PatternWallpaperId {
@@ -629,6 +629,8 @@ export function isPatternWallpaper(style: WallpaperStyle): style is PatternWallp
 
 export interface PatternMask {
   dataUri: string;
+  /** SVG original del mosaico (sin codificar). */
+  svg: string;
   width: number;
   height: number;
 }
@@ -639,13 +641,45 @@ export function getPatternMask(style: PatternWallpaperId): PatternMask {
   const encoded = encodeURIComponent(entry.svg.replace(/\s+/g, ' ').trim());
   return {
     dataUri: `url("data:image/svg+xml,${encoded}")`,
+    svg: entry.svg,
     width: entry.width,
     height: entry.height ?? entry.width,
   };
 }
 
+/** Factor real de escala del mosaico: la escala pedida, sin bajar de minSide px por lado. */
+export function patternScaleFactor(mask: PatternMask, scale: number, minSide = 14): number {
+  return Math.max(minSide / Math.min(mask.width, mask.height), scale);
+}
+
 /** Tamaño de la máscara (`mask-size`) para una escala dada (1 = tamaño natural). */
 export function patternMaskSize(mask: PatternMask, scale: number, minSide = 14): string {
-  const factor = Math.max(minSide / Math.min(mask.width, mask.height), scale);
+  const factor = patternScaleFactor(mask, scale, minSide);
   return `${Math.round(mask.width * factor)}px ${Math.round(mask.height * factor)}px`;
+}
+
+/**
+ * Versión esmerilada del patrón para el acabado Cristal en teléfonos (ver index.css).
+ *
+ * El desenfoque va dentro del propio SVG: el navegador lo calcula una sola vez al convertir la
+ * imagen en píxeles y luego la reutiliza. Es la idea del material Mica de Windows 11, que toma el
+ * fondo una vez, en vez de recalcular el desenfoque en cada cuadro como backdrop-filter.
+ *
+ * Se dibujan 3×3 copias del mosaico y se recorta la central: así lo desenfocado que cruza un borde
+ * entra por el borde opuesto y no quedan cortes rectos entre mosaicos.
+ *
+ * @param blurUnits desviación del desenfoque en unidades del mosaico (px a escala 100 %).
+ */
+export function getFrostedMask(mask: PatternMask, blurUnits: number): string {
+  const { width: w, height: h } = mask;
+  const tile = mask.svg.replace(/\s+/g, ' ').trim().replace('<svg ', '<svg id="t" ');
+  const copies = [-1, 0, 1]
+    .flatMap((dy) => [-1, 0, 1].map((dx) => `<use href="#t" x="${dx * w}" y="${dy * h}"/>`))
+    .join('');
+  const frosted =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">` +
+    `<defs>${tile}<filter id="f" filterUnits="userSpaceOnUse" x="${-w}" y="${-h}" width="${3 * w}" height="${3 * h}">` +
+    `<feGaussianBlur stdDeviation="${Math.round(blurUnits * 10) / 10}"/></filter></defs>` +
+    `<g filter="url(#f)">${copies}</g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(frosted)}")`;
 }

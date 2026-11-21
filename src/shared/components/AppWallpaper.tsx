@@ -1,7 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAppSettings } from '../../features/settings/hooks/useAppSettings';
 import type { WallpaperStyle } from '../../features/settings/types';
-import { getPatternMask, getSeasonalMask, isPatternWallpaper, patternMaskSize } from '../wallpapers/wallpaperPatterns';
+import {
+  getFrostedMask,
+  getPatternMask,
+  getSeasonalMask,
+  isPatternWallpaper,
+  patternMaskSize,
+  patternScaleFactor,
+} from '../wallpapers/wallpaperPatterns';
 import { useSeason } from '../seasons/useSeason';
 
 export const CUSTOM_WALLPAPER_STORAGE_KEY = 'agenda_custom_wallpaper_v1';
@@ -17,6 +24,30 @@ const WALLPAPER_LAYER_STYLE: React.CSSProperties = {
   contain: 'strict',
   backfaceVisibility: 'hidden',
 };
+
+/** Desenfoque del cristal en teléfonos, en px de pantalla (el mismo que usaba backdrop-filter). */
+const FROST_BLUR_PX = 8;
+
+/**
+ * Comparte con las tarjetas de Cristal la versión esmerilada del patrón (ver getFrostedMask e
+ * index.css): variables CSS en <html> y data-wallpaper-frost mientras haya un patrón activo.
+ */
+function useFrostedPatternVars(frost: { image: string; size: string; opacity: number } | null) {
+  useEffect(() => {
+    if (!frost) return;
+    const root = document.documentElement;
+    root.style.setProperty('--wallpaper-frost', frost.image);
+    root.style.setProperty('--wallpaper-frost-size', frost.size);
+    root.style.setProperty('--wallpaper-frost-opacity', String(frost.opacity));
+    root.setAttribute('data-wallpaper-frost', 'true');
+    return () => {
+      root.removeAttribute('data-wallpaper-frost');
+      root.style.removeProperty('--wallpaper-frost');
+      root.style.removeProperty('--wallpaper-frost-size');
+      root.style.removeProperty('--wallpaper-frost-opacity');
+    };
+  }, [frost]);
+}
 
 /**
  * Helper para guardar o eliminar la foto de papel tapiz personalizada en almacenamiento local
@@ -83,6 +114,17 @@ export const AppWallpaper: React.FC = () => {
     if (!isPatternWallpaper(style)) return null;
     return season ? getSeasonalMask(season) : getPatternMask(style);
   }, [style, season]);
+
+  const frost = useMemo(() => {
+    if (!patternData || style === 'none') return null;
+    const factor = patternScaleFactor(patternData, scale, 20);
+    return {
+      image: getFrostedMask(patternData, FROST_BLUR_PX / factor),
+      size: patternMaskSize(patternData, scale, 20),
+      opacity,
+    };
+  }, [patternData, style, scale, opacity]);
+  useFrostedPatternVars(frost);
 
   if (style === 'none') return null;
 

@@ -150,6 +150,48 @@ body {
       backdrop-filter: blur(8px);
     }
   }
+
+  /*
+   * Cristal en pantallas táctiles (teléfonos y tabletas), estilo Mica de Windows 11: sin
+   * backdrop-filter. Medido en Android: con un desenfoque por tarjeta el scroll de Profesores
+   * caía de 50 a 22 fps, porque cada tarjeta vuelve a desenfocar lo de atrás en cada cuadro.
+   * - Con patrón: la tarjeta es opaca (el mismo tinte del 64 % mezclado con el fondo de la app) y
+   *   encima lleva el patrón ya esmerilado (getFrostedMask, desenfocado una sola vez dentro del SVG).
+   *   Se ve como el papel tapiz difuminado a través del cristal y no cuesta nada al desplazarse.
+   * - Con foto propia o sin papel tapiz: translúcida, algo más opaca para que el texto se lea.
+   */
+  @media (hover: none) and (pointer: coarse) {
+    :root[data-card-surface='glass'] {
+      --md-card-surface: color-mix(in srgb, var(--color-md-card-bg) 80%, transparent);
+    }
+
+    :root[data-card-surface='glass'][data-wallpaper-frost] {
+      --md-card-surface: color-mix(in srgb, var(--color-md-card-bg) 64%, var(--color-md-surface));
+    }
+
+    :root[data-card-surface='glass'] .md-card {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    :root[data-card-surface='glass'][data-wallpaper-frost] .md-card {
+      position: relative;
+      isolation: isolate;
+    }
+
+    :root[data-card-surface='glass'][data-wallpaper-frost] .md-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      pointer-events: none;
+      background-color: var(--color-md-primary);
+      -webkit-mask: var(--wallpaper-frost) 0 0 / var(--wallpaper-frost-size) repeat;
+      mask: var(--wallpaper-frost) 0 0 / var(--wallpaper-frost-size) repeat;
+      opacity: calc(var(--wallpaper-frost-opacity) * 0.6);
+    }
+  }
 }
 
 /* Cristal y Con borde cambian también el relleno de cada tarjeta */
@@ -200,10 +242,10 @@ body {
  * Android: el desenfoque de fondo (backdrop-filter) es de lo más caro para la gráfica de un
  * teléfono, porque se recalcula en cada cuadro mientras el contenido o el papel tapiz se mueven
  * detrás. En barras y cabeceras casi no se nota (sus fondos ya son casi opacos), así que se quita.
- * Solo se respeta en las tarjetas cuando el estudiante elige el acabado Cristal.
+ * El acabado Cristal de las tarjetas tampoco lo usa en pantallas táctiles: lleva el patrón ya
+ * esmerilado (ver arriba).
  */
-:root[data-platform='android']:not([data-card-surface='glass']) *,
-:root[data-platform='android'][data-card-surface='glass'] *:not(.md-card) {
+:root[data-platform='android'] * {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
