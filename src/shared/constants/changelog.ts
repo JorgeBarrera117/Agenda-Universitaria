@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.88',
+    date: '2026-11-21',
+    title: 'Más fluida en todos lados',
+    changes: [
+      { kind: 'mejora', text: 'Desplazarte y cambiar de sección es más rápido, sobre todo en teléfonos: la app ya no redibuja todo al moverte por la pantalla.' },
+      { kind: 'mejora', text: 'En Android se quitaron los desenfoques pesados que frenaban el scroll, sin cambiar el aspecto general.' },
+      { kind: 'mejora', text: 'En teléfonos con poca memoria (3 GB o menos) el Modo Ultra Fluidez se activa solo. Puedes apagarlo en Ajustes cuando quieras.' },
+    ],
+  },
+  {
     version: '1.7.10.87',
     date: '2026-11-21',
     title: 'Tu perfil, más a mano',
