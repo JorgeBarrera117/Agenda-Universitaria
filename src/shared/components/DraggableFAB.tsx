@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus } from 'lucide-react';
-
-export interface DockPosition {
-  side: 'left' | 'right';
-  yRatio: number; // Ratio 0.0 to 1.0 respecto a window.innerHeight
-}
-
-const FAB_STORAGE_KEY = 'agenda_fab_dock_v1';
-const BUTTON_SIZE = 56; // 56px (w-14 h-14)
-const EDGE_OFFSET = 16; // 16px margen del borde (right-4 / left-4)
-const SAFE_TOP = 72; // Debajo del header navbar
+import {
+  FAB_BUTTON_SIZE as BUTTON_SIZE,
+  FAB_DOCK_EVENT,
+  FAB_EDGE_OFFSET as EDGE_OFFSET,
+  FAB_SAFE_TOP as SAFE_TOP,
+  FAB_STORAGE_KEY,
+  fabDockedPosition,
+  fabSafeBottom,
+  readFabDock,
+  useFabBottomReserve,
+  type DockPosition,
+} from './fabLayout';
 
 export type FABColorScheme =
   | 'schedule'
@@ -111,22 +113,10 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   });
 
   // Cargar posición inicial guardada en localStorage o usar posición por defecto (inferior derecha)
-  const [dock, setDock] = useState<DockPosition>(() => {
-    try {
-      const stored = localStorage.getItem(FAB_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (
-          (parsed.side === 'left' || parsed.side === 'right') &&
-          typeof parsed.yRatio === 'number'
-        ) {
-          return parsed;
-        }
-      }
-    } catch {}
-    // Por defecto: apegado al borde derecho, justo sobre la barra de navegación inferior (~80% de altura)
-    return { side: 'right', yRatio: 0.78 };
-  });
+  // Por defecto: apegado al borde derecho, justo sobre la barra de navegación inferior (~80% de altura)
+  const [dock, setDock] = useState<DockPosition>(readFabDock);
+  // Espacio para lo que flota debajo (selector de secciones en el teléfono, ver fabLayout.ts)
+  const bottomReserve = useFabBottomReserve();
 
   // Estado de arrastre activo y estado de espera de activación segura (previene clics fantasma o por error)
   const [isDragging, setIsDragging] = useState(false);
@@ -154,21 +144,15 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   }, []);
 
   // Límite inferior seguro (sobre la barra de navegación móvil cuando vw < 768px, o cerca del borde inferior en horizontal/PC)
-  const getSafeBottom = useCallback((vh: number, vw = viewport.width) => {
-    const bottomMargin = vw >= 768 ? BUTTON_SIZE + 24 : 144;
-    return Math.max(SAFE_TOP + BUTTON_SIZE, vh - bottomMargin);
-  }, [viewport.width]);
+  const getSafeBottom = useCallback(
+    (vh: number, vw = viewport.width) => fabSafeBottom(vh, vw, bottomReserve),
+    [viewport.width, bottomReserve]
+  );
 
   // Cálculo de posición docked en reposo
   const getDockedPosition = useCallback(
-    (d: DockPosition, vw = viewport.width, vh = viewport.height) => {
-      const sBottom = getSafeBottom(vh, vw);
-      const x = d.side === 'left' ? EDGE_OFFSET : Math.max(EDGE_OFFSET, vw - BUTTON_SIZE - EDGE_OFFSET);
-      const targetY = d.yRatio * vh;
-      const y = Math.min(Math.max(targetY, SAFE_TOP), sBottom);
-      return { x, y };
-    },
-    [viewport.width, viewport.height, getSafeBottom]
+    (d: DockPosition, vw = viewport.width, vh = viewport.height) => fabDockedPosition(d, vw, vh, bottomReserve),
+    [viewport.width, viewport.height, bottomReserve]
   );
 
   const livePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -201,10 +185,10 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    window.addEventListener('agenda_fab_dock_updated', handleSync);
+    window.addEventListener(FAB_DOCK_EVENT, handleSync);
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('agenda_fab_dock_updated', handleSync);
+      window.removeEventListener(FAB_DOCK_EVENT, handleSync);
     };
   }, []);
 
@@ -352,7 +336,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     try {
       localStorage.setItem(FAB_STORAGE_KEY, JSON.stringify(newDock));
       window.dispatchEvent(
-        new CustomEvent('agenda_fab_dock_updated', { detail: newDock })
+        new CustomEvent(FAB_DOCK_EVENT, { detail: newDock })
       );
     } catch {}
   };
