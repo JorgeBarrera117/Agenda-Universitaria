@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.89',
+    date: '2026-11-21',
+    title: 'Cristal sin tirones',
+    changes: [
+      { kind: 'mejora', text: 'El acabado Cristal ahora va igual de fluido que el sólido en teléfonos y tabletas, con el mismo aspecto esmerilado.' },
+      { kind: 'mejora', text: 'La barra de búsqueda flota sola al bajar, sin la franja de fondo de lado a lado.' },
+    ],
+  },
+  {
     version: '1.7.10.88',
     date: '2026-11-21',
     title: 'Más fluida en todos lados',
