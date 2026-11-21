@@ -23,7 +23,6 @@ import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 import {
@@ -69,7 +68,6 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 }) => {
   const { professors, addProfessor, updateProfessor, removeProfessor } = useProfessors();
   const { subjects } = useSubjects();
-  const isScrolled = useScrollCollapse(48);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProfessor, setEditingProfessor] = useState<Professor | undefined>(undefined);
@@ -296,9 +294,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           </p>
         </div>
         <div
-          className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 ${
-            isScrolled ? 'sm:scale-75 sm:opacity-0 sm:pointer-events-none' : 'scale-100 opacity-100'
-          }`}
+          className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 scale-100 opacity-100 scrolled:sm:scale-75 scrolled:sm:opacity-0 scrolled:sm:pointer-events-none`}
         >
           <input {...agcontactPicker.inputProps} />
           <Button

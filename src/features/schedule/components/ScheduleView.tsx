@@ -42,7 +42,6 @@ import { DeleteSlotDialog } from './DeleteSlotDialog';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 import { Button, Card, Badge } from '../../../shared/components/atoms';
@@ -89,7 +88,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const { professors, getProfessorById } = useProfessors();
   const { settings } = useAppSettings();
   const timeFormatter = useTimeFormatter();
-  const isScrolled = useScrollCollapse(48);
 
   // Reloj del campus: se actualiza cada minuto, así "EN CURSO" y el día actual no se quedan
   // congelados en la hora en que se montó la vista (ni al cruzar la medianoche).
@@ -356,9 +354,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             size="sm"
             icon={<CalendarPlus className="w-4 h-4 stroke-[2.4]" />}
             onClick={() => handleOpenCreate(activeDay)}
-            className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[var(--color-md-primary)]/20 hover:scale-[1.02] whitespace-nowrap transition-all ${
-              isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
-            }`}
+            className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[var(--color-md-primary)]/20 hover:scale-[1.02] whitespace-nowrap transition-all scale-100 opacity-100 scrolled:scale-75 scrolled:opacity-0 scrolled:pointer-events-none`}
           >
             Nueva Clase
           </Button>

@@ -124,6 +124,11 @@ export interface AppSettings {
   cardSurfaceStyle: CardSurfaceStyle;
   /** Modo Ultra Fluidez: sin desenfoques de fondo ni sombras (ver index.css). */
   performanceMode: boolean;
+  /**
+   * El estudiante tocó el interruptor del Modo Ultra Fluidez. Mientras no lo toque, el modo se
+   * activa solo en equipos con poca memoria (ver shared/utils/deviceProfile.ts).
+   */
+  performanceModeChosen?: boolean;
   /** Tokens de la paleta propia; se usan cuando colorPalette es 'custom'. */
   customPalette?: CustomPaletteSettings;
   semesterName: string;

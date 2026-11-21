@@ -6,7 +6,7 @@
  * Eslogan: "POR Y PARA LOS ESTUDIANTES"
  * ==============================================================================
  */
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, memo, Suspense } from 'react';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
@@ -14,7 +14,7 @@ import { AppWallpaper } from './shared/components/AppWallpaper';
 import { SeasonalEffects } from './shared/seasons/SeasonalEffects';
 import { BackgroundSyncManager } from './shared/components/BackgroundSyncManager';
 import { ViewSkeleton } from './shared/components/ViewSkeleton';
-import { ScheduleView } from './features/schedule/components/ScheduleView';
+import { ScheduleView as ScheduleViewComponent } from './features/schedule/components/ScheduleView';
 import { seedInitialDataIfEmpty } from './shared/db/AppDatabase';
 import { useAppSettings } from './features/settings/hooks/useAppSettings';
 import { useAppLock } from './features/security/hooks/useAppLock';
@@ -22,7 +22,10 @@ import { AppLockScreen } from './features/security/components/AppLockScreen';
 import { applyTheme, applyCardSurface, applyPerformanceMode, applyTextScale, setupSystemThemeListener } from './shared/utils/theme';
 import { useBackButton, BACK_PRIORITY } from './shared/hooks/useBackButton';
 import { useSwipeNavigation } from './shared/hooks/useSwipeNavigation';
+import { Capacitor } from '@capacitor/core';
 import { useTabCounts } from './shared/hooks/useTabCounts';
+import { useScrolledAttribute } from './shared/hooks/useScrolledAttribute';
+import { isPerformanceModeOn } from './shared/utils/deviceProfile';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { useIncomingSharedFile } from './shared/hooks/useIncomingSharedFile';
 import { DETAIL_TAB, type DetailRequest, type DetailReturn, type DetailTarget } from './shared/navigation/detailNavigation';
@@ -42,9 +45,15 @@ const loadNotesView = () => import('./features/notes/components/NotesView');
 const loadDocumentsView = () => import('./features/documents/components/DocumentsView');
 const loadSettingsView = () => import('./features/settings/components/SettingsView');
 
-const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: m.SubjectsView })));
-const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: m.ProfessorsView })));
-const NotesView = lazy(() => loadNotesView().then((m) => ({ default: m.NotesView })));
+/*
+ * Las pestañas van memorizadas (memo): al cambiar de pestaña solo se vuelven a dibujar la que se
+ * oculta y la que se muestra (cambia su isActive), no las cinco. Sus callbacks son estables
+ * (useCallback), así que la memorización funciona.
+ */
+const ScheduleView = memo(ScheduleViewComponent);
+const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: memo(m.SubjectsView) })));
+const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: memo(m.ProfessorsView) })));
+const NotesView = lazy(() => loadNotesView().then((m) => ({ default: memo(m.NotesView) })));
 // Solo se carga si hay una versión nueva que anunciar
 // Solo se carga si hay novedades sin ver tras actualizar
 const BackupReminderModal = lazy(() =>
@@ -71,7 +80,7 @@ const ImportSubjectModal = lazy(() =>
 const ImportScheduleModal = lazy(() =>
   import('./features/schedule/components/ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
-const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: m.DocumentsView })));
+const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: memo(m.DocumentsView) })));
 const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
 
 const SECONDARY_VIEW_LOADERS = [
@@ -161,6 +170,14 @@ export function App() {
     applyCardSurface(settings.cardSurfaceStyle);
   }, [settings.cardSurfaceStyle]);
 
+  // Una sola marca de desplazamiento para toda la app (variante CSS scrolled:)
+  useScrolledAttribute();
+
+  // Plataforma en :root (p. ej. menos efectos costosos en Android, ver index.css)
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute('data-platform', Capacitor.getPlatform());
+  }, []);
+
   // Tamaño del texto (accesibilidad), antes del primer pintado
   useLayoutEffect(() => {
     applyTextScale(settings.textScale);
@@ -168,8 +185,9 @@ export function App() {
 
   // Modo Ultra Fluidez, también antes del primer pintado
   useLayoutEffect(() => {
-    applyPerformanceMode(settings.performanceMode);
-  }, [settings.performanceMode]);
+    // Activado de fábrica en equipos modestos mientras el estudiante no elija otra cosa
+    applyPerformanceMode(isPerformanceModeOn(settings));
+  }, [settings]);
 
   const showToast = useCallback((message: string) => {
     if (toastTimerRef.current) {
@@ -561,7 +579,7 @@ export function App() {
           </div>
         ) : (
           <div className="flex-1 w-full min-w-0">
-            <div className={activeTab === 'schedule' ? tabEnterClass : 'hidden'}>
+            <div className={activeTab === 'schedule' ? tabEnterClass : 'tab-hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
                 onOpenSubjectDetail={openSubjectDetailFromSchedule}
@@ -569,7 +587,7 @@ export function App() {
                 isActive={activeTab === 'schedule'}
               />
             </div>
-            <div className={activeTab === 'subjects' ? tabEnterClass : 'hidden'}>
+            <div className={activeTab === 'subjects' ? tabEnterClass : 'tab-hidden'}>
               {mountedTabs.has('subjects') && (
                 <Suspense fallback={<ViewSkeleton />}>
                   <SubjectsView
@@ -583,7 +601,7 @@ export function App() {
                 </Suspense>
               )}
             </div>
-            <div className={activeTab === 'professors' ? tabEnterClass : 'hidden'}>
+            <div className={activeTab === 'professors' ? tabEnterClass : 'tab-hidden'}>
               {mountedTabs.has('professors') && (
                 <Suspense fallback={<ViewSkeleton />}>
                   <ProfessorsView
@@ -596,7 +614,7 @@ export function App() {
                 </Suspense>
               )}
             </div>
-            <div className={activeTab === 'notes' ? tabEnterClass : 'hidden'}>
+            <div className={activeTab === 'notes' ? tabEnterClass : 'tab-hidden'}>
               {mountedTabs.has('notes') && (
                 <Suspense fallback={<ViewSkeleton />}>
                   <NotesView
@@ -607,7 +625,7 @@ export function App() {
                 </Suspense>
               )}
             </div>
-            <div className={activeTab === 'documents' ? tabEnterClass : 'hidden'}>
+            <div className={activeTab === 'documents' ? tabEnterClass : 'tab-hidden'}>
               {mountedTabs.has('documents') && (
                 <Suspense fallback={<ViewSkeleton />}>
                   <DocumentsView

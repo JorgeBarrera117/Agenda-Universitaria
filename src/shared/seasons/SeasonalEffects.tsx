@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppSettings } from '../../features/settings/hooks/useAppSettings';
 import { useSeason } from './useSeason';
+import { isPerformanceModeOn } from '../utils/deviceProfile';
 import { SeasonalSnowfall } from './SeasonalSnowfall';
 import { NewYearFireworks } from './NewYearFireworks';
 
@@ -13,6 +14,6 @@ import { NewYearFireworks } from './NewYearFireworks';
 export const SeasonalEffects: React.FC = () => {
   const season = useSeason();
   const { settings } = useAppSettings();
-  if (!season || settings.performanceMode) return null;
+  if (!season || isPerformanceModeOn(settings)) return null;
   return season === 'christmas' ? <SeasonalSnowfall /> : <NewYearFireworks />;
 };

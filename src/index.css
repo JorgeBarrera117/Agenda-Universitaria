@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+/* La página ya se desplazó (useScrolledAttribute fija data-scrolled en :root): para encoger botones
+   de cabecera solo con CSS, sin volver a dibujar las pantallas */
+@custom-variant scrolled (&:where([data-scrolled='true'] *));
 /* Texto Grande o Muy grande (Ajustes → General): para reacomodar lo que no cabe en fila */
 @custom-variant text-large (&:where([data-text-scale='large'] *, [data-text-scale='xlarge'] *));
 
@@ -184,6 +187,27 @@ body {
  * Quita los desenfoques de fondo (lo más caro para GPUs móviles) y las sombras de las tarjetas;
  * el cristal pasa a superficie sólida porque sin desenfoque el texto perdería legibilidad.
  */
+/*
+ * Pestañas ocultas "en pausa": content-visibility: hidden salta su dibujo como display: none, pero
+ * conserva su estado de maquetación. Volver a una pestaña no la recalcula entera (antes cada
+ * cambio de pestaña recalculaba miles de elementos). Ocupa 0 px y no recibe foco ni toques.
+ */
+.tab-hidden {
+  content-visibility: hidden;
+}
+
+/*
+ * Android: el desenfoque de fondo (backdrop-filter) es de lo más caro para la gráfica de un
+ * teléfono, porque se recalcula en cada cuadro mientras el contenido o el papel tapiz se mueven
+ * detrás. En barras y cabeceras casi no se nota (sus fondos ya son casi opacos), así que se quita.
+ * Solo se respeta en las tarjetas cuando el estudiante elige el acabado Cristal.
+ */
+:root[data-platform='android']:not([data-card-surface='glass']) *,
+:root[data-platform='android'][data-card-surface='glass'] *:not(.md-card) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
 :root[data-performance-mode='true'] *,
 :root[data-performance-mode='true'] *::before,
 :root[data-performance-mode='true'] *::after {

@@ -50,7 +50,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Button, Card } from '../../../shared/components/atoms';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
 import { useExitTransition, MOTION_EXIT_MS } from '../../../shared/hooks/useExitTransition';
-import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
@@ -106,7 +105,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
     searchQuery
   );
   const { subjects } = useSubjects();
-  const isScrolled = useScrollCollapse(48);
 
   // Mapa de materias memoizado para búsqueda O(1) de asignaturas
   const subjectMap = useMemo(() => new Map(subjects.map((s) => [s.id, s])), [subjects]);
@@ -780,9 +778,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           Importar
         </Button>
         <div
-          className={`hidden sm:block shrink-0 transition-all duration-300 ease-out origin-right ${
-            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
-          }`}
+          className={`hidden sm:block shrink-0 transition-all duration-300 ease-out origin-right scale-100 opacity-100 scrolled:scale-75 scrolled:opacity-0 scrolled:pointer-events-none`}
         >
           <Button
             variant="primary"

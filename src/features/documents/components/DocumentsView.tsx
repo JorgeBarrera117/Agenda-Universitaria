@@ -25,7 +25,6 @@ import { SearchField } from '../../../shared/components/SearchField';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
-import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { DocumentLinkForm } from './DocumentLinkForm';
 import { DocumentDetailView } from './DocumentDetailView';
 import { DocumentReassignView } from './DocumentReassignView';
@@ -47,7 +46,6 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   const { documents, addLocalDocument, addExternalLink, openDocument, shareDocument, deleteDocument, reassignSubject } =
     useSubjectDocuments();
   const { subjects } = useSubjects();
-  const isScrolled = useScrollCollapse(48);
 
   // Modo de navegación: apartado principal de lista o apartados dedicados independientes a pantalla completa
   const [viewMode, setViewMode] = useState<DocumentsViewMode>('list');
@@ -377,9 +375,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         <button
           type="button"
           onClick={handleOpenAdd}
-          className={`hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 transition-all duration-300 ease-out origin-right shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap ${
-            isScrolled ? 'scale-75 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
-          }`}
+          className={`hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#003353] hover:bg-[#005282] dark:hover:bg-[#72BAF5] active:scale-95 transition-all duration-300 ease-out origin-right shadow-sm hover:shadow ring-1 ring-[#00639B]/25 dark:ring-[#92CCFF]/35 cursor-pointer shrink-0 whitespace-nowrap scale-100 opacity-100 scrolled:scale-75 scrolled:opacity-0 scrolled:pointer-events-none`}
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>Vincular Documento</span>

@@ -10,6 +10,7 @@ import {
 import { M3Switch } from './SettingsPrimitives';
 import { CustomPaletteCreator } from './CustomPaletteCreator';
 import { CardSurfacePicker } from './CardSurfacePicker';
+import { isPerformanceModeAuto, isPerformanceModeOn } from '../../../shared/utils/deviceProfile';
 import type {
   AppSettings,
   CardSurfaceStyle,
@@ -227,7 +228,7 @@ export const CardStyleSection: React.FC<CardStyleSectionProps> = ({ settings, on
           onChange={onCardSurfaceChange}
           wallpaperStyle={settings.wallpaperStyle || 'campus'}
         />
-        {settings.performanceMode && settings.cardSurfaceStyle === 'glass' && (
+        {isPerformanceModeOn(settings) && settings.cardSurfaceStyle === 'glass' && (
           <p className="text-xs text-[var(--color-md-on-surface-variant)]">
             Con el Modo Ultra Fluidez activo, el cristal se muestra sin transparencia para ahorrar batería.
           </p>
@@ -243,9 +244,14 @@ export const CardStyleSection: React.FC<CardStyleSectionProps> = ({ settings, on
           <p className="mt-0.5 text-11px text-[var(--color-md-on-surface-variant)]">
             Desactiva desenfoques pesados y sombras para máxima velocidad y ahorro de batería.
           </p>
+          {isPerformanceModeAuto(settings) && (
+            <p className="mt-1 text-11px font-semibold text-[var(--color-md-primary)]">
+              Activado automáticamente: este equipo tiene poca memoria. Puedes apagarlo si quieres.
+            </p>
+          )}
         </div>
         <M3Switch
-          checked={settings.performanceMode}
+          checked={isPerformanceModeOn(settings)}
           onChange={onPerformanceModeChange}
           label="Modo Ultra Fluidez (Bajo consumo)"
         />

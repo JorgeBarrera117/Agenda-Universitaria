@@ -40,7 +40,6 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { useScrollCollapse } from '../../../shared/hooks/useScrollCollapse';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
 import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
@@ -79,7 +78,6 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   // Formulario de clase abierto desde la ficha: editar una clase o agregar clases a la materia
   const [slotEditor, setSlotEditor] = useState<{ subject: Subject; slot?: ScheduleSlot } | null>(null);
   const { notes } = useNotes();
-  const isScrolled = useScrollCollapse(48);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>(undefined);
@@ -349,9 +347,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </p>
         </div>
         <div
-          className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 ${
-            isScrolled ? 'sm:scale-75 sm:opacity-0 sm:pointer-events-none' : 'scale-100 opacity-100'
-          }`}
+          className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 scale-100 opacity-100 scrolled:sm:scale-75 scrolled:sm:opacity-0 scrolled:sm:pointer-events-none`}
         >
           <input {...agclassPicker.inputProps} />
           <Button

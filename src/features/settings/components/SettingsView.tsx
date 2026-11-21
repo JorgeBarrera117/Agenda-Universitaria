@@ -253,7 +253,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handlePerformanceModeChange = (performanceMode: boolean) => {
-    updateSettings({ ...settings, performanceMode });
+    updateSettings({ ...settings, performanceMode, performanceModeChosen: true });
     onShowToast(performanceMode ? 'Modo Ultra Fluidez activado.' : 'Modo Ultra Fluidez desactivado.');
   };
 

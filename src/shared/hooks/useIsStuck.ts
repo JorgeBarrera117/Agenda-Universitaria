@@ -20,6 +20,12 @@ export function useIsStuck(ref: RefObject<HTMLElement | null>, getStickLine: () 
     let frame = 0;
     const check = () => {
       frame = 0;
+      // Pestaña en pausa (content-visibility: hidden, ver index.css): medirla obligaría al
+      // navegador a recalcular toda esa pestaña en cada cuadro de desplazamiento
+      if (element.closest('.tab-hidden')) {
+        setIsStuck(false);
+        return;
+      }
       const rect = element.getBoundingClientRect();
       if (rect.width === 0 && rect.height === 0) {
         setIsStuck(false);
