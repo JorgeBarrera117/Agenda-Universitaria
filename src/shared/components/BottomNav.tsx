@@ -1,42 +1,38 @@
 import React from 'react';
-import { Calendar, BookOpen, Users, FileText, FolderKanban } from 'lucide-react';
+import { Calendar, BookOpen, Library } from 'lucide-react';
 import type { TabType } from './Navbar';
+import { NAV_TAB_OF, type NavTabId } from '../navigation/sections';
 
 interface BottomNavProps {
   activeTab: TabType;
-  onTabChange: (tab: TabType) => void;
+  /** Pestaña de la barra: Horario, Materias (con Profesores) o Biblioteca (Apuntes y Archivos). */
+  onNavTabChange: (tab: NavTabId) => void;
   subjectCount?: number;
-  professorsCount?: number;
   notesCount?: number;
   documentsCount?: number;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab,
-  onTabChange,
+  onNavTabChange,
   subjectCount = 0,
-  professorsCount = 0,
   notesCount = 0,
   documentsCount = 0,
 }) => {
-  const navItems = [
-    { id: 'schedule' as TabType, label: 'Horario', icon: Calendar },
-    { id: 'subjects' as TabType, label: 'Materias', icon: BookOpen },
-    { id: 'professors' as TabType, label: 'Profesores', icon: Users },
-    { id: 'notes' as TabType, label: 'Apuntes', icon: FileText },
-    { id: 'documents' as TabType, label: 'Archivos', icon: FolderKanban },
+  // Tres pestañas: los botones quedan más anchos y fáciles de tocar
+  const navItems: { id: NavTabId; label: string; icon: typeof BookOpen }[] = [
+    { id: 'schedule', label: 'Horario', icon: Calendar },
+    { id: 'courses', label: 'Materias', icon: BookOpen },
+    { id: 'library', label: 'Biblioteca', icon: Library },
   ];
+  const activeNavTab = NAV_TAB_OF[activeTab];
 
-  const getBadgeInfo = (id: TabType) => {
+  const getBadgeInfo = (id: NavTabId) => {
     switch (id) {
-      case 'subjects':
+      case 'courses':
         return { count: subjectCount, color: 'bg-[#BA1A1A] text-white' };
-      case 'professors':
-        return { count: professorsCount, color: 'bg-[#6750A4] dark:bg-[#D0BCFF] text-white dark:text-[#381E72]' };
-      case 'notes':
-        return { count: notesCount, color: 'bg-[#B26B00] dark:bg-[#FFB86A] text-white dark:text-[#4A2800]' };
-      case 'documents':
-        return { count: documentsCount, color: 'bg-[#00639B] dark:bg-[#92CCFF] text-white dark:text-[#001D32]' };
+      case 'library':
+        return { count: notesCount + documentsCount, color: 'bg-[#B26B00] dark:bg-[#FFB86A] text-white dark:text-[#4A2800]' };
       default:
         return null;
     }
@@ -50,7 +46,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       <div className="flex items-center justify-between max-w-lg mx-auto" role="tablist">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          const isActive = activeNavTab === item.id;
           const badge = getBadgeInfo(item.id);
 
           return (
@@ -59,7 +55,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               type="button"
               role="tab"
               aria-selected={isActive}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => onNavTabChange(item.id)}
               className="flex-1 flex flex-col items-center justify-center min-w-0 py-0.5 rounded-2xl transition-transform duration-150 ease-out active:scale-95 cursor-pointer select-none group focus:outline-none"
             >
               {/* M3 Active Indicator Pill (Expansión horizontal elástica desde el centro) */}

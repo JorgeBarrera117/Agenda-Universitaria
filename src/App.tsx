@@ -29,13 +29,22 @@ import { isPerformanceModeOn } from './shared/utils/deviceProfile';
 import { backButtonManager } from './shared/services/backButtonManager';
 import { useIncomingSharedFile } from './shared/hooks/useIncomingSharedFile';
 import { DETAIL_TAB, type DetailRequest, type DetailReturn, type DetailTarget } from './shared/navigation/detailNavigation';
+import {
+  NAV_TAB_OF,
+  SECTION_ORDER,
+  loadLastSections,
+  saveLastSections,
+  type LastSections,
+  type NavTabId,
+} from './shared/navigation/sections';
+import { SectionSwitcher } from './shared/components/SectionSwitcher';
 import { professorImportedMessage } from './features/professors/utils/importMessage';
 import { scheduleImportedMessage, subjectImportedMessage } from './features/schedule/utils/importMessages';
 import type { UpdateInfo } from './shared/services/updateService';
 import type { ChangelogEntry } from './shared/constants/changelog';
 import type { SettingsCategory } from './features/settings/components/SettingsView';
 
-const TAB_ORDER: TabType[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
+const TAB_ORDER = SECTION_ORDER;
 
 // El Horario es la vista crítica de arranque y se importa de forma estática.
 // Las demás se cargan bajo demanda y se precargan cuando el navegador queda ocioso.
@@ -341,7 +350,19 @@ export function App() {
     });
   }, [pendingUpdate, closeUpdateForToday, showToast]);
 
+  // Sección que se vio por última vez en cada pestaña de la barra (Materias → Materias o
+  // Profesores; Biblioteca → Apuntes o Archivos): al volver a esa pestaña se abre la misma
+  const lastSectionsRef = useRef<LastSections | null>(null);
+  const rememberSection = useCallback((section: TabType) => {
+    const last = (lastSectionsRef.current ??= loadLastSections());
+    const navTab = NAV_TAB_OF[section];
+    if (last[navTab] === section) return;
+    lastSectionsRef.current = { ...last, [navTab]: section };
+    saveLastSections(lastSectionsRef.current);
+  }, []);
+
   const handleTabChange = useCallback((tab: TabType) => {
+    rememberSection(tab);
     if (tab !== 'notes') {
       setSelectedSubjectForNotes(undefined);
     }
@@ -353,7 +374,15 @@ export function App() {
     });
     setActiveEditorTab(null);
     setIsSettingsOpen(false);
-  }, []);
+  }, [rememberSection]);
+
+  const handleNavTabChange = useCallback(
+    (navTab: NavTabId) => {
+      const last = (lastSectionsRef.current ??= loadLastSections());
+      handleTabChange(last[navTab]);
+    },
+    [handleTabChange]
+  );
 
   // Fichas de detalle entre pestañas (Horario → materia → catedrático → …). La petición lleva
   // a dónde volver; la pestaña destino la atiende y, al cerrar la ficha, llama a returnFromDetail
@@ -390,6 +419,7 @@ export function App() {
 
   // Atajo contextual UX: Tomar apunte de la clase activa en el horario
   const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string) => {
+    rememberSection('notes');
     if (subjectId) {
       setSelectedSubjectForNotes(subjectId);
     }
@@ -400,7 +430,7 @@ export function App() {
       return 'notes';
     });
     setIsSettingsOpen(false);
-  }, []);
+  }, [rememberSection]);
 
   const tabEnterClass = tabDirection === 'right' ? 'block m3-tab-enter-right' : 'block m3-tab-enter-left';
 
@@ -433,7 +463,7 @@ export function App() {
       {!isAnyEditorActive && !isSettingsOpen && (
         <Navbar
           activeTab={activeTab}
-          onTabChange={handleTabChange}
+          onNavTabChange={handleNavTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenProfile={() => {
             setSettingsInitialView('profile');
@@ -444,7 +474,6 @@ export function App() {
           studentStatusMode={settings.studentStatusMode}
           studentCustomStatus={settings.studentCustomStatus}
           subjectCount={subjectCount}
-          professorsCount={professorsCount}
           notesCount={notesCount}
           documentsCount={documentsCount}
         />
@@ -579,6 +608,14 @@ export function App() {
           </div>
         ) : (
           <div className="flex-1 w-full min-w-0">
+            {/* Materias | Profesores y Apuntes | Archivos: se oculta en fichas, formularios y editores */}
+            {!isAnyEditorActive && (
+              <SectionSwitcher
+                activeSection={activeTab}
+                onChange={handleTabChange}
+                counts={{ subjects: subjectCount, professors: professorsCount, notes: notesCount, documents: documentsCount }}
+              />
+            )}
             <div className={activeTab === 'schedule' ? tabEnterClass : 'tab-hidden'}>
               <ScheduleView
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
@@ -643,9 +680,8 @@ export function App() {
       {!isAnyEditorActive && !isSettingsOpen && (
         <BottomNav
           activeTab={activeTab}
-          onTabChange={handleTabChange}
+          onNavTabChange={handleNavTabChange}
           subjectCount={subjectCount}
-          professorsCount={professorsCount}
           notesCount={notesCount}
           documentsCount={documentsCount}
         />

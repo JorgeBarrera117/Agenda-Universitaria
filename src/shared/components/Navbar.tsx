@@ -2,9 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   BookOpen,
-  Users,
-  FileText,
-  FolderKanban,
+  Library,
   Wifi,
   WifiOff,
   Settings,
@@ -15,12 +13,15 @@ import type { StudentStatusMode } from '../../features/settings/types';
 import { useSeason } from '../seasons/useSeason';
 import { SantaHat } from '../seasons/SantaHat';
 import { PartyHat } from '../seasons/PartyHat';
+import { NAV_TAB_OF, type NavTabId, type SectionId } from '../navigation/sections';
 
-export type TabType = 'schedule' | 'subjects' | 'professors' | 'notes' | 'documents';
+/** Sección visible (ver navigation/sections.ts). Se conserva el nombre para no tocar todo el código. */
+export type TabType = SectionId;
 
 interface NavbarProps {
   activeTab: TabType;
-  onTabChange: (tab: TabType) => void;
+  /** Pestaña de la barra: Horario, Materias (con Profesores) o Biblioteca (Apuntes y Archivos). */
+  onNavTabChange: (tab: NavTabId) => void;
   onOpenSettings: () => void;
   /** Tocar la foto del estudiante abre directamente Mi perfil. */
   onOpenProfile?: () => void;
@@ -38,11 +39,10 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
-  onTabChange,
+  onNavTabChange,
   onOpenSettings,
   onOpenProfile,
   subjectCount = 0,
-  professorsCount = 0,
   notesCount = 0,
   documentsCount = 0,
   studentName,
@@ -110,24 +110,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
-  const navItems = [
-    { id: 'schedule' as TabType, label: 'Horario', icon: CalendarIcon },
-    { id: 'subjects' as TabType, label: 'Materias', icon: BookOpen },
-    { id: 'professors' as TabType, label: 'Profesores', icon: Users },
-    { id: 'notes' as TabType, label: 'Apuntes', icon: FileText },
-    { id: 'documents' as TabType, label: 'Archivos', icon: FolderKanban },
+  const navItems: { id: NavTabId; label: string; icon: typeof BookOpen }[] = [
+    { id: 'schedule', label: 'Horario', icon: CalendarIcon },
+    { id: 'courses', label: 'Materias', icon: BookOpen },
+    { id: 'library', label: 'Biblioteca', icon: Library },
   ];
+  const activeNavTab = NAV_TAB_OF[activeTab];
 
-  const getBadgeCount = (id: TabType): number => {
+  // Materias cuenta las materias; Biblioteca, apuntes y archivos juntos
+  const getBadgeCount = (id: NavTabId): number => {
     switch (id) {
-      case 'subjects':
+      case 'courses':
         return subjectCount;
-      case 'professors':
-        return professorsCount;
-      case 'notes':
-        return notesCount;
-      case 'documents':
-        return documentsCount;
+      case 'library':
+        return notesCount + documentsCount;
       default:
         return 0;
     }
@@ -222,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const isActive = activeNavTab === item.id;
               const badgeCount = getBadgeCount(item.id);
 
               return (
@@ -231,7 +227,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   role="tab"
                   aria-selected={isActive}
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => onNavTabChange(item.id)}
                   className={`group flex items-center gap-1.5 lg:gap-2 xl:gap-2.5 md:px-2.5 md:py-1.5 lg:px-3.5 lg:py-2 xl:px-4.5 xl:py-2 2xl:px-6 2xl:py-2.5 rounded-full text-xs lg:text-xs xl:text-sm 2xl:text-15px whitespace-nowrap relative z-10 transition-all duration-200 ease-out active:scale-95 cursor-pointer select-none ${
                     isActive
                       ? 'text-[var(--color-md-on-accent-container)] font-bold'
