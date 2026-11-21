@@ -52,7 +52,13 @@ import {
   type ScheduleSlot,
   type CreateScheduleSlotDTO,
 } from '../types';
-import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
+import {
+  ABOVE_STRETCHED_CLASS,
+  CARD_INTERACTIVE_CLASS,
+  CARD_SURFACE_CLASS,
+  HEADER_SCRIM_CLASS,
+  STRETCHED_CARD_BUTTON_CLASS,
+} from '../../../shared/styles/surfaces';
 
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
@@ -538,9 +544,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           const progress = isNow && pulse.currentClass?.slot.id === slot.id ? pulse.currentClass : null;
 
                           return (
-                            /* Tarjeta rellena M3 teñida con el color de la materia: icono de la materia y
-                               título pequeño arriba; debajo hora · aula · docente en cuerpo pequeño con iconos.
-                               Las acciones viven en el menú ⋮; tocar la tarjeta abre la ficha de la materia. */
+                            /* Misma tarjeta que el resto de la app (superficie común, acabado elegido y
+                               variante tonal del color de la materia, ver .card-tinted en index.css): icono
+                               y título arriba; debajo hora · aula · docente. Las acciones viven en el menú ⋮;
+                               tocar la tarjeta abre la ficha de la materia. */
                             <article
                               key={slot.id}
                               style={
@@ -550,13 +557,10 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                       backgroundColor: 'color-mix(in srgb, var(--color-md-primary-container) 75%, var(--color-md-card-bg))',
                                       borderColor: 'var(--color-md-primary)',
                                     }
-                                  : {
-                                      backgroundColor: `color-mix(in srgb, ${color} 9%, var(--color-md-card-bg))`,
-                                      borderColor: `color-mix(in srgb, ${color} 30%, transparent)`,
-                                    }
+                                  : ({ '--card-tint': color } as React.CSSProperties)
                               }
-                              className={`content-auto group relative overflow-hidden rounded-2xl border p-2.5 pr-1 transition-[box-shadow,transform] duration-150 ease-out hover:shadow-md active:scale-[0.99] ${
-                                isNow ? 'ring-1 ring-inset ring-[var(--color-md-primary)]' : ''
+                              className={`${CARD_SURFACE_CLASS} ${CARD_INTERACTIVE_CLASS} content-auto group overflow-hidden p-2.5 pr-1 ${
+                                isNow ? 'ring-1 ring-inset ring-[var(--color-md-primary)]' : 'card-tinted'
                               }`}
                             >
                               {/* Encabezado: icono elegido para la materia (con su color) y menú. El nombre va
