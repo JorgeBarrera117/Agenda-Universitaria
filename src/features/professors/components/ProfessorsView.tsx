@@ -343,7 +343,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       </div>
 
       {/* 2. Banner Interactivo de Asesorías y Cubículos (Compactado) */}
-      <div className="bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)]/40 rounded-2xl overflow-hidden shadow-2xs">
+      <div className="md-card bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)]/40 rounded-2xl overflow-hidden shadow-2xs">
         <button
           type="button"
           onClick={() => setIsAdvisoriesModalOpen(true)}

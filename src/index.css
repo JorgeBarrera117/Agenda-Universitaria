@@ -98,12 +98,19 @@ body {
   --md-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
 }
 
+/* En oscuro una sombra suave no se ve sobre el fondo casi negro: más densa y más abierta */
+.dark:root {
+  --md-elevation-1: 0 1px 3px 0 rgb(0 0 0 / 0.55), 0 2px 8px 2px rgb(0 0 0 / 0.35);
+}
+
 /*
  * Las tres tarjetas de Material 3. Para que se distingan de verdad:
  * - Se cambia --tw-shadow y se recompone box-shadow como lo hace Tailwind, así los anillos (ring)
  *   de estados como "En curso" se conservan.
  * - El color del borde no lleva !important: los bordes de color puestos en línea (el tinte de cada
  *   materia, la clase en curso) siguen mandando.
+ * - La sombra sí lleva !important: las clases shadow-2xs/xs/sm de más abajo (también con !important)
+ *   le ganaban y en Elevada muchas tarjetas (Ajustes, cabeceras, resúmenes) casi no se despegaban.
  */
 
 /* Elevada: sin borde visible, la sombra la separa del fondo */
@@ -111,7 +118,7 @@ body {
   border-color: transparent;
   --tw-shadow: var(--md-elevation-1);
   box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000),
-    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
 }
 
 /* En oscuro la sombra apenas se ve: M3 eleva con una superficie un poco más clara */
@@ -129,7 +136,7 @@ body {
     border-color: color-mix(in srgb, #fff 55%, transparent);
     --tw-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
     box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000),
-      var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
     -webkit-backdrop-filter: blur(14px) saturate(1.4);
     backdrop-filter: blur(14px) saturate(1.4);
   }
@@ -255,7 +262,7 @@ body {
   border-color: var(--color-md-outline);
   --tw-shadow: 0 0 #0000;
   box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000),
-    var(--tw-ring-shadow, 0 0 #0000);
+    var(--tw-ring-shadow, 0 0 #0000) !important;
 }
 
 /* Con borde y con color propio: el contorno marcado toma el color de la materia o del docente */
