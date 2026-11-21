@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Camera, ImagePlus, MessageSquareText, Save, Trash2, Wifi } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Camera, ImagePlus, MessageSquareText, Trash2, Wifi } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from '../../../shared/components/form';
 import { STUDENT_STATUS_MAX_LENGTH, STUDENT_STATUS_PRESETS } from '../studentIdentity';
 import { IMAGE_ACCEPT, SUPPORTED_IMAGE_FORMATS_LABEL, isImageFile } from '../../../shared/utils/imageFormats';
@@ -15,6 +15,10 @@ export type ProfileFields = Pick<
 interface StudentProfileFormProps {
   initialValues: ProfileFields;
   onSave: (values: ProfileFields) => void;
+  /** id del <form>: el botón Guardar vive en la barra superior y lo envía con form={id}. */
+  formId?: string;
+  /** Avisa si hay cambios sin guardar (para preguntar antes de salir). */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 const FIELD_LIMITS = { studentName: 60, careerName: 80, semesterGoal: 140 } as const;
@@ -34,7 +38,7 @@ const secondaryButtonClass =
  * Formulario del perfil estudiantil: foto, datos y estado de la barra superior. Los cambios son un
  * borrador hasta pulsar "Guardar perfil", y solo se guardan en este dispositivo.
  */
-export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialValues, onSave }) => {
+export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialValues, onSave, formId, onDirtyChange }) => {
   const [studentName, setStudentName] = useState(initialValues.studentName ?? '');
   const [careerName, setCareerName] = useState(initialValues.careerName ?? '');
   const [semesterGoal, setSemesterGoal] = useState(initialValues.semesterGoal ?? '');
@@ -59,6 +63,19 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
     setPhotoToCrop(file);
   };
 
+  // ¿Algo distinto de lo guardado? (los espacios de más no cuentan, igual que al guardar)
+  const dirty =
+    studentName.trim() !== (initialValues.studentName ?? '') ||
+    careerName.trim() !== (initialValues.careerName ?? '') ||
+    semesterGoal.trim() !== (initialValues.semesterGoal ?? '') ||
+    avatarUrl !== initialValues.studentAvatarUrl ||
+    statusMode !== (initialValues.studentStatusMode ?? 'network') ||
+    customStatus.trim() !== (initialValues.studentCustomStatus ?? '');
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Un campo vacío se guarda como undefined para volver al texto por defecto
@@ -74,6 +91,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
 
   return (
     <form
+      id={formId}
       onSubmit={handleSubmit}
       className="space-y-4 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-card-bg)] p-3 shadow-2xs sm:p-4"
     >
@@ -250,13 +268,7 @@ export const StudentProfileForm: React.FC<StudentProfileFormProps> = ({ initialV
         )}
       </section>
 
-      <button
-        type="submit"
-        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--color-md-primary)] px-4 text-xs font-bold text-[var(--color-md-on-primary)] transition-[transform,background-color] duration-150 ease-out hover:bg-[var(--color-md-primary-hover)] active:scale-[0.98] disabled:opacity-50"
-      >
-        <Save className="h-3.5 w-3.5" aria-hidden="true" />
-        Guardar perfil
-      </button>
+      {/* El botón Guardar está en la barra superior (Ajustes → Mi perfil) */}
 
       <AvatarCropModal
         file={photoToCrop}

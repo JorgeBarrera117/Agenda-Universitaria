@@ -22,6 +22,8 @@ interface NavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   onOpenSettings: () => void;
+  /** Tocar la foto del estudiante abre directamente Mi perfil. */
+  onOpenProfile?: () => void;
   subjectCount?: number;
   professorsCount?: number;
   notesCount?: number;
@@ -38,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onTabChange,
   onOpenSettings,
+  onOpenProfile,
   subjectCount = 0,
   professorsCount = 0,
   notesCount = 0,
@@ -142,13 +145,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between gap-2 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center h-14 sm:h-16 lg:h-[76px] xl:h-20 landscape:max-lg:h-14">
           {/* M3 Top App Bar Title & Campus Identity */}
           <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-3.5 min-w-0 shrink-0">
-            {/* Avatar del estudiante: abre Ajustes, donde está la credencial. El punto indica la
-                conexión aunque el estado muestre una frase personalizada. */}
+            {/* Avatar del estudiante: abre Mi perfil. El punto indica la conexión aunque el estado
+                muestre una frase personalizada. */}
             <button
               type="button"
-              onClick={onOpenSettings}
-              title="Ver credencial y perfil"
-              aria-label={`Ver credencial y perfil (${isOnline ? 'en línea' : 'sin conexión'})`}
+              onClick={onOpenProfile ?? onOpenSettings}
+              title="Mi perfil"
+              aria-label={`Abrir mi perfil (${isOnline ? 'en línea' : 'sin conexión'})`}
               className="relative shrink-0 rounded-2xl transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-md-primary)] focus-visible:ring-offset-2"
             >
               <StudentAvatar

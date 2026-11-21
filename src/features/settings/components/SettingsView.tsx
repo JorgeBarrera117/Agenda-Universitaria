@@ -11,6 +11,7 @@ import {
   Database,
   Info,
   Check,
+  Save,
   Sparkles,
   Snowflake,
   Image as ImageIcon,
@@ -47,7 +48,9 @@ import { AboutSettings } from './AboutSettings';
 import { ChangelogList, ChangelogPreview } from './ChangelogSettings';
 import { UpdateSettings } from './UpdateSettings';
 import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
-import { PageHeader } from '../../../shared/components/PageHeader';
+import { PageHeader, PAGE_HEADER_PRIMARY_BUTTON } from '../../../shared/components/PageHeader';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
+import { Button } from '../../../shared/components/atoms';
 import { IMAGE_ACCEPT, SUPPORTED_IMAGE_FORMATS_LABEL, toBrowserReadableImage } from '../../../shared/utils/imageFormats';
 import { StudentCredential } from './StudentCredential';
 import { CardStyleSection, ThemeColorSection } from './ThemeStudio';
@@ -196,8 +199,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // Volver de una subvista al menú con animación de salida (sin corte a 0 ms)
   const subViewExit = useExitTransition(MOTION_EXIT_MS.sheet);
   const closeSubView = () => subViewExit.runExit(() => setActiveSubView(null));
-  // Las novedades cuelgan de "Acerca de la agenda": volver lleva ahí, no al menú principal
-  const backFromSubView = () => (activeSubView === 'changelog' ? setActiveSubView('about') : closeSubView());
+  // Mi perfil: cambios sin guardar y el aviso antes de salir
+  const [profileDirty, setProfileDirty] = useState(false);
+  const [confirmLeaveProfile, setConfirmLeaveProfile] = useState(false);
+  /**
+   * Salir de la subpágina:
+   * - Las novedades cuelgan de "Acerca de la agenda": volver lleva ahí.
+   * - Si Ajustes se abrió directo en esta subpágina (la foto de la barra superior o el aviso de
+   *   respaldo), volver regresa a donde estaba el estudiante, no al menú de Ajustes.
+   */
+  const leaveSubView = () => {
+    if (activeSubView === 'changelog') setActiveSubView('about');
+    else if (initialSubView && activeSubView === initialSubView) onBack();
+    else closeSubView();
+  };
+  const backFromSubView = () => {
+    if (activeSubView === 'profile' && profileDirty) {
+      setConfirmLeaveProfile(true);
+      return;
+    }
+    leaveSubView();
+  };
 
   // Interceptar botón "Atrás" de Android / Navegador
   useBackButton(() => {
@@ -243,7 +265,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleSaveProfile = (profile: ProfileFields) => {
     updateSettings({ ...settings, ...profile });
-    closeSubView();
+    setProfileDirty(false);
+    setConfirmLeaveProfile(false);
+    leaveSubView();
     onShowToast(profile.studentName ? `Perfil guardado. ¡Hola, ${profile.studentName.split(/\s+/)[0]}!` : 'Perfil guardado.');
   };
 
@@ -462,6 +486,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               subtitle={activeSubView === 'changelog' ? 'Acerca de la agenda' : 'Ajustes'}
               onBack={backFromSubView}
               backLabel={activeSubView === 'changelog' ? 'Regresar a Acerca de la agenda' : 'Regresar a Ajustes'}
+              actions={
+                activeSubView === 'profile' ? (
+                  <button type="submit" form="student-profile-form" disabled={!profileDirty} className={PAGE_HEADER_PRIMARY_BUTTON}>
+                    <Save className="h-4 w-4" aria-hidden="true" />
+                    Guardar
+                  </button>
+                ) : undefined
+              }
             />
 
             {/* ---------------- SUB-VISTA 1: APARIENCIA ---------------- */}
@@ -837,6 +869,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   studentCustomStatus: settings.studentCustomStatus,
                 }}
                 onSave={handleSaveProfile}
+                formId="student-profile-form"
+                onDirtyChange={setProfileDirty}
               />
             )}
 
@@ -901,6 +935,40 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Mi perfil: salir con cambios sin guardar */}
+      <Modal isOpen={confirmLeaveProfile} onClose={() => setConfirmLeaveProfile(false)} title="¿Salir sin guardar?" maxWidth="sm">
+        <p className="text-sm text-[var(--color-md-on-surface-variant)]">
+          Cambiaste tu perfil y aún no lo guardaste. Si sales ahora, se perderán esos cambios.
+        </p>
+        <ModalActions>
+          <Button variant="ghost" size="sm" onClick={() => setConfirmLeaveProfile(false)}>
+            Seguir editando
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              setConfirmLeaveProfile(false);
+              setProfileDirty(false);
+              leaveSubView();
+            }}
+          >
+            Salir sin guardar
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Save className="h-4 w-4" aria-hidden="true" />}
+            onClick={() => {
+              const form = document.getElementById('student-profile-form');
+              if (form instanceof HTMLFormElement) form.requestSubmit();
+            }}
+          >
+            Guardar y salir
+          </Button>
+        </ModalActions>
+      </Modal>
     </div>
   );
 };

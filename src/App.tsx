@@ -417,6 +417,10 @@ export function App() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenProfile={() => {
+            setSettingsInitialView('profile');
+            setIsSettingsOpen(true);
+          }}
           studentName={settings.studentName}
           studentAvatarUrl={settings.studentAvatarUrl}
           studentStatusMode={settings.studentStatusMode}
