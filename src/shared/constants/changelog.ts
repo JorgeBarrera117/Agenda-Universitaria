@@ -32,6 +32,17 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.90',
+    date: '2026-11-21',
+    title: 'Contactos y tarjetas con tu color',
+    changes: [
+      { kind: 'nuevo', text: 'Contacto del profesor: elige llamar, abrir WhatsApp o Telegram, guardarlo en tus contactos o enviarlo a otra app.' },
+      { kind: 'mejora', text: 'Las tarjetas de Horario, Materias y Profesores toman el color que elegiste, en una variante clara en modo claro y una profunda en modo oscuro.' },
+      { kind: 'mejora', text: 'Con el acabado Elevada, todas las tarjetas (también las de Ajustes) se ven de verdad elevadas.' },
+      { kind: 'mejora', text: 'Apuntes y Archivos siguen ahora tu paleta y tu acabado de tarjetas, igual que el resto de la app.' },
+    ],
+  },
+  {
     version: '1.7.10.89',
     date: '2026-11-21',
     title: 'Cristal sin tirones',

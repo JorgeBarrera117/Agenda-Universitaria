@@ -24,8 +24,8 @@ android {
         applicationId "com.agenda.universitaria"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 171089
-        versionName "1.7.10.89"
+        versionCode 171090
+        versionName "1.7.10.90"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
