@@ -7,6 +7,16 @@ import { notificationToneUrl, resolveNotificationTone } from '../../features/set
 import type { ElectronReminder } from '../../electron';
 import { androidSubjectLargeIcon } from '../../features/subjects/utils/subjectIconResource';
 import { formatClockTime, formatTimeRange } from '../utils/timeFormat';
+import type { AgendaEvent } from '../../features/agenda/types';
+import {
+  buildAgendaReminders,
+  classDatesSkippingHolidays,
+  hash32,
+  holidayFallsOn,
+  momentOn,
+  upcomingHolidayKeys,
+} from '../../features/agenda/services/agendaNotifications';
+import { toDateKey } from '../../features/agenda/utils/agendaDates';
 
 /** Título de la notificación de prueba: el nombre de la app ya lo muestra el sistema. */
 const TEST_TITLE = 'Notificaciones activas';
@@ -112,9 +122,27 @@ function describeSlot(slot: ScheduleSlot, subjects: Subject[], settings: AppSett
   };
 }
 
-/** Recordatorios semanales para el escritorio (día 1 = lunes … 7 = domingo, como el horario). */
-async function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[], settings: AppSettings): Promise<ElectronReminder[]> {
+/** Ids de los avisos de clase fechados (días libres en Android): aparte de los semanales. */
+function datedClassId(slotId: string, occurrence: number, typeSuffix: number): number {
+  return 2_000_000 + (hash32(slotId) % 100_000) * 100 + occurrence * 2 + (typeSuffix - 1);
+}
+function datedSummaryId(weekday: number, occurrence: number): number {
+  return 3_000_000 + weekday * 100 + occurrence;
+}
+
+/**
+ * Recordatorios para el escritorio (día 1 = lunes … 7 = domingo, como el horario): los de clase se
+ * repiten cada semana salvo en los días libres (skipDates); los de la agenda llevan su fecha.
+ */
+async function buildDesktopReminders(
+  slots: ScheduleSlot[],
+  subjects: Subject[],
+  settings: AppSettings,
+  events: readonly AgendaEvent[]
+): Promise<ElectronReminder[]> {
   if (!settings.notificationsEnabled) return [];
+  const now = new Date();
+  const skipDates = [...upcomingHolidayKeys(events, now)];
   // Ícono de cada materia (su dibujo sobre su color) para el aviso de Windows. Se carga solo aquí:
   // la versión web y la de Android no lo necesitan
   const { subjectBadgePng } = await import('../../features/subjects/utils/subjectBadgeImage');
@@ -132,14 +160,32 @@ async function buildDesktopReminders(slots: ScheduleSlot[], subjects: Subject[],
     const [startH, startM] = (slot.startTime || '08:00').split(':').map(Number);
     if (settings.notify15MinBefore) {
       const at = shiftBefore(slot.dayOfWeek, slot.startTime, leadMinutes(settings));
-      reminders.push({ id: generateNotificationId(slot.id, 1), ...at, ...texts.before, playTone, icon });
+      reminders.push({ id: generateNotificationId(slot.id, 1), ...at, ...texts.before, playTone, icon, skipDates });
     }
     if (settings.notifyAtClassStart) {
-      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone, icon });
+      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone, icon, skipDates });
     }
   }
   for (const summary of buildDailySummaries(slots, subjects, settings)) {
-    reminders.push({ ...summary, playTone });
+    reminders.push({ ...summary, playTone, skipDates });
+  }
+  for (const spec of buildAgendaReminders(events, subjects, now)) {
+    const day = spec.at.getDay();
+    let agendaIcon: string | undefined;
+    if (spec.subject) {
+      agendaIcon = iconBySubject.get(spec.subject.id) ?? (await subjectBadgePng(spec.subject.icon, spec.subject.color)) ?? undefined;
+    }
+    reminders.push({
+      id: spec.id,
+      date: toDateKey(spec.at),
+      weekday: day === 0 ? 7 : day,
+      hour: spec.at.getHours(),
+      minute: spec.at.getMinutes(),
+      title: spec.title,
+      body: spec.body,
+      playTone,
+      icon: agendaIcon,
+    });
   }
   return reminders;
 }
@@ -308,19 +354,20 @@ export class NotificationService {
   static async syncScheduleNotifications(
     slots: ScheduleSlot[],
     subjects: Subject[],
-    settings: AppSettings
+    settings: AppSettings,
+    events: readonly AgendaEvent[] = []
   ): Promise<{ scheduledCount: number }> {
     if (!Capacitor.isNativePlatform()) {
       // Escritorio: el proceso principal guarda la lista y avisa a su hora (también con la ventana
       // cerrada); el permiso lo comprueba al momento de avisar
       const desktop = desktopApi();
       return desktop?.syncReminders
-        ? desktop.syncReminders(await buildDesktopReminders(slots, subjects, settings))
+        ? desktop.syncReminders(await buildDesktopReminders(slots, subjects, settings, events))
         : { scheduledCount: 0 };
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `v6_${settings.reminderLeadMinutes ?? 15}_${settings.dailySummaryEnabled ? settings.dailySummaryTime : 'no'}_${settings.timeFormat ?? '24h'}_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}`;
+    const currentHash = `v6_${settings.reminderLeadMinutes ?? 15}_${settings.dailySummaryEnabled ? settings.dailySummaryTime : 'no'}_${settings.timeFormat ?? '24h'}_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}|ev:${toDateKey(new Date())}:${events.map((e) => `${e.id}_${e.updatedAt}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
@@ -338,7 +385,7 @@ export class NotificationService {
       console.warn('No se pudieron cancelar notificaciones anteriores:', err);
     }
 
-    if (!settings.notificationsEnabled || slots.length === 0) {
+    if (!settings.notificationsEnabled || (slots.length === 0 && events.length === 0)) {
       return { scheduledCount: 0 };
     }
 
@@ -349,9 +396,37 @@ export class NotificationService {
     }
 
     const notificationsToSchedule = [];
+    const now = new Date();
+    // Días libres de la agenda: en ellos no se avisa de clases
+    const holidays = upcomingHolidayKeys(events, now);
 
     for (const slot of slots) {
       const { subject, before, start } = describeSlot(slot, subjects, settings);
+
+      // Día de la semana con un día libre próximo: avisos fecha por fecha (se salta el día libre)
+      if (holidayFallsOn(holidays, slot.dayOfWeek)) {
+        const largeIcon = androidSubjectLargeIcon(subject?.icon, subject?.color);
+        classDatesSkippingHolidays(slot.dayOfWeek, holidays, now).forEach((dateKey, occurrence) => {
+          const moments = [
+            settings.notify15MinBefore ? { suffix: 1, at: momentOn(dateKey, slot.startTime || '08:00', leadMinutes(settings)), texts: before } : null,
+            settings.notifyAtClassStart ? { suffix: 2, at: momentOn(dateKey, slot.startTime || '08:00'), texts: start } : null,
+          ];
+          for (const moment of moments) {
+            if (!moment || moment.at.getTime() <= now.getTime()) continue;
+            notificationsToSchedule.push({
+              id: datedClassId(slot.id, occurrence, moment.suffix),
+              ...moment.texts,
+              channelId,
+              smallIcon: 'ic_stat_agenda',
+              largeIcon,
+              iconColor: APP_COLOR,
+              schedule: { at: moment.at, allowWhileIdle: true },
+              sound,
+            });
+          }
+        });
+        continue;
+      }
 
       // Mapeo de DayOfWeek (1=Lun ... 7=Dom) a Capacitor Weekday (1=Dom, 2=Lun ... 7=Sab)
       const capacitorWeekday = (slot.dayOfWeek % 7) + 1;
@@ -411,8 +486,27 @@ export class NotificationService {
       }
     }
 
-    // C. Resumen del día (un aviso por cada día con clases)
+    // C. Resumen del día (un aviso por cada día con clases; fecha por fecha si hay días libres)
     for (const summary of buildDailySummaries(slots, subjects, settings)) {
+      if (holidayFallsOn(holidays, summary.weekday)) {
+        const time = String(summary.hour).padStart(2, '0') + ':' + String(summary.minute).padStart(2, '0');
+        classDatesSkippingHolidays(summary.weekday, holidays, now).forEach((dateKey, occurrence) => {
+          const at = momentOn(dateKey, time);
+          if (at.getTime() <= now.getTime()) return;
+          notificationsToSchedule.push({
+            id: datedSummaryId(summary.weekday, occurrence),
+            title: summary.title,
+            body: summary.body,
+            channelId,
+            smallIcon: 'ic_stat_agenda',
+            largeIcon: 'ic_notification_large',
+            iconColor: APP_COLOR,
+            schedule: { at, allowWhileIdle: true },
+            sound,
+          });
+        });
+        continue;
+      }
       notificationsToSchedule.push({
         id: summary.id,
         title: summary.title,
@@ -426,6 +520,21 @@ export class NotificationService {
           repeats: true,
           allowWhileIdle: true,
         },
+        sound,
+      });
+    }
+
+    // D. Agenda: tareas, exámenes y recordatorios con fecha (un aviso cada uno)
+    for (const spec of buildAgendaReminders(events, subjects, now)) {
+      notificationsToSchedule.push({
+        id: spec.id,
+        title: spec.title,
+        body: spec.body,
+        channelId,
+        smallIcon: 'ic_stat_agenda',
+        largeIcon: spec.subject ? androidSubjectLargeIcon(spec.subject.icon, spec.subject.color) : 'ic_notification_large',
+        iconColor: APP_COLOR,
+        schedule: { at: spec.at, allowWhileIdle: true },
         sound,
       });
     }

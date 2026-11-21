@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/AppDatabase';
+import { useTodayKey } from '../../features/agenda/hooks/useTodayKey';
 import {
   DOCUMENTS_CHANGED_EVENT,
   readStoredDocumentsCount,
@@ -11,6 +12,8 @@ export interface TabCounts {
   professorsCount: number;
   notesCount: number;
   documentsCount: number;
+  /** Agenda: tareas vencidas más lo pendiente de hoy (insignia roja). */
+  agendaDueCount: number;
 }
 
 function subscribeToDocuments(onChange: () => void): () => void {
@@ -35,6 +38,17 @@ export function useTabCounts(): TabCounts {
   const professorsCount = useLiveQuery(() => db.professors.count(), [], 0);
   const notesCount = useLiveQuery(() => db.notes.count(), [], 0);
   const documentsCount = useSyncExternalStore(subscribeToDocuments, readStoredDocumentsCount);
+  const todayKey = useTodayKey();
+  const agendaDueCount = useLiveQuery(
+    () =>
+      db.agendaEvents
+        .where('date')
+        .belowOrEqual(todayKey)
+        .filter((e) => !e.done && e.type !== 'holiday' && (e.date === todayKey || e.type === 'task'))
+        .count(),
+    [todayKey],
+    0
+  );
 
-  return { subjectCount, professorsCount, notesCount, documentsCount };
+  return { subjectCount, professorsCount, notesCount, documentsCount, agendaDueCount };
 }

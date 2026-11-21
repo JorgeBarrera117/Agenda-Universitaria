@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
-  Calendar as CalendarIcon,
+  CalendarCheck,
+  Clock,
   BookOpen,
   Library,
   Wifi,
@@ -26,9 +27,10 @@ interface NavbarProps {
   /** Tocar la foto del estudiante abre directamente Mi perfil. */
   onOpenProfile?: () => void;
   subjectCount?: number;
-  professorsCount?: number;
   notesCount?: number;
   documentsCount?: number;
+  /** Agenda: vencidas más lo de hoy. */
+  agendaDueCount?: number;
   /** Nombre del perfil estudiantil; si existe, el título saluda al estudiante. */
   studentName?: string;
   studentAvatarUrl?: string;
@@ -45,6 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   subjectCount = 0,
   notesCount = 0,
   documentsCount = 0,
+  agendaDueCount = 0,
   studentName,
   studentAvatarUrl,
   studentStatusMode = 'network',
@@ -111,7 +114,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   const navItems: { id: NavTabId; label: string; icon: typeof BookOpen }[] = [
-    { id: 'schedule', label: 'Horario', icon: CalendarIcon },
+    { id: 'schedule', label: 'Horario', icon: Clock },
+    { id: 'agenda', label: 'Agenda', icon: CalendarCheck },
     { id: 'courses', label: 'Materias', icon: BookOpen },
     { id: 'library', label: 'Biblioteca', icon: Library },
   ];
@@ -120,6 +124,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Materias cuenta las materias; Biblioteca, apuntes y archivos juntos
   const getBadgeCount = (id: NavTabId): number => {
     switch (id) {
+      case 'agenda':
+        return agendaDueCount;
       case 'courses':
         return subjectCount;
       case 'library':

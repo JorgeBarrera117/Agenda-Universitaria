@@ -3,6 +3,7 @@ import { useSubjects } from '../../features/subjects/hooks/useSubjects';
 import { useSchedule } from '../../features/schedule/hooks/useSchedule';
 import { useProfessors } from '../../features/professors/hooks/useProfessors';
 import { useNotes } from '../../features/notes/hooks/useNotes';
+import { useAgenda } from '../../features/agenda/hooks/useAgenda';
 import { useAppSettings } from '../../features/settings/hooks/useAppSettings';
 import { NotificationService } from '../services/notificationService';
 import { WidgetSyncService } from '../services/widgetSyncService';
@@ -20,17 +21,18 @@ export function BackgroundSyncManager(): null {
   const { slots } = useSchedule();
   const { professors } = useProfessors();
   const { notes } = useNotes();
+  const { events } = useAgenda();
   const { settings } = useAppSettings();
 
   // Debounce para agrupar las ráfagas de actualizaciones reactivas de Dexie
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (settings.notificationsEnabled && slots.length > 0) {
-        NotificationService.syncScheduleNotifications(slots, subjects, settings).catch(console.warn);
+      if (settings.notificationsEnabled && (slots.length > 0 || events.length > 0)) {
+        NotificationService.syncScheduleNotifications(slots, subjects, settings, events).catch(console.warn);
       }
     }, SYNC_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [slots, subjects, settings]);
+  }, [slots, subjects, settings, events]);
 
   // Escritorio: en el primer arranque la app pide permiso para avisar (como Android). Solo una vez;
   // después se puede conceder desde Ajustes → Notificaciones.

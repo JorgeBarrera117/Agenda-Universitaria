@@ -11,6 +11,7 @@ interface SectionSwitcherProps {
 
 const SECTION_LABEL: Record<SectionId, string> = {
   schedule: 'Horario',
+  agenda: 'Agenda',
   subjects: 'Materias',
   professors: 'Profesores',
   notes: 'Apuntes',

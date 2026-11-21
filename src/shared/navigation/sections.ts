@@ -7,15 +7,16 @@
  *   Apuntes y Archivos. Dentro de una pestaña con dos secciones se cambia con el selector de arriba
  *   (SectionSwitcher). Menos pestañas = botones más grandes en el teléfono (Material 3 pide 3 a 5).
  */
-export type SectionId = 'schedule' | 'subjects' | 'professors' | 'notes' | 'documents';
+export type SectionId = 'schedule' | 'agenda' | 'subjects' | 'professors' | 'notes' | 'documents';
 
-export type NavTabId = 'schedule' | 'courses' | 'library';
+export type NavTabId = 'schedule' | 'agenda' | 'courses' | 'library';
 
 /** Orden de las secciones: el deslizamiento lateral las recorre en este orden. */
-export const SECTION_ORDER: readonly SectionId[] = ['schedule', 'subjects', 'professors', 'notes', 'documents'];
+export const SECTION_ORDER: readonly SectionId[] = ['schedule', 'agenda', 'subjects', 'professors', 'notes', 'documents'];
 
 export const NAV_TAB_OF: Record<SectionId, NavTabId> = {
   schedule: 'schedule',
+  agenda: 'agenda',
   subjects: 'courses',
   professors: 'courses',
   notes: 'library',
@@ -25,6 +26,7 @@ export const NAV_TAB_OF: Record<SectionId, NavTabId> = {
 /** Secciones de cada pestaña; la primera es la que se abre la primera vez. */
 export const NAV_TAB_SECTIONS: Record<NavTabId, readonly SectionId[]> = {
   schedule: ['schedule'],
+  agenda: ['agenda'],
   courses: ['subjects', 'professors'],
   library: ['notes', 'documents'],
 };
@@ -33,7 +35,7 @@ export type LastSections = Record<NavTabId, SectionId>;
 
 const LAST_SECTIONS_KEY = 'agenda_last_sections_v1';
 
-const DEFAULT_LAST_SECTIONS: LastSections = { schedule: 'schedule', courses: 'subjects', library: 'notes' };
+const DEFAULT_LAST_SECTIONS: LastSections = { schedule: 'schedule', agenda: 'agenda', courses: 'subjects', library: 'notes' };
 
 /** Sección que se vio por última vez en cada pestaña (al volver a la pestaña se abre esa). */
 export function loadLastSections(): LastSections {

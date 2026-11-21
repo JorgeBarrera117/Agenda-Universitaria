@@ -3,6 +3,7 @@ import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { ScheduleSlot } from '../../features/schedule/types';
 import type { Note, NoteAudio, NoteImage } from '../../features/notes/types';
+import type { AgendaEvent } from '../../features/agenda/types';
 
 export class AppDatabase extends Dexie {
   subjects!: Table<Subject, string>;
@@ -12,6 +13,8 @@ export class AppDatabase extends Dexie {
   noteImages!: Table<NoteImage, string>;
   /** Notas de voz de los apuntes (Blob de audio). */
   noteAudios!: Table<NoteAudio, string>;
+  /** Agenda: tareas, exámenes, recordatorios y días libres con fecha. */
+  agendaEvents!: Table<AgendaEvent, string>;
 
   constructor() {
     super('AgendaUniversitariaDB');
@@ -30,6 +33,10 @@ export class AppDatabase extends Dexie {
     // Notas de voz: tabla nueva, las existentes no cambian (migración sin pérdida de datos)
     this.version(4).stores({
       noteAudios: 'id, noteId, createdAt',
+    });
+    // Agenda (tabla nueva): las existentes no cambian, la migración no toca datos
+    this.version(5).stores({
+      agendaEvents: 'id, date, type, subjectId',
     });
   }
 }

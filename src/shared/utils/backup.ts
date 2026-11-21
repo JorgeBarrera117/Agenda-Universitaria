@@ -4,6 +4,14 @@ import type { Note, NoteAudio, NoteImage } from '../../features/notes/types';
 import type { Subject } from '../../features/subjects/types';
 import type { Professor } from '../../features/professors/types';
 import type { ScheduleSlot } from '../../features/schedule/types';
+import {
+  AGENDA_EVENT_TYPES,
+  AGENDA_REMINDER_LEADS,
+  type AgendaEvent,
+  type AgendaEventType,
+  type AgendaReminderLead,
+} from '../../features/agenda/types';
+import { isDateKey, isTimeValue } from '../../features/agenda/utils/agendaDates';
 import { WidgetBridge } from '../plugins/widgetBridge';
 import { sanitizeNoteHtml } from './sanitizeHtml';
 import { SAFE_AUDIO_DATA_URL, SAFE_IMAGE_DATA_URL, blobToDataUrl, dataUrlToBlob } from './dataUrl';
@@ -33,6 +41,7 @@ export async function generateBackupData(options: BackupOptions = {}): Promise<{
   const notes = await db.notes.toArray();
   const rawImages = await db.noteImages.toArray();
   const rawAudios = await db.noteAudios.toArray();
+  const agendaEvents = await db.agendaEvents.toArray();
 
   const serializedImages = await Promise.all(
     rawImages.map(async (img) => ({
@@ -68,6 +77,8 @@ export async function generateBackupData(options: BackupOptions = {}): Promise<{
       images: serializedImages,
       // Notas de voz (desde 1.7.10.63); los respaldos anteriores simplemente no traen esta sección
       audios: serializedAudios,
+      // Agenda (desde 1.7.10.92); si falta, al restaurar no se toca la agenda actual
+      agendaEvents,
       // Archivos de las materias: solo en la transferencia. Si falta, al restaurar no se tocan.
       ...(options.includeDocuments ? { documents: await exportDocuments() } : {}),
     },
@@ -290,7 +301,7 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
   const rawDocuments = (parsed as { data?: { documents?: unknown } }).data?.documents;
   const documents = rawDocuments === undefined ? null : prepareDocuments(rawDocuments);
 
-  await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios], async () => {
+  await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios, db.agendaEvents], async () => {
     await db.subjects.clear();
     await db.professors.clear();
     await db.scheduleSlots.clear();
@@ -304,6 +315,11 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
     if (backup.notes.length) await db.notes.bulkAdd(backup.notes);
     if (backup.images.length) await db.noteImages.bulkAdd(backup.images);
     if (backup.audios.length) await db.noteAudios.bulkAdd(backup.audios);
+    // Un respaldo anterior a la Agenda no trae esta sección: la agenda actual se conserva
+    if (backup.agendaEvents) {
+      await db.agendaEvents.clear();
+      if (backup.agendaEvents.length) await db.agendaEvents.bulkAdd(backup.agendaEvents);
+    }
   });
 
   if (documents) await replaceAllDocuments(documents);
@@ -318,6 +334,8 @@ interface ParsedBackup {
   notes: Note[];
   images: NoteImage[];
   audios: NoteAudio[];
+  /** null si el respaldo es anterior a la Agenda. */
+  agendaEvents: AgendaEvent[] | null;
 }
 
 const INVALID_BACKUP_MESSAGE = 'El archivo no contiene un formato de respaldo válido de Agenda Universitaria.';
@@ -404,7 +422,36 @@ function parseBackupPayload(parsed: unknown): ParsedBackup {
     });
   }
 
-  return { subjects, professors, scheduleSlots, notes, images, audios };
+  return { subjects, professors, scheduleSlots, notes, images, audios, agendaEvents: parseAgendaEvents(data) };
+}
+
+/** Eventos de la agenda de un respaldo (puede venir de otra persona): se valida cada campo. */
+function parseAgendaEvents(data: UnknownRecord): AgendaEvent[] | null {
+  if (data.agendaEvents === undefined) return null;
+  const now = new Date().toISOString();
+  const text = (value: unknown, max: number) => (isString(value) && value.trim() ? value.trim().slice(0, max) : undefined);
+  const events: AgendaEvent[] = [];
+  for (const raw of readRecords(data, 'agendaEvents', ['id', 'title', 'date'])) {
+    if (!isDateKey(raw.date)) continue;
+    const type: AgendaEventType = AGENDA_EVENT_TYPES.includes(raw.type as AgendaEventType) ? (raw.type as AgendaEventType) : 'reminder';
+    const remind: AgendaReminderLead = AGENDA_REMINDER_LEADS.includes(raw.remind as AgendaReminderLead) ? (raw.remind as AgendaReminderLead) : 'none';
+    events.push({
+      id: raw.id as string,
+      type,
+      title: (raw.title as string).slice(0, 140),
+      date: raw.date,
+      endDate: type === 'holiday' && isDateKey(raw.endDate) && raw.endDate > raw.date ? raw.endDate : undefined,
+      time: type !== 'holiday' && isTimeValue(raw.time) ? raw.time : undefined,
+      subjectId: type !== 'holiday' ? text(raw.subjectId, 80) : undefined,
+      place: text(raw.place, 80),
+      notes: text(raw.notes, 1000),
+      remind: type === 'holiday' ? 'none' : remind,
+      done: type === 'task' ? raw.done === true : undefined,
+      createdAt: isString(raw.createdAt) ? raw.createdAt : now,
+      updatedAt: isString(raw.updatedAt) ? raw.updatedAt : now,
+    });
+  }
+  return events;
 }
 
 /**

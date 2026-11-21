@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, BookOpen, Library } from 'lucide-react';
+import { CalendarCheck, Clock, BookOpen, Library } from 'lucide-react';
 import type { TabType } from './Navbar';
 import { NAV_TAB_OF, type NavTabId } from '../navigation/sections';
 
@@ -10,6 +10,8 @@ interface BottomNavProps {
   subjectCount?: number;
   notesCount?: number;
   documentsCount?: number;
+  /** Agenda: vencidas más lo de hoy. */
+  agendaDueCount?: number;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -18,10 +20,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   subjectCount = 0,
   notesCount = 0,
   documentsCount = 0,
+  agendaDueCount = 0,
 }) => {
-  // Tres pestañas: los botones quedan más anchos y fáciles de tocar
+  // Cuatro pestañas (Material 3 pide de 3 a 5): botones anchos y fáciles de tocar
   const navItems: { id: NavTabId; label: string; icon: typeof BookOpen }[] = [
-    { id: 'schedule', label: 'Horario', icon: Calendar },
+    { id: 'schedule', label: 'Horario', icon: Clock },
+    { id: 'agenda', label: 'Agenda', icon: CalendarCheck },
     { id: 'courses', label: 'Materias', icon: BookOpen },
     { id: 'library', label: 'Biblioteca', icon: Library },
   ];
@@ -29,8 +33,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
   const getBadgeInfo = (id: NavTabId) => {
     switch (id) {
+      case 'agenda':
+        return { count: agendaDueCount, color: 'bg-[#BA1A1A] text-white' };
       case 'courses':
-        return { count: subjectCount, color: 'bg-[#BA1A1A] text-white' };
+        return { count: subjectCount, color: 'bg-[#5B5F67] dark:bg-[#C3C7D0] text-white dark:text-[#191C20]' };
       case 'library':
         return { count: notesCount + documentsCount, color: 'bg-[#B26B00] dark:bg-[#FFB86A] text-white dark:text-[#4A2800]' };
       default:

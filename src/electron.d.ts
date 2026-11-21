@@ -23,6 +23,10 @@ export interface ElectronReminder {
   playTone: boolean;
   /** Ícono de la materia como PNG (data URL); sin él, el aviso usa el ícono de la app. */
   icon?: string;
+  /** Aviso de un solo día ("YYYY-MM-DD", agenda); sin él se repite cada semana en `weekday`. */
+  date?: string;
+  /** Días ("YYYY-MM-DD") en que un aviso semanal no sale: días libres de la agenda. */
+  skipDates?: string[];
 }
 
 export interface ElectronNotificationOptions {

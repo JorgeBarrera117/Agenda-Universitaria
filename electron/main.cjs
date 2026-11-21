@@ -180,10 +180,14 @@ function registerToastIdentity() {
 let reminders = [];
 const firedReminders = new Set();
 
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 function isValidReminder(r) {
   return (
     r &&
     Number.isInteger(r.id) &&
+    (r.date === undefined || (typeof r.date === 'string' && DATE_KEY_PATTERN.test(r.date))) &&
+    (r.skipDates === undefined || (Array.isArray(r.skipDates) && r.skipDates.length <= 400 && r.skipDates.every((d) => typeof d === 'string' && DATE_KEY_PATTERN.test(d)))) &&
     Number.isInteger(r.weekday) && r.weekday >= 1 && r.weekday <= 7 &&
     Number.isInteger(r.hour) && r.hour >= 0 && r.hour <= 23 &&
     Number.isInteger(r.minute) && r.minute >= 0 && r.minute <= 59 &&
@@ -214,9 +218,13 @@ function checkReminders() {
   if (reminders.length === 0 || readPermissions().notifications !== 'granted') return;
   const now = new Date();
   const weekday = now.getDay() === 0 ? 7 : now.getDay(); // 1 = lunes … 7 = domingo (como en la app)
-  const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+  const pad = (n) => String(n).padStart(2, '0');
+  const dateKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   for (const reminder of reminders) {
-    if (reminder.weekday !== weekday || reminder.hour !== now.getHours() || reminder.minute !== now.getMinutes()) continue;
+    if (reminder.hour !== now.getHours() || reminder.minute !== now.getMinutes()) continue;
+    // Con fecha (agenda): solo ese día. Sin fecha (clases): cada semana, menos los días libres
+    if (reminder.date ? reminder.date !== dateKey : reminder.weekday !== weekday) continue;
+    if (reminder.skipDates && reminder.skipDates.includes(dateKey)) continue;
     const key = `${reminder.id}@${dateKey}`;
     if (firedReminders.has(key)) continue;
     firedReminders.add(key);

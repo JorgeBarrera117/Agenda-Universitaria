@@ -81,6 +81,8 @@ export interface BackupSummary {
   notes: number;
   /** Archivos de las materias (null si el respaldo no trae esa sección). */
   documents: number | null;
+  /** Eventos de la agenda (null si el respaldo es anterior a la Agenda). */
+  agendaEvents: number | null;
 }
 
 export function summarizeBackupJson(jsonText: string): BackupSummary | null {
@@ -99,6 +101,7 @@ export function summarizeBackupJson(jsonText: string): BackupSummary | null {
       scheduleSlots: count('scheduleSlots'),
       notes: count('notes'),
       documents: Array.isArray((data as Record<string, unknown>).documents) ? count('documents') : null,
+      agendaEvents: Array.isArray((data as Record<string, unknown>).agendaEvents) ? count('agendaEvents') : null,
     };
   } catch {
     return null;
@@ -112,6 +115,7 @@ export function describeBackupSummary(summary: BackupSummary): string {
     part(summary.scheduleSlots, 'clase en el horario', 'clases en el horario'),
     part(summary.notes, 'apunte', 'apuntes'),
     ...(summary.documents !== null ? [part(summary.documents, 'archivo', 'archivos')] : []),
+    ...(summary.agendaEvents ? [part(summary.agendaEvents, 'evento de la agenda', 'eventos de la agenda')] : []),
     part(summary.professors, 'docente', 'docentes'),
   ].join(' · ');
 }

@@ -59,12 +59,16 @@ import {
   HEADER_SCRIM_CLASS,
   STRETCHED_CARD_BUTTON_CLASS,
 } from '../../../shared/styles/surfaces';
+import { AgendaUpcomingStrip } from '../../agenda/components/AgendaUpcomingStrip';
 
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
   /** Tocar una clase abre la ficha técnica de su materia (App cambia a la pestaña Materias). */
   onOpenSubjectDetail?: (subjectId: string) => void;
   onEditorActiveChange?: (isActive: boolean) => void;
+  /** "Próximos en tu agenda": abre la Agenda en un día o la Agenda sin más. */
+  onOpenAgendaDay?: (day: string) => void;
+  onOpenAgenda?: () => void;
   isActive?: boolean;
 }
 
@@ -87,6 +91,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onNavigateToNotes,
   onOpenSubjectDetail,
   onEditorActiveChange,
+  onOpenAgendaDay,
+  onOpenAgenda,
   isActive = true,
 }) => {
   const { slots, addSlots, updateSlot, removeSlot } = useSchedule();
@@ -414,6 +420,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         onTakeNote={onNavigateToNotes}
         onOpenFiles={setSubjectForFiles}
       />
+
+      {/* Próximos en tu agenda: tareas vencidas y lo que viene, sin abrir la Agenda */}
+      {onOpenAgendaDay && onOpenAgenda && <AgendaUpcomingStrip onOpenDay={onOpenAgendaDay} onOpenAgenda={onOpenAgenda} />}
 
       {/* 3. SELECTOR DE DÍAS (Móvil y Vista Diaria) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>

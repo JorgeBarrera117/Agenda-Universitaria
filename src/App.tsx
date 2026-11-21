@@ -43,11 +43,13 @@ import { scheduleImportedMessage, subjectImportedMessage } from './features/sche
 import type { UpdateInfo } from './shared/services/updateService';
 import type { ChangelogEntry } from './shared/constants/changelog';
 import type { SettingsCategory } from './features/settings/components/SettingsView';
+import type { AgendaFocusRequest } from './features/agenda/components/AgendaView';
 
 const TAB_ORDER = SECTION_ORDER;
 
 // El Horario es la vista crítica de arranque y se importa de forma estática.
 // Las demás se cargan bajo demanda y se precargan cuando el navegador queda ocioso.
+const loadAgendaView = () => import('./features/agenda/components/AgendaView');
 const loadSubjectsView = () => import('./features/subjects/components/SubjectsView');
 const loadProfessorsView = () => import('./features/professors/components/ProfessorsView');
 const loadNotesView = () => import('./features/notes/components/NotesView');
@@ -60,6 +62,7 @@ const loadSettingsView = () => import('./features/settings/components/SettingsVi
  * (useCallback), así que la memorización funciona.
  */
 const ScheduleView = memo(ScheduleViewComponent);
+const AgendaView = lazy(() => loadAgendaView().then((m) => ({ default: memo(m.AgendaView) })));
 const SubjectsView = lazy(() => loadSubjectsView().then((m) => ({ default: memo(m.SubjectsView) })));
 const ProfessorsView = lazy(() => loadProfessorsView().then((m) => ({ default: memo(m.ProfessorsView) })));
 const NotesView = lazy(() => loadNotesView().then((m) => ({ default: memo(m.NotesView) })));
@@ -93,6 +96,7 @@ const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: mem
 const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
 
 const SECONDARY_VIEW_LOADERS = [
+  loadAgendaView,
   loadSubjectsView,
   loadProfessorsView,
   loadNotesView,
@@ -147,6 +151,11 @@ export function App() {
     [handleEditorActiveChange]
   );
 
+  const handleAgendaEditorChange = useCallback(
+    (active: boolean) => handleEditorActiveChange('agenda', active),
+    [handleEditorActiveChange]
+  );
+
   const handleNotesEditorChange = useCallback(
     (active: boolean) => handleEditorActiveChange('notes', active),
     [handleEditorActiveChange]
@@ -161,7 +170,7 @@ export function App() {
     setMountedTabs(new Set(mountedTabs).add(activeTab));
   }
 
-  const { subjectCount, professorsCount, notesCount, documentsCount } = useTabCounts();
+  const { subjectCount, professorsCount, notesCount, documentsCount, agendaDueCount } = useTabCounts();
   const { settings } = useAppSettings();
   // Bloqueo con PIN o huella (Ajustes → Bloqueo de la app): tapa la app hasta desbloquear
   const appLock = useAppLock();
@@ -417,6 +426,17 @@ export function App() {
     [openDetail]
   );
 
+  // "Próximos en tu agenda" (Horario): abre la Agenda en ese día
+  const [agendaFocus, setAgendaFocus] = useState<AgendaFocusRequest | null>(null);
+  const openAgendaDay = useCallback(
+    (day: string) => {
+      setAgendaFocus((prev) => ({ day, nonce: (prev?.nonce ?? 0) + 1 }));
+      handleTabChange('agenda');
+    },
+    [handleTabChange]
+  );
+  const openAgenda = useCallback(() => handleTabChange('agenda'), [handleTabChange]);
+
   // Atajo contextual UX: Tomar apunte de la clase activa en el horario
   const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string) => {
     rememberSection('notes');
@@ -476,6 +496,7 @@ export function App() {
           subjectCount={subjectCount}
           notesCount={notesCount}
           documentsCount={documentsCount}
+          agendaDueCount={agendaDueCount}
         />
       )}
 
@@ -621,8 +642,21 @@ export function App() {
                 onNavigateToNotes={handleNavigateToNotesFromSchedule}
                 onOpenSubjectDetail={openSubjectDetailFromSchedule}
                 onEditorActiveChange={handleScheduleEditorChange}
+                onOpenAgendaDay={openAgendaDay}
+                onOpenAgenda={openAgenda}
                 isActive={activeTab === 'schedule'}
               />
+            </div>
+            <div className={activeTab === 'agenda' ? tabEnterClass : 'tab-hidden'}>
+              {mountedTabs.has('agenda') && (
+                <Suspense fallback={<ViewSkeleton />}>
+                  <AgendaView
+                    focusRequest={agendaFocus}
+                    onEditorActiveChange={handleAgendaEditorChange}
+                    isActive={activeTab === 'agenda'}
+                  />
+                </Suspense>
+              )}
             </div>
             <div className={activeTab === 'subjects' ? tabEnterClass : 'tab-hidden'}>
               {mountedTabs.has('subjects') && (
@@ -684,6 +718,7 @@ export function App() {
           subjectCount={subjectCount}
           notesCount={notesCount}
           documentsCount={documentsCount}
+          agendaDueCount={agendaDueCount}
         />
       )}
     </div>

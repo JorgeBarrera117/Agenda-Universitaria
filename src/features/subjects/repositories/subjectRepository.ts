@@ -80,8 +80,10 @@ export class DexieSubjectRepository implements ISubjectRepository {
 
   async delete(id: string): Promise<void> {
     // Transacción atómica: si se borra una materia, borramos también los slots del horario asociados
-    await db.transaction('rw', [db.subjects, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios, db.professors], async () => {
+    await db.transaction('rw', [db.subjects, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios, db.professors, db.agendaEvents], async () => {
       await db.scheduleSlots.where('subjectId').equals(id).delete();
+      // Los eventos de la agenda se conservan, sin materia (una tarea pendiente no debe desaparecer)
+      await db.agendaEvents.where('subjectId').equals(id).modify({ subjectId: undefined });
       // Fotos y notas de voz de sus apuntes también (antes quedaban huérfanas en la base de datos)
       const noteIds = (await db.notes.where('subjectId').equals(id).primaryKeys()) as string[];
       if (noteIds.length > 0) {
