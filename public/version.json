@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.96",
+  "latestVersion": "1.7.10.97",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.96/Agenda-Universitaria-v1.7.10.96.apk",
-  "apkSha256": "c50cfd909528ddb674bc33912be635387f1ff4f7b4c4e9f50ab8983e09d523f0",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.96/Agenda-Universitaria-Setup-v1.7.10.96.exe",
-  "desktopSha256": "cf2c99862370942cf4a522ba39fe64ed85c16fd47ed8445a3a4ece48cc2ffdb5",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.97/Agenda-Universitaria-v1.7.10.97.apk",
+  "apkSha256": "8aeef9f25adaa8cc3ee4516692eda0e5f43960fdb912328ce049c32b67664c24",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.97/Agenda-Universitaria-Setup-v1.7.10.97.exe",
+  "desktopSha256": "f6ccda51475f0388e4f4674607c262c99fc8336ff1ff742433792a6502bdad98",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Calendario y reloj de Material 3 con los colores de tu tema",
-    "Elige la hora tocando la esfera o escribiéndola"
+    "Ficha de cada evento de la agenda con todas sus opciones",
+    "Lo pasado y lo hecho ya no desaparece de la agenda"
   ]
 }
