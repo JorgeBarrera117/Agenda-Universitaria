@@ -13,6 +13,7 @@ import {
   Pencil,
   Plus,
   Share2,
+  Timer,
   Trash2,
   UserPlus,
 } from 'lucide-react';
@@ -28,6 +29,8 @@ import {
   DetailScreen,
   DetailSection,
 } from '../../../shared/components/detail/DetailKit';
+import { studyTimer } from '../../study/state/studyTimerStore';
+import { formatStudyMinutes, useStudyWeekStats } from '../../study/hooks/useStudyStats';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import type { Professor } from '../../professors/types';
 import { DAY_NAMES, type ScheduleSlot } from '../../schedule/types';
@@ -97,6 +100,8 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
   const sortedSlots = [...slots].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startTime.localeCompare(b.startTime));
   const weeklyMinutes = sortedSlots.reduce((sum, slot) => sum + Math.max(0, minutesOf(slot.endTime) - minutesOf(slot.startTime)), 0);
   const hasCredits = subject.credits !== undefined && subject.credits > 0;
+  const studyStats = useStudyWeekStats();
+  const studiedThisWeek = studyStats.bySubject.find((row) => row.subjectId === subject.id)?.minutes ?? 0;
 
   return (
     <DetailScreen
@@ -160,6 +165,11 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                 {subject.credits} {subject.credits === 1 ? 'crédito' : 'créditos'}
               </DetailChip>
             )}
+            {studiedThisWeek > 0 && (
+              <DetailChip tone="tonal" icon={<Timer className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>
+                {formatStudyMinutes(studiedThisWeek)} esta semana
+              </DetailChip>
+            )}
             {subject.classroomDefault && (
               <DetailChip icon={<MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />}>
                 <span className="sr-only">Aula habitual: </span>
@@ -182,6 +192,12 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
               label={`Archivos (${docCount})`}
               ariaLabel={`Archivos de la materia: ${docCount}`}
               onClick={() => onNavigateToDocs(subject)}
+            />
+            <DetailAction
+              icon={<Timer className="h-4 w-4" aria-hidden="true" />}
+              label="Estudiar"
+              ariaLabel={`Estudiar ${subject.name} con el modo estudio`}
+              onClick={() => studyTimer.open(subject.id)}
             />
           </DetailActions>
         }

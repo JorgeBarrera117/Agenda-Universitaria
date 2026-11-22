@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, BellOff, BookOpenCheck, CalendarDays, Check, Clock, Edit2, Info, ListChecks, MapPin, Repeat, Share2, StickyNote, Trash2, Undo2 } from 'lucide-react';
+import { Bell, BellOff, BookOpenCheck, CalendarDays, Check, Clock, Edit2, Info, ListChecks, MapPin, Repeat, Share2, StickyNote, Timer, Trash2, Undo2 } from 'lucide-react';
+import { studyTimer } from '../../study/state/studyTimerStore';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { PAGE_HEADER_PRIMARY_BUTTON } from '../../../shared/components/PageHeader';
 import {
@@ -140,6 +141,15 @@ export const AgendaEventDetail: React.FC<AgendaEventDetailProps> = ({
               />
             )}
             {/* En las tareas, «Marcar como hecha» va sola a todo el ancho; Compartir queda en ⋮ */}
+            {/* Para un examen, lo principal es prepararse: estudiar con el modo estudio */}
+            {event.type === 'exam' && (
+              <DetailAction
+                variant="primary"
+                icon={<Timer className="h-4 w-4" aria-hidden="true" />}
+                label="Estudiar"
+                onClick={() => studyTimer.open(event.subjectId)}
+              />
+            )}
             {!isTask && <DetailAction icon={<Share2 className="h-4 w-4" aria-hidden="true" />} label="Compartir" onClick={onShare} />}
           </DetailActions>
         }

@@ -7,6 +7,7 @@
  * ==============================================================================
  */
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, memo, Suspense } from 'react';
+import { StudyTimerHost } from './features/study/components/StudyTimerHost';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
@@ -503,6 +504,9 @@ export function App() {
           agendaDueCount={agendaDueCount}
         />
       )}
+
+      {/* Modo estudio: vigila el temporizador aunque su pantalla esté cerrada */}
+      <StudyTimerHost />
 
       {whatsNew.length > 0 && !incoming && (
         <Suspense fallback={null}>

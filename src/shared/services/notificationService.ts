@@ -204,6 +204,51 @@ function generateNotificationId(slotId: string, typeSuffix: number): number {
 export class NotificationService {
   private static activeChannelId: string | null = null;
   private static lastNotificationHash = '';
+  /** Aviso de fin de la sesión del modo estudio (se vuelve a programar tras reprogramar el resto). */
+  private static studyAlarm: { at: Date; title: string; body: string; settings: ToneSettings } | null = null;
+  private static readonly STUDY_ALARM_ID = 7_777_777;
+
+  /**
+   * Programa (o con `at` null, quita) el aviso de fin de la sesión del modo estudio. Solo en
+   * Android: en escritorio y web la app avisa al terminar mientras está abierta.
+   */
+  static async setStudyAlarm(at: Date | null, title: string, body: string, settings: ToneSettings): Promise<void> {
+    this.studyAlarm = at ? { at, title, body, settings } : null;
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      await LocalNotifications.cancel({ notifications: [{ id: this.STUDY_ALARM_ID }] });
+    } catch {
+      // No había aviso programado
+    }
+    await this.scheduleStudyAlarm();
+  }
+
+  private static async scheduleStudyAlarm(): Promise<void> {
+    const alarm = this.studyAlarm;
+    if (!alarm || alarm.at.getTime() <= Date.now() || !Capacitor.isNativePlatform()) return;
+    try {
+      if (!(await this.checkPermissions())) return;
+      const { channelId, sound } = resolveChannel(alarm.settings);
+      await this.ensureNotificationChannel(alarm.settings.notificationTone, alarm.settings.notificationSound);
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: this.STUDY_ALARM_ID,
+            title: alarm.title,
+            body: alarm.body,
+            channelId,
+            smallIcon: 'ic_stat_agenda',
+            largeIcon: 'ic_notification_large',
+            iconColor: APP_COLOR,
+            schedule: { at: alarm.at, allowWhileIdle: true },
+            sound,
+          },
+        ],
+      });
+    } catch (err) {
+      console.warn('No se pudo programar el aviso del modo estudio:', err);
+    }
+  }
 
   /** Reproduce el tono elegido (web y escritorio, donde el aviso del sistema no admite sonidos propios). */
   static playTone(settings: ToneSettings): void {
@@ -378,12 +423,13 @@ export class NotificationService {
       await this.ensureNotificationChannel(settings.notificationTone, settings.notificationSound);
     }
 
-    // 1. Limpiar notificaciones previas
+    // 1. Limpiar notificaciones previas (el aviso del modo estudio en curso se vuelve a programar)
     try {
       await LocalNotifications.cancelAll();
     } catch (err) {
       console.warn('No se pudieron cancelar notificaciones anteriores:', err);
     }
+    await this.scheduleStudyAlarm();
 
     if (!settings.notificationsEnabled || (slots.length === 0 && events.length === 0)) {
       return { scheduledCount: 0 };

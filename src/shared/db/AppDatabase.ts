@@ -4,6 +4,7 @@ import type { Professor } from '../../features/professors/types';
 import type { ScheduleSlot } from '../../features/schedule/types';
 import type { Note, NoteAudio, NoteImage } from '../../features/notes/types';
 import type { AgendaEvent } from '../../features/agenda/types';
+import type { StudySession } from '../../features/study/types';
 
 export class AppDatabase extends Dexie {
   subjects!: Table<Subject, string>;
@@ -15,6 +16,8 @@ export class AppDatabase extends Dexie {
   noteAudios!: Table<NoteAudio, string>;
   /** Agenda: tareas, exámenes, recordatorios y días libres con fecha. */
   agendaEvents!: Table<AgendaEvent, string>;
+  /** Modo estudio: sesiones de concentración terminadas (horas por materia). */
+  studySessions!: Table<StudySession, string>;
 
   constructor() {
     super('AgendaUniversitariaDB');
@@ -37,6 +40,10 @@ export class AppDatabase extends Dexie {
     // Agenda (tabla nueva): las existentes no cambian, la migración no toca datos
     this.version(5).stores({
       agendaEvents: 'id, date, type, subjectId',
+    });
+    // Modo estudio (tabla nueva): las existentes no cambian, la migración no toca datos
+    this.version(6).stores({
+      studySessions: 'id, subjectId, startedAt',
     });
   }
 }

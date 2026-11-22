@@ -14,6 +14,7 @@ import {
   type AgendaEventType,
   type AgendaReminderLead,
 } from '../../features/agenda/types';
+import type { StudySession } from '../../features/study/types';
 import { isDateKey, isTimeValue } from '../../features/agenda/utils/agendaDates';
 import { WidgetBridge } from '../plugins/widgetBridge';
 import { sanitizeNoteHtml } from './sanitizeHtml';
@@ -45,6 +46,7 @@ export async function generateBackupData(options: BackupOptions = {}): Promise<{
   const rawImages = await db.noteImages.toArray();
   const rawAudios = await db.noteAudios.toArray();
   const agendaEvents = await db.agendaEvents.toArray();
+  const studySessions = await db.studySessions.toArray();
 
   const serializedImages = await Promise.all(
     rawImages.map(async (img) => ({
@@ -82,6 +84,8 @@ export async function generateBackupData(options: BackupOptions = {}): Promise<{
       audios: serializedAudios,
       // Agenda (desde 1.7.10.92); si falta, al restaurar no se toca la agenda actual
       agendaEvents,
+      // Modo estudio; si falta (respaldo anterior), al restaurar no se toca el registro actual
+      studySessions,
       // Archivos de las materias: solo en la transferencia. Si falta, al restaurar no se tocan.
       ...(options.includeDocuments ? { documents: await exportDocuments() } : {}),
     },
@@ -304,7 +308,7 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
   const rawDocuments = (parsed as { data?: { documents?: unknown } }).data?.documents;
   const documents = rawDocuments === undefined ? null : prepareDocuments(rawDocuments);
 
-  await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios, db.agendaEvents], async () => {
+  await db.transaction('rw', [db.subjects, db.professors, db.scheduleSlots, db.notes, db.noteImages, db.noteAudios, db.agendaEvents, db.studySessions], async () => {
     await db.subjects.clear();
     await db.professors.clear();
     await db.scheduleSlots.clear();
@@ -323,6 +327,10 @@ export async function restoreFromRawJson(rawText: string): Promise<void> {
       await db.agendaEvents.clear();
       if (backup.agendaEvents.length) await db.agendaEvents.bulkAdd(backup.agendaEvents);
     }
+    if (backup.studySessions) {
+      await db.studySessions.clear();
+      if (backup.studySessions.length) await db.studySessions.bulkAdd(backup.studySessions);
+    }
   });
 
   if (documents) await replaceAllDocuments(documents);
@@ -339,6 +347,8 @@ interface ParsedBackup {
   audios: NoteAudio[];
   /** null si el respaldo es anterior a la Agenda. */
   agendaEvents: AgendaEvent[] | null;
+  /** null si el respaldo es anterior al modo estudio. */
+  studySessions: StudySession[] | null;
 }
 
 const INVALID_BACKUP_MESSAGE = 'El archivo no contiene un formato de respaldo válido de Agenda Universitaria.';
@@ -425,7 +435,24 @@ function parseBackupPayload(parsed: unknown): ParsedBackup {
     });
   }
 
-  return { subjects, professors, scheduleSlots, notes, images, audios, agendaEvents: parseAgendaEvents(data) };
+  return { subjects, professors, scheduleSlots, notes, images, audios, agendaEvents: parseAgendaEvents(data), studySessions: parseStudySessions(data) };
+}
+
+/** Sesiones del modo estudio de un respaldo: solo las que tienen fecha y minutos válidos. */
+function parseStudySessions(data: UnknownRecord): StudySession[] | null {
+  if (data.studySessions === undefined) return null;
+  const sessions: StudySession[] = [];
+  for (const raw of readRecords(data, 'studySessions', ['id', 'startedAt'])) {
+    if (typeof raw.minutes !== 'number' || !Number.isFinite(raw.minutes) || raw.minutes <= 0) continue;
+    if (Number.isNaN(Date.parse(raw.startedAt as string))) continue;
+    sessions.push({
+      id: (raw.id as string).slice(0, 80),
+      subjectId: isString(raw.subjectId) && raw.subjectId ? raw.subjectId.slice(0, 80) : undefined,
+      startedAt: raw.startedAt as string,
+      minutes: Math.min(600, Math.round(raw.minutes)),
+    });
+  }
+  return sessions;
 }
 
 /** Subtareas de una tarea del respaldo (como mucho 30, con texto). */
