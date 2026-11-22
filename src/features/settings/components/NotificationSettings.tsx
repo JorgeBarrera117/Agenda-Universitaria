@@ -2,8 +2,8 @@ import React from 'react';
 import { Bell, CheckCircle2, Clock, ExternalLink, Loader2, Send, ShieldAlert, Sunrise, Volume2 } from 'lucide-react';
 import { M3Switch, SettingsBlock, SettingsCard, ToggleChip } from './SettingsPrimitives';
 import { NotificationTonePicker } from './NotificationTonePicker';
-import { formInputClass } from '../../../shared/components/form';
 import { REMINDER_LEAD_OPTIONS, type AppSettings, type NotificationSoundTone, type ReminderLeadMinutes } from '../types';
+import { TimePickerField } from '../../../shared/components/pickers/TimePickerField';
 
 type SpecificNotificationKey = 'notify15MinBefore' | 'notifyAtClassStart' | 'notificationSound';
 
@@ -151,17 +151,18 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       icon={<Sunrise className="h-4 w-4" />}
     >
       <div className="flex items-center justify-between gap-3">
-        <label htmlFor="daily-summary-time" className={`flex items-center gap-2 text-xs font-semibold ${settings.dailySummaryEnabled ? 'text-[var(--color-md-on-surface)]' : 'text-[var(--color-md-on-surface-variant)]'}`}>
-          Hora del aviso
-          <input
+        <div className={`flex items-center gap-2 text-xs font-semibold ${settings.dailySummaryEnabled ? 'text-[var(--color-md-on-surface)]' : 'text-[var(--color-md-on-surface-variant)]'}`}>
+          <span aria-hidden="true">Hora del aviso</span>
+          <TimePickerField
             id="daily-summary-time"
-            type="time"
             value={settings.dailySummaryTime || '07:00'}
             disabled={!settings.notificationsEnabled || !settings.dailySummaryEnabled}
-            onChange={(e) => e.target.value && onUpdate({ dailySummaryTime: e.target.value })}
-            className={`${formInputClass} w-32 font-mono font-bold disabled:opacity-50`}
+            onChange={(time) => time && onUpdate({ dailySummaryTime: time })}
+            ariaLabel="Hora del resumen del día"
+            dialogTitle="Hora del resumen del día"
+            className="w-36"
           />
-        </label>
+        </div>
         <M3Switch
           checked={Boolean(settings.dailySummaryEnabled)}
           disabled={!settings.notificationsEnabled}

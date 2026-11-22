@@ -1,22 +1,20 @@
 import type { AgendaEvent, AgendaReminderLead } from '../types';
+import {
+  MONTHS_LONG,
+  MONTHS_SHORT,
+  WEEKDAYS_LONG,
+  WEEKDAYS_SHORT,
+  fromDateKey,
+  monthGrid,
+  toDateKey,
+  type MonthCell,
+} from '../../../shared/utils/calendarDates';
 
 /**
  * Fechas de la agenda como texto "YYYY-MM-DD" en hora local: se comparan y ordenan como texto y no
- * sufren el corrimiento de zona horaria de toISOString().
+ * sufren el corrimiento de zona horaria de toISOString(). Las básicas viven en shared/utils/calendarDates.
  */
-
-const pad = (n: number) => String(n).padStart(2, '0');
-
-export function toDateKey(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-/** Fecha local a medianoche (o a la hora dada) de un "YYYY-MM-DD". */
-export function fromDateKey(key: string, time?: string): Date {
-  const [y, m, d] = key.split('-').map(Number);
-  const [h, min] = (time || '00:00').split(':').map(Number);
-  return new Date(y, (m || 1) - 1, d || 1, h || 0, min || 0, 0, 0);
-}
+export { MONTHS_LONG, fromDateKey, monthGrid, toDateKey, type MonthCell };
 
 export function addDaysToKey(key: string, days: number): string {
   const date = fromDateKey(key);
@@ -71,13 +69,6 @@ export function reminderMoment(event: AgendaEvent): Date | null {
   return new Date(base.getTime() - LEAD_MINUTES[event.remind] * 60_000);
 }
 
-const WEEKDAYS_SHORT = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-const WEEKDAYS_LONG = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
-export const MONTHS_LONG = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
 
 /** "Hoy", "Mañana", "Ayer" o "mar 24 nov". */
 export function relativeDayLabel(key: string, todayKey: string): string {
@@ -99,23 +90,4 @@ export function longDayLabel(key: string): string {
 export function scheduleWeekday(key: string): number {
   const day = fromDateKey(key).getDay();
   return day === 0 ? 7 : day;
-}
-
-export interface MonthCell {
-  key: string;
-  day: number;
-  inMonth: boolean;
-}
-
-/** Cuadrícula de un mes que empieza en lunes: 6 semanas (42 días) para que no salte de alto. */
-export function monthGrid(year: number, month: number): MonthCell[] {
-  const first = new Date(year, month, 1);
-  const offset = (first.getDay() + 6) % 7; // lunes = 0
-  const start = new Date(year, month, 1 - offset);
-  const cells: MonthCell[] = [];
-  for (let i = 0; i < 42; i += 1) {
-    const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    cells.push({ key: toDateKey(date), day: date.getDate(), inMonth: date.getMonth() === month });
-  }
-  return cells;
 }

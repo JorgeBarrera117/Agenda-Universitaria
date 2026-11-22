@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { BellOff } from 'lucide-react';
 import { FormField, FormSection, FormSheet, SegmentedControl, formInputClass } from '../../../shared/components/form';
 import { M3Select } from '../../../shared/components/M3Select';
+import { DatePickerField } from '../../../shared/components/pickers/DatePickerField';
+import { TimePickerField } from '../../../shared/components/pickers/TimePickerField';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import type { Subject } from '../../subjects/types';
 import {
@@ -157,22 +159,23 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
 
         <div className="grid grid-cols-2 gap-3">
           <FormField htmlFor="agenda-date" label={isHoliday ? 'Desde' : 'Fecha'} required>
-            <input id="agenda-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={formInputClass} />
+            <DatePickerField id="agenda-date" value={date} onChange={setDate} dialogTitle={isHoliday ? 'Primer día libre' : 'Fecha'} />
           </FormField>
           {isHoliday ? (
             <FormField htmlFor="agenda-end" label="Hasta (opcional)">
-              <input
+              <DatePickerField
                 id="agenda-end"
-                type="date"
                 value={endDate}
                 min={date}
-                onChange={(e) => setEndDate(e.target.value)}
-                className={formInputClass}
+                onChange={setEndDate}
+                allowClear
+                placeholder="Solo un día"
+                dialogTitle="Último día libre"
               />
             </FormField>
           ) : (
             <FormField htmlFor="agenda-time" label="Hora (opcional)">
-              <input id="agenda-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className={formInputClass} />
+              <TimePickerField id="agenda-time" value={time} onChange={setTime} allowClear placeholder="Sin hora" />
             </FormField>
           )}
         </div>

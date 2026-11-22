@@ -6,6 +6,7 @@ import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { M3Switch } from '../../settings/components/SettingsPrimitives';
 import { M3Select } from '../../../shared/components/M3Select';
+import { TimePickerField } from '../../../shared/components/pickers/TimePickerField';
 import {
   FormSheet,
   FormSection,
@@ -288,7 +289,6 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
     }
   };
 
-  const timeInputClass = `${formInputClass} font-mono font-bold`;
 
   return (
     <FormSheet
@@ -375,22 +375,20 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
           <>
             <div className="grid grid-cols-2 gap-3">
               <FormField htmlFor="slot-start" label="Inicio" required>
-                <input
+                <TimePickerField
                   id="slot-start"
-                  type="time"
                   value={sharedTime.start}
-                  onChange={(e) => setSharedTime((prev) => ({ ...prev, start: e.target.value }))}
-                  className={timeInputClass}
+                  onChange={(start) => setSharedTime((prev) => ({ ...prev, start }))}
+                  dialogTitle="Hora de inicio"
                 />
               </FormField>
               <FormField htmlFor="slot-end" label="Fin" required>
-                <input
+                <TimePickerField
                   id="slot-end"
-                  type="time"
                   value={sharedTime.end}
-                  onChange={(e) => setSharedTime((prev) => ({ ...prev, end: e.target.value }))}
-                  aria-invalid={(durationOf(sharedTime) ?? 1) <= 0}
-                  className={timeInputClass}
+                  onChange={(end) => setSharedTime((prev) => ({ ...prev, end }))}
+                  invalid={(durationOf(sharedTime) ?? 1) <= 0}
+                  dialogTitle="Hora de fin"
                 />
               </FormField>
             </div>
@@ -409,27 +407,25 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
                     <DurationChip range={range} compact />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <label className="block">
-                      <span className="mb-1 block text-xs text-[var(--color-md-on-surface-variant)]">Inicio</span>
-                      <input
-                        type="time"
+                    <div>
+                      <span className="mb-1 block text-xs text-[var(--color-md-on-surface-variant)]" aria-hidden="true">Inicio</span>
+                      <TimePickerField
                         value={range.start}
-                        onChange={(e) => setDayTime(day, 'start', e.target.value)}
-                        aria-label={`Inicio del ${dayName}`}
-                        className={timeInputClass}
+                        onChange={(start) => setDayTime(day, 'start', start)}
+                        ariaLabel={`Inicio del ${dayName}`}
+                        dialogTitle={`Inicio del ${dayName}`}
                       />
-                    </label>
-                    <label className="block">
-                      <span className="mb-1 block text-xs text-[var(--color-md-on-surface-variant)]">Fin</span>
-                      <input
-                        type="time"
+                    </div>
+                    <div>
+                      <span className="mb-1 block text-xs text-[var(--color-md-on-surface-variant)]" aria-hidden="true">Fin</span>
+                      <TimePickerField
                         value={range.end}
-                        onChange={(e) => setDayTime(day, 'end', e.target.value)}
-                        aria-label={`Fin del ${dayName}`}
-                        aria-invalid={(durationOf(range) ?? 1) <= 0}
-                        className={timeInputClass}
+                        onChange={(end) => setDayTime(day, 'end', end)}
+                        ariaLabel={`Fin del ${dayName}`}
+                        invalid={(durationOf(range) ?? 1) <= 0}
+                        dialogTitle={`Fin del ${dayName}`}
                       />
-                    </label>
+                    </div>
                   </div>
                 </li>
               );
