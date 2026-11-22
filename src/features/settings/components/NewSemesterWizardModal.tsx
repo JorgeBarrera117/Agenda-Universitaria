@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Archive, CalendarX2, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldCheck, Users } from 'lucide-react';
+import { Archive, CalendarCheck2, CalendarX2, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldCheck, Users } from 'lucide-react';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { Button } from '../../../shared/components/atoms';
 import { formInputClass } from '../../../shared/components/form';
@@ -8,7 +8,9 @@ import { useNotes } from '../../notes/hooks/useNotes';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { startNewAcademicCycle, type NewCycleResult } from '../../subjects/services/academicCycleService';
+import { isFinishedAgendaEvent, startNewAcademicCycle, type NewCycleResult } from '../../subjects/services/academicCycleService';
+import { useAgenda } from '../../agenda/hooks/useAgenda';
+import { useTodayKey } from '../../agenda/hooks/useTodayKey';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { M3Switch } from './SettingsPrimitives';
 
@@ -57,12 +59,15 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
   const { slots } = useSchedule();
   const { notes } = useNotes();
   const { professors } = useProfessors();
+  const { events } = useAgenda();
+  const todayKey = useTodayKey();
 
   const [step, setStep] = useState<WizardStep>(0);
   const [backup, setBackup] = useState<BackupState>({ status: 'idle' });
   const [newName, setNewName] = useState('');
   const [clearSchedule, setClearSchedule] = useState(true);
   const [archiveSubjects, setArchiveSubjects] = useState(true);
+  const [clearPastAgenda, setClearPastAgenda] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,6 +75,8 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
   const trimmedName = newName.trim();
   const nameError = trimmedName && trimmedName === currentName ? 'Es el mismo nombre del semestre actual.' : null;
   const activeSubjects = subjects.filter((s) => !s.isArchived);
+  const finishedAgenda = events.filter((event) => isFinishedAgendaEvent(event, todayKey)).length;
+  const upcomingAgenda = events.length - finishedAgenda;
 
   const runBackup = async (): Promise<boolean> => {
     setBackup({ status: 'saving' });
@@ -98,7 +105,13 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
       return;
     }
     try {
-      const result = await startNewAcademicCycle({ finishedSemesterName: currentName, clearSchedule, archiveSubjects });
+      const result = await startNewAcademicCycle({
+        finishedSemesterName: currentName,
+        clearSchedule,
+        archiveSubjects,
+        clearPastAgenda: clearPastAgenda && finishedAgenda > 0,
+        todayKey,
+      });
       updateSettings({ semesterName: trimmedName });
       onCompleted({ ...result, newSemesterName: trimmedName });
     } catch (err) {
@@ -218,6 +231,22 @@ export const NewSemesterWizardModal: React.FC<NewSemesterWizardModalProps> = ({ 
               checked={archiveSubjects}
               onChange={setArchiveSubjects}
             />
+            {events.length > 0 && (
+              <OptionRow
+                icon={<CalendarCheck2 className="h-4 w-4" />}
+                title="Limpiar la agenda del semestre"
+                description={
+                  finishedAgenda > 0
+                    ? `Quita ${plural(finishedAgenda, 'evento que ya pasó o tarea hecha', 'eventos que ya pasaron o tareas hechas')}${
+                        upcomingAgenda > 0 ? `; ${plural(upcomingAgenda, 'evento próximo se queda', 'eventos próximos se quedan')}` : ''
+                      }.`
+                    : 'No hay nada pasado ni hecho que quitar: tus eventos próximos se quedan.'
+                }
+                checked={clearPastAgenda && finishedAgenda > 0}
+                onChange={setClearPastAgenda}
+                locked={finishedAgenda === 0}
+              />
+            )}
             <OptionRow
               icon={<Users className="h-4 w-4" />}
               title="Conservar los catedráticos"
