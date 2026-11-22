@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.97",
-  "releaseDate": "2026-11-21",
+  "latestVersion": "1.7.10.98",
+  "releaseDate": "2026-11-22",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.97/Agenda-Universitaria-v1.7.10.97.apk",
-  "apkSha256": "8aeef9f25adaa8cc3ee4516692eda0e5f43960fdb912328ce049c32b67664c24",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.97/Agenda-Universitaria-Setup-v1.7.10.97.exe",
-  "desktopSha256": "f6ccda51475f0388e4f4674607c262c99fc8336ff1ff742433792a6502bdad98",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.98/Agenda-Universitaria-v1.7.10.98.apk",
+  "apkSha256": "b90f075a2cd60ce063df8f01bfc8cd29f7bf480425842a7f711a782f3d768b41",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.98/Agenda-Universitaria-Setup-v1.7.10.98.exe",
+  "desktopSha256": "c905ebcccd21f6c3ffc970d3704e6639b936ddc58069a6adfceead78b502dd19",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Ficha de cada evento de la agenda con todas sus opciones",
-    "Lo pasado y lo hecho ya no desaparece de la agenda"
+    "Fichas y formularios con el mismo diseño y vista previa en vivo",
+    "Teléfono del docente con selector de país"
   ]
 }
