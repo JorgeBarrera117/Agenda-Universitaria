@@ -28,6 +28,9 @@ export interface M3KebabMenuProps {
   label?: string;
   /** Ícono del botón con texto (por defecto, los tres puntos). */
   icon?: React.ReactNode;
+  /** Con texto: reemplaza el estilo tonal del disparador (p. ej. botón flotante de color sólido). */
+  triggerClassName?: string;
+  triggerStyle?: React.CSSProperties;
 }
 
 /**
@@ -49,6 +52,8 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
   size = 'sm',
   label,
   icon,
+  triggerClassName,
+  triggerStyle,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -185,10 +190,14 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
           aria-label={ariaLabel}
           aria-haspopup="menu"
           aria-expanded={isOpen}
-          className={`inline-flex h-10 items-center gap-1.5 rounded-full pl-3.5 pr-3 text-sm font-semibold transition-all duration-150 ease-out active:scale-95 ${
-            isOpen
-              ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
-              : 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:shadow-2xs hover:brightness-[0.97]'
+          style={triggerStyle}
+          className={`inline-flex items-center gap-1.5 transition-all duration-150 ease-out active:scale-95 ${
+            triggerClassName ??
+            `h-10 rounded-full pl-3.5 pr-3 text-sm font-semibold ${
+              isOpen
+                ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] shadow-2xs'
+                : 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:shadow-2xs hover:brightness-[0.97]'
+            }`
           }`}
         >
           <span className="flex h-4 w-4 items-center justify-center [&>svg]:h-4 [&>svg]:w-4" aria-hidden="true">

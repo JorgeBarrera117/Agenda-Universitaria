@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, FileText, FolderKanban, Info, Users } from 'lucide-react';
 import { SegmentedControl, type SegmentedOption } from './form/SegmentedControl';
 import { FloatingSectionSwitcher } from './FloatingSectionSwitcher';
+import { AREA_COLOR } from './floatingStyles';
 import { NAV_TAB_OF, NAV_TAB_SECTIONS, type NavTabId, type SectionId } from '../navigation/sections';
 
 interface SectionSwitcherProps {
@@ -98,6 +99,7 @@ export const SectionSwitcher: React.FC<SectionSwitcherProps> = ({ activeSection,
           value: section,
           label: SECTION_LABEL[section],
           icon: iconOf(section, 'h-5 w-5 shrink-0'),
+          color: section === 'subjects' || section === 'professors' || section === 'notes' || section === 'documents' ? AREA_COLOR[section] : AREA_COLOR.schedule,
         }))}
       />
       <div className="flex flex-col gap-2.5 md:mb-3">

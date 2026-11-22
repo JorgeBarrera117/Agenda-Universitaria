@@ -40,7 +40,9 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { DeleteSlotDialog } from './DeleteSlotDialog';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
-import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
+import { M3KebabMenu, type KebabMenuItem } from '../../../shared/components/M3KebabMenu';
+import { FloatingMenuButton } from '../../../shared/components/FloatingMenuButton';
+import { AREA_COLOR } from '../../../shared/components/floatingStyles';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
@@ -283,6 +285,34 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     );
   }
 
+
+  // Opciones de Compartir: las usa el menú de arriba (PC y tableta) y el flotante (teléfono)
+  const shareItems: KebabMenuItem[] = [
+    {
+      id: 'share-agschedule',
+      label: 'Compartir horario',
+      icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+      onClick: () => void handleShareSchedule(),
+    },
+    {
+      id: 'import-agschedule',
+      label: 'Importar horario',
+      icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+      onClick: agschedulePicker.open,
+    },
+    // Acceso directo a pasar los datos por QR (solo en las apps de Android y Windows)
+    ...(transferLabel
+      ? [
+          {
+            id: 'device-transfer',
+            label: transferLabel,
+            icon: <MonitorSmartphone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+            onClick: () => setTransferOpen(true),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div className="flex flex-col gap-3 sm:gap-3.5">
       {/* 1. ENCABEZADO DEL APARTADO (Compacto y Predecible) */}
@@ -373,36 +403,19 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
           {/* Compartir o importar el horario completo (.agschedule) */}
           <input {...agschedulePicker.inputProps} />
-          <M3KebabMenu
-            ariaLabel="Compartir, importar o pasar datos"
-            label="Compartir"
-            icon={<Share2 />}
-            items={[
-              {
-                id: 'share-agschedule',
-                label: 'Compartir horario',
-                icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-                onClick: () => void handleShareSchedule(),
-              },
-              {
-                id: 'import-agschedule',
-                label: 'Importar horario',
-                icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-                onClick: agschedulePicker.open,
-              },
-              // Acceso directo a pasar los datos por QR (solo en las apps de Android y Windows)
-              ...(transferLabel
-                ? [
-                    {
-                      id: 'device-transfer',
-                      label: transferLabel,
-                      icon: <MonitorSmartphone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-                      onClick: () => setTransferOpen(true),
-                    },
-                  ]
-                : []),
-            ]}
-          />
+          {/* En PC y tableta, aquí arriba; en el teléfono va flotando bajo el botón de agregar */}
+          <div className="hidden md:block">
+            <M3KebabMenu ariaLabel="Compartir, importar o pasar datos" label="Compartir" icon={<Share2 />} items={shareItems} />
+          </div>
+          {isActive && (
+            <FloatingMenuButton
+              label="Compartir"
+              ariaLabel="Compartir, importar o pasar datos"
+              icon={<Share2 />}
+              color={AREA_COLOR.schedule}
+              items={shareItems}
+            />
+          )}
           {transferOpen && (
             <Suspense fallback={null}>
               <TransferLauncher onClose={() => setTransferOpen(false)} onShowToast={showToast} />
