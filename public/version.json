@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.11.0",
+  "latestVersion": "1.7.11.1",
   "releaseDate": "2026-11-22",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.0/Agenda-Universitaria-v1.7.11.0.apk",
-  "apkSha256": "503a419c9f5a55b7d10558af86367778d4786acae1cfb8e6baf1c4cd0bbc56cd",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.0/Agenda-Universitaria-Setup-v1.7.11.0.exe",
-  "desktopSha256": "27a13c7b19018e3fd2e960c2f257bdb9d72fc37b934d5e56dab36f6cc729ba96",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.1/Agenda-Universitaria-v1.7.11.1.apk",
+  "apkSha256": "a27a88190b4d7d27ef09e44fe6035d88a0362f2c002cc1cf55f66114d8421168",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.1/Agenda-Universitaria-Setup-v1.7.11.1.exe",
+  "desktopSha256": "e35d6e014d264b3f8ce59be15b9a541f70ffdf2350b0eb1cdb8b9c5cec05dc0e",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Nueva pestaña Estudio (Pomodoro) con aviso en vivo en el teléfono",
-    "Sonidos propios para Horario, Agenda y Estudio"
+    "Sonidos nuevos para cada fase del Estudio",
+    "El Estudio con el color de tu tema y reloj de arena en la notificación"
   ]
 }
