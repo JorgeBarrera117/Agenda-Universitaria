@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.93",
+  "latestVersion": "1.7.10.94",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.93/Agenda-Universitaria-v1.7.10.93.apk",
-  "apkSha256": "70a0daeb4af3bca32a432e166c6cab239630486f0e5e0676f24d211f7804c16e",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.93/Agenda-Universitaria-Setup-v1.7.10.93.exe",
-  "desktopSha256": "66d32ef079f68bd64d3029d4ce6192b66cd1bd839662b92fe485cbc681b81447",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.94/Agenda-Universitaria-v1.7.10.94.apk",
+  "apkSha256": "21bd4f2df6c7a5065106c2b522f0150678a5807d6ad0c34f70f2db590e5525b5",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.94/Agenda-Universitaria-Setup-v1.7.10.94.exe",
+  "desktopSha256": "635adc911746f98c125d48ff8d97a31401873ea4dfca8415d50986b2db613260",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Botones flotantes para cambiar entre Materias y Profesores, Apuntes y Archivos",
-    "Siguen al botón de agregar si lo mueves"
+    "En la Agenda, cada clase del día muestra su ícono y abre su materia",
+    "El botón para salir del día dice «Cerrar»"
   ]
 }
