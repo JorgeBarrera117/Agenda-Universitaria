@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.1',
+    date: '2026-11-22',
+    title: 'Sonidos para cada fase del Estudio',
+    changes: [
+      { kind: 'nuevo', text: 'Cinco sonidos nuevos para el Estudio (Pulso digital, Campana zen, Marimba cálida, Chime de cristal y Alarma clásica suave), cada uno con la fase para la que es ideal.' },
+      { kind: 'nuevo', text: 'Un sonido propio para cada fase: al empezar, fin de enfoque, fin de descanso corto y fin de descanso largo (cierre de ciclo).' },
+      { kind: 'mejora', text: 'El Estudio toma el color de tu tema cuando no eliges materia, también en la notificación.' },
+      { kind: 'mejora', text: 'La notificación del Estudio muestra un reloj de arena (y una taza en la pausa), como un temporizador.' },
+      { kind: 'mejora', text: 'Elegir un sonido es más claro: botón de escuchar más grande, el tono elegido bien marcado y el origen como texto.' },
+    ],
+  },
+  {
     version: '1.7.11.0',
     date: '2026-11-22',
     title: 'Nueva pestaña Estudio',
