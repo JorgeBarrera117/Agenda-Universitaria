@@ -12,6 +12,7 @@ import {
   FormSection,
   FormField,
   IdentityPicker,
+  PhoneField,
   formInputClass,
 } from '../../../shared/components/form';
 
@@ -146,16 +147,8 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
               className={formInputClass}
             />
           </FormField>
-          <FormField htmlFor="prof-phone" label="Teléfono o WhatsApp">
-            <input
-              id="prof-phone"
-              type="tel"
-              inputMode="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+52 55 1234 5678"
-              className={`${formInputClass} font-mono`}
-            />
+          <FormField htmlFor="prof-phone" label="Teléfono o WhatsApp" hint="Elige el país y escribe el número; el código se pone solo.">
+            <PhoneField id="prof-phone" value={phone} onChange={setPhone} />
           </FormField>
         </div>
         <FormField htmlFor="prof-office" label="Cubículo, oficina o sala virtual">

@@ -5,3 +5,4 @@ export { SegmentedControl, type SegmentedOption } from './SegmentedControl';
 export { IdentityPicker, type IdentityIconOption } from './IdentityPicker';
 export { formInputClass } from './formStyles';
 export { M3ColorPickerModal } from './M3ColorPickerModal';
+export { PhoneField } from './PhoneField';
