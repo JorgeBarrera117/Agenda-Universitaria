@@ -436,6 +436,10 @@ export function App() {
     [handleTabChange]
   );
   const openAgenda = useCallback(() => handleTabChange('agenda'), [handleTabChange]);
+  const openSubjectDetailFromAgenda = useCallback(
+    (subjectId: string) => openDetail({ kind: 'subject', id: subjectId }, { tab: 'agenda' }),
+    [openDetail]
+  );
 
   // Atajo contextual UX: Tomar apunte de la clase activa en el horario
   const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string) => {
@@ -652,6 +656,7 @@ export function App() {
                 <Suspense fallback={<ViewSkeleton />}>
                   <AgendaView
                     focusRequest={agendaFocus}
+                    onOpenSubjectDetail={openSubjectDetailFromAgenda}
                     onEditorActiveChange={handleAgendaEditorChange}
                     isActive={activeTab === 'agenda'}
                   />

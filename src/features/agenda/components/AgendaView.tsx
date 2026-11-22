@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, Plus, Sun, X } from 'lucide-react';
+import { CalendarPlus, ChevronRight, Plus, Sun, X } from 'lucide-react';
 import { useAgenda } from '../hooks/useAgenda';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -16,6 +16,7 @@ import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { formatTimeRange } from '../../../shared/utils/timeFormat';
+import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 
 /** Pedido desde otra pestaña (p. ej. "Próximos" en Horario): abrir la agenda en un día. */
 export interface AgendaFocusRequest {
@@ -25,6 +26,8 @@ export interface AgendaFocusRequest {
 
 interface AgendaViewProps {
   focusRequest?: AgendaFocusRequest | null;
+  /** Tocar una clase del día abre la ficha de su materia (al volver, regresa a la Agenda). */
+  onOpenSubjectDetail?: (subjectId: string) => void;
   onEditorActiveChange?: (isActive: boolean) => void;
   isActive?: boolean;
 }
@@ -61,7 +64,7 @@ interface Group {
  * (Vencidas, Hoy, Mañana, Próximos 7 días, Más adelante). Al tocar un día se ven sus clases (del
  * horario) y lo que tiene en la agenda.
  */
-export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onEditorActiveChange, isActive = true }) => {
+export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubjectDetail, onEditorActiveChange, isActive = true }) => {
   const { events, addEvent, updateEvent, setDone, removeEvent } = useAgenda();
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
@@ -273,10 +276,11 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onEditorAc
                 <button
                   type="button"
                   onClick={() => setSelectedDay(null)}
+                  aria-label="Cerrar este día y ver toda la agenda"
                   className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-[var(--color-md-outline-variant)] px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/10"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  Ver todo
+                  Cerrar
                 </button>
               </div>
               {selectedHoliday ? (
@@ -292,19 +296,27 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onEditorAc
                   ) : (
                     <ul className="space-y-2">
                       {selectedClasses.map(({ slot, subject }) => (
-                        <li
-                          key={slot.id}
-                          className="card-tinted md-card flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
-                          style={{ '--card-tint': subject?.color ?? '#00639B' } as React.CSSProperties}
-                        >
-                          <span className="w-1 self-stretch rounded-full" style={{ backgroundColor: subject?.color ?? '#00639B' }} aria-hidden="true" />
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{subject?.name ?? 'Clase'}</span>
-                            <span className="block text-xs text-[var(--color-md-on-surface-variant)]">
-                              {formatTimeRange(slot.startTime, slot.endTime, settings.timeFormat)}
-                              {slot.classroom ? ` · ${slot.classroom}` : ''}
+                        <li key={slot.id}>
+                          {/* Toda la fila abre la ficha de la materia, como en el Horario */}
+                          <button
+                            type="button"
+                            disabled={!subject || !onOpenSubjectDetail}
+                            onClick={() => subject && onOpenSubjectDetail?.(subject.id)}
+                            className="card-tinted md-card flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-transform duration-150 active:scale-[0.98] disabled:active:scale-100"
+                            style={{ '--card-tint': subject?.color ?? '#00639B' } as React.CSSProperties}
+                          >
+                            <SubjectBadge icon={subject?.icon} color={subject?.color ?? '#00639B'} size="md" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{subject?.name ?? 'Clase'}</span>
+                              <span className="block text-xs text-[var(--color-md-on-surface-variant)]">
+                                {formatTimeRange(slot.startTime, slot.endTime, settings.timeFormat)}
+                                {slot.classroom ? ` · ${slot.classroom}` : ''}
+                              </span>
                             </span>
-                          </span>
+                            {subject && onOpenSubjectDetail && (
+                              <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
+                            )}
+                          </button>
                         </li>
                       ))}
                     </ul>
