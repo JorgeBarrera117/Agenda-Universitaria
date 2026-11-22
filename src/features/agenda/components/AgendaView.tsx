@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, ChevronRight, ClipboardPlus, Plus, Sun, X } from 'lucide-react';
+import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, History, Plus, Sun, X } from 'lucide-react';
 import { useAgenda } from '../hooks/useAgenda';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -494,12 +494,19 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           )}
 
           {!selectedDay && filter !== 'holiday' && doneCount > 0 && (
+            // Botón tonal y opaco (con sombra) para que se vea sobre el fondo con dibujos o con imagen
             <button
               type="button"
               onClick={() => setShowDone((v) => !v)}
-              className="h-10 rounded-full border border-[var(--color-md-outline-variant)] px-4 text-13px font-bold text-[var(--color-md-on-surface-variant)] transition-colors hover:bg-[var(--color-md-surface-container-high)]"
+              aria-expanded={showDone}
+              className="md-card flex h-12 w-full items-center gap-2.5 rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-secondary-container)] px-4 text-sm font-bold text-[var(--color-md-on-secondary-container)] shadow-xs transition-[filter,transform] duration-150 hover:brightness-95 active:scale-[0.99] sm:w-auto"
             >
-              {showDone ? 'Ocultar hechas y pasadas' : `Mostrar hechas y pasadas (${doneCount})`}
+              <History className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+              <span className="flex-1 text-left">{showDone ? 'Ocultar hechas y pasadas' : 'Mostrar hechas y pasadas'}</span>
+              {!showDone && (
+                <span className="rounded-full bg-[var(--color-md-primary)] px-2 py-0.5 text-11px font-black text-[var(--color-md-on-primary)]">{doneCount}</span>
+              )}
+              <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${showDone ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
           )}
         </div>
