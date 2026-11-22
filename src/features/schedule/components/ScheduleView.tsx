@@ -40,8 +40,8 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { DeleteSlotDialog } from './DeleteSlotDialog';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
-import { M3KebabMenu, type KebabMenuItem } from '../../../shared/components/M3KebabMenu';
-import { FloatingMenuButton } from '../../../shared/components/FloatingMenuButton';
+import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
+import { FloatingMenuButton, type FloatingMenuItem } from '../../../shared/components/FloatingMenuButton';
 import { AREA_COLOR } from '../../../shared/components/floatingStyles';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
@@ -287,16 +287,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
 
   // Opciones de Compartir: las usa el menú de arriba (PC y tableta) y el flotante (teléfono)
-  const shareItems: KebabMenuItem[] = [
+  const shareItems: FloatingMenuItem[] = [
     {
       id: 'share-agschedule',
       label: 'Compartir horario',
+      description: 'Envía tu horario completo (.agschedule) por WhatsApp, correo…',
       icon: <Share2 className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
       onClick: () => void handleShareSchedule(),
     },
     {
       id: 'import-agschedule',
       label: 'Importar horario',
+      description: 'Abre un horario que te compartieron.',
       icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
       onClick: agschedulePicker.open,
     },
@@ -306,6 +308,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           {
             id: 'device-transfer',
             label: transferLabel,
+            description: 'Pasa todos tus datos a tu otro dispositivo con un código QR.',
             icon: <MonitorSmartphone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
             onClick: () => setTransferOpen(true),
           },
@@ -410,7 +413,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           {isActive && (
             <FloatingMenuButton
               label="Compartir"
-              ariaLabel="Compartir, importar o pasar datos"
+              sheetTitle="Compartir o importar"
               icon={<Share2 />}
               color={AREA_COLOR.schedule}
               items={shareItems}
