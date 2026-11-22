@@ -4,7 +4,7 @@ import { NotificationService, sectionTones } from '../../../shared/services/noti
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { studyRepository } from '../repositories/studyRepository';
-import { getStudyTimerState, phaseDurationMs, studyTimer, useStudyTimer } from '../state/studyTimerStore';
+import { getStudyTimerState, studyTimer, useStudyTimer } from '../state/studyTimerStore';
 import { hasNativeStudyTimer, studyNativeTimer, toNativeState } from '../services/studyNativeTimer';
 import type { StudyPhase } from '../types';
 
@@ -33,12 +33,16 @@ export const StudyTimerHost: React.FC = () => {
   }, []);
 
   const announce = useCallback((finished: StudyPhase) => {
+    const next = getStudyTimerState();
     if (finished === 'focus') {
-      const next = getStudyTimerState();
-      const breakMin = Math.round(phaseDurationMs('break', next.presetId, next.focusCount) / 60_000);
-      setMessage(`¡Hora de una pausa! Descansa ${breakMin} min: levántate y toma agua.`);
+      const breakMin = Math.round(next.phaseTotalMs / 60_000);
+      setMessage(
+        next.running
+          ? `¡Hora de una pausa! Descansa ${breakMin} min: levántate y toma agua.`
+          : `¡Sesión terminada! Toca ▶ para empezar tu pausa de ${breakMin} min.`
+      );
     } else {
-      setMessage('Se acabó la pausa: ¡a estudiar! Toca ▶ para la siguiente sesión.');
+      setMessage(next.running ? 'Se acabó la pausa: ¡nueva sesión en marcha!' : 'Se acabó la pausa: ¡a estudiar! Toca ▶ para la siguiente sesión.');
     }
   }, []);
 
@@ -50,7 +54,10 @@ export const StudyTimerHost: React.FC = () => {
     (until: number, withSound: boolean, withMessage = true) => {
       let current = getStudyTimerState();
       let last: StudyPhase | null = null;
-      while (current.running && current.endsAt !== null && current.endsAt <= until) {
+      // Con los dos auto-inicios encendidos podrían encadenarse muchas fases tras días cerrada: tope
+      let guard = 0;
+      while (current.running && current.endsAt !== null && current.endsAt <= until && guard < 200) {
+        guard += 1;
         const end = current.endsAt;
         const subjectId = current.subjectId;
         const { finished, focusMinutes, startedAt } = studyTimer.advance(true, end);

@@ -144,32 +144,43 @@ final class StudyTimerNotifier {
         }
     }
 
-    /** Fin de una fase: de concentración pasa sola a la pausa; de la pausa espera la siguiente sesión. */
+    /**
+     * Fin de una fase. Tras la concentración viene la pausa (larga cada «longEvery» sesiones) y tras
+     * la pausa, la siguiente sesión; cada una empieza sola solo si su interruptor está encendido.
+     */
     private static void finishPhase(Context ctx, JSONObject s, long end) throws Exception {
         boolean focusEnded = "focus".equals(s.optString("phase"));
         if (focusEnded) {
             int focusCount = s.optInt("focusCount") + 1;
             int longEvery = Math.max(1, s.optInt("longEvery", 4));
-            long breakMs = focusCount % longEvery == 0 ? s.optLong("longBreakMs") : s.optLong("shortBreakMs");
+            boolean isLong = focusCount % longEvery == 0;
+            long breakMs = isLong ? s.optLong("longBreakMs") : s.optLong("shortBreakMs");
+            boolean auto = s.optBoolean("autoStartBreaks", true);
             s.put("focusCount", focusCount);
             s.put("phase", "break");
-            s.put("endsAt", end + breakMs);
+            s.put("phaseTotalMs", breakMs);
             s.put("remainingMs", breakMs);
-            s.put("running", true);
+            s.put("running", auto);
+            if (auto) s.put("endsAt", end + breakMs);
             saveState(ctx, s);
             long minutes = Math.round(breakMs / 60000.0);
-            boolean isLong = focusCount % longEvery == 0;
             alert(ctx, s, s.optString("breakTone"),
                 isLong ? "¡Descanso largo! ☕" : "¡Hora de una pausa! ☕",
-                "Descansa " + minutes + " min: levántate, estírate y toma agua. Te avisamos cuando toque volver.");
+                auto
+                    ? "Descansa " + minutes + " min: levántate, estírate y toma agua. Te avisamos cuando toque volver."
+                    : "Sesión terminada. Toca «Empezar» para tu pausa de " + minutes + " min.");
         } else {
+            long focusMs = s.optLong("focusMs");
+            boolean auto = s.optBoolean("autoStartFocus", false);
             s.put("phase", "focus");
-            s.put("running", false);
-            s.put("remainingMs", s.optLong("focusMs"));
+            s.put("phaseTotalMs", focusMs);
+            s.put("remainingMs", focusMs);
+            s.put("running", auto);
+            if (auto) s.put("endsAt", end + focusMs);
             saveState(ctx, s);
             alert(ctx, s, s.optString("resumeTone"),
                 "Se acabó la pausa 📚",
-                "Toca para empezar la siguiente sesión de estudio.");
+                auto ? "¡Nueva sesión en marcha! Ya estás estudiando otra vez." : "Toca para empezar la siguiente sesión de estudio.");
         }
         queueEvent(ctx, "phaseEnd", end);
         render(ctx);
@@ -195,13 +206,17 @@ final class StudyTimerNotifier {
         long endsAt = s.optLong("endsAt");
         long remaining = running ? Math.max(0, endsAt - System.currentTimeMillis()) : s.optLong("remainingMs");
         String subject = s.optString("subject", "");
-        boolean waiting = !running && !isBreak && remaining >= s.optLong("focusMs") && s.optInt("focusCount") > 0;
+        long phaseTotal = s.optLong("phaseTotalMs", isBreak ? s.optLong("shortBreakMs") : s.optLong("focusMs"));
+        boolean untouched = !running && remaining >= phaseTotal;
+        boolean waiting = untouched && !isBreak && s.optInt("focusCount") > 0;
 
         String title;
         String text;
         if (isBreak) {
-            title = running ? "Pausa ☕ · vuelves a estudiar en" : "Pausa en espera";
-            text = running ? "Descansa: levántate, estírate y toma agua" : "Quedan " + clock(remaining) + " de pausa";
+            title = running ? "Pausa ☕ · vuelves a estudiar en" : untouched ? "Hora de una pausa ☕" : "Pausa en espera";
+            text = running
+                ? "Descansa: levántate, estírate y toma agua"
+                : untouched ? "Toca «Empezar» para tu pausa de " + Math.round(phaseTotal / 60000.0) + " min" : "Quedan " + clock(remaining) + " de pausa";
         } else if (waiting) {
             title = "¡A estudiar! 📚";
             text = "Pausa terminada · siguiente sesión de " + Math.round(s.optLong("focusMs") / 60000.0) + " min";
@@ -235,7 +250,7 @@ final class StudyTimerNotifier {
         } else {
             b.setShowWhen(false);
             b.setShortCriticalText(isBreak ? "Pausa" : waiting ? "¡A estudiar!" : "En pausa");
-            b.addAction(0, waiting ? "Empezar" : "Reanudar", actionIntent(ctx, ACTION_RESUME, 2));
+            b.addAction(0, untouched ? "Empezar" : "Reanudar", actionIntent(ctx, ACTION_RESUME, 2));
         }
         b.addAction(0, "Detener", actionIntent(ctx, ACTION_STOP, 3));
 
@@ -261,7 +276,6 @@ final class StudyTimerNotifier {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
-            .setGroup("study_timer_alert")
             .setContentIntent(openAppIntent(ctx));
         try {
             NotificationManagerCompat.from(ctx).notify(ALERT_ID, b.build());

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart3, Coffee, Pause, Play, RotateCcw, SkipForward, Timer } from 'lucide-react';
 import { M3Select } from '../../../shared/components/M3Select';
-import { SegmentedControl } from '../../../shared/components/form';
 import { DetailSection } from '../../../shared/components/detail/DetailKit';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { STUDY_LONG_BREAK_EVERY, STUDY_PRESETS, type StudyPresetId } from '../types';
-import { getStudyTimerState, phaseDurationMs, remainingNow, studyTimer, useStudyTimer } from '../state/studyTimerStore';
+import { isLongBreakAfter } from '../types';
+import { getStudyTimerState, remainingNow, studyTimer, useStudyTimer } from '../state/studyTimerStore';
+import { StudyRhythmPanel } from './StudyRhythmPanel';
 import { studyRepository } from '../repositories/studyRepository';
 import { formatStudyMinutes, useStudyWeekStats } from '../hooks/useStudyStats';
 
@@ -54,25 +54,27 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
   const subject = subjects.find((s) => s.id === timer.subjectId);
   const color = subject?.color ?? FALLBACK_COLOR;
   const remaining = remainingNow(timer, timer.running ? now : undefined);
-  const total = phaseDurationMs(timer.phase, timer.presetId, timer.focusCount);
+  // Duración de la fase tal como empezó (un cambio de ritmo a mitad no hace saltar el aro)
+  const total = timer.phaseTotalMs;
+  const { config } = timer;
+  const every = config.longBreakEvery;
   const progress = total > 0 ? 1 - remaining / total : 0;
   const isBreak = timer.phase === 'break';
-  const isLongBreak = isBreak && timer.focusCount > 0 && timer.focusCount % STUDY_LONG_BREAK_EVERY === 0;
+  const isLongBreak = isBreak && isLongBreakAfter(timer.focusCount, every);
   const sessionStarted = timer.running || timer.focusStartedAt !== null;
   const radius = (RING_SIZE - RING_STROKE) / 2;
   const circumference = 2 * Math.PI * radius;
-  const doneInCycle = timer.focusCount % STUDY_LONG_BREAK_EVERY;
+  const doneInCycle = timer.focusCount % every;
   const ringColor = isBreak ? BREAK_COLOR : color;
-  const preset = STUDY_PRESETS[timer.presetId];
   // Pausa terminada: esperando que empiece la siguiente sesión del ciclo
   const waitingNext = !isBreak && !timer.running && timer.focusCount > 0 && timer.focusStartedAt === null;
-  // Ciclo: 4 sesiones con su pausa (la última, larga). Durante la pausa, focusCount ya cuenta la
-  // sesión que acaba de terminar
-  const cycleIndex = timer.focusCount % STUDY_LONG_BREAK_EVERY;
-  const sessionsDone = isBreak && cycleIndex === 0 ? STUDY_LONG_BREAK_EVERY : cycleIndex;
-  const cycleSteps = Array.from({ length: STUDY_LONG_BREAK_EVERY }, (_, i) => ({
+  // Ciclo: «cada N» sesiones con su pausa (la última, larga). Durante la pausa, focusCount ya
+  // cuenta la sesión que acaba de terminar
+  const cycleIndex = timer.focusCount % every;
+  const sessionsDone = isBreak && cycleIndex === 0 ? every : cycleIndex;
+  const cycleSteps = Array.from({ length: every }, (_, i) => ({
     i,
-    isLast: i === STUDY_LONG_BREAK_EVERY - 1,
+    isLast: i === every - 1,
     sessionDone: i < sessionsDone,
     sessionCurrent: !isBreak && i === cycleIndex,
     breakCurrent: isBreak && i === sessionsDone - 1,
@@ -169,8 +171,8 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                   {formatClock(remaining)}
                 </span>
                 {/* Sesiones del ciclo: cada 4, descanso largo */}
-                <span className="flex gap-1.5" aria-label={`${doneInCycle} de ${STUDY_LONG_BREAK_EVERY} sesiones antes del descanso largo`}>
-                  {Array.from({ length: STUDY_LONG_BREAK_EVERY }, (_, i) => (
+                <span className="flex gap-1.5" aria-label={`${doneInCycle} de ${every} sesiones antes del descanso largo`}>
+                  {Array.from({ length: every }, (_, i) => (
                     <span
                       key={i}
                       className="h-2 w-2 rounded-full"
@@ -235,7 +237,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 <div className="min-w-0">
                   <p className="text-base font-black">¡Pausa terminada!</p>
                   <p className="text-sm">
-                    Toca ▶ para empezar la sesión {cycleIndex + 1} de {STUDY_LONG_BREAK_EVERY}.
+                    Toca ▶ para empezar la sesión {cycleIndex + 1} de {every}.
                   </p>
                 </div>
               </div>
@@ -254,9 +256,9 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                           : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
                       } ${step.sessionCurrent ? 'ring-2 ring-[var(--color-md-on-surface)]/40' : ''}`}
                       style={step.sessionCurrent || step.sessionDone ? { backgroundColor: color, opacity: step.sessionCurrent ? 1 : 0.55 } : undefined}
-                      aria-label={`Sesión ${step.i + 1}: ${preset.focus} min${step.sessionCurrent ? ', ahora' : step.sessionDone ? ', hecha' : ''}`}
+                      aria-label={`Sesión ${step.i + 1}: ${config.focusMin} min${step.sessionCurrent ? ', ahora' : step.sessionDone ? ', hecha' : ''}`}
                     >
-                      {preset.focus}′
+                      {config.focusMin}′
                     </li>
                     <li
                       className={`flex h-9 items-center justify-center rounded-lg ${step.isLast ? 'flex-[3]' : 'flex-[2]'} ${
@@ -266,7 +268,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                             ? 'bg-[#2E7D32]/55 text-white'
                             : 'bg-[#C8E6C9]/70 text-[#1B5E20] dark:bg-[#1B5E20]/40 dark:text-[#C8E6C9]'
                       }`}
-                      aria-label={`${step.isLast ? 'Pausa larga' : 'Pausa'}: ${step.isLast ? preset.longBreak : preset.shortBreak} min${
+                      aria-label={`${step.isLast ? 'Pausa larga' : 'Pausa'}: ${step.isLast ? config.longBreakMin : config.shortBreakMin} min${
                         step.breakCurrent ? ', ahora' : step.breakDone ? ', hecha' : ''
                       }`}
                     >
@@ -276,7 +278,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 ))}
               </ol>
               <p className="text-11px text-[var(--color-md-on-surface-variant)]">
-                {preset.focus} min de estudio y {preset.shortBreak} de pausa; cada {STUDY_LONG_BREAK_EVERY} sesiones, una pausa larga de {preset.longBreak} min.
+                {config.focusMin} min de estudio y {config.shortBreakMin} de pausa; cada {every} sesiones, una pausa larga de {config.longBreakMin} min.
               </p>
             </div>
 
@@ -285,22 +287,13 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 ? 'Puedes cambiar de pestaña o salir de la app: te avisamos al terminar.'
                 : isBreak
                   ? 'Toca ▶ para empezar el descanso, o salta a la siguiente sesión.'
-                  : 'Toca ▶ para empezar. Cada 4 sesiones toca un descanso largo.'}
+                  : `Toca ▶ para empezar. Cada ${every} sesiones toca un descanso largo.`}
             </p>
           </div>
         </section>
 
         <div className="space-y-3.5">
-          <section className="md-card space-y-1.5 rounded-3xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-4 shadow-xs sm:p-5">
-            <p className="text-xs font-semibold text-[var(--color-md-on-surface)]">Ritmo (concentración / descanso, en minutos)</p>
-            <SegmentedControl<StudyPresetId>
-              value={timer.presetId}
-              onChange={(value) => studyTimer.setPreset(value)}
-              ariaLabel="Ritmo"
-              options={Object.values(STUDY_PRESETS).map((preset) => ({ value: preset.id, label: preset.label }))}
-            />
-            {sessionStarted && <p className="text-11px text-[var(--color-md-on-surface-variant)]">Para cambiar el ritmo, reinicia la sesión.</p>}
-          </section>
+          <StudyRhythmPanel />
 
           <DetailSection
             icon={<BarChart3 className="h-4 w-4" />}

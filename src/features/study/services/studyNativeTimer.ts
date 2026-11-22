@@ -1,5 +1,4 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
-import { STUDY_LONG_BREAK_EVERY, STUDY_PRESETS } from '../types';
 import type { StudyTimerState } from '../state/studyTimerStore';
 
 /** Estado que entiende la notificación nativa del modo estudio (StudyTimerNotifier.java). */
@@ -13,6 +12,12 @@ export interface NativeStudyState {
   shortBreakMs: number;
   longBreakMs: number;
   longEvery: number;
+  /** Duración total de la fase en curso (para «Empezar» frente a «Reanudar»). */
+  phaseTotalMs: number;
+  /** Al terminar la sesión, la pausa empieza sola. */
+  autoStartBreaks: boolean;
+  /** Al terminar la pausa, la siguiente sesión empieza sola. */
+  autoStartFocus: boolean;
   focusCount: number;
   subject: string;
   color: string;
@@ -48,17 +53,20 @@ export function toNativeState(
   state: StudyTimerState,
   extras: { subject: string; color: string; breakTone: string; resumeTone: string; soundOn: boolean }
 ): NativeStudyState {
-  const preset = STUDY_PRESETS[state.presetId];
+  const { config } = state;
   return {
     started: isStudySessionStarted(state),
     running: state.running,
     phase: state.phase,
     endsAt: state.endsAt ?? 0,
     remainingMs: state.remainingMs,
-    focusMs: preset.focus * 60_000,
-    shortBreakMs: preset.shortBreak * 60_000,
-    longBreakMs: preset.longBreak * 60_000,
-    longEvery: STUDY_LONG_BREAK_EVERY,
+    focusMs: config.focusMin * 60_000,
+    shortBreakMs: config.shortBreakMin * 60_000,
+    longBreakMs: config.longBreakMin * 60_000,
+    longEvery: config.longBreakEvery,
+    phaseTotalMs: state.phaseTotalMs,
+    autoStartBreaks: config.autoStartBreaks,
+    autoStartFocus: config.autoStartPomodoros,
     focusCount: state.focusCount,
     ...extras,
   };
