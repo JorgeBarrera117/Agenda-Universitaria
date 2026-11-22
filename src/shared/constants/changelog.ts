@@ -32,6 +32,20 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.98',
+    date: '2026-11-22',
+    title: 'Fichas y formularios renovados',
+    changes: [
+      { kind: 'mejora', text: 'Las fichas de materia, catedrático, archivo y evento de la agenda se ven igual: arriba su tarjeta con color y las acciones más usadas (Apuntes, Contacto, Abrir, Marcar como hecha), y debajo sus datos.' },
+      { kind: 'nuevo', text: 'Los formularios muestran una vista previa en vivo; toca el ícono de la vista previa para elegir color e ícono.' },
+      { kind: 'nuevo', text: 'Teléfono del docente con selector de país: el código se pone solo y WhatsApp y Telegram siempre funcionan.' },
+      { kind: 'nuevo', text: 'Nuevos íconos de docente: personas de distintos tipos (asesor, tutor, coordinador, conferencista…).' },
+      { kind: 'mejora', text: 'Eliminar un archivo ahora pide confirmación, y «Cambiar de materia» te devuelve a donde estabas.' },
+      { kind: 'mejora', text: 'En PC, el día elegido de la agenda aparece junto al calendario.' },
+      { kind: 'mejora', text: 'Botones flotantes y «Mostrar hechas y pasadas» más visibles sobre cualquier fondo, y el botón de agregar con un ícono propio en cada apartado.' },
+    ],
+  },
+  {
     version: '1.7.10.97',
     date: '2026-11-21',
     title: 'Tu agenda, más completa',
