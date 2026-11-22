@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, History, Plus, Sun, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronRight, ClipboardPlus, History, Plus, Sun } from 'lucide-react';
 import { useAgenda } from '../hooks/useAgenda';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -183,6 +183,33 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
   const pendingToday = events.filter(
     (e) => !e.done && e.type !== 'holiday' && ((e.type === 'task' && e.date < todayKey) || e.date === todayKey)
   ).length;
+  const hasOverdue = events.some((e) => e.type === 'task' && !e.done && e.date < todayKey);
+
+  const selectedDayEvents = selectedDay ? (groups[0]?.events ?? []) : [];
+  const selectedDaySummary = selectedDay
+    ? [
+        selectedDay === todayKey ? 'Hoy' : null,
+        selectedHoliday ? 'Día libre' : `${selectedClasses.length} ${selectedClasses.length === 1 ? 'clase' : 'clases'}`,
+        `${selectedDayEvents.length} en la agenda`,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
+
+  // Chip «para hoy o vencidas»: vuelve a la lista general y baja hasta Vencidas (o Hoy)
+  const [scrollRequest, setScrollRequest] = useState<{ group: string; nonce: number } | null>(null);
+  const focusPending = () => {
+    setSelectedDay(null);
+    setFilter('all');
+    setScrollRequest((prev) => ({ group: hasOverdue ? 'overdue' : 'today', nonce: (prev?.nonce ?? 0) + 1 }));
+  };
+  useEffect(() => {
+    if (!scrollRequest) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(`agenda-group-${scrollRequest.group}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [scrollRequest]);
 
   const openCreate = useCallback(
     (date?: string) => setFormState({ defaultDate: date ?? selectedDay ?? todayKey }),
@@ -344,7 +371,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
   }
 
   return (
-    <div className="w-full space-y-3.5">
+    <div className="glass-legible w-full space-y-3.5">
       <ContextualToast message={toast?.text ?? null} bottomOffset="nav" onClose={() => setToast(null)} />
 
       {/* Cabecera */}
@@ -352,10 +379,18 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-black tracking-tight text-[var(--color-md-on-surface)] sm:text-xl">Agenda</h2>
+            {/* Chip de acceso rápido: lleva a lo vencido o de hoy sin buscar día por día */}
             {pendingToday > 0 && (
-              <span className="rounded-full bg-[#FFDAD6] px-2 py-0.5 text-xs font-bold text-[#410002] dark:bg-[#93000A] dark:text-[#FFDAD6]">
+              <button
+                type="button"
+                onClick={focusPending}
+                aria-label={`Ver ${pendingToday} ${pendingToday === 1 ? 'pendiente' : 'pendientes'} para hoy o vencidos`}
+                className="inline-flex h-8 items-center gap-1 rounded-full bg-[#FFDAD6] pl-2 pr-1.5 text-xs font-bold text-[#410002] shadow-2xs transition-[filter,transform] duration-150 ease-out hover:brightness-95 active:scale-95 dark:bg-[#93000A] dark:text-[#FFDAD6]"
+              >
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 {pendingToday} para hoy o vencidas
-              </span>
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              </button>
             )}
           </div>
           <p className="mt-0.5 text-xs text-[var(--color-md-on-surface-variant)] sm:text-13px">
@@ -372,21 +407,15 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
         </button>
       </div>
 
-      {/* Teléfono: calendario, día y lista uno debajo del otro. PC: calendario | lista, con el día
-          debajo del calendario; en pantallas anchas el día va al lado del calendario y la lista a la derecha */}
-      <div
-        className={`grid grid-cols-1 gap-3.5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start ${
-          selectedDay ? 'xl:grid-cols-[340px_340px_minmax(0,1fr)]' : ''
-        }`}
-      >
-        <div className="lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1">
+      {/* Teléfono: calendario y, debajo, el día elegido o la lista. PC: calendario | día o lista */}
+      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
+        <div className="lg:sticky lg:top-24">
           <MonthCalendar
             year={visibleMonth.year}
             month={visibleMonth.month}
             todayKey={todayKey}
             selectedKey={selectedDay}
             events={events}
-            subjects={subjects}
             isOpen={isCalendarOpen}
             onToggleOpen={toggleCalendar}
             onChangeMonth={changeMonth}
@@ -395,75 +424,14 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           />
         </div>
 
-          {/* Día elegido: sus clases del horario */}
-          {selectedDay && (
-            <section className="md-card space-y-2.5 rounded-[24px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-3.5 lg:col-start-1 lg:row-start-2 xl:sticky xl:top-24 xl:col-start-2 xl:row-start-1">
-              <div className="flex items-center gap-2">
-                <h3 className="min-w-0 flex-1 text-base font-bold text-[var(--color-md-on-surface)]">{longDayLabel(selectedDay)}</h3>
-                <button
-                  type="button"
-                  onClick={() => setSelectedDay(null)}
-                  aria-label="Cerrar este día y ver toda la agenda"
-                  className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-[var(--color-md-outline-variant)] px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/10"
-                >
-                  <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  Cerrar
-                </button>
-              </div>
-              {selectedHoliday ? (
-                <p className="flex items-center gap-2 rounded-2xl bg-[#FFDAD6] px-3 py-2.5 text-13px text-[#410002] dark:bg-[#93000A]/60 dark:text-[#FFDAD6]">
-                  <Sun className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  {selectedHoliday.title}: ese día no te avisamos de tus clases.
-                </p>
-              ) : (
-                <>
-                  <p className="text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">Clases</p>
-                  {selectedClasses.length === 0 ? (
-                    <p className="text-13px text-[var(--color-md-on-surface-variant)]">Sin clases este día.</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {selectedClasses.map(({ slot, subject }) => (
-                        <li key={slot.id}>
-                          {/* Toda la fila abre la ficha de la materia, como en el Horario */}
-                          <button
-                            type="button"
-                            disabled={!subject || !onOpenSubjectDetail}
-                            onClick={() => subject && onOpenSubjectDetail?.(subject.id)}
-                            className="card-tinted md-card flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-transform duration-150 active:scale-[0.98] disabled:active:scale-100"
-                            style={{ '--card-tint': subject?.color ?? '#00639B' } as React.CSSProperties}
-                          >
-                            <SubjectBadge icon={subject?.icon} color={subject?.color ?? '#00639B'} size="md" />
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{subject?.name ?? 'Clase'}</span>
-                              <span className="block text-xs text-[var(--color-md-on-surface-variant)]">
-                                {formatTimeRange(slot.startTime, slot.endTime, settings.timeFormat)}
-                                {slot.classroom ? ` · ${slot.classroom}` : ''}
-                              </span>
-                            </span>
-                            {subject && onOpenSubjectDetail && (
-                              <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
-                            )}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => openCreate(selectedDay)}
-                className="flex h-10 items-center gap-2 rounded-full bg-[var(--color-md-secondary-container)] px-4 text-13px font-bold text-[var(--color-md-on-secondary-container)] transition-transform active:scale-[0.98]"
-              >
-                <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                Agregar en este día
-              </button>
-            </section>
-          )}
-
-        <div className={`min-w-0 space-y-3.5 lg:col-start-2 lg:row-span-2 lg:row-start-1 ${selectedDay ? 'xl:col-start-3' : ''}`}>
-          {/* Filtros por tipo */}
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5" role="group" aria-label="Filtrar por tipo">
+        <div className="min-w-0 space-y-3.5">
+          {/* Filtros por tipo: degradado a la derecha (hay más al deslizar) y pestañas inactivas
+              con el acabado de tarjeta (Elevada, Cristal o Con borde) para leerse sobre una foto */}
+          <div
+            className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] [scrollbar-width:none]"
+            role="group"
+            aria-label="Filtrar por tipo"
+          >
             {FILTERS.map((option) => {
               const selected = filter === option.value;
               return (
@@ -472,10 +440,10 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
                   type="button"
                   aria-pressed={selected}
                   onClick={() => setFilter(option.value)}
-                  className={`h-9 shrink-0 rounded-lg px-3 text-13px font-bold transition-colors ${
+                  className={`h-9 shrink-0 rounded-lg px-3 text-13px font-bold transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] ${
                     selected
-                      ? 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]'
-                      : 'border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)]'
+                      ? 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] shadow-2xs'
+                      : 'md-card border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-surface-container-high)]'
                   }`}
                 >
                   {option.label}
@@ -484,26 +452,123 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
             })}
           </div>
 
-          {groups.length === 0 ? (
-            <div className="md-card rounded-[24px] border border-dashed border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] px-5 py-10 text-center">
+          {selectedDay ? (
+            /* Día elegido: un solo bloque con sus clases y lo que tiene en la agenda */
+            <section
+              aria-label={longDayLabel(selectedDay)}
+              className="md-card space-y-3 rounded-[24px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-3 sm:p-3.5"
+            >
+              <header className="flex items-center gap-1.5">
+                {/* Volver discreto a la vista general (en vez de «× Cerrar») */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDay(null)}
+                  aria-label="Volver a todos los pendientes"
+                  title="Volver a todos los pendientes"
+                  className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--color-md-primary)] transition-[background-color,transform] duration-150 hover:bg-[var(--color-md-primary)]/10 active:scale-95"
+                >
+                  <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-base font-bold text-[var(--color-md-on-surface)]">{longDayLabel(selectedDay)}</h3>
+                  <p className="truncate text-xs text-[var(--color-md-on-surface-variant)]">{selectedDaySummary}</p>
+                </div>
+              </header>
+
+              {selectedHoliday && (
+                <p className="flex items-center gap-2 rounded-2xl bg-[#FFDAD6] px-3 py-2.5 text-13px text-[#410002] dark:bg-[#93000A]/60 dark:text-[#FFDAD6]">
+                  <Sun className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {selectedHoliday.title}: ese día no te avisamos de tus clases.
+                </p>
+              )}
+
+              {selectedClasses.length > 0 && (
+                <div className="space-y-2">
+                  <p className="px-1 text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">Clases</p>
+                  <ul className="space-y-2">
+                    {selectedClasses.map(({ slot, subject }) => (
+                      <li key={slot.id}>
+                        {/* Toda la fila abre la ficha de la materia, como en el Horario */}
+                        <button
+                          type="button"
+                          disabled={!subject || !onOpenSubjectDetail}
+                          onClick={() => subject && onOpenSubjectDetail?.(subject.id)}
+                          className="card-tinted md-card flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-transform duration-150 active:scale-[0.98] disabled:active:scale-100"
+                          style={{ '--card-tint': subject?.color ?? '#00639B' } as React.CSSProperties}
+                        >
+                          <SubjectBadge icon={subject?.icon} color={subject?.color ?? '#00639B'} size="md" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{subject?.name ?? 'Clase'}</span>
+                            <span className="block text-xs text-[var(--color-md-on-surface-variant)]">
+                              {formatTimeRange(slot.startTime, slot.endTime, settings.timeFormat)}
+                              {slot.classroom ? ` · ${slot.classroom}` : ''}
+                            </span>
+                          </span>
+                          {subject && onOpenSubjectDetail && (
+                            <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {selectedDayEvents.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="px-1 text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">En tu agenda</p>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {selectedDayEvents.map((event) => (
+                      <AgendaEventCard
+                        key={event.id}
+                        event={event}
+                        subjects={subjects}
+                        todayKey={todayKey}
+                        onOpen={(e) => setDetailId(e.id)}
+                        onEdit={openEdit}
+                        onDelete={setToDelete}
+                        onToggleDone={toggleDone}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Vacío: una línea y un solo botón compacto (el FAB sigue para todo lo demás) */
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-md-outline-variant)]/60 pt-3">
+                  <p className="text-13px text-[var(--color-md-on-surface-variant)]">
+                    {filter === 'all' ? 'Nada en la agenda este día.' : 'Nada con este filtro este día.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openCreate(selectedDay)}
+                    className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-md-secondary-container)] px-3.5 text-xs font-bold text-[var(--color-md-on-secondary-container)] transition-[filter,transform] duration-150 hover:brightness-[0.97] active:scale-95"
+                  >
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    Añadir evento para este día
+                  </button>
+                </div>
+              )}
+            </section>
+          ) : groups.length === 0 ? (
+            <div className="md-card rounded-[24px] border border-dashed border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] px-5 py-8 text-center">
               <p className="text-sm font-bold text-[var(--color-md-on-surface)]">
-                {selectedDay ? 'Nada en la agenda este día' : events.length === 0 ? 'Tu agenda está vacía' : 'Nada pendiente con este filtro'}
+                {events.length === 0 ? 'Tu agenda está vacía' : 'Nada pendiente con este filtro'}
               </p>
               <p className="mt-1 text-xs text-[var(--color-md-on-surface-variant)]">
                 Agrega tareas, exámenes, recordatorios o días libres; te avisamos a tiempo.
               </p>
               <button
                 type="button"
-                onClick={() => openCreate(selectedDay ?? undefined)}
-                className="mx-auto mt-4 flex h-10 items-center gap-2 rounded-full bg-[var(--color-md-primary)] px-5 text-13px font-bold text-[var(--color-md-on-primary)]"
+                onClick={() => openCreate()}
+                className="mx-auto mt-3 inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--color-md-secondary-container)] px-3.5 text-xs font-bold text-[var(--color-md-on-secondary-container)] transition-[filter,transform] duration-150 hover:brightness-[0.97] active:scale-95"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Agregar
+                Añadir a la agenda
               </button>
             </div>
           ) : (
             groups.map((group) => (
-              <section key={group.key} className="space-y-2.5" aria-label={group.label}>
+              <section key={group.key} id={`agenda-group-${group.key}`} className="scroll-mt-24 space-y-2.5" aria-label={group.label}>
                 {/* Chip con fondo propio: sobre el papel tapiz y con cualquier paleta se lee igual */}
                 <h3>
                   <span
@@ -517,7 +582,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
                     <span className="rounded-full bg-black/10 px-1.5 text-11px dark:bg-white/15">{group.events.length}</span>
                   </span>
                 </h3>
-                <div className={`grid grid-cols-1 gap-2.5 sm:gap-3 ${selectedDay ? "" : "xl:grid-cols-2"}`}>
+                <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-2">
                   {group.events.map((event) => (
                     <AgendaEventCard
                       key={event.id}
