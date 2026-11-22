@@ -56,9 +56,11 @@ export const AppearancePicker: React.FC<AppearancePickerProps> = ({
       </button>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Color e ícono" maxWidth="md">
+        <div className="mb-4 flex items-center gap-3">
+          {preview}
+          <p className="min-w-0 flex-1 truncate text-base font-black text-[var(--color-md-on-surface)]">{name}</p>
+        </div>
         <IdentityPicker
-          preview={preview}
-          previewTitle={name}
           colors={colors}
           color={color}
           onColorChange={onColorChange}

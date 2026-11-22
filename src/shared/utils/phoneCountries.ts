@@ -49,33 +49,120 @@ export const PHONE_COUNTRIES: readonly PhoneCountry[] = [
 ];
 
 const BY_ISO = new Map(PHONE_COUNTRIES.map((country) => [country.iso, country]));
-const LAST_COUNTRY_KEY = 'agenda_phone_country';
 const FALLBACK_ISO = 'EC';
 
 export function phoneCountryByIso(iso: string | undefined): PhoneCountry | undefined {
   return iso ? BY_ISO.get(iso.toUpperCase()) : undefined;
 }
 
-/** País propuesto para un número nuevo: el último elegido, el de la configuración regional o Ecuador. */
-export function defaultPhoneCountry(): PhoneCountry {
+/** Zona horaria del dispositivo → país: dice dónde está el estudiante aunque el idioma sea otro (es-MX, es-419…). */
+const TIMEZONE_COUNTRY: Readonly<Record<string, string>> = {
+  'America/Guayaquil': 'EC',
+  'Pacific/Galapagos': 'EC',
+  'America/Bogota': 'CO',
+  'America/Lima': 'PE',
+  'America/Caracas': 'VE',
+  'America/La_Paz': 'BO',
+  'America/Santiago': 'CL',
+  'America/Punta_Arenas': 'CL',
+  'Pacific/Easter': 'CL',
+  'America/Asuncion': 'PY',
+  'America/Montevideo': 'UY',
+  'America/Buenos_Aires': 'AR',
+  'America/Panama': 'PA',
+  'America/Costa_Rica': 'CR',
+  'America/Managua': 'NI',
+  'America/Tegucigalpa': 'HN',
+  'America/El_Salvador': 'SV',
+  'America/Guatemala': 'GT',
+  'America/Havana': 'CU',
+  'America/Santo_Domingo': 'DO',
+  'America/Puerto_Rico': 'PR',
+  'Europe/Madrid': 'ES',
+  'Atlantic/Canary': 'ES',
+  'Africa/Ceuta': 'ES',
+  'Europe/Berlin': 'DE',
+  'Europe/Paris': 'FR',
+  'Europe/Rome': 'IT',
+  'Europe/Lisbon': 'PT',
+  'Atlantic/Madeira': 'PT',
+  'Atlantic/Azores': 'PT',
+  'Europe/London': 'GB',
+  'Asia/Shanghai': 'CN',
+  'Asia/Tokyo': 'JP',
+  'Asia/Seoul': 'KR',
+  'Asia/Kolkata': 'IN',
+  'Asia/Calcutta': 'IN',
+};
+
+/** Prefijos de zona horaria que pertenecen a un solo país de la lista. */
+const TIMEZONE_PREFIX_COUNTRY: readonly [string, string][] = [
+  ['America/Argentina/', 'AR'],
+  ['America/Mexico_City', 'MX'],
+  ['America/Cancun', 'MX'],
+  ['America/Merida', 'MX'],
+  ['America/Monterrey', 'MX'],
+  ['America/Matamoros', 'MX'],
+  ['America/Chihuahua', 'MX'],
+  ['America/Ciudad_Juarez', 'MX'],
+  ['America/Ojinaga', 'MX'],
+  ['America/Mazatlan', 'MX'],
+  ['America/Bahia_Banderas', 'MX'],
+  ['America/Hermosillo', 'MX'],
+  ['America/Tijuana', 'MX'],
+  ['America/Sao_Paulo', 'BR'],
+  ['America/Fortaleza', 'BR'],
+  ['America/Recife', 'BR'],
+  ['America/Bahia', 'BR'],
+  ['America/Belem', 'BR'],
+  ['America/Manaus', 'BR'],
+  ['America/Cuiaba', 'BR'],
+  ['America/Campo_Grande', 'BR'],
+  ['America/Porto_Velho', 'BR'],
+  ['America/Rio_Branco', 'BR'],
+  ['America/Noronha', 'BR'],
+  ['America/Toronto', 'CA'],
+  ['America/Vancouver', 'CA'],
+  ['America/Edmonton', 'CA'],
+  ['America/Winnipeg', 'CA'],
+  ['America/Halifax', 'CA'],
+  ['America/St_Johns', 'CA'],
+  ['America/Regina', 'CA'],
+  ['America/New_York', 'US'],
+  ['America/Chicago', 'US'],
+  ['America/Denver', 'US'],
+  ['America/Los_Angeles', 'US'],
+  ['America/Phoenix', 'US'],
+  ['America/Anchorage', 'US'],
+  ['America/Detroit', 'US'],
+  ['America/Indiana/', 'US'],
+  ['America/Kentucky/', 'US'],
+  ['Pacific/Honolulu', 'US'],
+  ['Australia/', 'AU'],
+];
+
+function countryFromTimeZone(): PhoneCountry | undefined {
+  let zone = '';
   try {
-    const remembered = phoneCountryByIso(localStorage.getItem(LAST_COUNTRY_KEY) ?? undefined);
-    if (remembered) return remembered;
+    zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
   } catch {
-    // Sin almacenamiento (ventana privada): se sigue con el idioma
+    return undefined;
   }
+  const iso = TIMEZONE_COUNTRY[zone] ?? TIMEZONE_PREFIX_COUNTRY.find(([prefix]) => zone.startsWith(prefix))?.[1];
+  return phoneCountryByIso(iso);
+}
+
+/**
+ * País del estudiante, propuesto siempre para un número nuevo y primero en la lista: el de la zona
+ * horaria del dispositivo; si no se reconoce, el de la configuración regional; si no, Ecuador.
+ */
+export function userPhoneCountry(): PhoneCountry {
+  const fromZone = countryFromTimeZone();
+  if (fromZone) return fromZone;
   const region = navigator.languages
     ?.map((tag) => tag.split('-')[1])
     .find((part) => part && part.length === 2 && BY_ISO.has(part.toUpperCase()));
   return phoneCountryByIso(region) ?? (BY_ISO.get(FALLBACK_ISO) as PhoneCountry);
-}
-
-export function rememberPhoneCountry(country: PhoneCountry): void {
-  try {
-    localStorage.setItem(LAST_COUNTRY_KEY, country.iso);
-  } catch {
-    // Solo es una comodidad: si no se puede guardar, no pasa nada
-  }
 }
 
 export interface SplitPhone {

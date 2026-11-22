@@ -102,10 +102,10 @@ export const FloatingSectionSwitcher = <T extends string>({ value, options, onCh
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`flex h-12 items-center justify-center gap-2 rounded-2xl text-sm font-bold shadow-[0_3px_10px_rgba(0,0,0,0.22),0_1px_3px_rgba(0,0,0,0.18)] transition-[background-color,color,padding] duration-200 ease-out active:scale-95 ${
+            className={`flex h-12 items-center justify-center gap-2 rounded-2xl text-sm font-bold shadow-[0_6px_16px_rgba(0,0,0,0.3),0_2px_4px_rgba(0,0,0,0.22)] ring-2 ring-white/80 transition-[background-color,color,padding] duration-200 ease-out active:scale-95 dark:ring-black/50 ${
               selected
-                ? 'bg-[var(--color-md-primary-container)] px-4 text-[var(--color-md-on-primary-container)]'
-                : 'w-12 bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
+                ? 'bg-[var(--color-md-primary)] px-4 text-[var(--color-md-on-primary)]'
+                : 'w-12 border border-[var(--color-md-outline)] bg-[var(--color-md-surface)] text-[var(--color-md-primary)]'
             }`}
           >
             {option.icon}

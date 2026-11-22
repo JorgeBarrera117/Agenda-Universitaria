@@ -331,10 +331,10 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
       </div>
 
       {/* Teléfono: calendario, día y lista uno debajo del otro. PC: calendario | lista, con el día
-          debajo del calendario; en pantallas anchas el día pasa a una tercera columna a la derecha */}
+          debajo del calendario; en pantallas anchas el día va al lado del calendario y la lista a la derecha */}
       <div
         className={`grid grid-cols-1 gap-3.5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start ${
-          selectedDay ? 'xl:grid-cols-[340px_minmax(0,1fr)_340px]' : ''
+          selectedDay ? 'xl:grid-cols-[340px_340px_minmax(0,1fr)]' : ''
         }`}
       >
         <div className="lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1">
@@ -355,7 +355,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
 
           {/* Día elegido: sus clases del horario */}
           {selectedDay && (
-            <section className="md-card space-y-2.5 rounded-[24px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-3.5 lg:col-start-1 lg:row-start-2 xl:sticky xl:top-24 xl:col-start-3 xl:row-start-1">
+            <section className="md-card space-y-2.5 rounded-[24px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-3.5 lg:col-start-1 lg:row-start-2 xl:sticky xl:top-24 xl:col-start-2 xl:row-start-1">
               <div className="flex items-center gap-2">
                 <h3 className="min-w-0 flex-1 text-base font-bold text-[var(--color-md-on-surface)]">{longDayLabel(selectedDay)}</h3>
                 <button
@@ -419,7 +419,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
             </section>
           )}
 
-        <div className="min-w-0 space-y-3.5 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <div className={`min-w-0 space-y-3.5 lg:col-start-2 lg:row-span-2 lg:row-start-1 ${selectedDay ? 'xl:col-start-3' : ''}`}>
           {/* Filtros por tipo */}
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5" role="group" aria-label="Filtrar por tipo">
             {FILTERS.map((option) => {
@@ -475,7 +475,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
                     <span className="rounded-full bg-black/10 px-1.5 text-11px dark:bg-white/15">{group.events.length}</span>
                   </span>
                 </h3>
-                <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-2">
+                <div className={`grid grid-cols-1 gap-2.5 sm:gap-3 ${selectedDay ? "" : "xl:grid-cols-2"}`}>
                   {group.events.map((event) => (
                     <AgendaEventCard
                       key={event.id}

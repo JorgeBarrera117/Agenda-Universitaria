@@ -2,14 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { Modal } from '../Modal';
 import { formInputClass } from './formStyles';
-import {
-  PHONE_COUNTRIES,
-  defaultPhoneCountry,
-  joinPhone,
-  rememberPhoneCountry,
-  splitPhone,
-  type PhoneCountry,
-} from '../../utils/phoneCountries';
+import { PHONE_COUNTRIES, joinPhone, splitPhone, userPhoneCountry, type PhoneCountry } from '../../utils/phoneCountries';
 
 interface PhoneFieldProps {
   id: string;
@@ -31,7 +24,9 @@ const scrollIntoCenter = (el: HTMLLIElement | null) => el?.scrollIntoView({ bloc
  * Si se pega un número que ya trae su código (+52 55…), el país se elige solo.
  */
 export const PhoneField: React.FC<PhoneFieldProps> = ({ id, value, onChange, placeholder = '99 123 4567' }) => {
-  const [initial] = useState(() => splitPhone(value, defaultPhoneCountry()));
+  // El país del estudiante: propuesto para los números nuevos y siempre primero en la lista
+  const [home] = useState(userPhoneCountry);
+  const [initial] = useState(() => splitPhone(value, home));
   const [country, setCountry] = useState<PhoneCountry>(initial.country);
   const [local, setLocal] = useState(initial.local);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -39,9 +34,10 @@ export const PhoneField: React.FC<PhoneFieldProps> = ({ id, value, onChange, pla
 
   const filtered = useMemo(() => {
     const q = normalize(query.trim().replace(/^\+/, ''));
-    if (!q) return PHONE_COUNTRIES;
-    return PHONE_COUNTRIES.filter((c) => normalize(c.name).includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q);
-  }, [query]);
+    const ordered = [home, ...PHONE_COUNTRIES.filter((c) => c.iso !== home.iso)];
+    if (!q) return ordered;
+    return ordered.filter((c) => normalize(c.name).includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q);
+  }, [query, home]);
 
   const changeLocal = (text: string) => {
     // Pegaron el número con su código: se reparte entre país y número
@@ -58,7 +54,6 @@ export const PhoneField: React.FC<PhoneFieldProps> = ({ id, value, onChange, pla
 
   const chooseCountry = (next: PhoneCountry) => {
     setCountry(next);
-    rememberPhoneCountry(next);
     onChange(joinPhone(next, local));
     setIsPickerOpen(false);
     setQuery('');

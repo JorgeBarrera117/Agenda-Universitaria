@@ -106,7 +106,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
 
         <fieldset className="space-y-1.5">
           <legend className="text-xs font-semibold text-[var(--color-md-on-surface)]">Ícono</legend>
-          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5">
             {icons.map((opt) => {
               const IconComp = opt.icon;
               const isSelected = icon === opt.id;
@@ -118,7 +118,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
                   title={opt.label}
                   aria-label={opt.label}
                   aria-pressed={isSelected}
-                  className={`flex aspect-square min-h-[40px] items-center justify-center rounded-xl border transition-all duration-150 ease-out active:scale-95 ${
+                  className={`flex aspect-square min-h-[40px] min-w-0 items-center justify-center rounded-xl border transition-all duration-150 ease-out active:scale-95 ${
                     isSelected
                       ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
                       : 'border-transparent bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] hover:border-[var(--color-md-outline-variant)] hover:text-[var(--color-md-on-surface)]'
