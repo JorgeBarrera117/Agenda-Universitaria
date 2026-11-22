@@ -18,18 +18,17 @@ import { useProfessors } from '../hooks/useProfessors';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { ProfessorForm } from './ProfessorForm';
 import { ProfessorAvatar } from './ProfessorAvatar';
-import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 import {
   ABOVE_STRETCHED_CLASS,
   HEADER_SCRIM_CLASS,
   STRETCHED_CARD_BUTTON_CLASS,
-  TONAL_CHIP_CLASS,
 } from '../../../shared/styles/surfaces';
 import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
 import { ProfessorDetailView } from './ProfessorDetailView';
@@ -96,6 +95,8 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       onEditorActiveChange?.(false);
     };
   }, [isFullScreen, onEditorActiveChange]);
+  // Al bajar por la lista, el botón de agregar y el selector Materias | Profesores se apartan
+  useAutoHideFabs(isActive && !isFullScreen);
 
   const handleOpenCreate = () => {
     setEditingProfessor(undefined);
@@ -297,7 +298,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
   }
 
   return (
-    <div className="space-y-3.5 w-full">
+    <div className="glass-legible space-y-3.5 w-full">
       <ContextualToast message={toast?.text ?? null} bottomOffset="nav" onClose={() => setToast(null)} />
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
@@ -376,16 +377,22 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         />
       </StickyToolbar>
 
-      {/* Subtítulo de Sección */}
-      <div className="flex items-center justify-between px-1 pt-0.5">
-        <span className={TONAL_CHIP_CLASS}>
-          Directorio alfabético · {filteredProfessors.length}{' '}
-          {filteredProfessors.length === 1 ? 'catedrático' : 'catedráticos'}
-        </span>
-        {searchQuery && (
-          <span className={`${TONAL_CHIP_CLASS} text-[var(--color-md-primary)]`}>
-            Filtrando resultados
+      {/* Encabezado de la lista: texto alineado a la izquierda (no una píldora que parezca botón) */}
+      <div className="flex items-baseline justify-between gap-2 px-1">
+        <h3 className="text-sm font-black text-[var(--color-md-on-surface)]">
+          {searchQuery ? 'Resultados' : 'Directorio alfabético'}
+          <span className="ml-1.5 text-xs font-medium text-[var(--color-md-on-surface-variant)]">
+            {filteredProfessors.length} {filteredProfessors.length === 1 ? 'catedrático' : 'catedráticos'}
           </span>
+        </h3>
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="h-9 shrink-0 rounded-full px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/10 active:scale-95"
+          >
+            Borrar búsqueda
+          </button>
         )}
       </div>
 
@@ -423,12 +430,17 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
           )}
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
+        // pb-28 en el teléfono: el último «Correo» queda libre de los botones flotantes
+        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:gap-3 md:grid-cols-2 md:pb-0 xl:grid-cols-3">
           {filteredProfessors.map((prof) => {
             // Acciones visibles: Correo (si hay correo) y Contacto (si hay teléfono: llamar,
             // WhatsApp, Telegram o guardarlo). La principal va rellena; la otra, tonal.
             const hasEmail = Boolean(prof.email?.trim());
             const hasPhone = Boolean(prof.phone?.trim());
+            const assignedSubjects = (prof.subjectIds || []).flatMap((sid) => {
+              const sub = subjectMap.get(sid);
+              return sub ? [sub] : [];
+            });
 
             return (
             <Card
@@ -458,28 +470,18 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                     </button>
                   </h3>
 
-                  {/* Materias: chips tonales suaves; el color de la materia queda en un punto */}
-                  {(prof.subjectIds || []).length > 0 && (
-                    <ul className="flex items-center flex-wrap gap-1 mt-1.5" aria-label="Materias que imparte">
-                      {(prof.subjectIds || []).map((sid) => {
-                        const sub = subjectMap.get(sid);
-                        if (!sub) return null;
-                        return (
-                          <li
-                            key={sid}
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-11px font-semibold bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] max-w-full"
-                          >
-                            <SubjectBadge icon={sub.icon} color={sub.color} size="xs" />
-                            <span className="truncate max-w-[160px] sm:max-w-[220px]">{sub.name}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                  {/* Materias como subtítulo limpio (hasta 2 líneas completas, sin cápsula que corte) */}
+                  {assignedSubjects.length > 0 && (
+                    <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-[var(--color-md-on-surface-variant)]">
+                      <span className="sr-only">Materias que imparte: </span>
+                      {assignedSubjects.map((sub) => sub.name).join(' · ')}
+                    </p>
                   )}
                 </div>
 
                 {/* Acciones secundarias y de gestión agrupadas en el menú ⋮ */}
                 <M3KebabMenu
+                  size="md"
                   className={ABOVE_STRETCHED_CLASS}
                   items={[
                     ...(hasPhone
@@ -547,12 +549,12 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
 
               {/* Pie anclado abajo: una única acción de contacto en la zona del pulgar */}
               {(hasEmail || hasPhone) && (
-                <div className="mt-auto flex items-center justify-end gap-2 pt-2 border-t border-[var(--color-md-outline-variant)]">
+                <div className="mt-auto flex items-center justify-end gap-3 pt-2.5 border-t border-[var(--color-md-outline-variant)]">
                   {hasPhone && (
                     <button
                       type="button"
                       onClick={() => setContactProf(prof)}
-                      className={`relative z-10 inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] ${
+                      className={`relative z-10 inline-flex items-center gap-1.5 h-10 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] ${
                         hasEmail
                           ? 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:bg-[var(--color-md-surface-container-high)]'
                           : 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs'
@@ -566,7 +568,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
                   {hasEmail && (
                     <a
                       href={`mailto:${prof.email?.trim()}`}
-                      className="relative z-10 inline-flex items-center gap-1.5 h-8 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
+                      className="relative z-10 inline-flex items-center gap-1.5 h-10 px-4 shrink-0 rounded-full text-xs font-bold whitespace-nowrap bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] hover:bg-[var(--color-md-primary-hover)] shadow-xs transition-all duration-150 ease-out active:scale-[0.98]"
                       aria-label={`Enviar correo a ${prof.name}`}
                     >
                       <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
@@ -662,6 +664,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="professors"
+          autoHideOnScroll
           onClick={handleOpenCreate}
           label="Registrar Catedrático"
           icon={<UserPlus className="w-6 h-6 stroke-[2.2]" />}

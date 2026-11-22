@@ -19,7 +19,7 @@ interface FloatingSectionSwitcherProps<T extends string> {
 }
 
 const ITEM_SIZE = 48;
-const ITEM_GAP = 8;
+const ITEM_GAP = 12;
 
 /**
  * Selector de sección del teléfono (Materias | Profesores, Apuntes | Archivos) como botones
@@ -45,7 +45,7 @@ export const FloatingSectionSwitcher = <T extends string>({ value, options, onCh
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={`fixed z-40 flex flex-col gap-2 ${slot.onRight ? 'right-4 items-end' : 'left-4 items-start'}`}
+      className={`fab-autohide fixed z-40 flex flex-col gap-3 ${slot.onRight ? 'right-4 items-end' : 'left-4 items-start'}`}
       style={{ top: slot.top }}
     >
       {options.map((option, index) => {

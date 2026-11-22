@@ -8,7 +8,6 @@ import {
   MapPin,
   Award,
   Clock,
-  FileText,
   FolderOpen,
   Import,
   Share2,
@@ -40,6 +39,8 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
+import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
 import { ABOVE_STRETCHED_CLASS, HEADER_SCRIM_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
@@ -78,6 +79,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   // Formulario de clase abierto desde la ficha: editar una clase o agregar clases a la materia
   const [slotEditor, setSlotEditor] = useState<{ subject: Subject; slot?: ScheduleSlot } | null>(null);
   const { notes } = useNotes();
+  const { settings } = useAppSettings();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>(undefined);
@@ -93,6 +95,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
   // Formulario o ficha a pantalla completa: App oculta el Navbar y la barra inferior
   const isFullScreen = isModalOpen || selectedSubject !== undefined;
+  // Al bajar por la lista, el botón de agregar y el selector Materias | Profesores se apartan
+  useAutoHideFabs(isActive && !isFullScreen && !slotEditor);
   useEffect(() => {
     onEditorActiveChange?.(isFullScreen);
     return () => {
@@ -163,6 +167,21 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
       if (result.method === 'download') showToast(`Se descargó «${result.fileName}».`);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'No se pudo compartir la materia.');
+    }
+  };
+
+  // Compartir el plan completo (materias, clases y docentes) como .agschedule, igual que el Horario
+  const handleSharePlan = async () => {
+    if (subjects.length === 0) {
+      showToast('Aún no tienes materias para compartir.');
+      return;
+    }
+    try {
+      const { exportScheduleToAgschedule } = await import('../../schedule/services/scheduleShareService');
+      const result = await exportScheduleToAgschedule(settings.semesterName, subjects, slots, professors);
+      if (result.method === 'download') showToast(`Se descargó «${result.fileName}».`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'No se pudo compartir el plan.');
     }
   };
 
@@ -330,7 +349,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-3.5">
+    <div className="glass-legible space-y-3 sm:space-y-3.5">
       {/* 1. ENCABEZADO DEL APARTADO (Compacto) */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
@@ -350,6 +369,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           className={`flex shrink-0 flex-wrap items-center gap-2 origin-right transition-all duration-200 scale-100 opacity-100 scrolled:sm:scale-75 scrolled:sm:opacity-0 scrolled:sm:pointer-events-none`}
         >
           <input {...agclassPicker.inputProps} />
+          {/* Intercambio: importar una materia y compartir el plan completo, ambos tonales */}
           <Button
             variant="secondary"
             size="sm"
@@ -358,6 +378,16 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
             className="active:scale-95 whitespace-nowrap"
           >
             Importar (.agclass)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Share2 className="w-4 h-4 stroke-[2.3]" />}
+            onClick={() => void handleSharePlan()}
+            aria-label="Compartir el plan de asignaturas (.agschedule)"
+            className="!border !border-[var(--color-md-outline)] active:scale-95 whitespace-nowrap"
+          >
+            Compartir plan
           </Button>
           {/* En móvil se inscribe con el botón flotante */}
           <div className="hidden sm:block">
@@ -376,46 +406,42 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
       {/* 2. RESUMEN MÉTRICO COMPACTO (Jerarquía Nivel 2) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-        {/* Métrica 1: Asignaturas */}
-        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
+        {/* Métricas: en el teléfono, ícono arriba y número con su etiqueta completa debajo */}
+        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-2xs flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <BookOpen className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+            <div className="text-base sm:text-lg font-black text-[var(--color-md-on-surface)] leading-tight">
               {activeSubjects.length}
             </div>
-            <div className="text-10px sm:text-11px font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
+            <div className="text-10px sm:text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">
               Materias
             </div>
           </div>
         </div>
-
-        {/* Métrica 2: Créditos */}
-        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
+        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-2xs flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Award className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+            <div className="text-base sm:text-lg font-black text-[var(--color-md-on-surface)] leading-tight">
               {totalCredits}
             </div>
-            <div className="text-10px sm:text-11px font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
+            <div className="text-10px sm:text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">
               Créditos
             </div>
           </div>
         </div>
-
-        {/* Métrica 3: Bloques */}
-        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--color-md-card-bg)] border border-[var(--color-md-outline-variant)] shadow-2xs flex items-center gap-2 sm:gap-3 text-large:flex-col text-large:items-start">
+        <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-2xs flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+            <div className="text-base sm:text-lg font-black text-[var(--color-md-on-surface)] leading-tight">
               {totalSlotsCount}
             </div>
-            <div className="text-10px sm:text-11px font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
+            <div className="text-10px sm:text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">
               Bloques
             </div>
           </div>
@@ -493,7 +519,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
+        // pb-28 en el teléfono: el último «Tomar apunte» queda libre de los botones flotantes
+        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:grid-cols-2 sm:gap-3 md:pb-0 lg:grid-cols-3 xl:grid-cols-4">
           {visibleSubjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;
@@ -529,9 +556,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                       </button>
                     </h3>
                     {(subject.code || subject.isArchived) && (
-                      <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        {/* Código como texto (no parece botón) */}
                         {subject.code && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-10px font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
+                          <span className="font-mono text-11px font-medium text-[var(--color-md-on-surface-variant)]">
                             <span className="sr-only">Código: </span>
                             {subject.code}
                           </span>
@@ -548,6 +576,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
                   {/* Acciones de gestión agrupadas en el menú ⋮ para dejar una sola acción visible */}
                   <M3KebabMenu
+                    size="md"
                     className={ABOVE_STRETCHED_CLASS}
                     items={[
                       {
@@ -616,20 +645,20 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                   </div>
                 )}
 
-                {/* Nivel 3 · Coordenadas académicas: aula y créditos en chips tonales */}
+                {/* Nivel 3 · Aula y créditos: texto secundario con íconos sutiles (son datos, no botones) */}
                 {(subject.classroomDefault || (subject.credits !== undefined && subject.credits > 0)) && (
-                  <div className="flex items-center gap-1.5 flex-wrap text-11px">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-md-on-surface-variant)]">
                     {subject.classroomDefault && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface-variant)] font-medium min-w-0 max-w-full">
-                        <MapPin className="w-3.5 h-3.5 text-[var(--color-md-primary)] shrink-0" aria-hidden="true" />
+                      <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
                         <span className="sr-only">Aula: </span>
                         <span className="truncate">{subject.classroomDefault}</span>
                       </span>
                     )}
                     {subject.credits !== undefined && subject.credits > 0 && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] font-semibold">
-                        <Award className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                        <span>{subject.credits} cr.</span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Award className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+                        {subject.credits} {subject.credits === 1 ? 'crédito' : 'créditos'}
                       </span>
                     )}
                   </div>
@@ -637,23 +666,11 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
                 {/* Nivel 4 · Pie anclado abajo: métricas de solo lectura + acción en la zona del pulgar */}
                 <div className="mt-auto pt-2 border-t border-[var(--color-md-outline-variant)] flex items-center justify-between gap-1.5 text-xs">
-                  <dl className="flex items-center gap-2.5 text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
-                    <div className="flex items-center gap-0.5" title={`${classCount} clases semanales`}>
-                      <dt className="sr-only">Clases semanales</dt>
-                      <Clock className="w-3 h-3" aria-hidden="true" />
-                      <dd>{classCount}</dd>
-                    </div>
-                    <div className="flex items-center gap-0.5" title={`${docCount} archivos vinculados`}>
-                      <dt className="sr-only">Archivos vinculados</dt>
-                      <FolderOpen className="w-3 h-3" aria-hidden="true" />
-                      <dd>{docCount}</dd>
-                    </div>
-                    <div className="flex items-center gap-0.5" title={`${noteCount} apuntes`}>
-                      <dt className="sr-only">Apuntes</dt>
-                      <FileText className="w-3 h-3" aria-hidden="true" />
-                      <dd>{noteCount}</dd>
-                    </div>
-                  </dl>
+                  {/* Contadores con su nombre: «2 bloques · 0 archivos · 1 apunte» */}
+                  <p className="min-w-0 text-11px font-medium leading-snug text-[var(--color-md-on-surface-variant)]">
+                    {classCount} {classCount === 1 ? 'bloque' : 'bloques'} · {docCount} {docCount === 1 ? 'archivo' : 'archivos'} ·{' '}
+                    {noteCount} {noteCount === 1 ? 'apunte' : 'apuntes'}
+                  </p>
 
                   {onNavigateToNotes ? (
                     <Button
@@ -661,8 +678,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                       size="xs"
                       onClick={() => onNavigateToNotes(subject.id)}
                       aria-label={`Tomar apunte de ${subject.name}`}
-                      icon={<BookPlus className="w-3 h-3 stroke-[2.2]" />}
-                      className={`${ABOVE_STRETCHED_CLASS} shrink-0 ml-auto text-11px py-1 px-3 h-7 whitespace-nowrap`}
+                      icon={<BookPlus className="h-4 w-4 stroke-[2.2]" />}
+                      className={`${ABOVE_STRETCHED_CLASS} ml-auto min-h-10 shrink-0 whitespace-nowrap`}
                     >
                       Tomar apunte
                     </Button>
@@ -671,8 +688,8 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                       variant="secondary"
                       size="xs"
                       onClick={() => setSelectedSubjectForDocs(subject)}
-                      icon={<FolderOpen className="w-3 h-3 stroke-[2.2]" />}
-                      className={`${ABOVE_STRETCHED_CLASS} shrink-0 ml-auto text-11px py-1 px-3 h-7 whitespace-nowrap`}
+                      icon={<FolderOpen className="h-4 w-4 stroke-[2.2]" />}
+                      className={`${ABOVE_STRETCHED_CLASS} ml-auto min-h-10 shrink-0 whitespace-nowrap`}
                     >
                       Archivos
                     </Button>
@@ -703,6 +720,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="subjects"
+          autoHideOnScroll
           onClick={handleOpenCreate}
           label="Inscribir Asignatura"
           icon={<BookPlus className="w-6 h-6 stroke-[2.2]" />}
