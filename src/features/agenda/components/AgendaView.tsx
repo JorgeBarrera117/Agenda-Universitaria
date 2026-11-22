@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, ChevronRight, Plus, Sun, X } from 'lucide-react';
+import { CalendarPlus, ChevronRight, ClipboardPlus, Plus, Sun, X } from 'lucide-react';
 import { useAgenda } from '../hooks/useAgenda';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -508,7 +508,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
       {deleteModal}
 
       {isActive && (
-        <DraggableFAB onClick={() => openCreate()} label="Nuevo en la agenda" icon={<Plus className="h-6 w-6 stroke-[2.2]" />} />
+        <DraggableFAB onClick={() => openCreate()} label="Nuevo en la agenda" icon={<ClipboardPlus className="h-6 w-6 stroke-[2.2]" />} />
       )}
     </div>
   );

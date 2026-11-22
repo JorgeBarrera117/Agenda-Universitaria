@@ -18,6 +18,7 @@ import {
   Share2,
   FileDown,
   Mic,
+  NotebookPen,
 } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -1247,7 +1248,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
           colorScheme="notes"
           onClick={handleOpenCreate}
           label="Nuevo Apunte"
-          icon={<Plus className="w-6 h-6 stroke-[2.2]" />}
+          icon={<NotebookPen className="w-6 h-6 stroke-[2.2]" />}
         />
       )}
     </div>
