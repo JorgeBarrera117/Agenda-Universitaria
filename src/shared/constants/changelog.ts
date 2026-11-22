@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.95',
+    date: '2026-11-21',
+    title: 'Avisos que sí llegan',
+    changes: [
+      { kind: 'correccion', text: 'En Android 14 o más nuevo los avisos (de clases y de la agenda) no se programaban. Ahora llegan sin tener que activar nada en Ajustes del teléfono.' },
+      { kind: 'correccion', text: 'El botón de agregar vuelve a su lugar de siempre en Horario y Agenda; solo sube en Materias y Biblioteca para dejar sitio a sus botones.' },
+      { kind: 'mejora', text: 'Los títulos de la Agenda (Vencidas, Hoy, Mañana…) se leen mejor con cualquier tema y papel tapiz.' },
+    ],
+  },
+  {
     version: '1.7.10.94',
     date: '2026-11-21',
     title: 'Tus clases desde la Agenda',
