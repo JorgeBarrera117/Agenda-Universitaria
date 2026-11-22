@@ -32,6 +32,20 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.0',
+    date: '2026-11-22',
+    title: 'Nueva pestaña Estudio',
+    changes: [
+      { kind: 'nuevo', text: 'Pestaña Estudio (Pomodoro): sesiones de concentración con pausas, perfiles Clásico 25/5/15, Inicio rápido y Deep Work o tus propios tiempos, y cuánto estudiaste cada semana por materia.' },
+      { kind: 'nuevo', text: 'En Android, el Estudio se ve en vivo en las notificaciones con la cuenta regresiva y los botones Pausar y Detener, aunque cierres la app.' },
+      { kind: 'nuevo', text: 'Pausas con aviso y sonido: «¡Hora de una pausa!», cuánto falta para volver y tu ciclo de sesiones. Puedes elegir si las pausas y las sesiones empiezan solas.' },
+      { kind: 'nuevo', text: 'Sonidos por sección: Horario, Agenda y Estudio (al empezar, en la pausa y al volver) suenan distinto. Ajústalos en Ajustes → Notificaciones → Sonidos.' },
+      { kind: 'nuevo', text: 'Agenda: tareas y exámenes que se repiten cada semana, subtareas que marcas desde la ficha y avisos de repaso antes de cada examen.' },
+      { kind: 'mejora', text: 'Finalizar semestre también limpia de la agenda lo que ya pasó y las tareas hechas.' },
+      { kind: 'mejora', text: 'Los apuntes y «Vincular documento» siguen el mismo diseño que las demás fichas y formularios.' },
+    ],
+  },
+  {
     version: '1.7.10.99',
     date: '2026-11-22',
     title: 'Botones flotantes con color propio',
