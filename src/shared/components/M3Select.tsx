@@ -29,6 +29,8 @@ export interface M3SelectProps<T extends string | number = string> {
   leadingIcon?: React.ReactNode;
   /** Alineación del menú desplegable cuando es variante 'pill' */
   menuAlign?: 'left' | 'right';
+  /** Solo 'pill': en el teléfono muestra solo el ícono (el valor sigue disponible para lectores de pantalla). */
+  compactOnPhone?: boolean;
 }
 
 /** Mismo corte que Modal (sm = 640 px): por debajo, la lista se abre como hoja inferior. */
@@ -64,6 +66,7 @@ export const M3Select = <T extends string | number = string>({
   variant = 'field',
   leadingIcon,
   menuAlign = 'left',
+  compactOnPhone = false,
 }: M3SelectProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const [presentation, setPresentation] = useState<Presentation>('menu');
@@ -405,7 +408,7 @@ export const M3Select = <T extends string | number = string>({
           ) : null}
 
           {/* Texto principal y secundario */}
-          <div id={valueId} className="min-w-0 flex-1 truncate">
+          <div id={valueId} className={`min-w-0 flex-1 truncate ${isPill && compactOnPhone ? 'max-sm:sr-only' : ''}`}>
             {selectedOption ? (
               <div className="flex items-center gap-1.5 truncate">
                 {/* El nombre manda: el detalle (código, docente…) es lo que se recorta si no cabe.

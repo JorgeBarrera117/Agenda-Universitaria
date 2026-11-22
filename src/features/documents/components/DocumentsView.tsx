@@ -24,6 +24,7 @@ import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { SearchField } from '../../../shared/components/SearchField';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
+import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { DocumentLinkForm } from './DocumentLinkForm';
 import { DocumentDetailView } from './DocumentDetailView';
@@ -73,6 +74,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       onEditorActiveChange?.(false);
     };
   }, [viewMode, onEditorActiveChange]);
+  // Al bajar por los archivos, el botón de agregar y el selector Apuntes | Archivos se apartan
+  useAutoHideFabs(isActive && viewMode === 'list');
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -358,7 +361,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
   // 4. APARTADO PRINCIPAL: CATÁLOGO Y LISTADO GENERAL
   return (
-    <div className="space-y-3.5 w-full animate-in fade-in duration-200">
+    <div className="glass-legible space-y-3.5 w-full animate-in fade-in duration-200">
       {/* 1. Encabezado del Apartado (Jerarquía Nivel 1 Compacta) */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
@@ -404,6 +407,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
             value={sortBy}
             onChange={setSortBy}
             variant="pill"
+            compactOnPhone
             leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
             menuAlign="right"
             options={[
@@ -419,7 +423,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       {/* Filtros por materia y por tipo */}
       <div className="space-y-2.5">
         {/* Chips Horizontales de Asignaturas */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar select-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] custom-scrollbar select-none">
           <button
             type="button"
             onClick={() => setSelectedSubjectFilter('all')}
@@ -465,7 +469,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         </div>
 
         {/* Chips de Categoría de Formato */}
-        <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 p-1 backdrop-blur-md select-none text-11px font-bold [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)]/85 p-1 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] backdrop-blur-md select-none text-11px font-bold [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <span className="text-[var(--color-md-on-surface-variant)] shrink-0 mx-1 flex items-center gap-1">
             <Filter className="w-3 h-3" /> Tipo:
           </span>
@@ -523,7 +527,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3">
+        // pb-28 en el teléfono: la última tarjeta queda libre de los botones flotantes
+        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:gap-3 md:grid-cols-2 md:pb-0 xl:grid-cols-3 2xl:grid-cols-4">
           {filteredAndSortedDocs.map((doc) => {
             const visuals = getFormatVisuals(doc.fileExtension, doc.isExternalLink);
             const subj = subjectsMap.get(doc.subjectId);
@@ -547,23 +552,23 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono font-bold text-9px px-1.5 py-0.2 rounded bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
-                        {visuals.label}
-                      </span>
-                      {doc.sizeBytes && (
-                        <span className="text-10px sm:text-11px font-semibold text-[var(--color-md-outline)]">
-                          {formatFileSize(doc.sizeBytes)}
-                        </span>
-                      )}
-                    </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] truncate group-hover:text-[var(--color-md-primary)] transition-colors mt-0.5 leading-snug">
+                    <h4 className="text-xs sm:text-sm font-bold text-[var(--color-md-on-surface)] truncate group-hover:text-[var(--color-md-primary)] transition-colors leading-snug">
+                      <span className="sr-only">{visuals.label}: </span>
                       {doc.name}
                     </h4>
+                    <p className="mt-0.5 truncate text-11px text-[var(--color-md-on-surface-variant)]">
+                      {[
+                        doc.isExternalLink ? 'Enlace' : doc.sizeBytes ? formatFileSize(doc.sizeBytes) : null,
+                        new Date(doc.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
                   </div>
 
                   {/* Menú Contextual M3 (Kebab ⋮) para Descongestionar Tarjetas */}
                   <M3KebabMenu
+                    size="md"
                     items={[
                       {
                         id: 'open',
@@ -643,9 +648,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                       e.stopPropagation();
                       handleOpenDoc(doc);
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-11px font-bold bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] hover:bg-[#b9d7ff] dark:hover:bg-[#005d92] active:scale-95 transition-all shadow-2xs cursor-pointer disabled:opacity-50 shrink-0"
+                    className="inline-flex h-9 items-center gap-1.5 px-3.5 rounded-full text-xs font-bold bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] hover:brightness-[0.97] hover:shadow-xs active:scale-95 transition-[filter,transform,box-shadow] duration-150 shadow-2xs cursor-pointer disabled:opacity-50 shrink-0"
                   >
-                    <ArrowUpRight className={`w-3 h-3 ${isOpening ? 'animate-spin' : ''}`} />
+                    <ArrowUpRight className={`h-4 w-4 ${isOpening ? 'animate-spin' : ''}`} />
                     <span>{isOpening ? 'Abriendo...' : 'Abrir'}</span>
                   </button>
                 </div>
@@ -662,6 +667,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       {isActive && viewMode === 'list' && (
         <DraggableFAB
           colorScheme="documents"
+          autoHideOnScroll
           onClick={handleOpenAdd}
           label="Vincular Documento"
           icon={<FolderPlus className="w-6 h-6 stroke-[2.2]" />}

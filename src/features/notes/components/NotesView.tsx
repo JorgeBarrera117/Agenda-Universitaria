@@ -20,6 +20,7 @@ import {
   Mic,
   NotebookPen,
 } from 'lucide-react';
+import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
@@ -209,6 +210,8 @@ export const NotesView: React.FC<NotesViewProps> = ({
       onEditorActiveChange?.(false);
     };
   }, [viewMode, onEditorActiveChange]);
+  // Al bajar por los apuntes, el botón de agregar y el selector Apuntes | Archivos se apartan
+  useAutoHideFabs(isActive && viewMode === 'list');
 
   // Salida animada del lector al volver al catálogo
   const readerExit = useExitTransition(MOTION_EXIT_MS.sheet);
@@ -730,7 +733,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
   // 3. Vista de Galería de Documentos (M3 High Density)
   return (
-    <div className="space-y-3.5 w-full m3-view-enter">
+    <div className="glass-legible space-y-3.5 w-full m3-view-enter">
       <ContextualToast message={readerToast} bottomOffset="nav" onClose={() => setReaderToast(null)} />
       {importPackage && (
         <ImportNoteModal
@@ -793,24 +796,52 @@ export const NotesView: React.FC<NotesViewProps> = ({
       </div>
 
       {/* 2. Barra de Búsqueda: se queda fija bajo el Navbar al hacer scroll */}
+      {/* Búsqueda, orden y vista en una sola fila (como en Archivos): más apuntes a la vista */}
       <StickyToolbar>
-        <SearchField
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Buscar apuntes o #etiquetas…"
-          ariaLabel="Buscar apuntes por título, contenido o #etiqueta"
-        />
+        <div className="flex items-center gap-2">
+          <SearchField
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Buscar apuntes o #etiquetas…"
+            ariaLabel="Buscar apuntes por título, contenido o #etiqueta"
+            className="min-w-0 flex-1"
+          />
+          <M3Select<'updatedAt' | 'createdAt' | 'title'>
+            variant="pill"
+            menuAlign="right"
+            value={sortBy}
+            onChange={setSortBy}
+            compactOnPhone
+            className="shrink-0"
+            leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
+            options={[
+              { value: 'updatedAt', label: 'Modificación' },
+              { value: 'createdAt', label: 'Fecha' },
+              { value: 'title', label: 'Alfabético (A-Z)' },
+            ]}
+          />
+          {/* Un solo botón alterna Lista / Cuadrícula (muestra a cuál se cambia) */}
+          <button
+            type="button"
+            onClick={() => setGalleryLayout(galleryLayout === 'grid' ? 'list' : 'grid')}
+            aria-label={galleryLayout === 'grid' ? 'Cambiar a vista de lista' : 'Cambiar a vista de cuadrícula'}
+            title={galleryLayout === 'grid' ? 'Vista de lista' : 'Vista de cuadrícula'}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)] shadow-2xs transition-[background-color,transform] duration-150 hover:text-[var(--color-md-on-surface)] active:scale-95 sm:h-11 sm:w-11"
+          >
+            {galleryLayout === 'grid' ? <ListIcon className="h-4 w-4" aria-hidden="true" /> : <LayoutGrid className="h-4 w-4" aria-hidden="true" />}
+          </button>
+        </div>
       </StickyToolbar>
 
       {/* Píldoras de Materias Compactas */}
-      <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible py-0.5 px-0.5 scrollbar-none select-none">
+      <div className="flex items-center sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible py-0.5 px-0.5 pr-8 sm:pr-0.5 [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] sm:[mask-image:none] scrollbar-none select-none">
         <button
           type="button"
           onClick={() => setSelectedSubjectId('all')}
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
             selectedSubjectId === 'all'
-              ? 'bg-[#D0E4FF] dark:bg-[#004B76] text-[#001D32] dark:text-[#D0E4FF] shadow-2xs border border-[#004B76]/30 dark:border-[#D0E4FF]/30'
-              : 'bg-[#F1F4FA] dark:bg-[#1D2024] text-[#43474E] dark:text-[#C3C7D0] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
+              ? 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] shadow-2xs border border-transparent'
+              : 'bg-[var(--color-md-surface)]/85 backdrop-blur-md text-[var(--color-md-on-surface)] border border-[var(--color-md-outline-variant)] hover:bg-[var(--color-md-surface-container-high)]'
           }`}
         >
           <BookOpen className="w-3 h-3 shrink-0" />
@@ -828,7 +859,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
                 isSelected
                   ? 'text-white shadow-2xs ring-1 ring-white/30'
-                  : 'bg-[#F1F4FA] dark:bg-[#1D2024] text-[#191C20] dark:text-[#E2E2E6] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
+                  : 'bg-[var(--color-md-surface)]/85 backdrop-blur-md text-[var(--color-md-on-surface)] border border-[var(--color-md-outline-variant)] hover:bg-[var(--color-md-surface-container-high)]'
               }`}
               style={{ backgroundColor: isSelected ? PERSONAL_CATEGORY.color : undefined }}
             >
@@ -855,7 +886,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
                 isSelected
                   ? 'text-white shadow-2xs ring-1 ring-white/30'
-                  : 'bg-[#F1F4FA] dark:bg-[#1D2024] text-[#191C20] dark:text-[#E2E2E6] border border-[#C3C7D0]/60 dark:border-[#43474E]/60 hover:bg-[#E2E7EF] dark:hover:bg-[#272A2F]'
+                  : 'bg-[var(--color-md-surface)]/85 backdrop-blur-md text-[var(--color-md-on-surface)] border border-[var(--color-md-outline-variant)] hover:bg-[var(--color-md-surface-container-high)]'
               }`}
               style={{
                 backgroundColor: isSelected ? sub.color : undefined,
@@ -875,51 +906,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
             </button>
           );
         })}
-      </div>
-
-      {/* Barra de Ordenamiento y Alternador de Vista (Cuadrícula / Lista) */}
-      <div className="flex items-center justify-between px-0.5 text-xs text-slate-500 dark:text-slate-400">
-        <M3Select<'updatedAt' | 'createdAt' | 'title'>
-          variant="pill"
-          menuAlign="left"
-          value={sortBy}
-          onChange={setSortBy}
-          leadingIcon={<ArrowUpDown className="w-3.5 h-3.5" />}
-          options={[
-            { value: 'updatedAt', label: 'Modificación' },
-            { value: 'createdAt', label: 'Fecha' },
-            { value: 'title', label: 'Alfabético (A-Z)' },
-          ]}
-        />
-
-        {/* Alternador Cuadrícula / Lista */}
-        <div className="flex items-center bg-slate-100 dark:bg-[#272A2F] p-0.5 rounded-xl border border-slate-200/80 dark:border-white/10">
-          <button
-            type="button"
-            onClick={() => setGalleryLayout('list')}
-            title="Vista de lista"
-            className={`p-1 rounded-lg transition-all cursor-pointer ${
-              galleryLayout === 'list'
-                ? 'bg-white dark:bg-white/15 text-[#00639B] dark:text-[#92CCFF] shadow-2xs'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-            }`}
-          >
-            <ListIcon className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setGalleryLayout('grid')}
-            title="Vista de cuadrícula"
-            className={`p-1 rounded-lg transition-all cursor-pointer ${
-              galleryLayout === 'grid'
-                ? 'bg-white dark:bg-white/15 text-[#00639B] dark:text-[#92CCFF] shadow-2xs'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-          </button>
-        </div>
       </div>
 
       {/* Cuadrícula o Lista de Apuntes */}
@@ -954,7 +940,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </Card>
       ) : galleryLayout === 'grid' ? (
         /* Cuadrícula Compacta Responsiva */
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 items-start gap-2.5 pb-28 sm:grid-cols-3 sm:gap-3 md:pb-0 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {sortedNotes.map((note) => {
             const category = getNoteCategory(note, subjectMap);
             const imageCount = imageCounts?.[note.id] || 0;
@@ -972,24 +958,19 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 className={`${CARD_SURFACE_CLASS} ${CARD_INTERACTIVE_CLASS} content-auto p-2.5 sm:p-3.5 flex flex-col justify-between cursor-pointer group`}
               >
                 {/* Cabecera de la Tarjeta */}
-                <div className="flex items-start justify-between gap-1.5">
-                  <div className="flex items-start gap-1.5 min-w-0 flex-1">
-                    <div
-                      className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 shadow-2xs text-white"
-                      style={{
-                        backgroundColor: category.color,
-                      }}
-                    >
-                      <SubjectIcon icon={category.icon} className="w-3 h-3 text-white" />
-                    </div>
-
-                    <h3 className="text-xs font-bold text-[var(--color-md-on-surface)] line-clamp-2 leading-snug group-hover:text-[var(--color-md-primary)] transition-colors">
-                      {note.title || 'Documento'}
-                    </h3>
+                <div className="-mr-1 -mt-1 flex items-center justify-between gap-1.5">
+                  <div
+                    className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-2xs text-white"
+                    style={{
+                      backgroundColor: category.color,
+                    }}
+                  >
+                    <SubjectIcon icon={category.icon} className="w-3.5 h-3.5 text-white" />
                   </div>
 
-                  {/* Menú Contextual M3 (Kebab ⋮) */}
+                  {/* Menú Contextual M3 (Kebab ⋮), con área táctil cómoda */}
                   <M3KebabMenu
+                    size="md"
                     items={[
                       {
                         id: 'read',
@@ -1020,6 +1001,11 @@ export const NotesView: React.FC<NotesViewProps> = ({
                     ]}
                   />
                 </div>
+
+                {/* Título a todo el ancho: no compite con el menú y se lee completo (hasta 3 líneas) */}
+                <h3 className="mt-0.5 text-xs font-bold text-[var(--color-md-on-surface)] line-clamp-3 leading-snug [overflow-wrap:anywhere] group-hover:text-[var(--color-md-primary)] transition-colors">
+                  {note.title || 'Documento'}
+                </h3>
 
                 {preview.coverImageUrl ? (
                   /* Portada: primera foto del apunte con el extracto superpuesto */
@@ -1057,7 +1043,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
                   </div>
                 ) : (
                   /* Hoja de papel en miniatura con el extracto en texto plano */
-                  <div className="aspect-[4/3] rounded-xl bg-white dark:bg-slate-100 border border-slate-200/80 p-2 overflow-hidden text-slate-800 shadow-2xs my-2 flex flex-col justify-between select-none relative group-hover:border-[#00639B]/40 transition-colors">
+                  <div className="min-h-[4.5rem] rounded-xl bg-white dark:bg-slate-100 border border-slate-200/80 p-2 overflow-hidden text-slate-800 shadow-2xs my-2 flex flex-col justify-between gap-1.5 select-none relative group-hover:border-[#00639B]/40 transition-colors">
                     <div className="space-y-1 min-h-0">
                       <div className="w-1/2 h-1 rounded-full bg-slate-300 dark:bg-slate-400 mb-1" />
                       <p
@@ -1113,7 +1099,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
       ) : (
         /* Vista de Lista Agrupada */
-        <div className="bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-2xs">
+        <div className="mb-28 md:mb-0 bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-2xs">
           {sortedNotes.map((note) => {
             const category = getNoteCategory(note, subjectMap);
             const imageCount = imageCounts?.[note.id] || 0;
@@ -1244,6 +1230,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="notes"
+          autoHideOnScroll
           onClick={handleOpenCreate}
           label="Nuevo Apunte"
           icon={<NotebookPen className="w-6 h-6 stroke-[2.2]" />}
