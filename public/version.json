@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.94",
+  "latestVersion": "1.7.10.95",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.94/Agenda-Universitaria-v1.7.10.94.apk",
-  "apkSha256": "21bd4f2df6c7a5065106c2b522f0150678a5807d6ad0c34f70f2db590e5525b5",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.94/Agenda-Universitaria-Setup-v1.7.10.94.exe",
-  "desktopSha256": "635adc911746f98c125d48ff8d97a31401873ea4dfca8415d50986b2db613260",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.95/Agenda-Universitaria-v1.7.10.95.apk",
+  "apkSha256": "656bb97c9738452aa501de5dc04d80b397212c067db013ae787f3ad74e1fb127",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.95/Agenda-Universitaria-Setup-v1.7.10.95.exe",
+  "desktopSha256": "86acc68082fed93f67267e2477d4f2eae30770f53c0652060db7140c79dd1f12",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "En la Agenda, cada clase del día muestra su ícono y abre su materia",
-    "El botón para salir del día dice «Cerrar»"
+    "Los avisos de clases y de la agenda vuelven a llegar en Android 14+",
+    "El botón de agregar vuelve a su lugar en Horario y Agenda"
   ]
 }
