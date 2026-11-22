@@ -378,12 +378,18 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           ) : (
             groups.map((group) => (
               <section key={group.key} className="space-y-2.5" aria-label={group.label}>
-                <h3
-                  className={`px-1 text-sm font-bold ${
-                    group.danger ? 'text-[#BA1A1A] dark:text-[#FFB4AB]' : 'text-[var(--color-md-on-surface)]'
-                  }`}
-                >
-                  {group.label} <span className="font-medium text-[var(--color-md-on-surface-variant)]">· {group.events.length}</span>
+                {/* Chip con fondo propio: sobre el papel tapiz y con cualquier paleta se lee igual */}
+                <h3>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-13px font-bold shadow-2xs ${
+                      group.danger
+                        ? 'bg-[#FFDAD6] text-[#410002] dark:bg-[#93000A] dark:text-[#FFDAD6]'
+                        : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface)]'
+                    }`}
+                  >
+                    {group.label}
+                    <span className="rounded-full bg-black/10 px-1.5 text-11px dark:bg-white/15">{group.events.length}</span>
+                  </span>
                 </h3>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-2">
                   {group.events.map((event) => (

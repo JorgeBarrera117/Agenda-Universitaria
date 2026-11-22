@@ -12,7 +12,8 @@ export interface DockPosition {
   yRatio: number;
 }
 
-export const FAB_STORAGE_KEY = 'agenda_fab_dock_v1';
+/** v2: la v1 pudo guardar la altura reservada de Materias y Biblioteca; se vuelve a la posición de fábrica. */
+export const FAB_STORAGE_KEY = 'agenda_fab_dock_v2';
 export const FAB_DOCK_EVENT = 'agenda_fab_dock_updated';
 export const FAB_BUTTON_SIZE = 56;
 export const FAB_EDGE_OFFSET = 16;

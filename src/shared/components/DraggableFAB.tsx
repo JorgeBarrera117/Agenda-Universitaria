@@ -306,14 +306,15 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     // Si hubo arrastre, encajar suavemente contra el borde izquierdo o derecho más cercano
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const sBottom = getSafeBottom(vh, vw);
     const finalPos = livePosRef.current;
 
     const btnCenterX = finalPos.x + BUTTON_SIZE / 2;
     const screenMidX = vw / 2;
     const newSide: 'left' | 'right' = btnCenterX < screenMidX ? 'left' : 'right';
 
-    const clampedY = Math.min(Math.max(finalPos.y, SAFE_TOP), sBottom);
+    // Se guarda dónde lo soltó el estudiante sin contar el espacio que reservan Materias y Biblioteca:
+    // así en Horario y Agenda el botón vuelve a su altura y solo en esas dos pestañas se acomoda arriba
+    const clampedY = Math.min(Math.max(finalPos.y, SAFE_TOP), fabSafeBottom(vh, vw, 0));
     const newYRatio = clampedY / vh;
 
     const newDock: DockPosition = {
