@@ -99,6 +99,12 @@ export const StudyTimerHost: React.FC = () => {
       catchUp(event.at, false, false);
       if (event.type === 'pause') studyTimer.pause(event.at);
       else if (event.type === 'resume') studyTimer.start(event.at);
+      else if (event.type === 'skip') {
+        // «Saltar» en la notificación: como el botón de la app (lo estudiado hasta ahí se guarda)
+        const subjectId = getStudyTimerState().subjectId;
+        const { finished, focusMinutes, startedAt } = studyTimer.advance(false, event.at);
+        if (finished === 'focus') saveFocus(focusMinutes, startedAt, subjectId);
+      }
       else if (event.type === 'stop') {
         const subjectId = getStudyTimerState().subjectId;
         const { focusMinutes, startedAt } = studyTimer.reset(event.at);

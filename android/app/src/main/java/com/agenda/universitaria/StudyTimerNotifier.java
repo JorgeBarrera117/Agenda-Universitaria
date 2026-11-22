@@ -12,10 +12,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
+import android.os.SystemClock;
+import android.text.format.DateFormat;
+import android.widget.RemoteViews;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -25,8 +29,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Modo estudio en Android: notificación en curso con la cuenta regresiva en vivo (cronómetro del
- * sistema) y botones Pausar/Reanudar y Detener, más la alarma exacta del fin de cada fase.
+ * Modo estudio en Android: notificación en curso con el tiempo que queda en grande (cronómetro del
+ * sistema dentro de una vista propia), la fase, una barra de avance y botones con ícono
+ * (Pausar/Reanudar, Saltar y Detener), más la alarma exacta del fin de cada fase. El cambio de fase
+ * no publica otra tarjeta: la misma notificación suena una vez con el tono de esa fase.
  *
  * El estado lo manda la app (StudyTimerPlugin.sync) y se guarda en SharedPreferences, así el
  * receptor (StudyTimerReceiver) puede pausar, reanudar, detener y pasar de concentración a pausa
@@ -37,12 +43,18 @@ final class StudyTimerNotifier {
     static final String ACTION_PAUSE = "com.agenda.universitaria.study.PAUSE";
     static final String ACTION_RESUME = "com.agenda.universitaria.study.RESUME";
     static final String ACTION_STOP = "com.agenda.universitaria.study.STOP";
+    static final String ACTION_SKIP = "com.agenda.universitaria.study.SKIP";
+    /** Redibuja la barra de avance cada minuto mientras corre (sin despertar el teléfono). */
+    static final String ACTION_TICK = "com.agenda.universitaria.study.TICK";
+    private static final long TICK_MS = 60_000L;
+    private static final String BREAK_HEX = "#2E7D32";
     static final String ACTION_PHASE_END = "com.agenda.universitaria.study.PHASE_END";
 
     private static final String PREFS = "study_timer_native";
     private static final String KEY_STATE = "state";
     private static final String KEY_EVENTS = "events";
     private static final int ONGOING_ID = 7_777_100;
+    /** Aviso suelto: solo cuando no queda notificación en curso (ver finishPhase). */
     private static final int ALERT_ID = 7_777_101;
     /** Grupo principal (no «Silenciosas») y sin sonido; el anterior, de importancia baja, se borra. */
     private static final String ONGOING_CHANNEL = "study_timer_live";
@@ -137,6 +149,12 @@ final class StudyTimerNotifier {
                     queueEvent(ctx, "stop", now);
                     render(ctx);
                     return "stop";
+                case ACTION_SKIP:
+                    skipPhase(ctx, s, now);
+                    return "skip";
+                case ACTION_TICK:
+                    render(ctx);
+                    return null;
                 case ACTION_PHASE_END:
                     // Alarma vieja (la app ya cambió de fase o pausó): no hace nada
                     if (!running || now < endsAt - 2000) return null;
@@ -153,9 +171,12 @@ final class StudyTimerNotifier {
     /**
      * Fin de una fase. Tras la concentración viene la pausa (larga cada «longEvery» sesiones) y tras
      * la pausa, la siguiente sesión; cada una empieza sola solo si su interruptor está encendido.
+     * Avisa con la misma notificación en curso (suena una vez con el tono de la fase).
      */
     private static void finishPhase(Context ctx, JSONObject s, long end) throws Exception {
         boolean focusEnded = "focus".equals(s.optString("phase"));
+        String tone;
+        String message;
         if (focusEnded) {
             int focusCount = s.optInt("focusCount") + 1;
             int longEvery = Math.max(1, s.optInt("longEvery", 4));
@@ -169,12 +190,10 @@ final class StudyTimerNotifier {
             s.put("running", auto);
             if (auto) s.put("endsAt", end + breakMs);
             saveState(ctx, s);
-            long minutes = Math.round(breakMs / 60000.0);
-            alert(ctx, s, s.optString("breakTone"),
-                isLong ? "¡Descanso largo! ☕" : "¡Hora de una pausa! ☕",
-                auto
-                    ? "Descansa " + minutes + " min: levántate, estírate y toma agua. Te avisamos cuando toque volver."
-                    : "Sesión terminada. Toca «Empezar» para tu pausa de " + minutes + " min.");
+            tone = s.optString("breakTone");
+            message = auto
+                ? "Sesión terminada. Levántate, estírate y toma agua."
+                : "Sesión terminada. Toca Empezar para tu descanso de " + Math.round(breakMs / 60000.0) + " min.";
         } else {
             long focusMs = s.optLong("focusMs");
             boolean auto = s.optBoolean("autoStartFocus", false);
@@ -188,108 +207,33 @@ final class StudyTimerNotifier {
             s.put("running", auto);
             if (auto) s.put("endsAt", end + focusMs);
             saveState(ctx, s);
-            String tone = wasLong && !s.optString("longResumeTone").isEmpty() ? s.optString("longResumeTone") : s.optString("resumeTone");
-            alert(ctx, s, tone,
-                wasLong ? "Terminó el descanso largo 🔔" : "Se acabó la pausa 📚",
-                wasLong
-                    ? (auto ? "¡Nuevo ciclo en marcha!" : "Cierre de ciclo. Toca para empezar un nuevo ciclo de estudio.")
-                    : (auto ? "¡Nueva sesión en marcha! Ya estás estudiando otra vez." : "Toca para empezar la siguiente sesión de estudio."));
+            tone = wasLong && !s.optString("longResumeTone").isEmpty() ? s.optString("longResumeTone") : s.optString("resumeTone");
+            message = wasLong
+                ? (auto ? "Terminó el descanso largo. Nuevo ciclo en marcha." : "Terminó el descanso largo. Toca Empezar para un nuevo ciclo.")
+                : (auto ? "Se acabó el descanso. Ya estás estudiando otra vez." : "Se acabó el descanso. Toca Empezar para la siguiente sesión.");
         }
         queueEvent(ctx, "phaseEnd", end);
-        render(ctx);
+        if (!focusEnded && s.optInt("focusCount") == 0 && !s.optBoolean("running")) {
+            // Sin sesiones hechas (y sin que empiece sola la siguiente), terminar el descanso es
+            // volver al principio: la app quita la notificación en curso, así que el aviso va
+            // aparte (sigue siendo una sola tarjeta)
+            render(ctx);
+            standaloneAlert(ctx, s, tone, "Se acabó el descanso", "Toca para empezar tu siguiente sesión de estudio.");
+        } else {
+            render(ctx, tone, message);
+        }
     }
 
-    /* ------------------------------------------------------------------------------------------ */
-    /* Notificaciones y alarma                                                                     */
-    /* ------------------------------------------------------------------------------------------ */
-
-    /** Dibuja (o quita) la notificación en curso según el estado guardado y programa la alarma. */
-    static void render(Context ctx) {
-        JSONObject s = loadState(ctx);
-        NotificationManagerCompat nm = NotificationManagerCompat.from(ctx);
-        if (s == null || !s.optBoolean("started")) {
-            nm.cancel(ONGOING_ID);
-            cancelAlarm(ctx);
-            return;
-        }
-        ensureOngoingChannel(ctx);
-
-        boolean running = s.optBoolean("running");
-        boolean isBreak = "break".equals(s.optString("phase"));
-        long endsAt = s.optLong("endsAt");
-        long remaining = running ? Math.max(0, endsAt - System.currentTimeMillis()) : s.optLong("remainingMs");
-        String subject = s.optString("subject", "");
-        long phaseTotal = s.optLong("phaseTotalMs", isBreak ? s.optLong("shortBreakMs") : s.optLong("focusMs"));
-        boolean untouched = !running && remaining >= phaseTotal;
-        boolean waiting = untouched && !isBreak && s.optInt("focusCount") > 0;
-
-        String title;
-        String text;
-        if (isBreak) {
-            title = running ? "Pausa ☕ · vuelves a estudiar en" : untouched ? "Hora de una pausa ☕" : "Pausa en espera";
-            text = running
-                ? "Descansa: levántate, estírate y toma agua"
-                : untouched ? "Toca «Empezar» para tu pausa de " + Math.round(phaseTotal / 60000.0) + " min" : "Quedan " + clock(remaining) + " de pausa";
-        } else if (waiting) {
-            title = "¡A estudiar! 📚";
-            text = "Pausa terminada · siguiente sesión de " + Math.round(s.optLong("focusMs") / 60000.0) + " min";
-        } else {
-            title = running ? "Concentración" + (subject.isEmpty() ? "" : " · " + subject) : "Sesión en pausa";
-            text = running
-                ? (subject.isEmpty() ? "Modo estudio" : subject) + " · sesión " + (s.optInt("focusCount") % Math.max(1, s.optInt("longEvery", 4)) + 1) + " de " + s.optInt("longEvery", 4)
-                : "Quedan " + clock(remaining) + (subject.isEmpty() ? "" : " · " + subject);
-        }
-
-        int phaseColor = parseColor(isBreak ? "#2E7D32" : s.optString("color"), Color.parseColor("#00639B"));
-        int glyph = isBreak ? R.drawable.ic_stat_study_break : R.drawable.ic_stat_study_timer;
-        NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, ONGOING_CHANNEL)
-            .setSmallIcon(glyph)
-            .setLargeIcon(circleIcon(ctx, glyph, phaseColor))
-            .setContentTitle(title)
-            .setContentText(text)
-            .setColor(phaseColor)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setSilent(true)
-            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            // Android 16: «actualización en vivo» (pastilla en la barra de estado, arriba de todo)
-            .setRequestPromotedOngoing(true)
-            // Grupo propio: Android no la junta con los avisos de pausa
-            .setGroup("study_timer_live")
-            .setContentIntent(openAppIntent(ctx));
-
-        if (running) {
-            // Cuenta regresiva en vivo del sistema: no hace falta actualizar la notificación cada segundo
-            b.setWhen(endsAt).setShowWhen(true).setUsesChronometer(true).setChronometerCountDown(true);
-            b.addAction(0, "Pausar", actionIntent(ctx, ACTION_PAUSE, 1));
-        } else {
-            b.setShowWhen(false);
-            b.setShortCriticalText(isBreak ? "Pausa" : waiting ? "¡A estudiar!" : "En pausa");
-            b.addAction(0, untouched ? "Empezar" : "Reanudar", actionIntent(ctx, ACTION_RESUME, 2));
-        }
-        b.addAction(0, "Detener", actionIntent(ctx, ACTION_STOP, 3));
-
-        try {
-            nm.notify(ONGOING_ID, b.build());
-        } catch (SecurityException ignored) {
-            // Sin permiso de notificaciones: el temporizador sigue dentro de la app
-        }
-        if (running) scheduleAlarm(ctx, endsAt);
-        else cancelAlarm(ctx);
-    }
-
-    /** Aviso con sonido del fin de una fase (canal propio del tono elegido en Ajustes). */
-    private static void alert(Context ctx, JSONObject s, String tone, String title, String text) {
-        boolean soundOn = s.optBoolean("soundOn", true);
-        String channelId = ensureAlertChannel(ctx, soundOn ? tone : "silent");
+    /** Aviso suelto (se descarta al tocarlo); solo cuando no queda notificación en curso. */
+    private static void standaloneAlert(Context ctx, JSONObject s, String tone, String title, String text) {
+        String channelId = ensureAlertChannel(ctx, s.optBoolean("soundOn", true) ? tone : "silent");
+        int color = parseColor(s.optString("color"), Color.parseColor("#00639B"));
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, channelId)
-            .setSmallIcon(R.drawable.ic_stat_study_break)
-            .setLargeIcon(circleIcon(ctx, R.drawable.ic_stat_study_break, Color.parseColor("#2E7D32")))
+            .setSmallIcon(R.drawable.ic_stat_study_timer)
+            .setLargeIcon(circleIcon(ctx, R.drawable.ic_stat_study_timer, color))
             .setContentTitle(title)
             .setContentText(text)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
-            .setColor(parseColor("#2E7D32", Color.GREEN))
+            .setColor(color)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
@@ -299,6 +243,174 @@ final class StudyTimerNotifier {
         } catch (SecurityException ignored) {
             // Sin permiso de notificaciones
         }
+    }
+
+    /**
+     * «Saltar» desde la notificación: como el botón de la app, pasa a la siguiente fase sin
+     * empezarla (saltar la concentración no la cuenta como sesión hecha).
+     */
+    private static void skipPhase(Context ctx, JSONObject s, long now) throws Exception {
+        int longEvery = Math.max(1, s.optInt("longEvery", 4));
+        int focusCount = s.optInt("focusCount");
+        if ("focus".equals(s.optString("phase"))) {
+            boolean isLong = focusCount > 0 && focusCount % longEvery == 0;
+            long breakMs = isLong ? s.optLong("longBreakMs") : s.optLong("shortBreakMs");
+            s.put("phase", "break");
+            s.put("phaseTotalMs", breakMs);
+            s.put("remainingMs", breakMs);
+        } else {
+            long focusMs = s.optLong("focusMs");
+            s.put("phase", "focus");
+            s.put("phaseTotalMs", focusMs);
+            s.put("remainingMs", focusMs);
+            // Sin sesiones hechas, volver a concentración es volver al principio
+            if (focusCount == 0) s.put("started", false);
+        }
+        s.put("running", false);
+        saveState(ctx, s);
+        queueEvent(ctx, "skip", now);
+        render(ctx);
+    }
+
+    /* ------------------------------------------------------------------------------------------ */
+    /* Notificaciones y alarma                                                                     */
+    /* ------------------------------------------------------------------------------------------ */
+
+    /** Dibuja (o quita) la notificación en curso según el estado guardado y programa la alarma. */
+    static void render(Context ctx) {
+        render(ctx, null, null);
+    }
+
+    /**
+     * Con `alertTone`, la misma notificación se publica una vez en el canal de ese tono (suena y
+     * aparece arriba) con `alertMessage` como detalle; el siguiente redibujo vuelve al canal silencioso
+     * con el mismo id. Así un cambio de fase nunca deja dos tarjetas en la bandeja.
+     */
+    static void render(Context ctx, String alertTone, String alertMessage) {
+        JSONObject s = loadState(ctx);
+        NotificationManagerCompat nm = NotificationManagerCompat.from(ctx);
+        if (s == null || !s.optBoolean("started")) {
+            nm.cancel(ONGOING_ID);
+            cancelAlarm(ctx);
+            cancelTick(ctx);
+            return;
+        }
+        ensureOngoingChannel(ctx);
+        // Con la notificación en curso, el aviso suelto sobra (así nunca hay dos tarjetas)
+        nm.cancel(ALERT_ID);
+
+        boolean running = s.optBoolean("running");
+        boolean isBreak = "break".equals(s.optString("phase"));
+        long endsAt = s.optLong("endsAt");
+        long now = System.currentTimeMillis();
+        long remaining = running ? Math.max(0, endsAt - now) : s.optLong("remainingMs");
+        String subject = s.optString("subject", "");
+        long phaseTotal = s.optLong("phaseTotalMs", isBreak ? s.optLong("shortBreakMs") : s.optLong("focusMs"));
+        boolean untouched = !running && remaining >= phaseTotal;
+        int every = Math.max(1, s.optInt("longEvery", 4));
+        int focusCount = s.optInt("focusCount");
+        boolean waiting = untouched && !isBreak && focusCount > 0;
+        // Durante la pausa, focusCount ya cuenta la sesión que acaba de terminar
+        boolean isLongBreak = isBreak && focusCount > 0 && focusCount % every == 0;
+        int sessionNumber = isBreak ? ((focusCount - 1) % every) + 1 : (focusCount % every) + 1;
+        String session = "Sesión " + Math.max(1, sessionNumber) + " de " + every + (subject.isEmpty() ? "" : " · " + subject);
+        String breakName = isLongBreak ? "Descanso largo" : "Descanso corto";
+
+        // Fase (junto al tiempo) y detalle (debajo), sin emojis: los íconos ya dicen la fase
+        String phase;
+        String detail;
+        if (isBreak) {
+            phase = running || untouched ? breakName : "En pausa";
+            detail = !running && !untouched ? breakName + " · toca Reanudar para seguir" : running
+                ? "Vuelves a estudiar a las " + DateFormat.getTimeFormat(ctx).format(new java.util.Date(endsAt))
+                : "Toca Empezar para tu descanso de " + Math.round(phaseTotal / 60000.0) + " min";
+        } else if (waiting) {
+            phase = "A estudiar";
+            detail = "Toca Empezar · " + session;
+        } else {
+            phase = running || untouched ? "Concentración" : "En pausa";
+            detail = running || untouched ? session : "Concentración · " + session;
+        }
+        if (alertMessage != null) detail = alertMessage;
+
+        int phaseColor = parseColor(isBreak ? BREAK_HEX : s.optString("color"), Color.parseColor("#00639B"));
+        int glyph = isBreak ? R.drawable.ic_stat_study_break : R.drawable.ic_stat_study_timer;
+        int totalSec = (int) Math.max(1, phaseTotal / 1000);
+        int elapsedSec = (int) Math.min(totalSec, Math.max(0, (phaseTotal - remaining) / 1000));
+
+        RemoteViews small = timerViews(ctx, R.layout.notification_study_timer, running, remaining, phase, null, totalSec, elapsedSec, phaseColor);
+        RemoteViews big = timerViews(ctx, R.layout.notification_study_timer_big, running, remaining, phase, detail, totalSec, elapsedSec, phaseColor);
+
+        boolean alerting = alertTone != null;
+        String channel = alerting ? ensureAlertChannel(ctx, s.optBoolean("soundOn", true) ? alertTone : "silent") : ONGOING_CHANNEL;
+        NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, channel)
+            .setSmallIcon(glyph)
+            .setLargeIcon(circleIcon(ctx, glyph, phaseColor))
+            // Título y texto para lectores de pantalla y para Android si no puede mostrar la vista
+            .setContentTitle(clock(remaining) + " · " + phase)
+            .setContentText(detail)
+            .setCustomContentView(small)
+            .setCustomBigContentView(big)
+            .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
+            .setColor(phaseColor)
+            .setOngoing(true)
+            .setShowWhen(false)
+            .setOnlyAlertOnce(!alerting)
+            .setSilent(!alerting)
+            .setPriority(alerting ? NotificationCompat.PRIORITY_HIGH : NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(alerting ? NotificationCompat.CATEGORY_ALARM : NotificationCompat.CATEGORY_PROGRESS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(openAppIntent(ctx));
+
+        // Acciones con ícono: Pausar o Empezar/Reanudar (cambia con el estado), Saltar y Detener
+        if (running) {
+            b.addAction(R.drawable.ic_notif_action_pause, "Pausar", actionIntent(ctx, ACTION_PAUSE, 1));
+        } else {
+            b.addAction(R.drawable.ic_notif_action_play, untouched ? "Empezar" : "Reanudar", actionIntent(ctx, ACTION_RESUME, 2));
+        }
+        b.addAction(R.drawable.ic_notif_action_skip, "Saltar", actionIntent(ctx, ACTION_SKIP, 6));
+        b.addAction(R.drawable.ic_notif_action_stop, "Detener", actionIntent(ctx, ACTION_STOP, 3));
+
+        try {
+            nm.notify(ONGOING_ID, b.build());
+        } catch (SecurityException ignored) {
+            // Sin permiso de notificaciones: el temporizador sigue dentro de la app
+        }
+        if (running) {
+            scheduleAlarm(ctx, endsAt);
+            scheduleTick(ctx, Math.min(endsAt, now + TICK_MS));
+        } else {
+            cancelAlarm(ctx);
+            cancelTick(ctx);
+        }
+    }
+
+    /** Vista de la notificación: cronómetro (corre solo si está en marcha), fase, detalle y avance. */
+    private static RemoteViews timerViews(Context ctx, int layout, boolean running, long remaining, String phase, String detail,
+                                          int totalSec, int elapsedSec, int color) {
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), layout);
+        // Cuenta regresiva: la base es «cuándo llega a cero» en el reloj del sistema; detenido, muestra lo que queda
+        v.setChronometer(R.id.study_chrono, SystemClock.elapsedRealtime() + remaining, running ? null : chronoText(remaining), running);
+        v.setChronometerCountDown(R.id.study_chrono, true);
+        v.setTextViewText(R.id.study_phase, phase);
+        if (detail != null) v.setTextViewText(R.id.study_detail, detail);
+        v.setProgressBar(R.id.study_progress, totalSec, elapsedSec, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            v.setColorStateList(R.id.study_progress, "setProgressTintList", ColorStateList.valueOf(color));
+        }
+        return v;
+    }
+
+    private static void scheduleTick(Context ctx, long at) {
+        AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+        // RTC (no _WAKEUP): solo cuando el teléfono está despierto, no gasta batería
+        am.set(AlarmManager.RTC, at, actionIntent(ctx, ACTION_TICK, 7));
+    }
+
+    private static void cancelTick(Context ctx) {
+        AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        if (am != null) am.cancel(actionIntent(ctx, ACTION_TICK, 7));
     }
 
     private static void ensureOngoingChannel(Context ctx) {
@@ -396,6 +508,17 @@ final class StudyTimerNotifier {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    /** Mismo formato que el cronómetro del sistema: 04:58, 24:56 o 1:05:00. */
+    private static String chronoText(long ms) {
+        long total = (ms + 999) / 1000;
+        long h = total / 3600;
+        long m = (total % 3600) / 60;
+        long sec = total % 60;
+        return h > 0
+            ? String.format(Locale.ROOT, "%d:%02d:%02d", h, m, sec)
+            : String.format(Locale.ROOT, "%02d:%02d", m, sec);
     }
 
     private static String clock(long ms) {

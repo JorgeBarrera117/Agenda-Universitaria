@@ -28,7 +28,11 @@ export interface NativeStudyState {
   soundOn: boolean;
 }
 
-export type NativeStudyEventType = 'pause' | 'resume' | 'stop' | 'phaseEnd';
+export type NativeStudyEventType = 'pause' | 'resume' | 'stop' | 'skip' | 'phaseEnd';
+
+/** Todos los tipos (Record: si se agrega uno al tipo y no aquí, no compila, y el filtro lo dejaría fuera). */
+const NATIVE_EVENT_TYPE_MAP: Record<NativeStudyEventType, true> = { pause: true, resume: true, stop: true, skip: true, phaseEnd: true };
+const NATIVE_EVENT_TYPES = Object.keys(NATIVE_EVENT_TYPE_MAP) as NativeStudyEventType[];
 
 export interface NativeStudyEvent {
   type: NativeStudyEventType;
@@ -79,7 +83,7 @@ export const studyNativeTimer = {
   async consumeEvents(): Promise<NativeStudyEvent[]> {
     const { events } = await plugin.consumeEvents();
     return (Array.isArray(events) ? events : [])
-      .filter((e) => typeof e?.at === 'number' && ['pause', 'resume', 'stop', 'phaseEnd'].includes(e.type))
+      .filter((e) => typeof e?.at === 'number' && NATIVE_EVENT_TYPES.includes(e.type))
       .sort((a, b) => a.at - b.at);
   },
   onEvent: (listener: (type: NativeStudyEventType) => void) => plugin.addListener('studyEvent', (data) => listener(data.type)),

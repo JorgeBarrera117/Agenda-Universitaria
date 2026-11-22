@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart3, Coffee, Pause, Play, RotateCcw, SkipForward, Timer } from 'lucide-react';
+import { BarChart3, ChevronRight, Coffee, Pause, Play, RotateCcw, SkipForward, Timer, Volume2, VolumeX } from 'lucide-react';
+import { Modal } from '../../../shared/components/Modal';
+import { useAppSettings } from '../../settings/hooks/useAppSettings';
+import { SoundsSheet } from '../../settings/components/SoundsSheet';
 import { M3Select } from '../../../shared/components/M3Select';
 import { DetailSection } from '../../../shared/components/detail/DetailKit';
 import { HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
@@ -9,13 +12,16 @@ import { isLongBreakAfter } from '../types';
 import { getStudyTimerState, remainingNow, studyTimer, useStudyTimer } from '../state/studyTimerStore';
 import { StudyRhythmPanel } from './StudyRhythmPanel';
 import { studyRepository } from '../repositories/studyRepository';
-import { formatStudyMinutes, useStudyWeekStats } from '../hooks/useStudyStats';
+import { formatSessions, formatStudyMinutes, useStudyWeekStats } from '../hooks/useStudyStats';
 
 /** Sin materia, el Estudio toma el color principal del tema que eligió el estudiante. */
 const THEME_COLOR = 'var(--color-md-primary)';
 const THEME_ON_COLOR = 'var(--color-md-on-primary)';
 const BREAK_COLOR = '#2E7D32';
-const RING_SIZE = 260;
+/** Un poco más chico que antes: la tarjeta entera (con el aviso) cabe en la pantalla del teléfono. */
+const RING_SIZE = 236;
+const WEEKDAY_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const WEEKDAY_LONG = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const RING_STROKE = 14;
 
 const formatClock = (ms: number) => {
@@ -44,7 +50,13 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
   const timer = useStudyTimer();
   const { subjects } = useSubjects();
   const stats = useStudyWeekStats();
+  const { settings, updateSettings } = useAppSettings();
   const [now, setNow] = useState(() => Date.now());
+  const [soundsOpen, setSoundsOpen] = useState(false);
+  const [weekOpen, setWeekOpen] = useState(false);
+  const soundOn = settings.notificationSound;
+  const maxDay = Math.max(1, ...stats.byDay);
+  const todayIndex = (new Date(now).getDay() + 6) % 7;
 
   // Redibuja cada medio segundo mientras corre y la pestaña se ve (el tiempo sale de la hora de fin)
   useEffect(() => {
@@ -99,7 +111,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
   };
 
   return (
-    <div className="w-full space-y-3.5">
+    <div className="glass-legible w-full space-y-3.5">
       {/* Cabecera, como las demás pestañas */}
       <div className={HEADER_SCRIM_CLASS}>
         <div className="flex flex-wrap items-center gap-2">
@@ -118,27 +130,40 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
       <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
         {/* Temporizador */}
         <section
-          className="md-card card-tinted space-y-4 rounded-3xl p-4 shadow-xs sm:p-6"
+          className="md-card card-tinted space-y-3 rounded-3xl p-4 shadow-xs sm:p-6"
           style={{ '--card-tint': ringColor } as React.CSSProperties}
           aria-label="Temporizador"
         >
-          <M3Select<string>
-            value={timer.subjectId ?? ''}
-            onChange={(value) => studyTimer.setSubject(value || undefined)}
-            label="Materia"
-            placeholder="Sin materia"
-            options={[
-              { value: '', label: 'Sin materia' },
-              ...activeSubjects.map((s) => ({
-                value: s.id,
-                label: s.name,
-                sublabel: s.code,
-                icon: <SubjectBadge icon={s.icon} color={s.color} size="sm" />,
-              })),
-            ]}
-          />
+          <div className="flex items-end gap-2">
+            <M3Select<string>
+              value={timer.subjectId ?? ''}
+              onChange={(value) => studyTimer.setSubject(value || undefined)}
+              label="Materia"
+              placeholder="Sin materia"
+              className="min-w-0 flex-1"
+              options={[
+                { value: '', label: 'Sin materia' },
+                ...activeSubjects.map((s) => ({
+                  value: s.id,
+                  label: s.name,
+                  sublabel: s.code,
+                  icon: <SubjectBadge icon={s.icon} color={s.color} size="sm" />,
+                })),
+              ]}
+            />
+            {/* Sonidos del Estudio sin salir a Ajustes (el ícono dice si el sonido está activo) */}
+            <button
+              type="button"
+              onClick={() => setSoundsOpen(true)}
+              aria-label={soundOn ? 'Sonidos del Estudio (activados)' : 'Sonidos del Estudio (en silencio)'}
+              title="Sonidos del Estudio"
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] shadow-2xs transition-[transform,filter] duration-150 hover:brightness-95 active:scale-95"
+            >
+              {soundOn ? <Volume2 className="h-5 w-5" aria-hidden="true" /> : <VolumeX className="h-5 w-5" aria-hidden="true" />}
+            </button>
+          </div>
 
-          <div className="flex flex-col items-center gap-4 pt-1">
+          <div className="flex flex-col items-center gap-3">
             <div className="relative" style={{ width: RING_SIZE, height: RING_SIZE }}>
               <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90" aria-hidden="true">
                 <circle
@@ -193,7 +218,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 onClick={reset}
                 aria-label="Reiniciar"
                 title="Reiniciar"
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] transition-transform active:scale-95"
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-md-outline)]/60 bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] shadow-2xs transition-[transform,filter] duration-150 hover:brightness-95 active:scale-95"
               >
                 <RotateCcw className="h-6 w-6" aria-hidden="true" />
               </button>
@@ -211,14 +236,14 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 onClick={skip}
                 aria-label={isBreak ? 'Saltar el descanso' : 'Terminar esta sesión'}
                 title={isBreak ? 'Saltar el descanso' : 'Terminar esta sesión'}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] transition-transform active:scale-95"
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-md-outline)]/60 bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)] shadow-2xs transition-[transform,filter] duration-150 hover:brightness-95 active:scale-95"
               >
                 <SkipForward className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
             {/* Pausa: mensaje grande con lo que queda para volver */}
             {isBreak && (
-              <div className="flex w-full items-start gap-3 rounded-2xl bg-[#C8E6C9] px-4 py-3 text-[#1B5E20] dark:bg-[#1B5E20]/60 dark:text-[#C8E6C9]" role="status">
+              <div className="flex w-full items-start gap-3 rounded-2xl bg-[#C8E6C9] px-3.5 py-2.5 text-[#1B5E20] dark:bg-[#1B5E20]/60 dark:text-[#C8E6C9]" role="status">
                 <Coffee className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
                   <p className="text-base font-black">{isLongBreak ? '¡Descanso largo, te lo ganaste!' : '¡Hora de una pausa!'}</p>
@@ -236,7 +261,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
               </div>
             )}
             {waitingNext && (
-              <div className="flex w-full items-start gap-3 rounded-2xl bg-[var(--color-md-primary-container)] px-4 py-3 text-[var(--color-md-on-primary-container)]" role="status">
+              <div className="flex w-full items-start gap-3 rounded-2xl bg-[var(--color-md-primary-container)] px-3.5 py-2.5 text-[var(--color-md-on-primary-container)]" role="status">
                 <Timer className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
                   <p className="text-base font-black">¡Pausa terminada!</p>
@@ -302,7 +327,17 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
           <DetailSection
             icon={<BarChart3 className="h-4 w-4" />}
             title="Esta semana"
-            trailing={<span className="text-sm font-black text-[var(--color-md-on-surface)]">{formatStudyMinutes(stats.totalMinutes)}</span>}
+            trailing={
+              <button
+                type="button"
+                onClick={() => setWeekOpen(true)}
+                aria-label={`Ver el desglose de la semana: ${formatStudyMinutes(stats.totalMinutes)}`}
+                className="-mr-1 inline-flex h-9 items-center gap-1 rounded-full pl-3 pr-2 text-sm font-black text-[var(--color-md-on-surface)] transition-[background-color,transform] duration-150 hover:bg-[var(--color-md-on-surface)]/[0.06] active:scale-95"
+              >
+                {formatStudyMinutes(stats.totalMinutes)}
+                <ChevronRight className="h-4 w-4 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
+              </button>
+            }
           >
             {stats.bySubject.length === 0 ? (
               <p className="text-xs text-[var(--color-md-on-surface-variant)]">Aún no estudiaste esta semana. ¡Empieza tu primera sesión!</p>
@@ -319,7 +354,9 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                           <Timer className="h-4 w-4 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
                         )}
                         <span className="min-w-0 flex-1 truncate font-semibold text-[var(--color-md-on-surface)]">{subjectName(row.subjectId)}</span>
-                        <span className="text-xs font-bold text-[var(--color-md-on-surface-variant)]">{formatStudyMinutes(row.minutes)}</span>
+                        <span className="shrink-0 text-xs font-bold text-[var(--color-md-on-surface-variant)]">
+                          {formatStudyMinutes(row.minutes)} · {formatSessions(row.sessions)}
+                        </span>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-md-surface-container-high)]" aria-hidden="true">
                         <div
@@ -332,9 +369,73 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 })}
               </ul>
             )}
+            {stats.totalMinutes > 0 && (
+              <button
+                type="button"
+                onClick={() => setWeekOpen(true)}
+                className="mt-1 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full bg-[var(--color-md-secondary-container)] text-xs font-bold text-[var(--color-md-on-secondary-container)] transition-[filter,transform] duration-150 hover:brightness-95 active:scale-[0.98]"
+              >
+                <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                Ver la semana día por día
+              </button>
+            )}
           </DetailSection>
         </div>
       </div>
+
+      <SoundsSheet isOpen={soundsOpen} onClose={() => setSoundsOpen(false)} settings={settings} onUpdate={updateSettings} />
+
+      <Modal isOpen={weekOpen} onClose={() => setWeekOpen(false)} title="Tu semana de estudio" maxWidth="md">
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--color-md-on-surface-variant)]">
+            {formatStudyMinutes(stats.totalMinutes)} en {formatSessions(stats.sessions)}, de lunes a hoy.
+          </p>
+          {/* Minutos por día: barra más alta el día que más estudiaste */}
+          <ol className="flex h-36 items-end gap-2" aria-label="Minutos por día">
+            {stats.byDay.map((minutes, i) => (
+              <li key={WEEKDAY_LONG[i]} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                <span className="text-10px font-bold tabular-nums text-[var(--color-md-on-surface-variant)]">{minutes > 0 ? minutes : ''}</span>
+                <span
+                  className="w-full rounded-t-lg"
+                  style={{
+                    height: `${Math.max(minutes > 0 ? 6 : 2, (minutes / maxDay) * 100)}%`,
+                    backgroundColor: minutes > 0 ? THEME_COLOR : 'var(--color-md-outline-variant)',
+                    opacity: i > todayIndex ? 0.35 : 1,
+                  }}
+                  aria-label={`${WEEKDAY_LONG[i]}: ${formatStudyMinutes(minutes)}`}
+                />
+                <span className={`text-xs font-bold ${i === todayIndex ? 'text-[var(--color-md-primary)]' : 'text-[var(--color-md-on-surface-variant)]'}`}>
+                  {WEEKDAY_SHORT[i]}
+                </span>
+              </li>
+            ))}
+          </ol>
+          {stats.bySubject.length > 0 && (
+            <ul className="divide-y divide-[var(--color-md-outline-variant)]/60">
+              {stats.bySubject.map((row) => {
+                const rowSubject = subjects.find((s) => s.id === row.subjectId);
+                const share = stats.totalMinutes > 0 ? Math.round((row.minutes / stats.totalMinutes) * 100) : 0;
+                return (
+                  <li key={row.subjectId || 'none'} className="flex items-center gap-2.5 py-2.5 text-sm">
+                    {rowSubject ? (
+                      <SubjectBadge icon={rowSubject.icon} color={rowSubject.color} size="sm" />
+                    ) : (
+                      <Timer className="h-4 w-4 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-[var(--color-md-on-surface)]">{subjectName(row.subjectId)}</span>
+                      <span className="block text-xs text-[var(--color-md-on-surface-variant)]">
+                        {formatStudyMinutes(row.minutes)} · {formatSessions(row.sessions)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs font-black tabular-nums text-[var(--color-md-on-surface)]">{share}%</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

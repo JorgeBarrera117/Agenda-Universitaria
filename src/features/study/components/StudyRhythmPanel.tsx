@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Coffee, Minus, Plus, Repeat, RotateCcw, SlidersHorizontal, Timer } from 'lucide-react';
+import { ChevronDown, Coffee, Minus, Plus, Repeat, RotateCcw, SlidersHorizontal, Timer } from 'lucide-react';
 import { SegmentedControl } from '../../../shared/components/form';
 import { M3Switch } from '../../settings/components/SettingsPrimitives';
 import { isPhaseUntouched, studyTimer, useStudyTimer } from '../state/studyTimerStore';
@@ -142,23 +142,30 @@ export const StudyRhythmPanel: React.FC = () => {
         }}
         ariaLabel="Perfil de tiempos"
         options={PROFILE_OPTIONS}
+        // Cuatro opciones en el teléfono: letra un poco menor y sin partir «Deep Work»
+        className="[&_button]:px-1 [&_button]:text-11px [&_span]:whitespace-nowrap sm:[&_button]:text-xs"
       />
 
-      {(showCustom || profile === 'custom') ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+      {/* Ajustar a mano: fila desplegable con aspecto de botón */}
+      <button
+        type="button"
+        onClick={() => setShowCustom((v) => !v)}
+        aria-expanded={showCustom}
+        aria-controls="study-custom-times"
+        className="flex min-h-11 w-full items-center gap-2.5 rounded-2xl bg-[var(--color-md-secondary-container)] px-3.5 text-left text-sm font-bold text-[var(--color-md-on-secondary-container)] transition-[filter,transform] duration-150 hover:brightness-95 active:scale-[0.99]"
+      >
+        <SlidersHorizontal className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span className="flex-1">Ajustar los tiempos a mano</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-150 ${showCustom ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+
+      {showCustom && (
+        <div id="study-custom-times" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           <Stepper id="study-focus" label="Concentración" icon={<Timer className="h-3.5 w-3.5" />} unit="min" value={config.focusMin} {...limits.focusMin} onChange={set('focusMin')} />
           <Stepper id="study-short" label="Descanso corto" icon={<Coffee className="h-3.5 w-3.5" />} unit="min" value={config.shortBreakMin} {...limits.shortBreakMin} onChange={set('shortBreakMin')} />
           <Stepper id="study-long" label="Descanso largo" icon={<Coffee className="h-3.5 w-3.5" />} unit="min" value={config.longBreakMin} {...limits.longBreakMin} onChange={set('longBreakMin')} />
           <Stepper id="study-every" label="Descanso largo cada" icon={<Repeat className="h-3.5 w-3.5" />} unit="sesiones" value={config.longBreakEvery} {...limits.longBreakEvery} onChange={set('longBreakEvery')} />
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShowCustom(true)}
-          className="text-xs font-bold text-[var(--color-md-primary)] hover:underline"
-        >
-          Ajustar los tiempos a mano
-        </button>
       )}
 
       <div className="divide-y divide-[var(--color-md-outline-variant)]/60 rounded-2xl bg-[var(--color-md-surface-container)] px-3">
@@ -189,7 +196,8 @@ export const StudyRhythmPanel: React.FC = () => {
           setShowCustom(false);
         }}
         disabled={isDefault}
-        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[var(--color-md-outline)] text-sm font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-primary)]/[0.08] disabled:opacity-40"
+        // Solo se ve activo si hay algo distinto de los valores de fábrica
+        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[var(--color-md-outline)] text-sm font-bold text-[var(--color-md-primary)] transition-[background-color,transform] duration-150 hover:bg-[var(--color-md-primary)]/[0.08] active:scale-[0.98] active:bg-[var(--color-md-primary)]/[0.14] disabled:pointer-events-none disabled:border-[var(--color-md-outline-variant)] disabled:text-[var(--color-md-on-surface-variant)] disabled:opacity-50"
       >
         <RotateCcw className="h-4 w-4" aria-hidden="true" />
         Restaurar valores por defecto

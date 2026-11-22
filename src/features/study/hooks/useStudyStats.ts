@@ -1,15 +1,25 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { studyRepository } from '../repositories/studyRepository';
 
-export interface StudyWeekStats {
-  /** Minutos estudiados esta semana (de lunes a hoy). */
-  totalMinutes: number;
-  /** Minutos por materia ('' = sin materia), de mayor a menor. */
-  bySubject: { subjectId: string; minutes: number }[];
+export interface StudySubjectStats {
+  /** '' = sin materia. */
+  subjectId: string;
+  minutes: number;
+  /** Sesiones de concentración guardadas (terminadas o cortadas a mitad). */
   sessions: number;
 }
 
-const EMPTY: StudyWeekStats = { totalMinutes: 0, bySubject: [], sessions: 0 };
+export interface StudyWeekStats {
+  /** Minutos estudiados esta semana (de lunes a hoy). */
+  totalMinutes: number;
+  /** Por materia, de más a menos minutos. */
+  bySubject: StudySubjectStats[];
+  sessions: number;
+  /** Minutos de cada día, de lunes (0) a domingo (6). */
+  byDay: number[];
+}
+
+const EMPTY: StudyWeekStats = { totalMinutes: 0, bySubject: [], sessions: 0, byDay: [0, 0, 0, 0, 0, 0, 0] };
 
 /** Lunes de esta semana a las 00:00 (hora local), en ISO. */
 export function startOfWeekIso(now = new Date()): string {
@@ -27,22 +37,34 @@ export function formatStudyMinutes(minutes: number): string {
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
+/** "1 sesión", "3 sesiones". */
+export function formatSessions(count: number): string {
+  return `${count} ${count === 1 ? 'sesión' : 'sesiones'}`;
+}
+
 /** Lo estudiado esta semana, en vivo (se actualiza al terminar cada sesión). */
 export function useStudyWeekStats(): StudyWeekStats {
   return useLiveQuery(
     async () => {
       const sessions = await studyRepository.since(startOfWeekIso());
-      const bySubject = new Map<string, number>();
+      const bySubject = new Map<string, StudySubjectStats>();
+      const byDay = [0, 0, 0, 0, 0, 0, 0];
       let totalMinutes = 0;
       for (const session of sessions) {
         totalMinutes += session.minutes;
         const key = session.subjectId ?? '';
-        bySubject.set(key, (bySubject.get(key) ?? 0) + session.minutes);
+        const row = bySubject.get(key) ?? { subjectId: key, minutes: 0, sessions: 0 };
+        row.minutes += session.minutes;
+        row.sessions += 1;
+        bySubject.set(key, row);
+        // Día de la semana local, con el lunes como 0
+        byDay[(new Date(session.startedAt).getDay() + 6) % 7] += session.minutes;
       }
       return {
         totalMinutes,
         sessions: sessions.length,
-        bySubject: [...bySubject.entries()].map(([subjectId, minutes]) => ({ subjectId, minutes })).sort((a, b) => b.minutes - a.minutes),
+        byDay,
+        bySubject: [...bySubject.values()].sort((a, b) => b.minutes - a.minutes),
       };
     },
     [],
