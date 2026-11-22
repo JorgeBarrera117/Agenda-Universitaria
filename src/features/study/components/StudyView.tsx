@@ -11,7 +11,9 @@ import { StudyRhythmPanel } from './StudyRhythmPanel';
 import { studyRepository } from '../repositories/studyRepository';
 import { formatStudyMinutes, useStudyWeekStats } from '../hooks/useStudyStats';
 
-const FALLBACK_COLOR = '#00639B';
+/** Sin materia, el Estudio toma el color principal del tema que eligió el estudiante. */
+const THEME_COLOR = 'var(--color-md-primary)';
+const THEME_ON_COLOR = 'var(--color-md-on-primary)';
 const BREAK_COLOR = '#2E7D32';
 const RING_SIZE = 260;
 const RING_STROKE = 14;
@@ -52,7 +54,9 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
   }, [timer.running, isActive]);
 
   const subject = subjects.find((s) => s.id === timer.subjectId);
-  const color = subject?.color ?? FALLBACK_COLOR;
+  const color = subject?.color ?? THEME_COLOR;
+  // Texto sobre ese color: blanco sobre el de la materia; el «sobre primario» del tema si no hay materia
+  const onColor = subject ? '#FFFFFF' : THEME_ON_COLOR;
   const remaining = remainingNow(timer, timer.running ? now : undefined);
   // Duración de la fase tal como empezó (un cambio de ritmo a mitad no hace saltar el aro)
   const total = timer.phaseTotalMs;
@@ -197,8 +201,8 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 type="button"
                 onClick={() => (timer.running ? studyTimer.pause() : studyTimer.start())}
                 aria-label={timer.running ? 'Pausar' : sessionStarted ? 'Continuar' : 'Iniciar'}
-                className="flex h-20 w-20 items-center justify-center rounded-[28px] text-white shadow-[0_6px_16px_rgba(0,0,0,0.25)] transition-transform active:scale-95"
-                style={{ backgroundColor: ringColor }}
+                className="flex h-20 w-20 items-center justify-center rounded-[28px] shadow-[0_6px_16px_rgba(0,0,0,0.25)] transition-transform active:scale-95"
+                style={{ backgroundColor: ringColor, color: isBreak ? '#FFFFFF' : onColor }}
               >
                 {timer.running ? <Pause className="h-9 w-9" aria-hidden="true" /> : <Play className="ml-1 h-9 w-9" aria-hidden="true" />}
               </button>
@@ -252,10 +256,10 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                     <li
                       className={`flex h-9 flex-[5] items-center justify-center rounded-lg text-10px font-bold ${
                         step.sessionCurrent || step.sessionDone
-                          ? 'text-white'
+                          ? ''
                           : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
                       } ${step.sessionCurrent ? 'ring-2 ring-[var(--color-md-on-surface)]/40' : ''}`}
-                      style={step.sessionCurrent || step.sessionDone ? { backgroundColor: color, opacity: step.sessionCurrent ? 1 : 0.55 } : undefined}
+                      style={step.sessionCurrent || step.sessionDone ? { backgroundColor: color, color: onColor, opacity: step.sessionCurrent ? 1 : 0.55 } : undefined}
                       aria-label={`Sesión ${step.i + 1}: ${config.focusMin} min${step.sessionCurrent ? ', ahora' : step.sessionDone ? ', hecha' : ''}`}
                     >
                       {config.focusMin}′
@@ -320,7 +324,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                       <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-md-surface-container-high)]" aria-hidden="true">
                         <div
                           className="h-full rounded-full"
-                          style={{ width: `${Math.max(4, (row.minutes / maxMinutes) * 100)}%`, backgroundColor: rowSubject?.color ?? FALLBACK_COLOR }}
+                          style={{ width: `${Math.max(4, (row.minutes / maxMinutes) * 100)}%`, backgroundColor: rowSubject?.color ?? THEME_COLOR }}
                         />
                       </div>
                     </li>

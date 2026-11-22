@@ -8,12 +8,18 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -227,11 +233,14 @@ final class StudyTimerNotifier {
                 : "Quedan " + clock(remaining) + (subject.isEmpty() ? "" : " · " + subject);
         }
 
+        int phaseColor = parseColor(isBreak ? "#2E7D32" : s.optString("color"), Color.parseColor("#00639B"));
+        int glyph = isBreak ? R.drawable.ic_stat_study_break : R.drawable.ic_stat_study_timer;
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, ONGOING_CHANNEL)
-            .setSmallIcon(R.drawable.ic_stat_agenda)
+            .setSmallIcon(glyph)
+            .setLargeIcon(circleIcon(ctx, glyph, phaseColor))
             .setContentTitle(title)
             .setContentText(text)
-            .setColor(parseColor(isBreak ? "#2E7D32" : s.optString("color"), Color.parseColor("#00639B")))
+            .setColor(phaseColor)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
@@ -268,7 +277,8 @@ final class StudyTimerNotifier {
         boolean soundOn = s.optBoolean("soundOn", true);
         String channelId = ensureAlertChannel(ctx, soundOn ? tone : "silent");
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, channelId)
-            .setSmallIcon(R.drawable.ic_stat_agenda)
+            .setSmallIcon(R.drawable.ic_stat_study_break)
+            .setLargeIcon(circleIcon(ctx, R.drawable.ic_stat_study_break, Color.parseColor("#2E7D32")))
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
@@ -352,6 +362,25 @@ final class StudyTimerNotifier {
         if (intent == null) intent = new Intent(ctx, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         return PendingIntent.getActivity(ctx, 5, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    /** Círculo del color de la fase con el ícono en blanco, para el ícono grande de la notificación. */
+    private static Bitmap circleIcon(Context ctx, int drawableRes, int color) {
+        int size = Math.round(64 * ctx.getResources().getDisplayMetrics().density);
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint);
+        Drawable glyph = ContextCompat.getDrawable(ctx, drawableRes);
+        if (glyph != null) {
+            glyph = DrawableCompat.wrap(glyph.mutate());
+            DrawableCompat.setTint(glyph, Color.WHITE);
+            int pad = Math.round(size * 0.24f);
+            glyph.setBounds(pad, pad, size - pad, size - pad);
+            glyph.draw(canvas);
+        }
+        return bitmap;
     }
 
     private static int parseColor(String hex, int fallback) {

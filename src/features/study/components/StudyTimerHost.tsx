@@ -10,6 +10,15 @@ import type { StudyPhase } from '../types';
 
 const FALLBACK_COLOR = '#00639B';
 
+/** Color principal del tema en #RRGGBB (la notificación de Android no entiende variables CSS). */
+function themePrimaryHex(): string {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--color-md-primary').trim();
+  if (/^#[0-9a-f]{6}$/i.test(raw)) return raw;
+  const rgb = raw.match(/^rgba?\((\d+)[ ,]+(\d+)[ ,]+(\d+)/i);
+  if (rgb) return `#${rgb.slice(1, 4).map((n) => Number(n).toString(16).padStart(2, '0')).join('')}`;
+  return FALLBACK_COLOR;
+}
+
 /**
  * Siempre montado (en App): vigila el temporizador del modo estudio aunque se esté en otra pestaña.
  * - Al terminar una fase guarda lo estudiado, avisa con un mensaje, vibra y suena el tono de esa
@@ -100,7 +109,7 @@ export const StudyTimerHost: React.FC = () => {
       .sync(
         toNativeState(getStudyTimerState(), {
           subject: subject?.name ?? '',
-          color: subject?.color ?? FALLBACK_COLOR,
+          color: subject?.color ?? themePrimaryHex(),
           breakTone: tones.studyBreak,
           resumeTone: tones.studyResume,
           soundOn,
