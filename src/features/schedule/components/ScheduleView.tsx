@@ -45,6 +45,7 @@ import { DeleteSlotDialog } from './DeleteSlotDialog';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { FloatingMenuButton, type FloatingMenuItem } from '../../../shared/components/FloatingMenuButton';
+import { AREA_COLOR } from '../../../shared/components/floatingStyles';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
@@ -458,6 +459,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               label="Compartir"
               sheetTitle="Compartir o importar"
               icon={<Share2 />}
+              color={AREA_COLOR.schedule}
               items={shareItems}
             />
           )}
