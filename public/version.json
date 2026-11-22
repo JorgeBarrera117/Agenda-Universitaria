@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.98",
+  "latestVersion": "1.7.10.99",
   "releaseDate": "2026-11-22",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.98/Agenda-Universitaria-v1.7.10.98.apk",
-  "apkSha256": "b90f075a2cd60ce063df8f01bfc8cd29f7bf480425842a7f711a782f3d768b41",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.98/Agenda-Universitaria-Setup-v1.7.10.98.exe",
-  "desktopSha256": "c905ebcccd21f6c3ffc970d3704e6639b936ddc58069a6adfceead78b502dd19",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.99/Agenda-Universitaria-v1.7.10.99.apk",
+  "apkSha256": "00707b48dfa2036f86502257e01268a5544d3c4e5a3754e263f07e84d8c54257",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.99/Agenda-Universitaria-Setup-v1.7.10.99.exe",
+  "desktopSha256": "27ec3eafe41de4096c0c72590e5d7971d9e224b66e27d5b7b87df9ee6d419f98",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Fichas y formularios con el mismo diseño y vista previa en vivo",
-    "Teléfono del docente con selector de país"
+    "Botones flotantes con el color de cada área",
+    "Compartir del Horario ahora flota bajo el botón de agregar"
   ]
 }
