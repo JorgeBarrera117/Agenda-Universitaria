@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.99',
+    date: '2026-11-22',
+    title: 'Botones flotantes con color propio',
+    changes: [
+      { kind: 'mejora', text: 'Cada área tiene su color en los botones flotantes (Materias, Profesores, Apuntes y Archivos), sin importar el tema elegido: se ven sobre cualquier fondo.' },
+      { kind: 'mejora', text: 'En el teléfono, Compartir del Horario ahora flota debajo del botón de agregar; al tocarlo abre una hoja con Compartir horario, Importar horario y Pasar datos con otro dispositivo.' },
+    ],
+  },
+  {
     version: '1.7.10.98',
     date: '2026-11-22',
     title: 'Fichas y formularios renovados',
