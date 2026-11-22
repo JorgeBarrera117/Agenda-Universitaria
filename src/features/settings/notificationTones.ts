@@ -1,6 +1,16 @@
 import { DEFAULT_SETTINGS, type NotificationSoundTone } from './types';
 
-export type NotificationToneGroup = 'school' | 'campus' | 'calm' | 'instrument' | 'system';
+export type NotificationToneGroup = 'study' | 'school' | 'campus' | 'calm' | 'instrument' | 'system';
+
+/** Fase del Estudio para la que un sonido es ideal (solo una sugerencia: cualquiera sirve en cualquiera). */
+export type StudySoundStage = 'start' | 'focusEnd' | 'shortBreakEnd' | 'longBreakEnd';
+
+export const STUDY_STAGE_SUGGESTION: Record<StudySoundStage, string> = {
+  start: 'Sugerido para empezar',
+  focusEnd: 'Sugerido para fin de enfoque',
+  shortBreakEnd: 'Ideal para descanso corto',
+  longBreakEnd: 'Recomendado para cierre de ciclo',
+};
 
 export interface NotificationToneInfo {
   id: NotificationSoundTone;
@@ -11,9 +21,12 @@ export interface NotificationToneInfo {
   group: NotificationToneGroup;
   /** Nombre del archivo en public/sounds y android/app/src/main/res/raw; null = tono del sistema. */
   file: string | null;
+  /** Fase del Estudio para la que se sugiere. */
+  suggestedFor?: StudySoundStage;
 }
 
 export const NOTIFICATION_TONE_GROUPS: readonly { id: NotificationToneGroup; label: string }[] = [
+  { id: 'study', label: 'Para el Estudio' },
   { id: 'school', label: 'Timbres escolares' },
   { id: 'campus', label: 'Torres universitarias' },
   { id: 'calm', label: 'Calma y concentración' },
@@ -28,6 +41,11 @@ type ToneDetails = Omit<NotificationToneInfo, 'id' | 'file'>;
  * ficha: añadir un tono al tipo sin describirlo aquí no compila.
  */
 const TONE_DETAILS: Record<NotificationSoundTone, ToneDetails> = {
+  study_digital_pulse: { label: 'Pulso digital', badge: 'Minimal', group: 'study', suggestedFor: 'start', description: 'Tres pitidos cortos y modernos: ¡a concentrarse!' },
+  study_zen_bowl: { label: 'Campana zen', badge: 'Cuenco', group: 'study', suggestedFor: 'focusEnd', description: 'Cuenco grave y largo que invita a soltar el estudio.' },
+  study_warm_marimba: { label: 'Marimba cálida', badge: 'Acorde', group: 'study', suggestedFor: 'focusEnd', description: 'Acorde de madera amigable para empezar la pausa.' },
+  study_crystal_chime: { label: 'Chime de cristal', badge: 'Cristal', group: 'study', suggestedFor: 'shortBreakEnd', description: 'Dos notas limpias y sutiles para volver al estudio.' },
+  study_soft_alarm: { label: 'Alarma clásica suave', badge: 'Alarma', group: 'study', suggestedFor: 'longBreakEnd', description: 'Dos tonos que se repiten y suben: se oye aunque te alejes.' },
   chime_school_jp: { label: 'Timbre escolar', badge: 'Japón', group: 'school', description: 'Melodía Westminster en campana tubular.' },
   chime_big_ben: { label: 'Big Ben', badge: 'Londres', group: 'school', description: 'Campanas pesadas de torre inglesa.' },
   chime_lycee_fr: { label: 'Liceo francés', badge: 'Liceo', group: 'school', description: 'Dos notas de vibráfono, como en las escuelas europeas.' },

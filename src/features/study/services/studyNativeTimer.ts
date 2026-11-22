@@ -23,6 +23,8 @@ export interface NativeStudyState {
   color: string;
   breakTone: string;
   resumeTone: string;
+  /** Tono al terminar el descanso largo (cierre de ciclo). */
+  longResumeTone: string;
   soundOn: boolean;
 }
 
@@ -51,7 +53,7 @@ export function isStudySessionStarted(state: StudyTimerState): boolean {
 
 export function toNativeState(
   state: StudyTimerState,
-  extras: { subject: string; color: string; breakTone: string; resumeTone: string; soundOn: boolean }
+  extras: { subject: string; color: string; breakTone: string; resumeTone: string; longResumeTone: string; soundOn: boolean }
 ): NativeStudyState {
   const { config } = state;
   return {

@@ -6,7 +6,7 @@ import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { studyRepository } from '../repositories/studyRepository';
 import { getStudyTimerState, studyTimer, useStudyTimer } from '../state/studyTimerStore';
 import { hasNativeStudyTimer, studyNativeTimer, toNativeState } from '../services/studyNativeTimer';
-import type { StudyPhase } from '../types';
+import { isLongBreakAfter, type StudyPhase } from '../types';
 
 const FALLBACK_COLOR = '#00639B';
 
@@ -41,9 +41,11 @@ export const StudyTimerHost: React.FC = () => {
     void studyRepository.add({ subjectId, startedAt, minutes });
   }, []);
 
-  const announce = useCallback((finished: StudyPhase) => {
+  const announce = useCallback((finished: StudyPhase, wasLongBreak = false) => {
     const next = getStudyTimerState();
-    if (finished === 'focus') {
+    if (finished === 'break' && wasLongBreak) {
+      setMessage(next.running ? '¡Terminó el descanso largo! Nuevo ciclo en marcha.' : '¡Terminó el descanso largo! Toca ▶ para empezar un nuevo ciclo.');
+    } else if (finished === 'focus') {
       const breakMin = Math.round(next.phaseTotalMs / 60_000);
       setMessage(
         next.running
@@ -63,12 +65,15 @@ export const StudyTimerHost: React.FC = () => {
     (until: number, withSound: boolean, withMessage = true) => {
       let current = getStudyTimerState();
       let last: StudyPhase | null = null;
+      let lastWasLongBreak = false;
       // Con los dos auto-inicios encendidos podrían encadenarse muchas fases tras días cerrada: tope
       let guard = 0;
       while (current.running && current.endsAt !== null && current.endsAt <= until && guard < 200) {
         guard += 1;
         const end = current.endsAt;
         const subjectId = current.subjectId;
+        // ¿La fase que termina es el descanso largo? (cierre de ciclo: su propio sonido)
+        lastWasLongBreak = current.phase === 'break' && isLongBreakAfter(current.focusCount, current.config.longBreakEvery);
         const { finished, focusMinutes, startedAt } = studyTimer.advance(true, end);
         if (finished === 'focus') saveFocus(focusMinutes, startedAt, subjectId);
         last = finished;
@@ -76,12 +81,15 @@ export const StudyTimerHost: React.FC = () => {
       }
       if (last === null) return;
       if (withSound) {
-        NotificationService.playToneId(last === 'focus' ? tones.studyBreak : tones.studyResume, soundOn);
+        NotificationService.playToneId(
+          last === 'focus' ? tones.studyBreak : lastWasLongBreak ? tones.studyLongResume : tones.studyResume,
+          soundOn
+        );
         navigator.vibrate?.([250, 120, 250]);
       }
-      if (withMessage) announce(last);
+      if (withMessage) announce(last, lastWasLongBreak);
     },
-    [saveFocus, announce, tones.studyBreak, tones.studyResume, soundOn]
+    [saveFocus, announce, tones.studyBreak, tones.studyResume, tones.studyLongResume, soundOn]
   );
 
   /** Aplica lo que se tocó en la notificación (o la alarma) mientras la app no estaba. */
@@ -112,11 +120,12 @@ export const StudyTimerHost: React.FC = () => {
           color: subject?.color ?? themePrimaryHex(),
           breakTone: tones.studyBreak,
           resumeTone: tones.studyResume,
+          longResumeTone: tones.studyLongResume,
           soundOn,
         })
       )
       .catch(() => undefined);
-  }, [subject?.name, subject?.color, tones.studyBreak, tones.studyResume, soundOn]);
+  }, [subject?.name, subject?.color, tones.studyBreak, tones.studyResume, tones.studyLongResume, soundOn]);
   const pushNativeRef = useRef(pushNative);
   useEffect(() => {
     pushNativeRef.current = pushNative;

@@ -47,6 +47,10 @@ function resolveChannel(settings: ToneSettings): { channelId: string; sound: str
 
 /** Tonos de reserva para las secciones sin tono elegido que chocarían con otra. */
 const FALLBACK_TONES: readonly NotificationSoundTone[] = [
+  'study_crystal_chime',
+  'study_warm_marimba',
+  'study_zen_bowl',
+  'study_digital_pulse',
   'marimba_gentle',
   'kalimba_study_arpeggio',
   'bowl_tibetan_zen',
@@ -67,6 +71,7 @@ export function sectionTones(settings: Partial<AppSettings>): {
   studyStart: NotificationSoundTone;
   studyBreak: NotificationSoundTone;
   studyResume: NotificationSoundTone;
+  studyLongResume: NotificationSoundTone;
 } {
   const slots = [
     [settings.notificationTone, DEFAULT_SETTINGS.notificationTone],
@@ -74,6 +79,7 @@ export function sectionTones(settings: Partial<AppSettings>): {
     [settings.studyStartTone, 'kalimba_study_arpeggio'],
     [settings.studyBreakTone, 'bowl_tibetan_zen'],
     [settings.studyResumeTone, 'windchime_furin'],
+    [settings.studyLongResumeTone, 'study_soft_alarm'],
   ] as const;
   // Primero los elegidos por el estudiante; después los de fábrica, esquivando los ocupados
   const used = new Set<NotificationSoundTone>(slots.flatMap(([chosen]) => (chosen ? [chosen] : [])));
@@ -84,7 +90,14 @@ export function sectionTones(settings: Partial<AppSettings>): {
     used.add(tone);
     return tone;
   });
-  return { schedule: result[0], agenda: result[1], studyStart: result[2], studyBreak: result[3], studyResume: result[4] };
+  return {
+    schedule: result[0],
+    agenda: result[1],
+    studyStart: result[2],
+    studyBreak: result[3],
+    studyResume: result[4],
+    studyLongResume: result[5],
+  };
 }
 
 /** Versión de escritorio (Electron): sus avisos los muestra y programa el proceso principal. */

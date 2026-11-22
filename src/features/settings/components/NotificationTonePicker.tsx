@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Activity,
+  AlarmClock,
+  Gem,
   Backpack,
   BellRing,
   Bubbles,
@@ -28,6 +31,7 @@ import {
 import {
   NOTIFICATION_TONE_GROUPS,
   NOTIFICATION_TONES,
+  STUDY_STAGE_SUGGESTION,
   notificationToneUrl,
   resolveNotificationTone,
   type NotificationToneInfo,
@@ -36,6 +40,11 @@ import type { NotificationSoundTone } from '../types';
 
 /** Ícono característico de cada tono (Record: un tono nuevo sin ícono no compila). */
 const TONE_ICONS: Record<NotificationSoundTone, LucideIcon> = {
+  study_digital_pulse: Activity,
+  study_zen_bowl: Flower2,
+  study_warm_marimba: Drum,
+  study_crystal_chime: Gem,
+  study_soft_alarm: AlarmClock,
   chime_school_jp: School,
   chime_big_ben: Clock4,
   chime_lycee_fr: Backpack,
@@ -169,19 +178,29 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
             </span>
             {/* Origen como texto secundario (no parece un botón) */}
             <span
-              className={`mt-0.5 flex items-center gap-1 text-xs ${
+              className={`mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs ${
                 isSelected ? 'text-[var(--color-md-on-primary-container)]/80' : 'text-[var(--color-md-on-surface-variant)]'
               }`}
             >
               <ToneIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span className="min-w-0 truncate">{isSelected ? `${tone.badge} · ${tone.description}` : tone.badge}</span>
-              {/* Única etiqueta: si otra sección ya lo usa (plana, sin relieve), junto al origen */}
+              <span className="min-w-0 truncate">{tone.badge}</span>
+              {/* Para qué fase del Estudio es ideal (solo sugerencia) */}
+              {tone.suggestedFor && (
+                <span className="shrink-0 rounded-md bg-[var(--color-md-primary)]/10 px-1.5 py-px text-10px font-semibold text-[var(--color-md-primary)]">
+                  {STUDY_STAGE_SUGGESTION[tone.suggestedFor]}
+                </span>
+              )}
+              {/* Si otra sección ya lo usa (plana, sin relieve), junto al origen */}
               {usedLabel && (
                 <span className="shrink-0 rounded-md bg-[var(--color-md-secondary-container)]/70 px-1.5 py-px text-10px font-semibold text-[var(--color-md-on-secondary-container)]">
                   En {usedLabel}
                 </span>
               )}
             </span>
+            {/* Al elegirlo, su descripción en una línea propia que se ajusta al ancho */}
+            {isSelected && (
+              <span className="mt-0.5 block text-xs leading-snug text-[var(--color-md-on-primary-container)]/80">{tone.description}</span>
+            )}
           </span>
         </button>
 
@@ -227,7 +246,7 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
         return (
           <div key={group.id} className="space-y-1.5">
             <p className="px-1 text-11px font-bold text-[var(--color-md-on-surface-variant)]">{group.label}</p>
-            <div className="grid gap-2 sm:grid-cols-2">{tones.map(renderTone)}</div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{tones.map(renderTone)}</div>
           </div>
         );
       })}

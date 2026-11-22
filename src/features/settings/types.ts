@@ -114,6 +114,12 @@ export type NotificationSoundTone =
   | 'pop_glass_organic'
   | 'sonar_study_ping'
   | 'zen_drop'
+  // Generados por síntesis para el Estudio (scripts/generate-study-sounds.mjs)
+  | 'study_zen_bowl'
+  | 'study_crystal_chime'
+  | 'study_digital_pulse'
+  | 'study_warm_marimba'
+  | 'study_soft_alarm'
   | 'default';
 
 export type StudentStatusMode = 'network' | 'custom';
@@ -164,8 +170,10 @@ export interface AppSettings {
   studyStartTone?: NotificationSoundTone;
   /** Modo estudio: al empezar la pausa. */
   studyBreakTone?: NotificationSoundTone;
-  /** Modo estudio: al terminar la pausa (volver a estudiar). */
+  /** Modo estudio: al terminar el descanso corto (volver a estudiar). */
   studyResumeTone?: NotificationSoundTone;
+  /** Modo estudio: al terminar el descanso largo (cierre de ciclo). */
+  studyLongResumeTone?: NotificationSoundTone;
   /** Minutos de anticipación del aviso «antes de la clase» (notify15MinBefore lo activa). */
   reminderLeadMinutes?: ReminderLeadMinutes;
   /** Resumen del día: un aviso a esta hora con las clases de hoy. */

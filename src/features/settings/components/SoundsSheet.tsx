@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CalendarCheck, ChevronRight, Clock, Coffee, Play, Repeat, Square, Timer } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, ChevronRight, Clock, Coffee, Play, RefreshCcw, Repeat, Square, Timer } from 'lucide-react';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { sectionTones } from '../../../shared/services/notificationService';
 import { notificationToneUrl, resolveNotificationTone } from '../notificationTones';
 import { NotificationTonePicker } from './NotificationTonePicker';
 import type { AppSettings, NotificationSoundTone } from '../types';
 
-type ToneKey = 'notificationTone' | 'agendaTone' | 'studyStartTone' | 'studyBreakTone' | 'studyResumeTone';
+type ToneKey = 'notificationTone' | 'agendaTone' | 'studyStartTone' | 'studyBreakTone' | 'studyResumeTone' | 'studyLongResumeTone';
 
 interface ToneSlot {
   key: ToneKey;
@@ -28,9 +28,10 @@ const SECTIONS: { title: string; slots: ToneSlot[] }[] = [
   {
     title: 'Estudio',
     slots: [
-      { key: 'studyStartTone', name: 'Empezar', label: 'Al empezar a estudiar', description: 'Cuando inicias una sesión de concentración', icon: <Timer className="h-5 w-5" /> },
-      { key: 'studyBreakTone', name: 'Pausa', label: 'Al empezar la pausa', description: 'Cuando termina la sesión y toca descansar', icon: <Coffee className="h-5 w-5" /> },
-      { key: 'studyResumeTone', name: 'Volver', label: 'Al terminar la pausa', description: 'Cuando toca volver a estudiar', icon: <Repeat className="h-5 w-5" /> },
+      { key: 'studyStartTone', name: 'Inicio', label: 'Al empezar a estudiar', description: 'Cuando inicias una sesión de concentración', icon: <Timer className="h-5 w-5" /> },
+      { key: 'studyBreakTone', name: 'Fin de enfoque', label: 'Fin de enfoque', description: 'Cuando termina la sesión y toca descansar', icon: <Coffee className="h-5 w-5" /> },
+      { key: 'studyResumeTone', name: 'Fin de descanso', label: 'Fin de descanso corto', description: 'Cuando termina una pausa corta y vuelves a estudiar', icon: <Repeat className="h-5 w-5" /> },
+      { key: 'studyLongResumeTone', name: 'Cierre de ciclo', label: 'Fin de descanso largo', description: 'Cierre de ciclo: termina el descanso largo y empieza otro ciclo', icon: <RefreshCcw className="h-5 w-5" /> },
     ],
   },
 ];
@@ -60,6 +61,7 @@ export const SoundsSheet: React.FC<SoundsSheetProps> = ({ isOpen, onClose, setti
     studyStartTone: tones.studyStart,
     studyBreakTone: tones.studyBreak,
     studyResumeTone: tones.studyResume,
+    studyLongResumeTone: tones.studyLongResume,
   };
 
   const stop = () => {

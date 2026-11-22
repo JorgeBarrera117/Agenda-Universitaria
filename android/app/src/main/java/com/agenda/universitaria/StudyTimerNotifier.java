@@ -178,15 +178,22 @@ final class StudyTimerNotifier {
         } else {
             long focusMs = s.optLong("focusMs");
             boolean auto = s.optBoolean("autoStartFocus", false);
+            int longEvery = Math.max(1, s.optInt("longEvery", 4));
+            int doneCount = s.optInt("focusCount");
+            // El descanso que termina era el largo: cierre de ciclo, con su propio sonido
+            boolean wasLong = doneCount > 0 && doneCount % longEvery == 0;
             s.put("phase", "focus");
             s.put("phaseTotalMs", focusMs);
             s.put("remainingMs", focusMs);
             s.put("running", auto);
             if (auto) s.put("endsAt", end + focusMs);
             saveState(ctx, s);
-            alert(ctx, s, s.optString("resumeTone"),
-                "Se acabó la pausa 📚",
-                auto ? "¡Nueva sesión en marcha! Ya estás estudiando otra vez." : "Toca para empezar la siguiente sesión de estudio.");
+            String tone = wasLong && !s.optString("longResumeTone").isEmpty() ? s.optString("longResumeTone") : s.optString("resumeTone");
+            alert(ctx, s, tone,
+                wasLong ? "Terminó el descanso largo 🔔" : "Se acabó la pausa 📚",
+                wasLong
+                    ? (auto ? "¡Nuevo ciclo en marcha!" : "Cierre de ciclo. Toca para empezar un nuevo ciclo de estudio.")
+                    : (auto ? "¡Nueva sesión en marcha! Ya estás estudiando otra vez." : "Toca para empezar la siguiente sesión de estudio."));
         }
         queueEvent(ctx, "phaseEnd", end);
         render(ctx);
