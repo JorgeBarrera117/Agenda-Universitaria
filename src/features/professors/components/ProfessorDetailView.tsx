@@ -1,21 +1,16 @@
-import React, { useCallback } from 'react';
-import {
-  BookOpen,
-  CalendarCheck,
-  ChevronRight,
-  Edit2,
-  Mail,
-  MapPin,
-  MessageSquareText,
-  Phone,
-  Share2,
-  Trash2,
-  UserRound,
-} from 'lucide-react';
+import React from 'react';
+import { BookOpen, CalendarCheck, Edit2, Mail, MapPin, MessageSquareText, Phone, Share2, Trash2, UserRound } from 'lucide-react';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
-import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
-import { BACK_PRIORITY, useBackButton } from '../../../shared/hooks/useBackButton';
-import { MOTION_EXIT_MS, useExitTransition } from '../../../shared/hooks/useExitTransition';
+import { PAGE_HEADER_PRIMARY_BUTTON } from '../../../shared/components/PageHeader';
+import {
+  DetailAction,
+  DetailActions,
+  DetailHero,
+  DetailRow,
+  DetailRows,
+  DetailScreen,
+  DetailSection,
+} from '../../../shared/components/detail/DetailKit';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import type { Subject } from '../../subjects/types';
 import type { Professor } from '../types';
@@ -36,63 +31,12 @@ interface ProfessorDetailViewProps {
   onSelectSubject?: (subject: Subject) => void;
 }
 
-const SECTION_CLASS =
-  'md-card rounded-3xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-4 shadow-xs sm:p-5';
-
-const SectionTitle: React.FC<{ icon: React.ReactNode; children: React.ReactNode }> = ({ icon, children }) => (
-  <h3 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">
-    <span className="text-[var(--color-md-primary)]" aria-hidden="true">
-      {icon}
-    </span>
-    {children}
-  </h3>
-);
-
-/** Fila de acción de contacto: ícono, qué hace, el dato y un chevron. */
-const ContactRow: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  href?: string;
-  onClick?: () => void;
-  tone?: 'primary' | 'tonal';
-}> = ({ icon, label, value, href, onClick, tone = 'tonal' }) => {
-  const content = (
-    <>
-      <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-          tone === 'primary'
-            ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
-            : 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-        }`}
-        aria-hidden="true"
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold text-[var(--color-md-on-surface)]">{label}</span>
-        <span className="block truncate text-xs text-[var(--color-md-on-surface-variant)]">{value}</span>
-      </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
-    </>
-  );
-  const className =
-    '-mx-2 flex items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)] active:scale-[0.99]';
-  return href ? (
-    <a href={href} className={className}>
-      {content}
-    </a>
-  ) : (
-    <button type="button" onClick={onClick} className={`w-[calc(100%+1rem)] ${className}`}>
-      {content}
-    </button>
-  );
-};
+const ROW_ICON = 'h-[18px] w-[18px]';
 
 /**
- * Ficha de contacto de un catedrático a pantalla completa (consulta): canales directos (llamar,
- * correo, compartir), atención estudiantil y materias que imparte. Editar abre el formulario de
- * siempre; el botón atrás de Android vuelve al directorio.
+ * Ficha de un catedrático (mismo patrón que las demás fichas): lo que más se hace es contactarlo,
+ * así que «Contacto» (llamar, WhatsApp, Telegram o guardar) y «Correo» van destacados debajo de
+ * su nombre; luego su atención estudiantil y las materias que imparte.
  */
 export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
   professor,
@@ -105,190 +49,126 @@ export const ProfessorDetailView: React.FC<ProfessorDetailViewProps> = ({
   onOpenContact,
   onSelectSubject,
 }) => {
-  // Salida animada (la misma de los formularios): con la flecha y con el botón atrás de Android
-  const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
-  const exit = useCallback(() => runExit(onBack), [runExit, onBack]);
-
-  useBackButton(() => {
-    exit();
-    return true;
-  }, BACK_PRIORITY.SUBVIEW);
-
   const phone = professor.phone?.trim();
   const email = professor.email?.trim();
+  const tint = professor.color ?? subjects[0]?.color;
 
   return (
-    <div className={`${isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'} mx-auto w-full max-w-3xl space-y-3 pb-10`}>
-      <PageHeader
-        title="Catedrático"
-        subtitle="Ficha de contacto"
-        onBack={exit}
-        backLabel="Volver a profesores"
+    <DetailScreen
+      title="Catedrático"
+      subtitle="Profesores"
+      onBack={onBack}
+      backLabel="Volver a profesores"
+      actions={
+        <>
+          <button type="button" onClick={onEdit} className={PAGE_HEADER_PRIMARY_BUTTON}>
+            <Edit2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Editar</span>
+          </button>
+          <M3KebabMenu
+            ariaLabel="Más opciones del catedrático"
+            items={[
+              {
+                id: 'share',
+                label: 'Compartir contacto',
+                icon: <Share2 className="h-3.5 w-3.5 text-[var(--color-md-primary)]" />,
+                onClick: onShareAgcontact,
+              },
+              ...(onShareText
+                ? [
+                    {
+                      id: 'share-text',
+                      label: 'Compartir como texto',
+                      icon: <MessageSquareText className="h-3.5 w-3.5 text-[var(--color-md-primary)]" />,
+                      onClick: onShareText,
+                    },
+                  ]
+                : []),
+              {
+                id: 'delete',
+                label: 'Eliminar catedrático',
+                icon: <Trash2 className="h-3.5 w-3.5" />,
+                variant: 'destructive' as const,
+                onClick: onDelete,
+              },
+            ]}
+          />
+        </>
+      }
+    >
+      <DetailHero
+        color={tint}
+        titleId="professor-detail-name"
+        leading={<ProfessorAvatar name={professor.name} icon={professor.icon} color={professor.color} size="xl" shape="circle" />}
+        kicker={subjects.length === 1 ? subjects[0].name : subjects.length > 1 ? `${subjects.length} materias` : 'Catedrático'}
+        title={professor.name}
         actions={
-          <>
-            <button
-              type="button"
-              onClick={onShareAgcontact}
-              aria-label="Compartir contacto (.agcontact)"
-              title="Compartir contacto (.agcontact)"
-              className={PAGE_HEADER_ICON_BUTTON}
-            >
-              <Share2 className="h-[18px] w-[18px]" aria-hidden="true" />
-            </button>
-            <button type="button" onClick={onEdit} className={`ml-1 ${PAGE_HEADER_PRIMARY_BUTTON}`}>
-              <Edit2 className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Editar</span>
-            </button>
-            <M3KebabMenu
-              ariaLabel="Más opciones del catedrático"
-              items={[
-                ...(onShareText
-                  ? [
-                      {
-                        id: 'share-text',
-                        label: 'Compartir como texto',
-                        icon: <MessageSquareText className="h-3.5 w-3.5 text-[var(--color-md-primary)]" />,
-                        onClick: onShareText,
-                      },
-                    ]
-                  : []),
-                {
-                  id: 'delete',
-                  label: 'Eliminar catedrático',
-                  icon: <Trash2 className="h-3.5 w-3.5" />,
-                  variant: 'destructive' as const,
-                  onClick: onDelete,
-                },
-              ]}
-            />
-          </>
+          <DetailActions>
+            {phone && (
+              <DetailAction
+                variant="primary"
+                icon={<Phone className="h-4 w-4" aria-hidden="true" />}
+                label="Contacto"
+                ariaLabel={`Contactar a ${professor.name}: llamar, WhatsApp, Telegram o guardar`}
+                onClick={onOpenContact}
+              />
+            )}
+            {email && (
+              <DetailAction
+                variant={phone ? 'tonal' : 'primary'}
+                icon={<Mail className="h-4 w-4" aria-hidden="true" />}
+                label="Correo"
+                ariaLabel={`Escribir un correo a ${professor.name}`}
+                href={`mailto:${email}`}
+              />
+            )}
+            {!phone && !email && (
+              <DetailAction variant="outlined" icon={<Edit2 className="h-4 w-4" aria-hidden="true" />} label="Agregar teléfono o correo" onClick={onEdit} />
+            )}
+          </DetailActions>
         }
       />
 
-      {/* Identidad: avatar, nombre y materias */}
-      <section className={SECTION_CLASS} aria-labelledby="professor-detail-name">
-        <div className="flex items-center gap-4">
-          <ProfessorAvatar name={professor.name} icon={professor.icon} color={professor.color} size="xl" shape="circle" />
-          <div className="min-w-0 flex-1">
-            <h2
-              id="professor-detail-name"
-              className="break-words text-xl font-black leading-tight text-[var(--color-md-on-surface)] sm:text-2xl"
-            >
-              {professor.name}
-            </h2>
-            {subjects.length > 0 && (
-              <ul className="mt-2 flex flex-wrap gap-1" aria-label="Materias que imparte">
-                {subjects.map((subject) => (
-                  <li
-                    key={subject.id}
-                    className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-[var(--color-md-surface-container-high)] px-2 py-0.5 text-11px font-semibold text-[var(--color-md-on-surface-variant)]"
-                  >
-                    <SubjectBadge icon={subject.icon} color={subject.color} size="xs" />
-                    <span className="truncate">{subject.name}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </section>
+      {(phone || email) && (
+        <DetailSection icon={<UserRound className="h-4 w-4" />} title="Datos de contacto">
+          <DetailRows>
+            {phone && <DetailRow icon={<Phone className={ROW_ICON} />} label="Teléfono" value={phone} onClick={onOpenContact} />}
+            {email && <DetailRow icon={<Mail className={ROW_ICON} />} label="Correo" value={email} href={`mailto:${email}`} />}
+          </DetailRows>
+        </DetailSection>
+      )}
 
-      {/* Canales de contacto directo */}
-      <section className={SECTION_CLASS}>
-        <SectionTitle icon={<UserRound className="h-4 w-4" />}>Contacto directo</SectionTitle>
-        <div className="flex flex-col">
-          {phone && (
-            <ContactRow
-              icon={<Phone className="h-[18px] w-[18px]" />}
-              label="Contacto"
-              value={`${phone} · llamar, WhatsApp, Telegram o guardar`}
-              onClick={onOpenContact}
-              tone="primary"
-            />
-          )}
-          {email && (
-            <ContactRow
-              icon={<Mail className="h-[18px] w-[18px]" />}
-              label="Enviar correo"
-              value={email}
-              href={`mailto:${email}`}
-              tone={phone ? 'tonal' : 'primary'}
-            />
-          )}
-          <ContactRow
-            icon={<Share2 className="h-[18px] w-[18px]" />}
-            label="Compartir contacto"
-            value=".agcontact por WhatsApp"
-            onClick={onShareAgcontact}
-          />
-        </div>
-        {!phone && !email && (
-          <p className="mt-2 text-xs text-[var(--color-md-on-surface-variant)]">
-            No hay teléfono ni correo guardados. Agrégalos con «Editar».
-          </p>
-        )}
-      </section>
-
-      {/* Atención estudiantil */}
-      <section className={SECTION_CLASS}>
-        <SectionTitle icon={<CalendarCheck className="h-4 w-4" />}>Atención estudiantil</SectionTitle>
+      <DetailSection icon={<CalendarCheck className="h-4 w-4" />} title="Atención estudiantil">
         {professor.office || professor.notes ? (
-          <dl className="space-y-3">
-            {professor.office && (
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-                <div className="min-w-0">
-                  <dt className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Cubículo u oficina</dt>
-                  <dd className="break-words text-sm text-[var(--color-md-on-surface)]">{professor.office}</dd>
-                </div>
-              </div>
-            )}
+          <DetailRows>
+            {professor.office && <DetailRow icon={<MapPin className={ROW_ICON} />} label="Cubículo u oficina" value={professor.office} />}
             {professor.notes && (
-              <div className="flex items-start gap-3">
-                <CalendarCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-                <div className="min-w-0">
-                  <dt className="text-11px font-semibold text-[var(--color-md-on-surface-variant)]">Asesorías y notas</dt>
-                  <dd className="whitespace-pre-line break-words text-sm text-[var(--color-md-on-surface)]">{professor.notes}</dd>
-                </div>
-              </div>
+              <DetailRow icon={<CalendarCheck className={ROW_ICON} />} label="Asesorías y notas" value={professor.notes} multiline />
             )}
-          </dl>
+          </DetailRows>
         ) : (
           <p className="text-xs text-[var(--color-md-on-surface-variant)]">Sin cubículo ni horarios de asesoría guardados.</p>
         )}
-      </section>
+      </DetailSection>
 
-      {/* Materias que imparte */}
-      <section className={SECTION_CLASS}>
-        <SectionTitle icon={<BookOpen className="h-4 w-4" />}>Materias que imparte</SectionTitle>
+      <DetailSection icon={<BookOpen className="h-4 w-4" />} title="Materias que imparte">
         {subjects.length === 0 ? (
           <p className="text-xs text-[var(--color-md-on-surface-variant)]">Todavía no está vinculado a ninguna materia.</p>
         ) : (
-          <ul className="flex flex-col">
+          <DetailRows>
             {subjects.map((subject) => (
-              <li key={subject.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelectSubject?.(subject)}
-                  disabled={!onSelectSubject}
-                  className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)] disabled:pointer-events-none"
-                >
-                  <SubjectBadge icon={subject.icon} color={subject.color} size="lg" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">{subject.name}</span>
-                    {subject.code && (
-                      <span className="block font-mono text-11px text-[var(--color-md-on-surface-variant)]">{subject.code}</span>
-                    )}
-                  </span>
-                  {onSelectSubject && (
-                    <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-md-on-surface-variant)]" aria-hidden="true" />
-                  )}
-                </button>
-              </li>
+              <DetailRow
+                key={subject.id}
+                icon={null}
+                leading={<SubjectBadge icon={subject.icon} color={subject.color} size="lg" />}
+                label={subject.code || 'Materia'}
+                value={<span className="font-bold">{subject.name}</span>}
+                onClick={onSelectSubject ? () => onSelectSubject(subject) : undefined}
+              />
             ))}
-          </ul>
+          </DetailRows>
         )}
-      </section>
-    </div>
+      </DetailSection>
+    </DetailScreen>
   );
 };

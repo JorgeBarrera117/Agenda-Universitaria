@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { BellOff } from 'lucide-react';
+import { Bell, BellOff, CalendarDays, Clock } from 'lucide-react';
 import { FormField, FormSection, FormSheet, SegmentedControl, formInputClass } from '../../../shared/components/form';
 import { M3Select } from '../../../shared/components/M3Select';
 import { DatePickerField } from '../../../shared/components/pickers/DatePickerField';
 import { TimePickerField } from '../../../shared/components/pickers/TimePickerField';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
+import { DetailChip, DetailHero, DetailIconTile } from '../../../shared/components/detail/DetailKit';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
+import { mediumDateLabel } from '../../../shared/utils/calendarDates';
 import type { Subject } from '../../subjects/types';
 import {
   AGENDA_LEAD_LABEL,
+  AGENDA_TYPE_LABEL,
   AGENDA_REMINDER_LEADS,
   type AgendaEvent,
   type AgendaEventType,
@@ -16,6 +20,7 @@ import {
 } from '../types';
 import { isDateKey, isTimeValue } from '../utils/agendaDates';
 import { AgendaTypeIcon } from './AgendaTypeIcon';
+import { agendaEventColor } from './agendaVisuals';
 
 interface AgendaEventFormProps {
   initialData?: AgendaEvent;
@@ -70,6 +75,7 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const isHoliday = type === 'holiday';
+  const timeFormatter = useTimeFormatter();
   const activeSubjects = subjects.filter((s) => !s.isArchived || s.id === subjectId);
 
   const changeType = (next: AgendaEventType) => {
@@ -117,8 +123,42 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
     }
   };
 
+  // Vista previa: la misma tarjeta de identidad que tendrá su ficha, al día con lo que se escribe
+  const previewSubject = !isHoliday && subjectId ? subjects.find((s) => s.id === subjectId) : undefined;
+  const previewColor = agendaEventColor({ type, subjectId: isHoliday ? undefined : subjectId || undefined }, subjects);
+  const previewDate = isDateKey(date)
+    ? isHoliday && isDateKey(endDate) && endDate > date
+      ? `${mediumDateLabel(date)} – ${mediumDateLabel(endDate)}`
+      : mediumDateLabel(date)
+    : null;
+  const preview = (
+    <DetailHero
+      compact
+      color={previewColor}
+      leading={
+        <DetailIconTile color={previewColor} size="md">
+          <AgendaTypeIcon type={type} className="h-6 w-6" />
+        </DetailIconTile>
+      }
+      kicker={`${AGENDA_TYPE_LABEL[type]} · ${isHoliday ? 'Sin avisos de clase' : previewSubject?.name ?? 'Personal'}`}
+      title={title.trim() || <span className="text-[var(--color-md-on-surface-variant)]">Sin título</span>}
+      chips={
+        <>
+          {previewDate && <DetailChip icon={<CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{previewDate}</DetailChip>}
+          {!isHoliday && time && isTimeValue(time) && (
+            <DetailChip icon={<Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{timeFormatter.time(time)}</DetailChip>
+          )}
+          {!isHoliday && remind !== 'none' && (
+            <DetailChip icon={<Bell className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{AGENDA_LEAD_LABEL[remind]}</DetailChip>
+          )}
+        </>
+      }
+    />
+  );
+
   return (
     <FormSheet
+      preview={preview}
       title={initialData ? 'Editar en la agenda' : 'Nuevo en la agenda'}
       subtitle={title.trim() || 'Tareas, exámenes, recordatorios y días libres'}
       onBack={onCancel}

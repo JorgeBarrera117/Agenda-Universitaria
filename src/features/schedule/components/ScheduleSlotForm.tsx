@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Building2, Laptop, UserX, Timer, AlertCircle, Check, Trash2 } from 'lucide-react';
+import { Building2, Clock, Laptop, UserX, Timer, AlertCircle, Check, Trash2, CalendarPlus } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useProfessors } from '../../professors/hooks/useProfessors';
-import { SubjectBadge } from '../../subjects/components/SubjectIcon';
+import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
+import { DetailChip, DetailHero, DetailIconTile } from '../../../shared/components/detail/DetailKit';
+import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
 import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { M3Switch } from '../../settings/components/SettingsPrimitives';
 import { M3Select } from '../../../shared/components/M3Select';
@@ -156,6 +158,7 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
   const isMultiDay = selectedDays.length > 1;
   const usesSharedTime = !isMultiDay || sameTime;
 
+  const timeFormatter = useTimeFormatter();
   const timeFor = (day: DayOfWeek): TimeRange => (usesSharedTime ? sharedTime : dayTimes[day] ?? sharedTime);
 
   const toggleDay = (day: DayOfWeek) => {
@@ -290,8 +293,55 @@ export const ScheduleSlotForm: React.FC<ScheduleSlotFormProps> = ({ initialData,
   };
 
 
+  // Vista previa: cómo se verá la clase (materia, días, hora y lugar) mientras se completa
+  const previewColor = selectedSubject?.color ?? '#5E6B7A';
+  const previewTime =
+    usesSharedTime && sharedTime.start && sharedTime.end
+      ? timeFormatter.range(sharedTime.start, sharedTime.end)
+      : usesSharedTime
+        ? null
+        : 'Hora distinta por día';
+  const previewPlace =
+    modality === 'virtual' ? virtualPlatform.trim() || 'Virtual' : [classroom.trim(), building.trim()].filter(Boolean).join(' · ') || null;
+  const preview = (
+    <DetailHero
+      compact
+      color={selectedSubject?.color}
+      leading={
+        <DetailIconTile color={previewColor} size="md">
+          {selectedSubject ? (
+            <SubjectIcon icon={selectedSubject.icon} className="h-6 w-6 text-white" />
+          ) : (
+            <CalendarPlus className="h-6 w-6" />
+          )}
+        </DetailIconTile>
+      }
+      kicker={describeDays(selectedDays)}
+      title={selectedSubject?.name ?? <span className="text-[var(--color-md-on-surface-variant)]">Elige una materia</span>}
+      chips={
+        <>
+          {previewTime && <DetailChip icon={<Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{previewTime}</DetailChip>}
+          {previewPlace && (
+            <DetailChip
+              icon={
+                modality === 'virtual' ? (
+                  <Laptop className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                ) : (
+                  <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                )
+              }
+            >
+              {previewPlace}
+            </DetailChip>
+          )}
+        </>
+      }
+    />
+  );
+
   return (
     <FormSheet
+      preview={subjects.length > 0 ? preview : undefined}
       title={isEditing ? 'Editar clase' : 'Nueva clase'}
       subtitle={`${describeDays(selectedDays)} · ${selectedSubject?.name || 'Selecciona una materia'}`}
       onBack={onCancel}

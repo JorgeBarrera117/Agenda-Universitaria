@@ -26,6 +26,8 @@ interface FormSheetProps {
   error?: string | null;
   onDismissError?: () => void;
   backPriority?: number;
+  /** Vista previa en vivo (tarjeta de identidad compacta) que se actualiza mientras se escribe. */
+  preview?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -48,6 +50,7 @@ export const FormSheet: React.FC<FormSheetProps> = ({
   error,
   onDismissError,
   backPriority = BACK_PRIORITY.MODAL,
+  preview,
   children,
 }) => {
   const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
@@ -104,6 +107,12 @@ export const FormSheet: React.FC<FormSheetProps> = ({
         bottomOffset="compact"
         onClose={() => onDismissError?.()}
       />
+
+      {preview && (
+        <div className="mb-3" aria-label="Vista previa">
+          {preview}
+        </div>
+      )}
 
       <div className="md-card divide-y divide-[var(--color-md-outline-variant)] overflow-hidden rounded-3xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] text-[var(--color-md-on-surface)] shadow-xs">
         {children}

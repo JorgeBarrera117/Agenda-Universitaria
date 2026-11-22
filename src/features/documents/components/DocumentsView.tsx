@@ -49,6 +49,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
   // Modo de navegación: apartado principal de lista o apartados dedicados independientes a pantalla completa
   const [viewMode, setViewMode] = useState<DocumentsViewMode>('list');
+  // Desde dónde se abrió «Cambiar de materia»: al terminar o cancelar se vuelve ahí
+  const [reassignReturn, setReassignReturn] = useState<'list' | 'details'>('list');
   const [selectedDoc, setSelectedDoc] = useState<SubjectDocumentItem | null>(null);
 
   // Estados de Búsqueda, Filtros y Ordenamiento
@@ -316,6 +318,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         onShare={handleShareDoc}
         onRequestReassign={(doc) => {
           setSelectedDoc(doc);
+          setReassignReturn('details');
           setViewMode('reassign');
         }}
         onDelete={(doc) => {
@@ -340,13 +343,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         subjects={subjects}
         onConfirmReassign={async (docId, newSubjectId) => {
           await reassignSubject(docId, newSubjectId);
-          setViewMode('list');
-          setSelectedDoc(null);
-          showDocToast('Asignatura actualizada correctamente');
+          // De vuelta a donde estaba (la ficha, ya con su nueva materia, o la lista)
+          setSelectedDoc(reassignReturn === 'details' ? { ...selectedDoc, subjectId: newSubjectId } : null);
+          setViewMode(reassignReturn);
+          showDocToast('Movido a la nueva materia');
         }}
         onCancel={() => {
-          setViewMode('list');
-          setSelectedDoc(null);
+          if (reassignReturn === 'list') setSelectedDoc(null);
+          setViewMode(reassignReturn);
         }}
       />
     );
@@ -577,7 +581,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                       },
                       {
                         id: 'details',
-                        label: 'Ficha técnica y ruta',
+                        label: 'Ver ficha',
                         icon: <Info className="w-3.5 h-3.5 text-[#00639B] dark:text-[#92CCFF]" />,
                         onClick: () => {
                           setSelectedDoc(doc);
@@ -586,10 +590,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                       },
                       {
                         id: 'reassign',
-                        label: 'Reasignar asignatura',
+                        label: 'Cambiar de materia',
                         icon: <RefreshCw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />,
                         onClick: () => {
                           setSelectedDoc(doc);
+                          setReassignReturn('list');
                           setViewMode('reassign');
                         },
                       },
