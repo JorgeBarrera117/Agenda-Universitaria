@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.95",
+  "latestVersion": "1.7.10.96",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.95/Agenda-Universitaria-v1.7.10.95.apk",
-  "apkSha256": "656bb97c9738452aa501de5dc04d80b397212c067db013ae787f3ad74e1fb127",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.95/Agenda-Universitaria-Setup-v1.7.10.95.exe",
-  "desktopSha256": "86acc68082fed93f67267e2477d4f2eae30770f53c0652060db7140c79dd1f12",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.96/Agenda-Universitaria-v1.7.10.96.apk",
+  "apkSha256": "c50cfd909528ddb674bc33912be635387f1ff4f7b4c4e9f50ab8983e09d523f0",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.96/Agenda-Universitaria-Setup-v1.7.10.96.exe",
+  "desktopSha256": "cf2c99862370942cf4a522ba39fe64ed85c16fd47ed8445a3a4ece48cc2ffdb5",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Los avisos de clases y de la agenda vuelven a llegar en Android 14+",
-    "El botón de agregar vuelve a su lugar en Horario y Agenda"
+    "Calendario y reloj de Material 3 con los colores de tu tema",
+    "Elige la hora tocando la esfera o escribiéndola"
   ]
 }
