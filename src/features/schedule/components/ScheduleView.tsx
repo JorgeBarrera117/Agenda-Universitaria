@@ -19,6 +19,7 @@ import {
   Share2,
   UserRound,
   Video,
+  FolderOpen,
 } from 'lucide-react';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
@@ -34,7 +35,6 @@ import { transferShortcutLabel } from '../../transfer/services/transferAvailabil
 import { isSlotVirtual, meetingPlatform } from '../utils/slotModality';
 import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
 import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
-import { WeekPanorama } from './WeekPanorama';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -64,6 +64,32 @@ import {
   STRETCHED_CARD_BUTTON_CLASS,
 } from '../../../shared/styles/surfaces';
 import { AgendaUpcomingStrip } from '../../agenda/components/AgendaUpcomingStrip';
+
+type ScheduleViewMode = 'weekly' | 'daily';
+
+/** Vista elegida a mano en esta sesión (se olvida al cerrar la app). */
+const SESSION_VIEW_KEY = 'agenda_schedule_view_session';
+/** Desde aquí es «PC / pantalla ancha» (md de Tailwind). */
+const WIDE_QUERY = '(min-width: 768px)';
+
+function initialScheduleView(preference: 'auto' | 'weekly' | 'daily'): ScheduleViewMode {
+  try {
+    const chosen = sessionStorage.getItem(SESSION_VIEW_KEY);
+    if (chosen === 'weekly' || chosen === 'daily') return chosen;
+  } catch {
+    // Sin almacenamiento de sesión: se usa la preferencia
+  }
+  if (preference !== 'auto') return preference;
+  return typeof window !== 'undefined' && window.matchMedia(WIDE_QUERY).matches ? 'weekly' : 'daily';
+}
+
+function rememberSessionView(mode: ScheduleViewMode): void {
+  try {
+    sessionStorage.setItem(SESSION_VIEW_KEY, mode);
+  } catch {
+    // Solo dura la sesión: si no se puede guardar, no pasa nada
+  }
+}
 
 interface ScheduleViewProps {
   onNavigateToNotes?: (subjectId?: string) => void;
@@ -115,9 +141,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const [transferLabel] = useState(transferShortcutLabel);
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(currentDayOfWeek);
-  const [viewMode, setViewMode] = useState<'weekly' | 'daily'>(
-    settings.defaultScheduleView
-  );
+  // Vista al abrir: la que el estudiante eligió en esta sesión; si no, la de Ajustes
+  // ('auto' = Día en el celular y Semana en la PC, ver initialScheduleView)
+  const [viewMode, setViewModeState] = useState<ScheduleViewMode>(() => initialScheduleView(settings.defaultScheduleView));
+  const setViewMode = useCallback((mode: ScheduleViewMode) => {
+    setViewModeState(mode);
+    rememberSessionView(mode);
+  }, []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<ScheduleSlot | undefined>(undefined);
   const [slotToDelete, setSlotToDelete] = useState<ScheduleSlot | null>(null);
@@ -239,6 +269,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       window.removeEventListener('resize', checkScroll);
     };
   }, [checkScroll, displayedDays, viewMode]);
+
+  useEffect(() => {
+    if (viewMode !== 'weekly') return;
+    const el = weeklyScrollRef.current;
+    const today = el?.querySelector<HTMLElement>('[data-today]');
+    if (!el || !today || el.scrollWidth <= el.clientWidth) return;
+    el.scrollLeft = Math.max(0, today.offsetLeft - el.offsetLeft - 8);
+  }, [viewMode]);
 
   const scrollWeekly = (direction: 'left' | 'right') => {
     const el = weeklyScrollRef.current;
@@ -491,15 +529,20 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* 4. VISTA SEMANAL (Contenedor Compacto de Alta Densidad) */}
       {viewMode === 'weekly' && (
-        <div className="hidden sm:block w-full bg-[var(--color-md-surface-container)] rounded-2xl sm:rounded-3xl border border-[var(--color-md-outline-variant)] shadow-2xs overflow-hidden">
-          <div ref={weeklyScrollRef} className="overflow-x-auto p-2 sm:p-2.5 xl:p-3 custom-scrollbar w-full">
+        <div className="w-full bg-[var(--color-md-surface-container)] rounded-2xl sm:rounded-3xl border border-[var(--color-md-outline-variant)] shadow-2xs overflow-hidden">
+          {/* En el celular: las mismas columnas de la PC, de 240 px, que se deslizan con el dedo y
+              encajan día por día (snap); en la PC (>= 768 px), la cuadrícula de siempre */}
+          <div
+            ref={weeklyScrollRef}
+            className="overflow-x-auto p-2 sm:p-2.5 xl:p-3 custom-scrollbar w-full snap-x snap-mandatory scroll-px-2 md:snap-none"
+          >
             <div
-              className={`grid w-full gap-2 sm:gap-2.5 ${
+              className={`flex w-full gap-2 md:grid md:gap-2.5 ${
                 displayedDays.length === 7
-                  ? 'min-w-[1200px] xl:min-w-0 grid-cols-7'
+                  ? 'md:min-w-[1200px] xl:min-w-0 md:grid-cols-7'
                   : displayedDays.length === 6
-                  ? 'min-w-[1080px] xl:min-w-0 grid-cols-6'
-                  : 'min-w-[900px] lg:min-w-0 grid-cols-5'
+                  ? 'md:min-w-[1080px] xl:min-w-0 md:grid-cols-6'
+                  : 'md:min-w-[900px] lg:min-w-0 md:grid-cols-5'
               }`}
             >
               {displayedDays.map((day) => {
@@ -511,8 +554,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 return (
                   <section
                     key={day}
+                    data-today={isToday || undefined}
                     aria-label={`${DAY_NAMES[day]}${isToday ? ', hoy' : ''}: ${daySlotsList.length} ${daySlotsList.length === 1 ? 'clase' : 'clases'}`}
-                    className={`flex min-w-0 flex-col gap-2 rounded-[20px] p-2 transition-colors ${
+                    className={`flex w-[240px] min-w-[240px] shrink-0 snap-start flex-col gap-2 rounded-[20px] p-2 transition-colors md:w-auto md:min-w-0 md:shrink ${
                       isToday
                         ? 'bg-[var(--color-md-primary-container)]/50 ring-1 ring-inset ring-[var(--color-md-primary)]/35'
                         : 'bg-[var(--color-md-card-bg)]'
@@ -668,31 +712,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               })}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 4b. VISTA SEMANAL DEL TELÉFONO: parrilla compacta con toda la semana */}
-      {viewMode === 'weekly' && (
-        <div className="sm:hidden">
-          <WeekPanorama
-            days={displayedDays}
-            slots={slots}
-            getSubjectById={getSubjectById}
-            todayDay={currentDayOfWeek}
-            nowTimeString={nowTimeString}
-            onOpenDay={(day) => {
-              setSelectedDay(day);
-              setViewMode('daily');
-            }}
-            onOpenSlot={(slot) => {
-              if (onOpenSubjectDetail) {
-                onOpenSubjectDetail(slot.subjectId);
-              } else {
-                setSelectedDay(slot.dayOfWeek);
-                setViewMode('daily');
-              }
-            }}
-          />
         </div>
       )}
 
@@ -853,11 +872,25 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   {progress && <ClassProgressBar percent={progress.progressPercent} minutesRemaining={progress.minutesRemaining} />}
 
                   {/* Pie: solo los botones reales, en la zona del pulgar */}
-                  {(onNavigateToNotes || joinUrl) && (
+                  {(onNavigateToNotes || joinUrl || subject) && (
                     <div className="mt-auto flex flex-wrap items-center justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-2.5">
-                      {onNavigateToNotes && (
+                      {/* Archivos de la materia: tonal (secundaria) */}
+                      {subject && (
                         <Button
                           variant="action-indigo"
+                          size="xs"
+                          onClick={() => setSubjectForFiles(subject)}
+                          aria-label={`Ver archivos de ${subject.name}`}
+                          icon={<FolderOpen className="h-4 w-4" />}
+                          className={`${ABOVE_STRETCHED_CLASS} min-h-10 shrink-0 whitespace-nowrap`}
+                        >
+                          Archivos
+                        </Button>
+                      )}
+                      {/* Tomar apunte es la acción principal (rellena), salvo si hay que unirse a la clase */}
+                      {onNavigateToNotes && (
+                        <Button
+                          variant={joinUrl ? 'action-indigo' : 'primary'}
                           size="xs"
                           onClick={() => onNavigateToNotes(slot.subjectId)}
                           aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
@@ -893,7 +926,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {deleteSlotDialog}
 
-      {/* Archivos de la próxima clase, abiertos desde Campus Pulse */}
+      {/* Archivos de una materia: desde el resumen o desde el pie de cada tarjeta */}
       {subjectForFiles && (
         <Suspense fallback={null}>
           <SubjectDocumentsModal

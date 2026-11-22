@@ -3,12 +3,29 @@ import { DEFAULT_SETTINGS, type AppSettings } from '../types';
 
 const SETTINGS_STORAGE_KEY = 'agenda_universitaria_settings';
 
+/**
+ * Ajustes guardados sobre los de fábrica. Migración única: 'weekly' era el valor de fábrica de la
+ * vista del Horario, así que se pasa a 'auto' (Día en el celular, Semana en la PC). En la PC no
+ * cambia nada; quien eligió 'daily' a mano lo conserva.
+ */
+function fromStored(stored: string): AppSettings {
+  const parsed = JSON.parse(stored) as Partial<AppSettings>;
+  const merged: AppSettings = { ...DEFAULT_SETTINGS, ...parsed };
+  if (parsed.scheduleViewMigrated !== true) {
+    merged.scheduleViewMigrated = true;
+    if (parsed.defaultScheduleView === undefined || parsed.defaultScheduleView === 'weekly') {
+      merged.defaultScheduleView = 'auto';
+    }
+  }
+  return merged;
+}
+
 export function useAppSettings() {
   const [settings, setSettings] = useState<AppSettings>(() => {
     try {
       const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (stored) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        return fromStored(stored);
       }
     } catch (e) {
       console.warn('Error reading settings from localStorage:', e);
@@ -31,7 +48,7 @@ export function useAppSettings() {
     let base: AppSettings = settings;
     try {
       const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
-      if (stored) base = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      if (stored) base = fromStored(stored);
     } catch {
       // Sin acceso al almacenamiento: se usa el estado en memoria
     }
@@ -55,7 +72,7 @@ export function useAppSettings() {
         try {
           const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
           if (stored) {
-            setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(stored) });
+            setSettings(fromStored(stored));
           }
         } catch (err) {
           console.warn('Error reading updated settings from localStorage:', err);

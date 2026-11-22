@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, CalendarRange, GraduationCap, Layers, Pencil, Save } from 'lucide-react';
+import { Calendar, CalendarRange, GraduationCap, Layers, MonitorSmartphone, Pencil, Save } from 'lucide-react';
 import { SegmentedControl, formInputClass, type SegmentedOption } from '../../../shared/components/form';
 import { SettingsBlock, SettingsCard } from './SettingsPrimitives';
 import type { AppSettings } from '../types';
@@ -16,6 +16,7 @@ interface ScheduleSettingsProps {
 }
 
 const VIEW_OPTIONS: SegmentedOption<AppSettings['defaultScheduleView']>[] = [
+  { value: 'auto', label: 'Automática', shortLabel: 'Auto', icon: <MonitorSmartphone className="h-4 w-4 shrink-0" aria-hidden="true" /> },
   { value: 'weekly', label: 'Semanal', icon: <Layers className="h-4 w-4 shrink-0" aria-hidden="true" /> },
   { value: 'daily', label: 'Por día', icon: <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" /> },
 ];
@@ -109,7 +110,7 @@ export const ScheduleSettings: React.FC<ScheduleSettingsProps> = ({
         />
       )}
 
-      <SettingsBlock title="Vista predeterminada" description="Cómo se abre el horario al iniciar la app.">
+      <SettingsBlock title="Vista predeterminada" description="Cómo se abre el horario. Automática: Día en el celular y Semana en la PC.">
         <SegmentedControl
           value={settings.defaultScheduleView}
           onChange={onViewModeChange}

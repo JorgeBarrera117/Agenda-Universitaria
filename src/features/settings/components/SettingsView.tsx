@@ -361,7 +361,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   // Etiqueta legible de horario
   const scheduleViewLabel =
-    settings.defaultScheduleView === 'weekly' ? 'Semana' : 'Por día';
+    settings.defaultScheduleView === 'auto' ? 'Vista automática' : settings.defaultScheduleView === 'weekly' ? 'Semana' : 'Por día';
 
   // El estado del bloqueo vive aparte de los ajustes: se relee al volver al menú principal
   const lockActive = activeSubView === null && isLockEnabled();

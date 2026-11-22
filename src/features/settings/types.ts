@@ -148,7 +148,13 @@ export interface AppSettings {
   studentStatusMode?: StudentStatusMode;
   /** Frase de estado personalizada (máx. 35 caracteres). */
   studentCustomStatus?: string;
-  defaultScheduleView: 'weekly' | 'daily';
+  /** Vista al abrir el Horario. 'auto': Día en el celular (< 768 px) y Semana en la PC. */
+  defaultScheduleView: 'auto' | 'weekly' | 'daily';
+  /**
+   * Ya se pasó al modo automático. Antes 'weekly' era el valor de fábrica: se convierte una sola
+   * vez a 'auto' (ver useAppSettings). Quien eligió 'daily' a mano lo conserva.
+   */
+  scheduleViewMigrated?: boolean;
   imageQuality: 'balanced' | 'high';
   visibleDays: 'mon-fri' | 'mon-sat' | 'all';
   // Papel Tapiz y Personalización de Fondo
@@ -216,7 +222,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   studentAvatarUrl: undefined,
   studentStatusMode: 'network',
   studentCustomStatus: undefined,
-  defaultScheduleView: 'weekly',
+  defaultScheduleView: 'auto',
+  scheduleViewMigrated: true,
   imageQuality: 'balanced',
   visibleDays: 'mon-fri',
   wallpaperStyle: 'campus',
