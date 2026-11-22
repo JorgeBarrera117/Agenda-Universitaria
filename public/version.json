@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.10.92",
+  "latestVersion": "1.7.10.93",
   "releaseDate": "2026-11-21",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.92/Agenda-Universitaria-v1.7.10.92.apk",
-  "apkSha256": "c2762ac8bcf97b9b14a923ba5e2d3c0e4b1a8b48e6755d74c128a29e2da29d58",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.92/Agenda-Universitaria-Setup-v1.7.10.92.exe",
-  "desktopSha256": "852838e0eba63f0c390f91e5be0ec3a0890489ee1662a7034f78a64d4d50157f",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.93/Agenda-Universitaria-v1.7.10.93.apk",
+  "apkSha256": "70a0daeb4af3bca32a432e166c6cab239630486f0e5e0676f24d211f7804c16e",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.10.93/Agenda-Universitaria-Setup-v1.7.10.93.exe",
+  "desktopSha256": "66d32ef079f68bd64d3029d4ce6192b66cd1bd839662b92fe485cbc681b81447",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Nueva pestaña Agenda: tareas, exámenes, recordatorios y días libres",
-    "Barra de 4 pestañas: Horario, Agenda, Materias y Biblioteca"
+    "Botones flotantes para cambiar entre Materias y Profesores, Apuntes y Archivos",
+    "Siguen al botón de agregar si lo mueves"
   ]
 }
