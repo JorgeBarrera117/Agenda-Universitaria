@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.94',
+    date: '2026-11-21',
+    title: 'Tus clases desde la Agenda',
+    changes: [
+      { kind: 'mejora', text: 'Al elegir un día en la Agenda, cada clase muestra el ícono de su materia y al tocarla se abre su ficha.' },
+      { kind: 'mejora', text: 'El botón para salir del día ahora dice «Cerrar».' },
+    ],
+  },
+  {
     version: '1.7.10.93',
     date: '2026-11-21',
     title: 'Cambia de sección con un toque',
