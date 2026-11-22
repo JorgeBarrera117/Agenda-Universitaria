@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.97',
+    date: '2026-11-21',
+    title: 'Tu agenda, más completa',
+    changes: [
+      { kind: 'nuevo', text: 'Ficha de cada evento de la agenda: estado, fecha, hora, lugar, materia, aviso y notas, con Editar, Marcar como hecha, Compartir y Eliminar.' },
+      { kind: 'mejora', text: 'Lo que ya pasó y las tareas hechas ya no desaparecen: están en «Hechas y pasadas» y cada tarjeta dice si está Hecha, Vencida o Ya pasó.' },
+      { kind: 'mejora', text: 'En PC, al elegir un día su panel aparece a la derecha del calendario y la lista.' },
+      { kind: 'mejora', text: 'En Horario, «Próximos en tu agenda» ahora va debajo del horario.' },
+      { kind: 'nuevo', text: 'Horario de asesoría de los profesores: elige los días y las horas con el reloj y se escribe solo.' },
+    ],
+  },
+  {
     version: '1.7.10.96',
     date: '2026-11-21',
     title: 'Calendario y reloj con tu estilo',
