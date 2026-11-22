@@ -421,9 +421,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         onOpenFiles={setSubjectForFiles}
       />
 
-      {/* Próximos en tu agenda: tareas vencidas y lo que viene, sin abrir la Agenda */}
-      {onOpenAgendaDay && onOpenAgenda && <AgendaUpcomingStrip onOpenDay={onOpenAgendaDay} onOpenAgenda={onOpenAgenda} />}
-
       {/* 3. SELECTOR DE DÍAS (Móvil y Vista Diaria) */}
       <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
         <div className="md-card bg-[var(--color-md-surface-container)] p-1 rounded-2xl border border-[var(--color-md-outline-variant)]/40 shadow-2xs">
@@ -835,6 +832,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Próximos en tu agenda: debajo del horario, que es lo principal de esta pestaña */}
+      {onOpenAgendaDay && onOpenAgenda && <AgendaUpcomingStrip onOpenDay={onOpenAgendaDay} onOpenAgenda={onOpenAgenda} />}
 
       {deleteSlotDialog}
 

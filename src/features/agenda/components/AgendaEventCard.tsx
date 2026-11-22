@@ -7,12 +7,15 @@ import type { Subject } from '../../subjects/types';
 import { AGENDA_LEAD_LABEL, AGENDA_TYPE_LABEL, type AgendaEvent } from '../types';
 import { longDayLabel, relativeDayLabel } from '../utils/agendaDates';
 import { agendaEventColor } from './agendaVisuals';
+import { AGENDA_STATUS_CLASS, agendaStatus } from '../utils/agendaStatus';
 import { AgendaTypeIcon } from './AgendaTypeIcon';
 
 interface AgendaEventCardProps {
   event: AgendaEvent;
   subjects: readonly Subject[];
   todayKey: string;
+  /** Tocar la tarjeta abre su ficha. */
+  onOpen: (event: AgendaEvent) => void;
   onEdit: (event: AgendaEvent) => void;
   onDelete: (event: AgendaEvent) => void;
   onToggleDone: (event: AgendaEvent) => void;
@@ -22,17 +25,20 @@ interface AgendaEventCardProps {
  * Tarjeta de un evento: el color de su materia (variante tonal, como en Materias), ícono del tipo,
  * cuándo y, en las tareas, la casilla para marcarla como hecha. Tocarla abre la edición.
  */
-const AgendaEventCardComponent: React.FC<AgendaEventCardProps> = ({ event, subjects, todayKey, onEdit, onDelete, onToggleDone }) => {
+const AgendaEventCardComponent: React.FC<AgendaEventCardProps> = ({ event, subjects, todayKey, onOpen, onEdit, onDelete, onToggleDone }) => {
   const subject = event.subjectId ? subjects.find((s) => s.id === event.subjectId) : undefined;
   const color = agendaEventColor(event, subjects);
   const isTask = event.type === 'task';
   const overdue = isTask && !event.done && event.date < todayKey;
+  const status = agendaStatus(event, todayKey);
+  // El estado se marca solo cuando no es obvio por el grupo: hecha, vencida o ya pasó
+  const showStatus = status.tone === 'done' || status.tone === 'danger' || status.tone === 'past';
 
   const range =
     event.type === 'holiday' && event.endDate && event.endDate > event.date
       ? `${relativeDayLabel(event.date, todayKey)} – ${relativeDayLabel(event.endDate, todayKey)}`
       : relativeDayLabel(event.date, todayKey);
-  const when = `${overdue ? 'Vencida · ' : ''}${range}${event.time ? ` · ${event.time}` : ''}`;
+  const when = `${range}${event.time ? ` · ${event.time}` : ''}`;
   const kicker = `${AGENDA_TYPE_LABEL[event.type]} · ${
     event.type === 'holiday' ? 'Sin avisos de clase' : subject?.name ?? 'Personal'
   }`;
@@ -54,12 +60,15 @@ const AgendaEventCardComponent: React.FC<AgendaEventCardProps> = ({ event, subje
             event.done ? 'text-[var(--color-md-on-surface-variant)] line-through' : 'text-[var(--color-md-on-surface)]'
           }`}
         >
-          {/* Toda la tarjeta abre la edición */}
-          <button type="button" onClick={() => onEdit(event)} className={STRETCHED_CARD_BUTTON_CLASS}>
+          {/* Toda la tarjeta abre su ficha (ver, editar, marcar, compartir, eliminar) */}
+          <button type="button" onClick={() => onOpen(event)} className={STRETCHED_CARD_BUTTON_CLASS}>
             {event.title}
-            <span className="sr-only"> · {longDayLabel(event.date)} · editar</span>
+            <span className="sr-only"> · {longDayLabel(event.date)} · {status.label} · ver ficha</span>
           </button>
         </h3>
+        {showStatus && (
+          <span className={`inline-flex rounded-full px-2 py-0.5 text-11px font-bold ${AGENDA_STATUS_CLASS[status.tone]}`}>{status.label}</span>
+        )}
         <p
           className={`text-xs ${
             overdue ? 'font-bold text-[#BA1A1A] dark:text-[#FFB4AB]' : 'text-[var(--color-md-on-surface-variant)]'

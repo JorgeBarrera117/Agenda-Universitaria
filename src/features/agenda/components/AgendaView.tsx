@@ -10,6 +10,9 @@ import { addDaysToKey, eventCoversDay, fromDateKey, holidayOn, longDayLabel, sch
 import { MonthCalendar } from './MonthCalendar';
 import { AgendaEventCard } from './AgendaEventCard';
 import { AgendaEventForm } from './AgendaEventForm';
+import { AgendaEventDetail } from './AgendaEventDetail';
+import { shareText } from '../../../shared/utils/shareText';
+import { formatClockTime } from '../../../shared/utils/timeFormat';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
@@ -80,6 +83,8 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
   const [filter, setFilter] = useState<Filter>('all');
   const [showDone, setShowDone] = useState(false);
   const [formState, setFormState] = useState<{ event?: AgendaEvent; defaultDate: string } | null>(null);
+  // Ficha abierta (id): se lee de la lista en vivo para que refleje "hecha" y los cambios al editar
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<AgendaEvent | null>(null);
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
   const showToast = useCallback((text: string) => setToast((prev) => ({ id: (prev?.id ?? 0) + 1, text })), []);
@@ -94,11 +99,13 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
     setFilter('all');
   }
 
-  const isFormOpen = formState !== null;
+  const detailEvent = detailId ? events.find((e) => e.id === detailId) : undefined;
+  // Formulario o ficha a pantalla completa: se ocultan la barra y los botones flotantes
+  const isFullScreen = formState !== null || detailEvent !== undefined;
   useEffect(() => {
-    onEditorActiveChange?.(isFormOpen);
+    onEditorActiveChange?.(isFullScreen);
     return () => onEditorActiveChange?.(false);
-  }, [isFormOpen, onEditorActiveChange]);
+  }, [isFullScreen, onEditorActiveChange]);
 
   const toggleCalendar = () => {
     setIsCalendarOpen((open) => {
@@ -128,7 +135,11 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
   const filtered = useMemo(() => (filter === 'all' ? events : events.filter((e) => e.type === filter)), [events, filter]);
 
   const { groups, doneCount } = useMemo(() => {
-    const doneList = filtered.filter((e) => e.done);
+    // Hechas y pasadas: tareas hechas y lo que ya pasó (un examen o recordatorio de días atrás).
+    // No desaparecen: se ven con "Mostrar hechas y pasadas" y al tocar su día en el calendario
+    const doneList = filtered
+      .filter((e) => e.done || (e.type !== 'task' && (e.endDate ?? e.date) < todayKey))
+      .sort((a, b) => b.date.localeCompare(a.date));
     if (selectedDay) {
       const dayEvents = filtered.filter((e) => eventCoversDay(e, selectedDay));
       return {
@@ -146,8 +157,8 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
     }
     const tomorrow = addDaysToKey(todayKey, 1);
     const weekEnd = addDaysToKey(todayKey, 7);
-    // Pendiente = no hecho; lo pasado que no es una tarea (un examen de ayer) ya no se lista
-    const pending = filtered.filter((e) => !e.done);
+    // Pendiente = no hecho y no pasado (una tarea vencida sigue pendiente)
+    const pending = filtered.filter((e) => !e.done && (e.type === 'task' || (e.endDate ?? e.date) >= todayKey));
     const result: Group[] = [
       { key: 'overdue', label: 'Vencidas', danger: true, events: pending.filter((e) => e.type === 'task' && e.date < todayKey) },
       { key: 'today', label: 'Hoy', events: pending.filter((e) => eventCoversDay(e, todayKey) && !(e.type === 'task' && e.date < todayKey)) },
@@ -155,7 +166,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
       { key: 'week', label: 'Próximos 7 días', events: pending.filter((e) => e.date > tomorrow && e.date <= weekEnd) },
       { key: 'later', label: 'Más adelante', events: pending.filter((e) => e.date > weekEnd) },
     ];
-    if (showDone && doneList.length) result.push({ key: 'done', label: 'Hechas', events: doneList });
+    if (showDone && doneList.length) result.push({ key: 'done', label: 'Hechas y pasadas', events: doneList });
     return { groups: result.filter((g) => g.events.length > 0), doneCount: doneList.length };
   }, [filtered, selectedDay, filter, todayKey, showDone]);
 
@@ -202,7 +213,29 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
     if (!toDelete) return;
     await removeEvent(toDelete.id);
     showToast(`«${toDelete.title}» se eliminó.`);
+    if (detailId === toDelete.id) setDetailId(null);
     setToDelete(null);
+  };
+
+  const shareEvent = async (event: AgendaEvent) => {
+    const subject = event.subjectId ? subjects.find((s) => s.id === event.subjectId) : undefined;
+    const lines = [
+      `${AGENDA_TYPE_LABEL[event.type]}: ${event.title}`,
+      `📅 ${longDayLabel(event.date)}${event.endDate && event.endDate > event.date ? ` al ${longDayLabel(event.endDate).toLowerCase()}` : ''}${
+        event.time ? ` · ${formatClockTime(event.time, settings.timeFormat)}` : ''
+      }`,
+      subject ? `📚 ${subject.name}` : '',
+      event.place ? `📍 ${event.place}` : '',
+      event.notes ? `📝 ${event.notes}` : '',
+      '',
+      '_Compartido desde Agenda Universitaria_',
+    ].filter((line, index, all) => line !== '' || index === all.length - 2);
+    try {
+      const outcome = await shareText({ title: event.title, text: lines.join('\n') });
+      if (outcome === 'copied') showToast('Copiado al portapapeles.');
+    } catch {
+      showToast('No se pudo compartir.');
+    }
   };
 
   if (formState) {
@@ -218,6 +251,52 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
             onCancel={() => setFormState(null)}
           />
         </ErrorBoundary>
+      </div>
+    );
+  }
+
+  const deleteModal = (
+    <Modal isOpen={toDelete !== null} onClose={() => setToDelete(null)} title="¿Eliminar de la agenda?" maxWidth="sm">
+      <p className="text-sm text-[var(--color-md-on-surface-variant)]">
+        Se eliminará «{toDelete?.title}» y su aviso. No se puede deshacer.
+      </p>
+      <ModalActions>
+        <button
+          type="button"
+          onClick={() => setToDelete(null)}
+          className="h-10 rounded-full px-4 text-sm font-bold text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary)]/10"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onClick={() => void confirmDelete()}
+          className="h-10 rounded-full bg-[#BA1A1A] px-5 text-sm font-bold text-white hover:bg-[#93000A]"
+        >
+          Eliminar
+        </button>
+      </ModalActions>
+    </Modal>
+  );
+
+  if (detailEvent) {
+    return (
+      <div className="w-full">
+        <ContextualToast message={toast?.text ?? null} bottomOffset="compact" onClose={() => setToast(null)} />
+        <AgendaEventDetail
+          event={detailEvent}
+          subjects={subjects}
+          todayKey={todayKey}
+          timeFormat={settings.timeFormat}
+          notificationsEnabled={settings.notificationsEnabled}
+          onBack={() => setDetailId(null)}
+          onEdit={() => openEdit(detailEvent)}
+          onDelete={() => setToDelete(detailEvent)}
+          onToggleDone={() => toggleDone(detailEvent)}
+          onShare={() => void shareEvent(detailEvent)}
+          onOpenSubject={onOpenSubjectDetail}
+        />
+        {deleteModal}
       </div>
     );
   }
@@ -251,9 +330,14 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
         </button>
       </div>
 
-      {/* En PC: calendario a la izquierda y lista a la derecha; en el teléfono, uno debajo del otro */}
-      <div className="flex flex-col gap-3.5 lg:flex-row lg:items-start">
-        <div className="flex flex-col gap-3.5 lg:sticky lg:top-24 lg:w-[400px] lg:shrink-0">
+      {/* Teléfono: calendario, día y lista uno debajo del otro. PC: calendario | lista, con el día
+          debajo del calendario; en pantallas anchas el día pasa a una tercera columna a la derecha */}
+      <div
+        className={`grid grid-cols-1 gap-3.5 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start ${
+          selectedDay ? 'xl:grid-cols-[340px_minmax(0,1fr)_340px]' : ''
+        }`}
+      >
+        <div className="lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1">
           <MonthCalendar
             year={visibleMonth.year}
             month={visibleMonth.month}
@@ -267,10 +351,11 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
             onGoToday={goToday}
             onSelectDay={selectDay}
           />
+        </div>
 
           {/* Día elegido: sus clases del horario */}
           {selectedDay && (
-            <section className="md-card space-y-2.5 rounded-[24px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-3.5">
+            <section className="md-card space-y-2.5 rounded-[24px] border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-3.5 lg:col-start-1 lg:row-start-2 xl:sticky xl:top-24 xl:col-start-3 xl:row-start-1">
               <div className="flex items-center gap-2">
                 <h3 className="min-w-0 flex-1 text-base font-bold text-[var(--color-md-on-surface)]">{longDayLabel(selectedDay)}</h3>
                 <button
@@ -333,9 +418,8 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
               </button>
             </section>
           )}
-        </div>
 
-        <div className="min-w-0 flex-1 space-y-3.5">
+        <div className="min-w-0 space-y-3.5 lg:col-start-2 lg:row-span-2 lg:row-start-1">
           {/* Filtros por tipo */}
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5" role="group" aria-label="Filtrar por tipo">
             {FILTERS.map((option) => {
@@ -398,6 +482,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
                       event={event}
                       subjects={subjects}
                       todayKey={todayKey}
+                      onOpen={(e) => setDetailId(e.id)}
                       onEdit={openEdit}
                       onDelete={setToDelete}
                       onToggleDone={toggleDone}
@@ -414,33 +499,13 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
               onClick={() => setShowDone((v) => !v)}
               className="h-10 rounded-full border border-[var(--color-md-outline-variant)] px-4 text-13px font-bold text-[var(--color-md-on-surface-variant)] transition-colors hover:bg-[var(--color-md-surface-container-high)]"
             >
-              {showDone ? 'Ocultar hechas' : `Mostrar hechas (${doneCount})`}
+              {showDone ? 'Ocultar hechas y pasadas' : `Mostrar hechas y pasadas (${doneCount})`}
             </button>
           )}
         </div>
       </div>
 
-      <Modal isOpen={toDelete !== null} onClose={() => setToDelete(null)} title="¿Eliminar de la agenda?" maxWidth="sm">
-        <p className="text-sm text-[var(--color-md-on-surface-variant)]">
-          Se eliminará «{toDelete?.title}» y su aviso. No se puede deshacer.
-        </p>
-        <ModalActions>
-          <button
-            type="button"
-            onClick={() => setToDelete(null)}
-            className="h-10 rounded-full px-4 text-sm font-bold text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary)]/10"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={() => void confirmDelete()}
-            className="h-10 rounded-full bg-[#BA1A1A] px-5 text-sm font-bold text-white hover:bg-[#93000A]"
-          >
-            Eliminar
-          </button>
-        </ModalActions>
-      </Modal>
+      {deleteModal}
 
       {isActive && (
         <DraggableFAB onClick={() => openCreate()} label="Nuevo en la agenda" icon={<Plus className="h-6 w-6 stroke-[2.2]" />} />

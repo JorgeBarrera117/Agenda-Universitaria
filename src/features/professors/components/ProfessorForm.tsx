@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import type { Professor, CreateProfessorDTO } from '../types';
 import { PROFESSOR_ICONS, PROFESSOR_PRESET_COLORS, renderProfessorGlyph } from './ProfessorAvatar';
+import { AdvisingHoursHelper } from './AdvisingHoursHelper';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import {
   FormSheet,
@@ -197,6 +198,7 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
             className={`${formInputClass} resize-none`}
           />
         </FormField>
+        <AdvisingHoursHelper onAdd={(line) => setNotes((prev) => (prev.trim() ? `${prev.trim()}\n${line}` : line))} />
       </FormSection>
     </FormSheet>
   );
