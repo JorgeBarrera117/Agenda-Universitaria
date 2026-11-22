@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.96',
+    date: '2026-11-21',
+    title: 'Calendario y reloj con tu estilo',
+    changes: [
+      { kind: 'mejora', text: 'Elegir fecha y hora ahora usa un calendario y un reloj de Material 3 con los colores de tu tema, iguales en el teléfono y en la PC.' },
+      { kind: 'mejora', text: 'En el reloj eliges la hora y luego los minutos tocando o deslizando, o escríbelos con el teclado. Respeta el formato de 12 o 24 horas de Ajustes.' },
+    ],
+  },
+  {
     version: '1.7.10.95',
     date: '2026-11-21',
     title: 'Avisos que sí llegan',
