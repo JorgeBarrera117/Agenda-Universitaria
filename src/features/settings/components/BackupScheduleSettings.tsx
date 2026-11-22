@@ -50,10 +50,11 @@ export const BackupScheduleSettings: React.FC = () => {
   return (
     <SettingsCard>
       <p
-        className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${
+        // Aviso informativo plano (sin relleno ni relieve): no compite con los botones de acción
+        className={`flex items-center gap-2 border-l-2 py-1 pl-3 text-xs font-semibold ${
           lastBackup
-            ? 'bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)]'
-            : 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
+            ? 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)]'
+            : 'border-amber-500 text-amber-900 dark:text-amber-200'
         }`}
         role="status"
       >

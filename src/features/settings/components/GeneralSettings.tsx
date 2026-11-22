@@ -53,7 +53,7 @@ export const GeneralSettings: React.FC = () => {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => updateSettings({ textScale: option.id })}
-                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-2 transition-colors ${
+                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border px-2 py-2 transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] ${
                   selected
                     ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
                     : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-on-surface)]/[0.06]'
@@ -84,7 +84,7 @@ export const GeneralSettings: React.FC = () => {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => updateSettings({ timeFormat: option.id })}
-                className={`rounded-2xl border px-3 py-2.5 text-left transition-colors ${
+                className={`rounded-2xl border px-3 py-2.5 text-left transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] ${
                   selected
                     ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
                     : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-on-surface)]/[0.06]'

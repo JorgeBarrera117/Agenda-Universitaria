@@ -49,7 +49,6 @@ export const StudentCredential: React.FC<StudentCredentialProps> = ({ settings, 
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block text-11px font-bold uppercase tracking-wider opacity-80">Mi perfil</span>
           <span className="block truncate text-base font-black">{name || 'Personaliza tu perfil'}</span>
           <span className="block truncate text-xs font-medium opacity-90">
             {career || (hasProfile ? 'Añade tu carrera o facultad' : 'Agrega tu foto, nombre y carrera')}

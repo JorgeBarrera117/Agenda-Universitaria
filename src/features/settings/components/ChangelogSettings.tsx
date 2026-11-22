@@ -22,7 +22,7 @@ export const ChangelogPreview: React.FC<{ onOpenAll: () => void }> = ({ onOpenAl
       <button
         type="button"
         onClick={onOpenAll}
-        className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl bg-[var(--color-md-surface-container)] px-4 text-sm font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-surface-container-high)] active:scale-[0.99]"
+        className="group flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-[var(--color-md-primary)]/40 bg-[var(--color-md-card-bg)] px-4 text-sm font-bold text-[var(--color-md-primary)] shadow-2xs transition-[transform,box-shadow,background-color,border-color] duration-150 ease-out hover:border-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)] hover:shadow-xs active:scale-[0.99]"
       >
         Ver todas las novedades
         <ChevronRight className="h-4 w-4" aria-hidden="true" />

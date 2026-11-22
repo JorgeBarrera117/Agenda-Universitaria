@@ -370,7 +370,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     settings.visibleDays === 'mon-fri' ? 'Lun - Vie' : settings.visibleDays === 'mon-sat' ? 'Lun - Sáb' : 'Toda la semana';
 
   return (
-    <div className="relative min-h-screen text-[var(--color-md-on-surface)] pb-16 m3-view-enter">
+    <div className="settings-scope relative min-h-screen text-[var(--color-md-on-surface)] pb-16 m3-view-enter">
       <div className="w-full mx-auto pt-1 sm:pt-3 space-y-3">
 
         {/* =========================================================================
@@ -399,7 +399,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 icon={settings.theme === 'dark' ? <Moon className="h-4 w-4" /> : settings.theme === 'light' ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
                 title="Apariencia y tema"
                 subtitle={`${themeLabel} · ${paletteDisplayName(settings.colorPalette || 'default')}`}
-                value={themeLabel}
                 onClick={() => setActiveSubView('appearance')}
               />
               <SettingsRow
@@ -679,7 +678,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 type="button"
                                 aria-pressed={selected}
                                 onClick={() => updateSettings({ ...settings, wallpaperOpacity: preset.value })}
-                                className={`inline-flex min-h-9 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+                                className={`inline-flex min-h-10 items-center gap-1 rounded-lg border px-3 text-xs font-semibold transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] ${
                                   selected
                                     ? 'border-transparent bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]'
                                     : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/[0.06]'

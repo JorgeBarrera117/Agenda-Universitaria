@@ -54,7 +54,7 @@ export const CardSurfacePicker: React.FC<CardSurfacePickerProps> = ({ value, onC
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(option.value)}
-              className={`flex flex-col gap-1.5 rounded-2xl border-2 p-1.5 text-center transition-colors ${
+              className={`flex flex-col gap-1.5 rounded-2xl border-2 p-1.5 text-center transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] ${
                 selected
                   ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]/40'
                   : 'border-[var(--color-md-outline-variant)] hover:border-[var(--color-md-outline)]'

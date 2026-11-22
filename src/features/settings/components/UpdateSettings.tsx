@@ -54,18 +54,20 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
     <SettingsCard>
       {/* Va debajo de la tarjeta "Acerca de", que ya muestra el ícono y la versión */}
       <header className="flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1">
+        {/* Ancho mínimo: si no cabe junto al botón, el botón baja de línea en vez de partir el texto */}
+        <div className="min-w-[11rem] flex-1">
           <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--color-md-on-surface)]">
             <Sparkles className="h-4 w-4 text-[var(--color-md-primary)]" aria-hidden="true" />
             Actualizaciones
           </h3>
-          <p className="mt-0.5 text-xs text-[var(--color-md-on-surface-variant)]">Tienes la versión {APP_INFO.version}.</p>
+          <p className="mt-0.5 whitespace-nowrap text-xs text-[var(--color-md-on-surface-variant)]">Tienes la versión {APP_INFO.version}.</p>
         </div>
+        {/* Botón tonal relleno: se lee como acción, no como etiqueta */}
         <button
           type="button"
           onClick={() => void handleCheck()}
           disabled={isChecking}
-          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-[var(--color-md-outline)] px-4 text-xs font-bold text-[var(--color-md-primary)] transition-[transform,background-color] duration-150 ease-out hover:bg-[var(--color-md-primary-container)] active:scale-95 disabled:opacity-60"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-md-secondary-container)] px-4 text-xs font-bold text-[var(--color-md-on-secondary-container)] shadow-2xs transition-[transform,box-shadow,filter] duration-150 ease-out hover:shadow-xs hover:brightness-[0.97] active:scale-95 disabled:opacity-60"
         >
           {/* Gira en sentido horario mientras consulta (el ícono apunta al revés) */}
           <RotateCcw className={`h-4 w-4 ${isChecking ? 'animate-spin [animation-direction:reverse]' : ''}`} aria-hidden="true" />

@@ -5,15 +5,15 @@ import { CHANGE_KIND_LABELS, type ChangeKind, type ChangelogEntry } from '../con
 const KIND_STYLES: Record<ChangeKind, { icon: React.ReactNode; className: string }> = {
   nuevo: {
     icon: <Sparkles className="h-3 w-3" aria-hidden="true" />,
-    className: 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]',
+    className: 'bg-[var(--color-md-primary)]/10 text-[var(--color-md-primary)]',
   },
   mejora: {
     icon: <TrendingUp className="h-3 w-3" aria-hidden="true" />,
-    className: 'bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]',
+    className: 'bg-[var(--color-md-on-surface)]/[0.06] text-[var(--color-md-on-surface-variant)]',
   },
   correccion: {
     icon: <Wrench className="h-3 w-3" aria-hidden="true" />,
-    className: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
+    className: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
   },
 };
 
@@ -54,7 +54,7 @@ export const ChangelogEntryCard: React.FC<ChangelogEntryCardProps> = ({ entry, i
       {entry.changes.map((change, index) => (
         <li key={index} className="flex items-start gap-2 text-xs leading-relaxed text-[var(--color-md-on-surface)]">
           <span
-            className={`mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-10px font-semibold ${KIND_STYLES[change.kind].className}`}
+            className={`mt-0.5 inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-px text-10px font-semibold ${KIND_STYLES[change.kind].className}`}
           >
             {KIND_STYLES[change.kind].icon}
             {CHANGE_KIND_LABELS[change.kind]}

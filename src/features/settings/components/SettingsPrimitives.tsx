@@ -29,15 +29,17 @@ export const SettingsBlock: React.FC<{
   </section>
 );
 
-/** Grupo del menú raíz: etiqueta de sección y lista continua de filas. */
+/**
+ * Grupo del menú raíz: el título vive dentro de la tarjeta (encabezado interno en color primario),
+ * no como píldora flotante sobre el fondo, así se lee igual sobre una foto o en modo Cristal.
+ */
 export const SettingsGroup: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="space-y-1.5" aria-label={title}>
-    <h2 className="ml-1 inline-flex rounded-md border border-[var(--color-md-outline-variant)]/40 bg-[var(--color-md-surface-container-high)]/85 px-2.5 py-0.5 text-xs font-bold text-[var(--color-md-on-surface-variant)] backdrop-blur-sm">
-      {title}
-    </h2>
-    <div className="md-card divide-y divide-[var(--color-md-outline-variant)] overflow-hidden rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] shadow-2xs sm:rounded-3xl">
-      {children}
-    </div>
+  <section
+    aria-label={title}
+    className="md-card overflow-hidden rounded-2xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] shadow-2xs sm:rounded-3xl"
+  >
+    <h2 className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-md-primary)]">{title}</h2>
+    <div className="divide-y divide-[var(--color-md-outline-variant)]">{children}</div>
   </section>
 );
 
@@ -66,12 +68,13 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({ icon, title, subtitle,
       <span className="block line-clamp-2 text-sm font-bold leading-snug text-[var(--color-md-on-surface)]">{title}</span>
       <span className="block line-clamp-2 text-xs leading-snug text-[var(--color-md-on-surface-variant)]">{subtitle}</span>
     </span>
+    {/* Píldora solo para estados activos; los valores informativos van como texto junto al chevron */}
     {value !== undefined && (
       <span
-        className={`max-w-[40%] shrink-0 truncate rounded-lg px-2 py-0.5 text-11px font-semibold ${
+        className={`max-w-[40%] shrink-0 truncate text-xs ${
           valueTone === 'active'
-            ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-            : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
+            ? 'rounded-lg bg-[var(--color-md-primary-container)] px-2 py-0.5 font-semibold text-[var(--color-md-on-primary-container)]'
+            : 'font-medium text-[var(--color-md-on-surface-variant)]'
         }`}
       >
         {value}

@@ -51,7 +51,12 @@ export const WallpaperPicker: React.FC<WallpaperPickerProps> = ({ value, onChang
   return (
     <div className="space-y-3">
       {/* Categorías: chips de filtro con desplazamiento horizontal en pantallas estrechas */}
-      <div role="tablist" aria-label="Categorías de papel tapiz" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+      {/* Degradado en el borde derecho: indica que hay más categorías al deslizar */}
+      <div
+        role="tablist"
+        aria-label="Categorías de papel tapiz"
+        className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] [scrollbar-width:none]"
+      >
         {WALLPAPER_CATEGORIES.map((cat) => {
           const selected = category === cat.id;
           const containsCurrent = categoryOf(value) === cat.id;
@@ -62,7 +67,7 @@ export const WallpaperPicker: React.FC<WallpaperPickerProps> = ({ value, onChang
               role="tab"
               aria-selected={selected}
               onClick={() => setCategory(cat.id)}
-              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors ${
+              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] ${
                 selected
                   ? 'border-transparent bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]'
                   : 'border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-on-surface)]/[0.06]'
@@ -127,7 +132,7 @@ const WallpaperTile: React.FC<{ label: string; selected: boolean; onSelect: () =
     role="radio"
     aria-checked={selected}
     onClick={onSelect}
-    className={`group flex flex-col gap-1.5 rounded-2xl border-2 p-1.5 text-center transition-colors ${
+    className={`group flex flex-col gap-1.5 rounded-2xl border-2 p-1.5 text-center transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] ${
       selected
         ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]/40'
         : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] hover:border-[var(--color-md-outline)]'

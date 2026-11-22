@@ -208,6 +208,30 @@ body {
 }
 
 /*
+ * Ajustes en Cristal: son pantallas de lectura (texto pequeño, valores, descripciones), así que el
+ * relleno nunca baja del 85 % en claro / 88 % en oscuro, con un filo fino de alto contraste, para
+ * cumplir WCAG AA sobre cualquier foto. Se limita a .settings-scope para no cambiar el resto de la
+ * app. No aplica con el patrón esmerilado (ya es opaco) ni con Ultra Fluidez (opaco al 100 %).
+ */
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  :root[data-card-surface='glass']:not([data-performance-mode='true']):not([data-wallpaper-frost]) .settings-scope {
+    --md-card-surface: color-mix(in srgb, var(--color-md-card-bg) 85%, transparent);
+  }
+
+  .dark:root[data-card-surface='glass']:not([data-performance-mode='true']):not([data-wallpaper-frost]) .settings-scope {
+    --md-card-surface: color-mix(in srgb, var(--color-md-card-bg) 88%, transparent);
+  }
+
+  :root[data-card-surface='glass'] .settings-scope .md-card {
+    border-color: rgb(0 0 0 / 0.1);
+  }
+
+  .dark:root[data-card-surface='glass'] .settings-scope .md-card {
+    border-color: rgb(255 255 255 / 0.15);
+  }
+}
+
+/*
  * Tarjetas con el color de su materia o docente (Card con tint, --card-tint).
  * Base (navegadores sin colores relativos): el color mezclado con la superficie del acabado.
  * Solo cambia el relleno: el contorno lo decide el acabado (Elevada sin borde, Cristal con su filo

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, CalendarRange, GraduationCap, Layers, Save } from 'lucide-react';
+import { Calendar, CalendarRange, GraduationCap, Layers, Pencil, Save } from 'lucide-react';
 import { SegmentedControl, formInputClass, type SegmentedOption } from '../../../shared/components/form';
 import { SettingsBlock, SettingsCard } from './SettingsPrimitives';
 import type { AppSettings } from '../types';
@@ -55,14 +55,21 @@ export const ScheduleSettings: React.FC<ScheduleSettingsProps> = ({
           <label htmlFor="settings-semester" className="sr-only">
             Periodo lectivo actual
           </label>
-          <input
-            id="settings-semester"
-            type="text"
-            value={semesterInput}
-            onChange={(e) => onSemesterInputChange(e.target.value)}
-            placeholder="ej. Semestre 2026-I"
-            className={`${formInputClass} flex-1`}
-          />
+          {/* Campo editable: borde inferior marcado y lápiz, para no confundirlo con el botón Guardar */}
+          <div className="relative min-w-0 flex-1">
+            <input
+              id="settings-semester"
+              type="text"
+              value={semesterInput}
+              onChange={(e) => onSemesterInputChange(e.target.value)}
+              placeholder="ej. Semestre 2026-I"
+              className={`${formInputClass} border-b-2 border-b-[var(--color-md-outline)] pr-10 hover:border-b-[var(--color-md-on-surface-variant)]`}
+            />
+            <Pencil
+              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-md-on-surface-variant)]"
+              aria-hidden="true"
+            />
+          </div>
           <button
             type="submit"
             disabled={!hasChanges}

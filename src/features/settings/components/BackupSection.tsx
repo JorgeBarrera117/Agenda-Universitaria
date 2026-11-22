@@ -12,6 +12,7 @@ import {
   Check,
   FileCode,
   AlertTriangle,
+  ChevronRight,
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -365,10 +366,10 @@ const ActionTile: React.FC<ActionTileProps> = ({ icon, title, subtitle, onClick,
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`flex min-h-[52px] items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${
+    className={`group flex min-h-[52px] items-center gap-3 rounded-xl border px-3 py-2 text-left shadow-2xs transition-[transform,box-shadow,border-color,background-color,filter] duration-150 ease-out hover:shadow-xs active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 ${
       tone === 'primary'
-        ? 'border-transparent bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:brightness-[0.97]'
-        : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] text-[var(--color-md-on-surface)] hover:border-[var(--color-md-outline)]'
+        ? 'border-[var(--color-md-primary)]/35 bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] hover:border-[var(--color-md-primary)]/70 hover:brightness-[0.98]'
+        : 'border-[var(--color-md-outline)]/60 bg-[var(--color-md-card-bg)] text-[var(--color-md-on-surface)] hover:border-[var(--color-md-outline)] hover:bg-[var(--color-md-surface-container)]'
     }`}
   >
     <span
@@ -381,9 +382,14 @@ const ActionTile: React.FC<ActionTileProps> = ({ icon, title, subtitle, onClick,
     >
       {icon}
     </span>
-    <span className="min-w-0">
+    <span className="min-w-0 flex-1">
       <span className="block truncate text-xs font-bold">{title}</span>
       <span className="block truncate text-11px opacity-80">{subtitle}</span>
     </span>
+    {/* Chevron: lo distingue de los avisos informativos */}
+    <ChevronRight
+      className="h-4 w-4 shrink-0 opacity-60 transition-transform duration-150 ease-out group-hover:translate-x-0.5"
+      aria-hidden="true"
+    />
   </button>
 );

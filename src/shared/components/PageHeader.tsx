@@ -29,7 +29,7 @@ const topEdge = () => 0;
 
 /** Cápsula del encabezado (mismo estilo que HEADER_SCRIM_CLASS), con su fondo según el estado. */
 const CAPSULE_CLASS =
-  'flex items-center gap-2.5 rounded-2xl border border-[var(--color-md-outline-variant)]/30 p-3 backdrop-blur-md transition-[background-color,box-shadow] duration-200';
+  'flex items-center gap-2.5 rounded-2xl border border-[var(--color-md-outline-variant)]/30 p-3 transition-[background-color,box-shadow] duration-200';
 
 /**
  * Encabezado de pantalla con el estilo de Ajustes: cápsula translúcida con botón de volver
@@ -60,7 +60,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     >
       <div
         className={`${CAPSULE_CLASS} ${
-          isStuck ? 'bg-[var(--color-md-surface)]/90 shadow-md' : 'bg-[var(--color-md-surface)]/70 shadow-2xs'
+          // Pegada: 92 % + blur-lg para que el contenido que pasa por debajo no compita con el título
+          isStuck
+            ? 'bg-[var(--color-md-surface)]/92 shadow-md backdrop-blur-lg'
+            : 'bg-[var(--color-md-surface)]/70 shadow-2xs backdrop-blur-md'
         }`}
       >
         <button
