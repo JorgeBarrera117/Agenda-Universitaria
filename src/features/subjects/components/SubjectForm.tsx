@@ -10,7 +10,7 @@ import {
   FormSheet,
   FormSection,
   FormField,
-  IdentityPicker,
+  AppearancePicker,
   formInputClass,
 } from '../../../shared/components/form';
 
@@ -127,9 +127,24 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({ initialData, onSubmit,
       compact
       color={color}
       leading={
-        <DetailIconTile color={color} size="md">
-          <SubjectIcon icon={icon} className="h-6 w-6 text-white" />
-        </DetailIconTile>
+        <AppearancePicker
+          name={name.trim() || 'Nombre de la asignatura'}
+          preview={
+            <DetailIconTile color={color}>
+              <SubjectIcon icon={icon} className="h-8 w-8 text-white" />
+            </DetailIconTile>
+          }
+          colors={SUBJECT_PRESET_COLORS}
+          color={color}
+          onColorChange={setColor}
+          icons={SUBJECT_ICONS}
+          icon={icon}
+          onIconChange={setIcon}
+        >
+          <DetailIconTile color={color} size="md">
+            <SubjectIcon icon={icon} className="h-6 w-6 text-white" />
+          </DetailIconTile>
+        </AppearancePicker>
       }
       kicker={previewProfessor?.name ?? 'Asignatura'}
       title={name.trim() || <span className="text-[var(--color-md-on-surface-variant)]">Nombre de la asignatura</span>}
@@ -164,8 +179,8 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({ initialData, onSubmit,
       error={error}
       onDismissError={() => setError(null)}
     >
-      {/* Nombre y apariencia juntos: lo que define cómo se ve en Materias y en el horario */}
-      <FormSection title="Nombre y apariencia">
+      {/* El color y el ícono se eligen tocando la insignia de la vista previa */}
+      <FormSection title="Nombre" description="Toca el ícono de arriba para cambiar su color e ícono.">
         <FormField htmlFor="subject-name" label="Nombre de la asignatura" required>
           <input
             id="subject-name"
@@ -177,14 +192,6 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({ initialData, onSubmit,
             autoFocus={!initialData}
           />
         </FormField>
-        <IdentityPicker
-          colors={SUBJECT_PRESET_COLORS}
-          color={color}
-          onColorChange={setColor}
-          icons={SUBJECT_ICONS}
-          icon={icon}
-          onIconChange={setIcon}
-        />
       </FormSection>
 
       <FormSection title="Datos curriculares">

@@ -11,7 +11,7 @@ import {
   FormSheet,
   FormSection,
   FormField,
-  IdentityPicker,
+  AppearancePicker,
   PhoneField,
   formInputClass,
 } from '../../../shared/components/form';
@@ -75,7 +75,20 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
     <DetailHero
       compact
       color={color}
-      leading={<ProfessorAvatar name={name.trim() || 'Docente'} icon={icon} color={color} size="xl" shape="circle" />}
+      leading={
+        <AppearancePicker
+          name={name.trim() || 'Nombre del docente'}
+          preview={<ProfessorAvatar name={name.trim() || 'Docente'} icon={icon} color={color} size="xl" shape="circle" />}
+          colors={PROFESSOR_PRESET_COLORS}
+          color={color}
+          onColorChange={setColor}
+          icons={PROFESSOR_ICONS}
+          icon={icon}
+          onIconChange={setIcon}
+        >
+          <ProfessorAvatar name={name.trim() || 'Docente'} icon={icon} color={color} size="xl" shape="circle" />
+        </AppearancePicker>
+      }
       kicker={
         linkedSubjects.length === 1
           ? linkedSubjects[0].name
@@ -105,8 +118,8 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
       error={error}
       onDismissError={() => setError(null)}
     >
-      {/* Nombre y apariencia juntos: lo que define cómo se ve en el directorio */}
-      <FormSection title="Nombre y apariencia">
+      {/* El color y el ícono se eligen tocando el avatar de la vista previa */}
+      <FormSection title="Nombre" description="Toca el ícono de arriba para cambiar su color e ícono.">
         <FormField
           htmlFor="prof-name"
           label="Nombre completo"
@@ -124,14 +137,6 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
             autoFocus={!initialData}
           />
         </FormField>
-        <IdentityPicker
-          colors={PROFESSOR_PRESET_COLORS}
-          color={color}
-          onColorChange={setColor}
-          icons={PROFESSOR_ICONS}
-          icon={icon}
-          onIconChange={setIcon}
-        />
       </FormSection>
 
       <FormSection title="Canales de contacto">
