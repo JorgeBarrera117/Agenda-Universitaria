@@ -18,6 +18,7 @@ import {
   MonitorSmartphone,
   Share2,
   UserRound,
+  Video,
 } from 'lucide-react';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { useSharedFilePicker } from '../../../shared/hooks/useSharedFilePicker';
@@ -30,19 +31,20 @@ import { CampusPulseBento } from './CampusPulseBento';
 import { ClassProgressBar } from './ClassProgressBar';
 import { SeasonalGreeting } from '../../../shared/seasons/SeasonalGreeting';
 import { transferShortcutLabel } from '../../transfer/services/transferAvailability';
-import { isSlotVirtual } from '../utils/slotModality';
+import { isSlotVirtual, meetingPlatform } from '../utils/slotModality';
+import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
+import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
+import { WeekPanorama } from './WeekPanorama';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
 import { useProfessors } from '../../professors/hooks/useProfessors';
-import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { ScheduleSlotForm } from './ScheduleSlotForm';
 import { DeleteSlotDialog } from './DeleteSlotDialog';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { FloatingMenuButton, type FloatingMenuItem } from '../../../shared/components/FloatingMenuButton';
-import { AREA_COLOR } from '../../../shared/components/floatingStyles';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { useTimeFormatter } from '../../settings/hooks/useTimeFormatter';
@@ -119,6 +121,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<ScheduleSlot | undefined>(undefined);
   const [slotToDelete, setSlotToDelete] = useState<ScheduleSlot | null>(null);
+
+  // Al bajar por la lista, los botones flotantes se apartan para no tapar las tarjetas
+  useAutoHideFabs(isActive && !isModalOpen);
 
   useEffect(() => {
     onEditorActiveChange?.(isModalOpen);
@@ -317,7 +322,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   ];
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-3.5">
+    <div className="glass-legible flex flex-col gap-3 sm:gap-3.5">
       {/* 1. ENCABEZADO DEL APARTADO (Compacto y Predecible) */}
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${HEADER_SCRIM_CLASS}`}>
         <div>
@@ -415,7 +420,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               label="Compartir"
               sheetTitle="Compartir o importar"
               icon={<Share2 />}
-              color={AREA_COLOR.schedule}
               items={shareItems}
             />
           )}
@@ -437,8 +441,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         onOpenFiles={setSubjectForFiles}
       />
 
-      {/* 3. SELECTOR DE DÍAS (Móvil y Vista Diaria) */}
-      <div className={viewMode === 'weekly' ? 'block sm:hidden' : 'block'}>
+      {/* 3. SELECTOR DE DÍAS (solo en la vista Día: en Semana se ve toda la semana a la vez) */}
+      <div className={viewMode === 'weekly' ? 'hidden' : 'block'}>
         <div className="md-card bg-[var(--color-md-surface-container)] p-1 rounded-2xl border border-[var(--color-md-outline-variant)]/40 shadow-2xs">
           <div className="flex items-stretch gap-1 sm:gap-2 overflow-x-auto custom-scrollbar p-0.5">
             {displayedDays.map((day) => {
@@ -449,10 +453,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               return (
                 <button
                   key={day}
-                  onClick={() => {
-                    setSelectedDay(day as DayOfWeek);
-                    if (window.innerWidth < 640) setViewMode('daily');
-                  }}
+                  onClick={() => setSelectedDay(day as DayOfWeek)}
                   className={`relative flex-1 min-w-[48px] sm:min-w-[68px] py-1.5 sm:py-2 px-1.5 rounded-xl text-center border transition-all duration-150 cursor-pointer active:scale-95 ${
                     isSelected
                       ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] border-[var(--color-md-primary)] shadow-2xs ring-1 ring-[var(--color-md-primary)]/20'
@@ -670,19 +671,40 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         </div>
       )}
 
+      {/* 4b. VISTA SEMANAL DEL TELÉFONO: parrilla compacta con toda la semana */}
+      {viewMode === 'weekly' && (
+        <div className="sm:hidden">
+          <WeekPanorama
+            days={displayedDays}
+            slots={slots}
+            getSubjectById={getSubjectById}
+            todayDay={currentDayOfWeek}
+            nowTimeString={nowTimeString}
+            onOpenDay={(day) => {
+              setSelectedDay(day);
+              setViewMode('daily');
+            }}
+            onOpenSlot={(slot) => {
+              if (onOpenSubjectDetail) {
+                onOpenSubjectDetail(slot.subjectId);
+              } else {
+                setSelectedDay(slot.dayOfWeek);
+                setViewMode('daily');
+              }
+            }}
+          />
+        </div>
+      )}
+
       {/* 5. VISTA DIARIA (Compacta y Fluida) */}
-      <div className={viewMode === 'weekly' ? 'block sm:hidden space-y-2.5' : 'space-y-2.5'}>
-        <div className="md-card flex items-center justify-between bg-[var(--color-md-card-bg)] px-3.5 py-2.5 rounded-2xl border border-[var(--color-md-outline-variant)] shadow-2xs">
-          <div>
-            <span className="text-10px font-bold uppercase tracking-wider text-[var(--color-md-on-surface-variant)] block leading-none">
-              Horario del día
-            </span>
-            <h3 className="text-sm sm:text-base font-black text-[var(--color-md-on-surface)] mt-0.5">
-              {DAY_NAMES[activeDay]}
-            </h3>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] border border-[var(--color-md-outline-variant)]">
-            {daySlots.length} {daySlots.length === 1 ? 'materia' : 'materias'}
+      <div className={viewMode === 'weekly' ? 'hidden' : 'space-y-2.5'}>
+        {/* Encabezado de la lista completa del día (distinto del resumen rápido de arriba) */}
+        <div className="flex items-baseline justify-between gap-2 px-1">
+          <h3 className="text-sm font-black text-[var(--color-md-on-surface)] sm:text-base">
+            {activeDay === currentDayOfWeek ? `Hoy, ${DAY_NAMES[activeDay].toLowerCase()}` : DAY_NAMES[activeDay]}
+          </h3>
+          <span className="text-xs font-medium text-[var(--color-md-on-surface-variant)]">
+            {daySlots.length} {daySlots.length === 1 ? 'clase' : 'clases'}
           </span>
         </div>
 
@@ -713,6 +735,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 nowTimeString >= slot.startTime &&
                 nowTimeString < slot.endTime;
               const progress = isNow && pulse.currentClass?.slot.id === slot.id ? pulse.currentClass : null;
+              // La misma clase que el resumen muestra como «Próxima»: se marca para relacionarlas
+              const isNext = !isNow && pulse.nextClass?.slot.id === slot.id;
+              const isVirtual = isSlotVirtual(slot);
+              const platform = isVirtual ? meetingPlatform(slot.virtualLink) : null;
+              const joinUrl = isVirtual && isWebUrl(slot.virtualLink) ? slot.virtualLink : null;
+              const place = isVirtual
+                ? `Virtual${platform ? ` · ${platform}` : ''}`
+                : slot.classroom
+                  ? `${slot.classroom}${slot.building ? ` (${slot.building})` : ''}`
+                  : null;
 
               return (
                 <Card
@@ -745,40 +777,32 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                       <h4 className="text-sm sm:text-base font-extrabold text-[var(--color-md-on-surface)] leading-tight line-clamp-2">
                         {renderSubjectTitle(slot.subjectId, subject?.name || 'Materia')}
                       </h4>
-                      {(subject?.code || isNow) && (
-                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                      {/* Código como texto; la única cápsula es el estado (En curso / Próxima) */}
+                      {(subject?.code || isNow || isNext) && (
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                           {subject?.code && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-10px font-mono font-medium bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]">
+                            <span className="font-mono text-11px font-medium text-[var(--color-md-on-surface-variant)]">
                               <span className="sr-only">Código: </span>
                               {subject.code}
                             </span>
                           )}
                           {isNow && (
-                            <span className="inline-flex items-center rounded-md bg-[var(--color-md-primary)] px-1.5 py-0.5 text-10px font-bold uppercase tracking-wide text-[var(--color-md-on-primary)]">
+                            <span className="inline-flex items-center rounded-md bg-[var(--color-md-primary)] px-1.5 py-px text-10px font-bold uppercase tracking-wide text-[var(--color-md-on-primary)]">
                               En curso
+                            </span>
+                          )}
+                          {isNext && (
+                            <span className="inline-flex items-center rounded-md bg-[var(--color-md-primary)]/12 px-1.5 py-px text-10px font-bold uppercase tracking-wide text-[var(--color-md-primary)]">
+                              Próxima
                             </span>
                           )}
                         </div>
                       )}
-                      {professor && (
-                        <div className="flex items-center gap-1.5 text-xs text-[var(--color-md-on-surface-variant)] mt-1.5">
-                          <ProfessorAvatar
-                            name={professor.name}
-                            icon={professor.icon}
-                            color={professor.color}
-                            size="select"
-                            className="shrink-0"
-                          />
-                          <span className="font-medium truncate">
-                            <span className="sr-only">Docente: </span>
-                            {professor.name}
-                          </span>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Gestión en el menú ⋮; "Tomar apunte" ya es la acción visible del pie */}
+                    {/* Gestión en el menú ⋮ (40×40); las acciones visibles van en el pie */}
                     <M3KebabMenu
+                      size="md"
                       className={ABOVE_STRETCHED_CLASS}
                       items={[
                         {
@@ -798,48 +822,63 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                     />
                   </div>
 
-                  {/* Horario destacado + modalidad o aula */}
-                  <div className="flex items-center gap-1.5 flex-wrap text-xs">
-                    <span
-                      className={`inline-flex items-center gap-1 font-mono font-bold text-11px px-2.5 py-1 rounded-lg ${
-                        isNow
-                          ? 'bg-[var(--md-card-surface)] text-[var(--color-md-on-surface)]'
-                          : 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
-                      }`}
-                    >
-                      <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                      {timeFormatter.range(slot.startTime, slot.endTime)}
-                    </span>
-
-                    {isSlotVirtual(slot) ? (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-secondary-container)] bg-[var(--color-md-secondary-container)] px-2 py-1 rounded-lg text-11px font-semibold">
-                        <Laptop className="w-3.5 h-3.5" aria-hidden="true" />
-                        <span>Virtual</span>
+                  {/* Datos de la clase: texto limpio con íconos sutiles (no parecen botones) */}
+                  <ul className="space-y-1 text-xs text-[var(--color-md-on-surface-variant)]">
+                    <li className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+                      <span className="font-semibold tabular-nums text-[var(--color-md-on-surface)]">
+                        {timeFormatter.range(slot.startTime, slot.endTime)}
                       </span>
-                    ) : slot.classroom ? (
-                      <span className="inline-flex items-center gap-1 text-[var(--color-md-on-surface-variant)] bg-[var(--color-md-surface-container)] px-2 py-1 rounded-lg text-11px font-medium min-w-0 max-w-full">
-                        <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
-                        <span className="sr-only">Aula: </span>
-                        <span className="truncate">{slot.classroom}</span>
-                      </span>
-                    ) : null}
-                  </div>
+                    </li>
+                    {place && (
+                      <li className="flex min-w-0 items-center gap-1.5">
+                        {isVirtual ? (
+                          <Laptop className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+                        ) : (
+                          <MapPin className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+                        )}
+                        {!isVirtual && <span className="sr-only">Aula: </span>}
+                        <span className="truncate">{place}</span>
+                      </li>
+                    )}
+                    {professor && (
+                      <li className="flex min-w-0 items-center gap-1.5">
+                        <UserRound className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+                        <span className="sr-only">Docente: </span>
+                        <span className="truncate">{professor.name}</span>
+                      </li>
+                    )}
+                  </ul>
 
                   {progress && <ClassProgressBar percent={progress.progressPercent} minutesRemaining={progress.minutesRemaining} />}
 
-                  {/* Pie anclado abajo: la acción principal en la zona del pulgar */}
-                  {onNavigateToNotes && (
-                    <div className="mt-auto pt-2 border-t border-[var(--color-md-outline-variant)] flex items-center justify-end">
-                      <Button
-                        variant="primary"
-                        size="xs"
-                        onClick={() => onNavigateToNotes(slot.subjectId)}
-                        aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
-                        icon={<FileEdit className="w-3 h-3" />}
-                        className={`${ABOVE_STRETCHED_CLASS} shrink-0 text-11px py-1 px-3 h-7 whitespace-nowrap`}
-                      >
-                        Tomar apunte
-                      </Button>
+                  {/* Pie: solo los botones reales, en la zona del pulgar */}
+                  {(onNavigateToNotes || joinUrl) && (
+                    <div className="mt-auto flex flex-wrap items-center justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-2.5">
+                      {onNavigateToNotes && (
+                        <Button
+                          variant="action-indigo"
+                          size="xs"
+                          onClick={() => onNavigateToNotes(slot.subjectId)}
+                          aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
+                          icon={<FileEdit className="h-4 w-4" />}
+                          className={`${ABOVE_STRETCHED_CLASS} min-h-10 shrink-0 whitespace-nowrap`}
+                        >
+                          Tomar apunte
+                        </Button>
+                      )}
+                      {joinUrl && (
+                        <Button
+                          variant="primary"
+                          size="xs"
+                          onClick={() => void openExternalUrl(joinUrl)}
+                          aria-label={`Unirse a la clase de ${subject?.name || 'la materia'}${platform ? ` en ${platform}` : ''}`}
+                          icon={<Video className="h-4 w-4" />}
+                          className={`${ABOVE_STRETCHED_CLASS} min-h-10 shrink-0 whitespace-nowrap`}
+                        >
+                          {platform ? `Unirse a ${platform}` : 'Unirse a la clase'}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </Card>
@@ -886,6 +925,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="schedule"
+          autoHideOnScroll
           onClick={() => handleOpenCreate(activeDay)}
           label="Programar Nueva Cátedra"
           icon={<CalendarPlus className="w-6 h-6 stroke-[2.2]" />}

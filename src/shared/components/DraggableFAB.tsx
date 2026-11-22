@@ -96,6 +96,8 @@ interface DraggableFABProps {
   icon?: React.ReactNode;
   colorScheme?: FABColorScheme;
   className?: string;
+  /** Se oculta al desplazarse hacia abajo en el teléfono (ver useAutoHideFabs). */
+  autoHideOnScroll?: boolean;
 }
 
 export const DraggableFAB: React.FC<DraggableFABProps> = ({
@@ -104,6 +106,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   icon,
   colorScheme = 'schedule',
   className = '',
+  autoHideOnScroll = false,
 }) => {
   const currentTheme = FAB_THEMES[colorScheme] || FAB_THEMES.schedule;
   // Dimensiones del viewport
@@ -357,7 +360,9 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
       className={
         // En pantallas anchas aparece solo tras desplazarse: lo decide el CSS (variante scrolled:,
         // ver useScrolledAttribute) para no volver a dibujar el botón cada vez que se cruza el umbral
-        isDragging ? 'block' : 'block sm:pointer-events-none scrolled:sm:pointer-events-auto'
+        `${isDragging ? 'block' : 'block sm:pointer-events-none scrolled:sm:pointer-events-auto'}${
+          autoHideOnScroll && !isDragging ? ' fab-autohide' : ''
+        }`
       }
     >
       <button

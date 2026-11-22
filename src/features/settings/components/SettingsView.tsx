@@ -370,7 +370,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     settings.visibleDays === 'mon-fri' ? 'Lun - Vie' : settings.visibleDays === 'mon-sat' ? 'Lun - Sáb' : 'Toda la semana';
 
   return (
-    <div className="settings-scope relative min-h-screen text-[var(--color-md-on-surface)] pb-16 m3-view-enter">
+    <div className="glass-legible relative min-h-screen text-[var(--color-md-on-surface)] pb-16 m3-view-enter">
       <div className="w-full mx-auto pt-1 sm:pt-3 space-y-3">
 
         {/* =========================================================================

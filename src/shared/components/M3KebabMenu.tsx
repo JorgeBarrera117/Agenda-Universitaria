@@ -171,7 +171,7 @@ export const M3KebabMenu: React.FC<M3KebabMenuProps> = ({
 
   const triggerSizeClasses =
     size === 'md'
-      ? 'w-9 h-9 sm:w-10 sm:h-10'
+      ? 'w-10 h-10' // área táctil mínima de 40×40 px también en el teléfono
       : 'w-7 h-7 sm:w-8 sm:h-8';
 
   const iconSizeClasses = size === 'md' ? 'w-4 h-4' : 'w-3.5 h-3.5';

@@ -21,6 +21,16 @@ export function isSlotVirtual(slot?: SlotLocation): boolean {
   );
 }
 
+/** Plataforma de la clase virtual según su enlace («Zoom», «Meet», «Teams») o null si no se reconoce. */
+export function meetingPlatform(link: string | undefined): string | null {
+  const value = (link || '').toLowerCase();
+  if (value.includes('zoom.')) return 'Zoom';
+  if (value.includes('meet.google.')) return 'Meet';
+  if (value.includes('teams.microsoft.') || value.includes('teams.live.')) return 'Teams';
+  if (value.includes('webex.')) return 'Webex';
+  return null;
+}
+
 /** Texto de ubicación legible: "Aula 204 (Edificio A)", "Zoom" o null si no hay datos. */
 export function describeSlotLocation(slot: SlotLocation): string | null {
   const classroom = slot.classroom?.trim();
