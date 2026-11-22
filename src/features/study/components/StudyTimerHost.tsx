@@ -5,10 +5,9 @@ import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { studyRepository } from '../repositories/studyRepository';
 import { getStudyTimerState, phaseDurationMs, studyTimer, useStudyTimer } from '../state/studyTimerStore';
-import { StudyTimerScreen } from './StudyTimerScreen';
 
 /**
- * Siempre montado (en App): vigila el temporizador del modo estudio aunque su pantalla esté cerrada.
+ * Siempre montado (en App): vigila el temporizador del modo estudio aunque se esté en otra pestaña.
  * Al terminar una fase guarda lo estudiado, suena el tono elegido en Ajustes, vibra y avisa; en
  * Android además deja programado un aviso del sistema por si la app está en segundo plano.
  */
@@ -72,9 +71,6 @@ export const StudyTimerHost: React.FC = () => {
   return (
     <>
       <ContextualToast message={message} variant="success" bottomOffset="nav" onClose={() => setMessage(null)} />
-      {timer.isOpen && (
-        <StudyTimerScreen onFocusInterrupted={(minutes, startedAt) => saveFocus(minutes, startedAt, getStudyTimerState().subjectId)} />
-      )}
     </>
   );
 };

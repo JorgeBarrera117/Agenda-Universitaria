@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarCheck, Clock, BookOpen, Library } from 'lucide-react';
+import { CalendarCheck, Clock, BookOpen, Library, Timer } from 'lucide-react';
 import type { TabType } from './Navbar';
 import { NAV_TAB_OF, type NavTabId } from '../navigation/sections';
 
@@ -12,6 +12,8 @@ interface BottomNavProps {
   documentsCount?: number;
   /** Agenda: vencidas más lo de hoy. */
   agendaDueCount?: number;
+  /** Hay una sesión del modo estudio en marcha (punto en la pestaña Estudio). */
+  studyActive?: boolean;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -21,13 +23,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   notesCount = 0,
   documentsCount = 0,
   agendaDueCount = 0,
+  studyActive = false,
 }) => {
-  // Cuatro pestañas (Material 3 pide de 3 a 5): botones anchos y fáciles de tocar
+  // Cinco pestañas (el máximo que pide Material 3): botones anchos y fáciles de tocar
   const navItems: { id: NavTabId; label: string; icon: typeof BookOpen }[] = [
     { id: 'schedule', label: 'Horario', icon: Clock },
     { id: 'agenda', label: 'Agenda', icon: CalendarCheck },
     { id: 'courses', label: 'Materias', icon: BookOpen },
     { id: 'library', label: 'Biblioteca', icon: Library },
+    { id: 'study', label: 'Estudio', icon: Timer },
   ];
   const activeNavTab = NAV_TAB_OF[activeTab];
 
@@ -83,6 +87,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                       : 'stroke-[1.8] scale-100 translate-y-0 text-[var(--color-md-on-surface-variant)] group-active:scale-90'
                   }`}
                 />
+
+                {/* Sesión de estudio en marcha: punto verde */}
+                {item.id === 'study' && studyActive && (
+                  <span
+                    className="absolute -top-0.5 right-1 z-20 h-2.5 w-2.5 animate-pulse rounded-full border-2 border-[var(--color-md-surface-container)] bg-[#2E7D32]"
+                    aria-label="Sesión de estudio en marcha"
+                  />
+                )}
 
                 {/* M3 Badges */}
                 {badge && badge.count > 0 && (

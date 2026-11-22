@@ -18,6 +18,7 @@ const SECTION_LABEL: Record<SectionId, string> = {
   professors: 'Profesores',
   notes: 'Apuntes',
   documents: 'Archivos',
+  study: 'Estudio',
 };
 
 const SECTION_ICON: Partial<Record<SectionId, React.ComponentType<{ className?: string }>>> = {

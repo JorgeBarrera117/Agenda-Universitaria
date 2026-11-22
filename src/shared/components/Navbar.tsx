@@ -4,6 +4,7 @@ import {
   Clock,
   BookOpen,
   Library,
+  Timer,
   Wifi,
   WifiOff,
   Settings,
@@ -31,6 +32,8 @@ interface NavbarProps {
   documentsCount?: number;
   /** Agenda: vencidas más lo de hoy. */
   agendaDueCount?: number;
+  /** Hay una sesión del modo estudio en marcha (punto en la pestaña Estudio). */
+  studyActive?: boolean;
   /** Nombre del perfil estudiantil; si existe, el título saluda al estudiante. */
   studentName?: string;
   studentAvatarUrl?: string;
@@ -48,6 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   notesCount = 0,
   documentsCount = 0,
   agendaDueCount = 0,
+  studyActive = false,
   studentName,
   studentAvatarUrl,
   studentStatusMode = 'network',
@@ -118,6 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'agenda', label: 'Agenda', icon: CalendarCheck },
     { id: 'courses', label: 'Materias', icon: BookOpen },
     { id: 'library', label: 'Biblioteca', icon: Library },
+    { id: 'study', label: 'Estudio', icon: Timer },
   ];
   const activeNavTab = NAV_TAB_OF[activeTab];
 
@@ -246,6 +251,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }`}
                   />
                   <span>{item.label}</span>
+                  {item.id === 'study' && studyActive && (
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-[#2E7D32]" aria-label="Sesión de estudio en marcha" />
+                  )}
                   {badgeCount > 0 && (
                     <span
                       className={`ml-0.5 px-1.5 min-w-[16px] lg:min-w-[20px] h-4 lg:h-5 rounded-full text-10px lg:text-xs font-bold flex items-center justify-center transition-colors ${

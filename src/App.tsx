@@ -8,6 +8,7 @@
  */
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, memo, Suspense } from 'react';
 import { StudyTimerHost } from './features/study/components/StudyTimerHost';
+import { STUDY_OPEN_EVENT, useStudyTimer } from './features/study/state/studyTimerStore';
 import { Navbar, type TabType } from './shared/components/Navbar';
 import { BottomNav } from './shared/components/BottomNav';
 import { ContextualToast } from './shared/components/ContextualToast';
@@ -55,6 +56,7 @@ const loadSubjectsView = () => import('./features/subjects/components/SubjectsVi
 const loadProfessorsView = () => import('./features/professors/components/ProfessorsView');
 const loadNotesView = () => import('./features/notes/components/NotesView');
 const loadDocumentsView = () => import('./features/documents/components/DocumentsView');
+const loadStudyView = () => import('./features/study/components/StudyView');
 const loadSettingsView = () => import('./features/settings/components/SettingsView');
 
 /*
@@ -94,6 +96,7 @@ const ImportScheduleModal = lazy(() =>
   import('./features/schedule/components/ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
 const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: memo(m.DocumentsView) })));
+const StudyView = lazy(() => loadStudyView().then((m) => ({ default: memo(m.StudyView) })));
 const SettingsView = lazy(() => loadSettingsView().then((m) => ({ default: m.SettingsView })));
 
 const SECONDARY_VIEW_LOADERS = [
@@ -102,6 +105,7 @@ const SECONDARY_VIEW_LOADERS = [
   loadProfessorsView,
   loadNotesView,
   loadDocumentsView,
+  loadStudyView,
   loadSettingsView,
 ];
 
@@ -437,6 +441,16 @@ export function App() {
     [handleTabChange]
   );
   const openAgenda = useCallback(() => handleTabChange('agenda'), [handleTabChange]);
+
+  // Modo estudio: «Estudiar» en una ficha pide abrir la pestaña Estudio; el punto verde de la
+  // barra indica que hay una sesión empezada
+  const studyTimerState = useStudyTimer();
+  const studyActive = studyTimerState.running || studyTimerState.focusStartedAt !== null;
+  useEffect(() => {
+    const openStudy = () => handleTabChange('study');
+    window.addEventListener(STUDY_OPEN_EVENT, openStudy);
+    return () => window.removeEventListener(STUDY_OPEN_EVENT, openStudy);
+  }, [handleTabChange]);
   const openSubjectDetailFromAgenda = useCallback(
     (subjectId: string) => openDetail({ kind: 'subject', id: subjectId }, { tab: 'agenda' }),
     [openDetail]
@@ -502,6 +516,7 @@ export function App() {
           notesCount={notesCount}
           documentsCount={documentsCount}
           agendaDueCount={agendaDueCount}
+          studyActive={studyActive}
         />
       )}
 
@@ -715,6 +730,13 @@ export function App() {
                 </Suspense>
               )}
             </div>
+            <div className={activeTab === 'study' ? tabEnterClass : 'tab-hidden'}>
+              {mountedTabs.has('study') && (
+                <Suspense fallback={<ViewSkeleton />}>
+                  <StudyView isActive={activeTab === 'study'} />
+                </Suspense>
+              )}
+            </div>
           </div>
         )}
       </main>
@@ -728,6 +750,7 @@ export function App() {
           notesCount={notesCount}
           documentsCount={documentsCount}
           agendaDueCount={agendaDueCount}
+          studyActive={studyActive}
         />
       )}
     </div>

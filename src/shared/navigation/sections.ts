@@ -4,15 +4,15 @@
  * - Sección: cada vista que existe (Horario, Materias, Profesores, Apuntes, Archivos). El resto del
  *   código (fichas, accesos directos, gestos) sigue hablando de secciones, así que no cambia.
  * - Pestaña: lo que se ve en la barra. Materias agrupa Materias y Profesores; Biblioteca agrupa
- *   Apuntes y Archivos. Dentro de una pestaña con dos secciones se cambia con el selector de arriba
+ *   Apuntes y Archivos; Estudio es el modo estudio (Pomodoro). Dentro de una pestaña con dos secciones se cambia con el selector de arriba
  *   (SectionSwitcher). Menos pestañas = botones más grandes en el teléfono (Material 3 pide 3 a 5).
  */
-export type SectionId = 'schedule' | 'agenda' | 'subjects' | 'professors' | 'notes' | 'documents';
+export type SectionId = 'schedule' | 'agenda' | 'subjects' | 'professors' | 'notes' | 'documents' | 'study';
 
-export type NavTabId = 'schedule' | 'agenda' | 'courses' | 'library';
+export type NavTabId = 'schedule' | 'agenda' | 'courses' | 'library' | 'study';
 
 /** Orden de las secciones: el deslizamiento lateral las recorre en este orden. */
-export const SECTION_ORDER: readonly SectionId[] = ['schedule', 'agenda', 'subjects', 'professors', 'notes', 'documents'];
+export const SECTION_ORDER: readonly SectionId[] = ['schedule', 'agenda', 'subjects', 'professors', 'notes', 'documents', 'study'];
 
 export const NAV_TAB_OF: Record<SectionId, NavTabId> = {
   schedule: 'schedule',
@@ -21,6 +21,7 @@ export const NAV_TAB_OF: Record<SectionId, NavTabId> = {
   professors: 'courses',
   notes: 'library',
   documents: 'library',
+  study: 'study',
 };
 
 /** Secciones de cada pestaña; la primera es la que se abre la primera vez. */
@@ -29,13 +30,14 @@ export const NAV_TAB_SECTIONS: Record<NavTabId, readonly SectionId[]> = {
   agenda: ['agenda'],
   courses: ['subjects', 'professors'],
   library: ['notes', 'documents'],
+  study: ['study'],
 };
 
 export type LastSections = Record<NavTabId, SectionId>;
 
 const LAST_SECTIONS_KEY = 'agenda_last_sections_v1';
 
-const DEFAULT_LAST_SECTIONS: LastSections = { schedule: 'schedule', agenda: 'agenda', courses: 'subjects', library: 'notes' };
+const DEFAULT_LAST_SECTIONS: LastSections = { schedule: 'schedule', agenda: 'agenda', courses: 'subjects', library: 'notes', study: 'study' };
 
 /** Sección que se vio por última vez en cada pestaña (al volver a la pestaña se abre esa). */
 export function loadLastSections(): LastSections {

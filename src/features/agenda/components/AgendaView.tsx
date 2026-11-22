@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, History, Plus, Sun, X } from 'lucide-react';
 import { useAgenda } from '../hooks/useAgenda';
-import { StudyTimerButton } from '../../study/components/StudyTimerButton';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
@@ -363,9 +362,6 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
             Tareas, exámenes, recordatorios y días libres, con tus clases de cada día.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-        {/* Modo estudio: con una sesión en marcha muestra el tiempo que queda */}
-        <StudyTimerButton />
         <button
           type="button"
           onClick={() => openCreate()}
@@ -374,7 +370,6 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           <Plus className="h-4 w-4" aria-hidden="true" />
           Nuevo
         </button>
-        </div>
       </div>
 
       {/* Teléfono: calendario, día y lista uno debajo del otro. PC: calendario | lista, con el día

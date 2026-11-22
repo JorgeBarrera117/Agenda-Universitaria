@@ -2,16 +2,16 @@ import { useSyncExternalStore } from 'react';
 import { STUDY_LONG_BREAK_EVERY, STUDY_PRESETS, type StudyPhase, type StudyPresetId } from '../types';
 
 /**
- * Estado del temporizador del modo estudio, compartido por toda la app (la pantalla del
- * temporizador y los botones «Estudiar» que muestran el tiempo restante).
+ * Estado del temporizador del modo estudio, compartido por toda la app (la pestaña Estudio, los
+ * botones «Estudiar» de las fichas y el punto de «en marcha» de la barra).
  *
  * Se guarda la HORA DE FIN, no un contador: así el tiempo es correcto aunque la pantalla se cierre,
  * la app pase a segundo plano o el sistema la congele. Se guarda en localStorage para continuar
  * después de reabrir la app.
  */
 export interface StudyTimerState {
-  /** La pantalla del temporizador está abierta. */
-  isOpen: boolean;
+  /** Cada «Estudiar» de una ficha lo aumenta: la app lo ve y abre la pestaña Estudio. */
+  openRequest: number;
   subjectId?: string;
   presetId: StudyPresetId;
   phase: StudyPhase;
@@ -29,11 +29,13 @@ export interface StudyTimerState {
 }
 
 const STORAGE_KEY = 'agenda_study_timer_v1';
+/** Evento que pide abrir la pestaña Estudio (lo escucha App). */
+export const STUDY_OPEN_EVENT = 'agenda:study-open';
 const minutes = (value: number) => value * 60_000;
 
 function initialState(): StudyTimerState {
   return {
-    isOpen: false,
+    openRequest: 0,
     presetId: 'classic',
     phase: 'focus',
     running: false,
@@ -56,8 +58,8 @@ function load(): StudyTimerState {
       ...base,
       ...parsed,
       presetId,
-      // La pantalla siempre empieza cerrada al abrir la app
-      isOpen: false,
+      // Una petición de abrir no sobrevive a reabrir la app
+      openRequest: 0,
       phase: parsed.phase === 'break' ? 'break' : 'focus',
       running: Boolean(parsed.running && typeof parsed.endsAt === 'number'),
     };
@@ -115,13 +117,11 @@ export function focusElapsedNow(current: StudyTimerState, now = Date.now()): num
 }
 
 export const studyTimer = {
+  /** Pide abrir la pestaña Estudio (desde una ficha), con esa materia si no hay una sesión empezada. */
   open(subjectId?: string): void {
-    // Con una sesión en marcha se respeta su materia; si no, se toma la que se pidió
     const keepSubject = state.running || state.focusStartedAt !== null;
-    setState({ isOpen: true, subjectId: keepSubject ? state.subjectId : subjectId ?? state.subjectId });
-  },
-  close(): void {
-    setState({ isOpen: false });
+    setState({ openRequest: state.openRequest + 1, subjectId: keepSubject ? state.subjectId : subjectId ?? state.subjectId });
+    window.dispatchEvent(new Event(STUDY_OPEN_EVENT));
   },
   setSubject(subjectId: string | undefined): void {
     setState({ subjectId });
