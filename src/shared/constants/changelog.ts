@@ -32,6 +32,15 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.10.93',
+    date: '2026-11-21',
+    title: 'Cambia de sección con un toque',
+    changes: [
+      { kind: 'mejora', text: 'En el teléfono, Materias | Profesores y Apuntes | Archivos ahora son botones flotantes debajo del botón de agregar: el elegido muestra su nombre y el otro solo su ícono.' },
+      { kind: 'mejora', text: 'Si mueves el botón de agregar, esos botones lo siguen. En PC el selector sigue arriba.' },
+    ],
+  },
+  {
     version: '1.7.10.92',
     date: '2026-11-21',
     title: 'Nueva pestaña Agenda',
