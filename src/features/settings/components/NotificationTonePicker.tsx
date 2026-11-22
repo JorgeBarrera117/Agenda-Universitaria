@@ -127,22 +127,24 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
     const isSelected = tone.id === selected;
     const isPlaying = playing === tone.id;
     const ToneIcon = TONE_ICONS[tone.id];
+    const usedLabel = !isSelected ? usedBy?.[tone.id] : undefined;
     return (
       <div
         key={tone.id}
-        className={`flex items-center gap-1 rounded-xl border pr-1 transition-colors duration-150 ease-out ${
+        className={`flex items-center gap-2 rounded-2xl pr-2 transition-[background-color,border-color,box-shadow] duration-150 ease-out ${
           isSelected
-            ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]'
-            : 'border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface)] hover:border-[var(--color-md-outline)]'
+            ? 'border-2 border-[var(--color-md-primary)] bg-[var(--color-md-primary-container)]'
+            : 'border-2 border-[var(--color-md-outline-variant)]/70 bg-[var(--color-md-surface)] hover:border-[var(--color-md-outline)] hover:bg-[var(--color-md-surface-container)]'
         }`}
       >
+        {/* Toda la parte izquierda elige el tono */}
         <button
           type="button"
           role="radio"
           aria-checked={isSelected}
-          aria-label={`${tone.label}, ${tone.badge}`}
+          aria-label={`${tone.label}, ${tone.badge}${usedLabel ? `, ahora en ${usedLabel}` : ''}`}
           onClick={() => onSelect(tone.id)}
-          className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2.5 rounded-xl py-1.5 pl-3 text-left transition-transform duration-150 ease-out active:scale-[0.99]"
+          className="flex min-h-[60px] min-w-0 flex-1 items-center gap-3 rounded-2xl py-2 pl-3 text-left transition-transform duration-150 ease-out active:scale-[0.99]"
         >
           {/* Radio M3: anillo exterior y punto interior al seleccionarse */}
           <span
@@ -158,58 +160,59 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
             />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-              <span
-                className={`text-sm font-bold ${
-                  isSelected ? 'text-[var(--color-md-on-primary-container)]' : 'text-[var(--color-md-on-surface)]'
-                }`}
-              >
-                {tone.label}
-              </span>
-              <span
-                className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-px text-10px font-bold ${
-                  isSelected
-                    ? 'bg-[var(--color-md-surface)]/60 text-[var(--color-md-on-primary-container)]'
-                    : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
-                }`}
-              >
-                <ToneIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
-                {tone.badge}
-              </span>
-              {!isSelected && usedBy?.[tone.id] && (
-                <span className="inline-flex shrink-0 items-center rounded-md bg-[var(--color-md-tertiary-container,var(--color-md-secondary-container))] px-1.5 py-px text-10px font-bold text-[var(--color-md-on-secondary-container)]">
-                  En {usedBy[tone.id]}
+            <span
+              className={`block truncate text-sm font-bold ${
+                isSelected ? 'text-[var(--color-md-on-primary-container)]' : 'text-[var(--color-md-on-surface)]'
+              }`}
+            >
+              {tone.label}
+            </span>
+            {/* Origen como texto secundario (no parece un botón) */}
+            <span
+              className={`mt-0.5 flex items-center gap-1 text-xs ${
+                isSelected ? 'text-[var(--color-md-on-primary-container)]/80' : 'text-[var(--color-md-on-surface-variant)]'
+              }`}
+            >
+              <ToneIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 truncate">{isSelected ? `${tone.badge} · ${tone.description}` : tone.badge}</span>
+              {/* Única etiqueta: si otra sección ya lo usa (plana, sin relieve), junto al origen */}
+              {usedLabel && (
+                <span className="shrink-0 rounded-md bg-[var(--color-md-secondary-container)]/70 px-1.5 py-px text-10px font-semibold text-[var(--color-md-on-secondary-container)]">
+                  En {usedLabel}
                 </span>
               )}
             </span>
-            {isSelected && (
-              <span className="mt-0.5 block text-xs text-[var(--color-md-on-primary-container)]/80">{tone.description}</span>
-            )}
           </span>
         </button>
 
+        {/* Escuchar: botón tonal aparte (no elige el tono) */}
         {tone.file ? (
           <button
             type="button"
-            onClick={() => togglePreview(tone.id, tone.file as string)}
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePreview(tone.id, tone.file as string);
+            }}
             aria-label={isPlaying ? `Detener ${tone.label}` : `Escuchar ${tone.label}`}
             aria-pressed={isPlaying}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-150 ease-out active:scale-90 ${
+            className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-150 ease-out active:scale-90 ${
               isPlaying
-                ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-2xs'
-                : 'text-[var(--color-md-primary)] hover:bg-[var(--color-md-surface-container-high)]'
+                ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs'
+                : 'bg-[var(--color-md-primary)]/10 text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary)]/20'
             }`}
           >
+            {/* Mientras suena, un anillo que late */}
+            {isPlaying && <span className="absolute inset-0 animate-ping rounded-full bg-[var(--color-md-primary)]/35" aria-hidden="true" />}
             {isPlaying ? (
-              <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+              <Square className="relative h-4 w-4 fill-current" aria-hidden="true" />
             ) : (
-              <Play className="h-4 w-4 fill-current" aria-hidden="true" />
+              <Play className="relative ml-0.5 h-4 w-4 fill-current" aria-hidden="true" />
             )}
           </button>
         ) : (
           // El tono del sistema no se puede reproducir desde la app
-          <span className="shrink-0 px-2 text-11px font-semibold text-[var(--color-md-on-surface-variant)]">
-            (Sonido del sistema)
+          <span className="w-11 shrink-0 text-center text-10px font-semibold leading-tight text-[var(--color-md-on-surface-variant)]">
+            Del sistema
           </span>
         )}
       </div>
@@ -224,7 +227,7 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
         return (
           <div key={group.id} className="space-y-1.5">
             <p className="px-1 text-11px font-bold text-[var(--color-md-on-surface-variant)]">{group.label}</p>
-            <div className="grid gap-1.5 sm:grid-cols-2">{tones.map(renderTone)}</div>
+            <div className="grid gap-2 sm:grid-cols-2">{tones.map(renderTone)}</div>
           </div>
         );
       })}

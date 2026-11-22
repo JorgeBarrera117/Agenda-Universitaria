@@ -111,13 +111,17 @@ export const SoundsSheet: React.FC<SoundsSheetProps> = ({ isOpen, onClose, setti
     <Modal isOpen={isOpen} onClose={close} title={editing ? editing.label : 'Sonidos'} maxWidth="lg">
       {editing ? (
         <div className="space-y-3">
+          {/* Volver: botón tonal claro (el título del modal ya dice qué sonido se elige) */}
           <button
             type="button"
-            onClick={() => setEditing(null)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full pl-2 pr-3 text-sm font-bold text-[var(--color-md-primary)] hover:bg-[var(--color-md-primary)]/10"
+            onClick={() => {
+              stop();
+              setEditing(null);
+            }}
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--color-md-secondary-container)] pl-3 pr-4 text-sm font-bold text-[var(--color-md-on-secondary-container)] transition-[filter,transform] duration-150 hover:brightness-95 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Sonidos
+            Todos los sonidos
           </button>
           <p className="text-xs text-[var(--color-md-on-surface-variant)]">
             {editing.description}. Si eliges un tono que ya usa otra sección, se intercambian.
