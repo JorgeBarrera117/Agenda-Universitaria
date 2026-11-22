@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, CheckCircle2, Clock, ExternalLink, Loader2, Send, ShieldAlert, Sunrise, Volume2 } from 'lucide-react';
 import { M3Switch, SettingsBlock, SettingsCard, ToggleChip } from './SettingsPrimitives';
-import { NotificationTonePicker } from './NotificationTonePicker';
+import { SoundsSheet } from './SoundsSheet';
+import { resolveNotificationTone } from '../notificationTones';
+import { sectionTones } from '../../../shared/services/notificationService';
 import { REMINDER_LEAD_OPTIONS, type AppSettings, type NotificationSoundTone, type ReminderLeadMinutes } from '../types';
 import { TimePickerField } from '../../../shared/components/pickers/TimePickerField';
 
@@ -15,7 +17,6 @@ interface NotificationSettingsProps {
   onToggleSpecific: (key: SpecificNotificationKey) => void;
   onRequestPermission: () => void;
   onTestNotification: () => void;
-  onSelectTone: (tone: NotificationSoundTone) => void;
   /** Cambia otros ajustes de avisos (anticipación, resumen del día). */
   onUpdate: (partial: Partial<AppSettings>) => void;
 }
@@ -25,6 +26,44 @@ const MOMENTS: { key: SpecificNotificationKey; label: string; icon: React.ReactN
   { key: 'notifyAtClassStart', label: 'Al iniciar', icon: <Bell className="h-4 w-4" /> },
   { key: 'notificationSound', label: 'Sonido', icon: <Volume2 className="h-4 w-4" /> },
 ];
+
+/** Resumen de los sonidos por sección y acceso a la hoja «Sonidos» (sin una lista larga aquí). */
+const SoundsBlock: React.FC<{ settings: AppSettings; onUpdate: (partial: Partial<AppSettings>) => void }> = ({ settings, onUpdate }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const tones = sectionTones(settings);
+  const rows: { label: string; tone: NotificationSoundTone }[] = [
+    { label: 'Horario', tone: tones.schedule },
+    { label: 'Agenda', tone: tones.agenda },
+    { label: 'Estudio', tone: tones.studyBreak },
+  ];
+  return (
+    <SettingsBlock
+      title="Sonidos"
+      description="Cada sección suena distinto: Horario, Agenda y Estudio (al empezar, en la pausa y al volver)."
+      icon={<Volume2 className="h-4 w-4" />}
+    >
+      <div className="flex flex-wrap gap-1.5">
+        {rows.map((row) => (
+          <span
+            key={row.label}
+            className="inline-flex items-center gap-1 rounded-full bg-[var(--color-md-surface-container-high)] px-2.5 py-1 text-11px font-semibold text-[var(--color-md-on-surface-variant)]"
+          >
+            <span className="font-bold text-[var(--color-md-on-surface)]">{row.label}:</span> {resolveNotificationTone(row.tone).label}
+          </span>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-md-primary-container)] px-4 text-sm font-bold text-[var(--color-md-on-primary-container)] transition-transform active:scale-[0.98]"
+      >
+        <Volume2 className="h-4 w-4" aria-hidden="true" />
+        Configurar sonidos
+      </button>
+      <SoundsSheet isOpen={isOpen} onClose={() => setIsOpen(false)} settings={settings} onUpdate={onUpdate} />
+    </SettingsBlock>
+  );
+};
 
 /** Solo en la versión de escritorio: acceso a los ajustes de notificaciones de Windows. */
 const DesktopNotificationLink: React.FC = () => {
@@ -50,7 +89,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   onToggleSpecific,
   onRequestPermission,
   onTestNotification,
-  onSelectTone,
   onUpdate,
 }) => (
   <SettingsCard>
@@ -172,11 +210,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       </div>
     </SettingsBlock>
 
-    {settings.notificationsEnabled && settings.notificationSound && (
-      <SettingsBlock title="Tono de notificación" description="Elige la campana o timbre para tus alertas de clase. Toca ▶ para escucharlo." icon={<Volume2 className="h-4 w-4" />}>
-        <NotificationTonePicker value={settings.notificationTone} onSelect={onSelectTone} />
-      </SettingsBlock>
-    )}
+    <SoundsBlock settings={settings} onUpdate={onUpdate} />
 
     <DesktopNotificationLink />
   </SettingsCard>

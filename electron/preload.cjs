@@ -31,7 +31,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   /** Se dispara cuando sale un recordatorio con sonido: la interfaz reproduce el tono elegido. */
   onReminderFired: (callback) => {
-    const listener = () => callback();
+    const listener = (_event, tone) => callback(typeof tone === 'string' ? tone : undefined);
     ipcRenderer.on('reminder-fired', listener);
     return () => ipcRenderer.removeListener('reminder-fired', listener);
   },

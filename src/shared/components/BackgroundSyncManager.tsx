@@ -5,6 +5,7 @@ import { useProfessors } from '../../features/professors/hooks/useProfessors';
 import { useNotes } from '../../features/notes/hooks/useNotes';
 import { useAgenda } from '../../features/agenda/hooks/useAgenda';
 import { useAppSettings } from '../../features/settings/hooks/useAppSettings';
+import type { NotificationSoundTone } from '../../features/settings/types';
 import { NotificationService } from '../services/notificationService';
 import { WidgetSyncService } from '../services/widgetSyncService';
 
@@ -54,12 +55,14 @@ export function BackgroundSyncManager(): null {
     return () => clearTimeout(timer);
   }, [settings.notificationsEnabled]);
 
-  // Escritorio: el aviso de Windows sale en silencio y aquí suena el tono elegido
+  // Escritorio: el aviso de Windows sale en silencio y aquí suena el tono de su sección
   const { notificationSound, notificationTone } = settings;
   useEffect(() => {
     const desktop = window.electronAPI;
     if (!desktop?.onReminderFired) return;
-    return desktop.onReminderFired(() => NotificationService.playTone({ notificationSound, notificationTone }));
+    return desktop.onReminderFired((tone) =>
+      NotificationService.playToneId((tone as NotificationSoundTone | undefined) ?? notificationTone, notificationSound)
+    );
   }, [notificationSound, notificationTone]);
 
   useEffect(() => {

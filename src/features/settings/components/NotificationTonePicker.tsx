@@ -62,6 +62,8 @@ const TONE_ICONS: Record<NotificationSoundTone, LucideIcon> = {
 interface NotificationTonePickerProps {
   value: NotificationSoundTone;
   onSelect: (tone: NotificationSoundTone) => void;
+  /** Tonos que ya usa otra sección (se muestra «En …»; elegirlo los intercambia). */
+  usedBy?: Partial<Record<NotificationSoundTone, string>>;
 }
 
 /**
@@ -69,7 +71,7 @@ interface NotificationTonePickerProps {
  * con un botón hermano de preescucha; solo suena un tono a la vez y el audio se detiene al
  * desmontar la sección. La descripción solo se muestra en el tono elegido para mantener la lista corta.
  */
-export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ value, onSelect }) => {
+export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ value, onSelect, usedBy }) => {
   const selected = resolveNotificationTone(value).id;
   const [playing, setPlaying] = useState<NotificationSoundTone | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -174,6 +176,11 @@ export const NotificationTonePicker: React.FC<NotificationTonePickerProps> = ({ 
                 <ToneIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
                 {tone.badge}
               </span>
+              {!isSelected && usedBy?.[tone.id] && (
+                <span className="inline-flex shrink-0 items-center rounded-md bg-[var(--color-md-tertiary-container,var(--color-md-secondary-container))] px-1.5 py-px text-10px font-bold text-[var(--color-md-on-secondary-container)]">
+                  En {usedBy[tone.id]}
+                </span>
+              )}
             </span>
             {isSelected && (
               <span className="mt-0.5 block text-xs text-[var(--color-md-on-primary-container)]/80">{tone.description}</span>

@@ -4,6 +4,7 @@ import type { ScheduleSlot } from '../../features/schedule/types';
 import type { Subject } from '../../features/subjects/types';
 import type { AppSettings, NotificationSoundTone } from '../../features/settings/types';
 import { notificationToneUrl, resolveNotificationTone } from '../../features/settings/notificationTones';
+import { DEFAULT_SETTINGS } from '../../features/settings/types';
 import type { ElectronReminder } from '../../electron';
 import { androidSubjectLargeIcon } from '../../features/subjects/utils/subjectIconResource';
 import { formatClockTime, formatTimeRange } from '../utils/timeFormat';
@@ -42,6 +43,48 @@ function resolveChannel(settings: ToneSettings): { channelId: string; sound: str
   }
   const tone = resolveNotificationTone(settings.notificationTone);
   return { channelId: `${CHANNEL_PREFIX}${tone.id}`, sound: tone.file ?? 'default' };
+}
+
+/** Tonos de reserva para las secciones sin tono elegido que chocarían con otra. */
+const FALLBACK_TONES: readonly NotificationSoundTone[] = [
+  'marimba_gentle',
+  'kalimba_study_arpeggio',
+  'bowl_tibetan_zen',
+  'windchime_furin',
+  'zen_drop',
+  'harp_glissando_short',
+  'sonar_study_ping',
+  'pop_glass_organic',
+];
+
+/**
+ * Tono de cada sección. Si falta el ajuste (ajustes de antes) se usa el de fábrica, y si ese ya lo
+ * usa otra sección se toma otro libre: ninguna sección suena igual que otra.
+ */
+export function sectionTones(settings: Partial<AppSettings>): {
+  schedule: NotificationSoundTone;
+  agenda: NotificationSoundTone;
+  studyStart: NotificationSoundTone;
+  studyBreak: NotificationSoundTone;
+  studyResume: NotificationSoundTone;
+} {
+  const slots = [
+    [settings.notificationTone, DEFAULT_SETTINGS.notificationTone],
+    [settings.agendaTone, 'marimba_gentle'],
+    [settings.studyStartTone, 'kalimba_study_arpeggio'],
+    [settings.studyBreakTone, 'bowl_tibetan_zen'],
+    [settings.studyResumeTone, 'windchime_furin'],
+  ] as const;
+  // Primero los elegidos por el estudiante; después los de fábrica, esquivando los ocupados
+  const used = new Set<NotificationSoundTone>(slots.flatMap(([chosen]) => (chosen ? [chosen] : [])));
+  const result = slots.map(([chosen, fallback]) => {
+    if (chosen) return chosen;
+    let tone = fallback as NotificationSoundTone;
+    if (used.has(tone)) tone = FALLBACK_TONES.find((t) => !used.has(t)) ?? tone;
+    used.add(tone);
+    return tone;
+  });
+  return { schedule: result[0], agenda: result[1], studyStart: result[2], studyBreak: result[3], studyResume: result[4] };
 }
 
 /** Versión de escritorio (Electron): sus avisos los muestra y programa el proceso principal. */
@@ -151,8 +194,10 @@ async function buildDesktopReminders(
     if (!slots.some((slot) => slot.subjectId === subject.id)) continue;
     iconBySubject.set(subject.id, (await subjectBadgePng(subject.icon, subject.color)) ?? undefined);
   }
-  // El aviso de Windows sale en silencio y la app reproduce el tono elegido
-  const playTone = settings.notificationSound && Boolean(resolveNotificationTone(settings.notificationTone).file);
+  // El aviso de Windows sale en silencio y la app reproduce el tono de su sección
+  const tones = sectionTones(settings);
+  const playTone = settings.notificationSound && Boolean(resolveNotificationTone(tones.schedule).file);
+  const playAgendaTone = settings.notificationSound && Boolean(resolveNotificationTone(tones.agenda).file);
   const reminders: ElectronReminder[] = [];
   for (const slot of slots) {
     const texts = describeSlot(slot, subjects, settings);
@@ -160,14 +205,14 @@ async function buildDesktopReminders(
     const [startH, startM] = (slot.startTime || '08:00').split(':').map(Number);
     if (settings.notify15MinBefore) {
       const at = shiftBefore(slot.dayOfWeek, slot.startTime, leadMinutes(settings));
-      reminders.push({ id: generateNotificationId(slot.id, 1), ...at, ...texts.before, playTone, icon, skipDates });
+      reminders.push({ id: generateNotificationId(slot.id, 1), ...at, ...texts.before, playTone, tone: tones.schedule, icon, skipDates });
     }
     if (settings.notifyAtClassStart) {
-      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone, icon, skipDates });
+      reminders.push({ id: generateNotificationId(slot.id, 2), weekday: slot.dayOfWeek, hour: startH, minute: startM, ...texts.start, playTone, tone: tones.schedule, icon, skipDates });
     }
   }
   for (const summary of buildDailySummaries(slots, subjects, settings)) {
-    reminders.push({ ...summary, playTone, skipDates });
+    reminders.push({ ...summary, playTone, tone: tones.schedule, skipDates });
   }
   for (const spec of buildAgendaReminders(events, subjects, now)) {
     const day = spec.at.getDay();
@@ -183,7 +228,8 @@ async function buildDesktopReminders(
       minute: spec.at.getMinutes(),
       title: spec.title,
       body: spec.body,
-      playTone,
+      playTone: playAgendaTone,
+      tone: tones.agenda,
       icon: agendaIcon,
     });
   }
@@ -202,57 +248,17 @@ function generateNotificationId(slotId: string, typeSuffix: number): number {
 }
 
 export class NotificationService {
-  private static activeChannelId: string | null = null;
+  private static createdChannelIds = new Set<string>();
   private static lastNotificationHash = '';
-  /** Aviso de fin de la sesión del modo estudio (se vuelve a programar tras reprogramar el resto). */
-  private static studyAlarm: { at: Date; title: string; body: string; settings: ToneSettings } | null = null;
-  private static readonly STUDY_ALARM_ID = 7_777_777;
-
-  /**
-   * Programa (o con `at` null, quita) el aviso de fin de la sesión del modo estudio. Solo en
-   * Android: en escritorio y web la app avisa al terminar mientras está abierta.
-   */
-  static async setStudyAlarm(at: Date | null, title: string, body: string, settings: ToneSettings): Promise<void> {
-    this.studyAlarm = at ? { at, title, body, settings } : null;
-    if (!Capacitor.isNativePlatform()) return;
-    try {
-      await LocalNotifications.cancel({ notifications: [{ id: this.STUDY_ALARM_ID }] });
-    } catch {
-      // No había aviso programado
-    }
-    await this.scheduleStudyAlarm();
-  }
-
-  private static async scheduleStudyAlarm(): Promise<void> {
-    const alarm = this.studyAlarm;
-    if (!alarm || alarm.at.getTime() <= Date.now() || !Capacitor.isNativePlatform()) return;
-    try {
-      if (!(await this.checkPermissions())) return;
-      const { channelId, sound } = resolveChannel(alarm.settings);
-      await this.ensureNotificationChannel(alarm.settings.notificationTone, alarm.settings.notificationSound);
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: this.STUDY_ALARM_ID,
-            title: alarm.title,
-            body: alarm.body,
-            channelId,
-            smallIcon: 'ic_stat_agenda',
-            largeIcon: 'ic_notification_large',
-            iconColor: APP_COLOR,
-            schedule: { at: alarm.at, allowWhileIdle: true },
-            sound,
-          },
-        ],
-      });
-    } catch (err) {
-      console.warn('No se pudo programar el aviso del modo estudio:', err);
-    }
-  }
 
   /** Reproduce el tono elegido (web y escritorio, donde el aviso del sistema no admite sonidos propios). */
   static playTone(settings: ToneSettings): void {
-    const toneFile = settings.notificationSound ? resolveNotificationTone(settings.notificationTone).file : null;
+    this.playToneId(settings.notificationTone, settings.notificationSound);
+  }
+
+  /** Reproduce un tono dentro de la app (escritorio, web y modo estudio). */
+  static playToneId(tone: NotificationSoundTone | undefined, soundOn = true): void {
+    const toneFile = soundOn ? resolveNotificationTone(tone).file : null;
     if (toneFile) new Audio(notificationToneUrl(toneFile)).play().catch(() => undefined);
   }
 
@@ -261,9 +267,14 @@ export class NotificationService {
    * ya creado, por eso cada tono tiene su propio id (`academic_schedule_<tono>`); los canales de
    * otros tonos se borran para que en los ajustes del sistema solo quede el que está en uso.
    */
-  static async ensureNotificationChannel(tone: NotificationSoundTone, withSound = true): Promise<string> {
+  static async ensureNotificationChannel(tone: NotificationSoundTone, withSound = true, keepTones: readonly NotificationSoundTone[] = [tone]): Promise<string> {
     const { channelId, sound } = resolveChannel({ notificationTone: tone, notificationSound: withSound });
-    if (!Capacitor.isNativePlatform() || this.activeChannelId === channelId) return channelId;
+    const keepIds = new Set(keepTones.map((t) => resolveChannel({ notificationTone: t, notificationSound: withSound }).channelId));
+    keepIds.add(channelId);
+    if (!Capacitor.isNativePlatform() || this.createdChannelIds.has(channelId)) {
+      if (Capacitor.isNativePlatform()) await this.pruneChannels(keepIds);
+      return channelId;
+    }
 
     const toneInfo = resolveNotificationTone(tone);
     try {
@@ -279,23 +290,25 @@ export class NotificationService {
         lights: true,
         lightColor: '#006BBB',
       });
-      this.activeChannelId = channelId;
+      this.createdChannelIds.add(channelId);
     } catch (err) {
       console.warn('No se pudo crear el canal de notificaciones:', err);
       return channelId;
     }
+    await this.pruneChannels(keepIds);
+    return channelId;
+  }
 
+  /** Borra los canales de tonos que ya no usa ninguna sección (en Ajustes del sistema solo quedan los útiles). */
+  private static async pruneChannels(keepIds: ReadonlySet<string>): Promise<void> {
     try {
       const { channels } = await LocalNotifications.listChannels();
-      await Promise.all(
-        channels
-          .filter((c) => c.id.startsWith(CHANNEL_PREFIX) && c.id !== channelId)
-          .map((c) => LocalNotifications.deleteChannel({ id: c.id }))
-      );
+      const stale = channels.filter((c) => c.id.startsWith(CHANNEL_PREFIX) && !keepIds.has(c.id));
+      stale.forEach((c) => this.createdChannelIds.delete(c.id));
+      await Promise.all(stale.map((c) => LocalNotifications.deleteChannel({ id: c.id })));
     } catch (err) {
       console.warn('No se pudieron limpiar canales de notificación anteriores:', err);
     }
-    return channelId;
   }
 
   /**
@@ -412,15 +425,19 @@ export class NotificationService {
     }
 
     // Fingerprint guard para evitar cancelar y re-programar alarmas en Android si nada relevante cambió
-    const currentHash = `v6_${settings.reminderLeadMinutes ?? 15}_${settings.dailySummaryEnabled ? settings.dailySummaryTime : 'no'}_${settings.timeFormat ?? '24h'}_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}|ev:${toDateKey(new Date())}:${events.map((e) => `${e.id}_${e.updatedAt}`).join(',')}`;
+    const currentHash = `v7_${settings.agendaTone ?? ''}_${settings.reminderLeadMinutes ?? 15}_${settings.dailySummaryEnabled ? settings.dailySummaryTime : 'no'}_${settings.timeFormat ?? '24h'}_${settings.notificationsEnabled}_${settings.notify15MinBefore}_${settings.notifyAtClassStart}_${settings.notificationSound}_${settings.notificationTone}_${slots.length}:${slots.map((s) => `${s.id}_${s.dayOfWeek}_${s.startTime}_${s.endTime}_${s.subjectId}`).join(',')}|${subjects.length}:${subjects.map((s) => `${s.id}_${s.code}_${s.icon}_${s.color}`).join(',')}|ev:${toDateKey(new Date())}:${events.map((e) => `${e.id}_${e.updatedAt}`).join(',')}`;
     if (currentHash === this.lastNotificationHash) {
       return { scheduledCount: 0 };
     }
     this.lastNotificationHash = currentHash;
 
-    const { channelId, sound } = resolveChannel(settings);
+    const tones = sectionTones(settings);
+    const { channelId, sound } = resolveChannel({ notificationTone: tones.schedule, notificationSound: settings.notificationSound });
+    const agendaChannel = resolveChannel({ notificationTone: tones.agenda, notificationSound: settings.notificationSound });
     if (settings.notificationsEnabled) {
-      await this.ensureNotificationChannel(settings.notificationTone, settings.notificationSound);
+      const keep = [tones.schedule, tones.agenda];
+      await this.ensureNotificationChannel(tones.schedule, settings.notificationSound, keep);
+      await this.ensureNotificationChannel(tones.agenda, settings.notificationSound, keep);
     }
 
     // 1. Limpiar notificaciones previas (el aviso del modo estudio en curso se vuelve a programar)
@@ -429,7 +446,6 @@ export class NotificationService {
     } catch (err) {
       console.warn('No se pudieron cancelar notificaciones anteriores:', err);
     }
-    await this.scheduleStudyAlarm();
 
     if (!settings.notificationsEnabled || (slots.length === 0 && events.length === 0)) {
       return { scheduledCount: 0 };
@@ -576,12 +592,12 @@ export class NotificationService {
         id: spec.id,
         title: spec.title,
         body: spec.body,
-        channelId,
+        channelId: agendaChannel.channelId,
         smallIcon: 'ic_stat_agenda',
         largeIcon: spec.subject ? androidSubjectLargeIcon(spec.subject.icon, spec.subject.color) : 'ic_notification_large',
         iconColor: APP_COLOR,
         schedule: { at: spec.at, allowWhileIdle: true },
-        sound,
+        sound: agendaChannel.sound,
       });
     }
 

@@ -21,6 +21,8 @@ export interface ElectronReminder {
   body: string;
   /** La interfaz reproduce el tono elegido (el aviso de Windows sale en silencio). */
   playTone: boolean;
+  /** Tono de su sección (Horario o Agenda); sin él, el del Horario. */
+  tone?: string;
   /** Ícono de la materia como PNG (data URL); sin él, el aviso usa el ícono de la app. */
   icon?: string;
   /** Aviso de un solo día ("YYYY-MM-DD", agenda); sin él se repite cada semana en `weekday`. */
@@ -73,7 +75,8 @@ export interface ElectronAPI {
   /** Devuelve la función para dejar de escuchar. */
   onTransferEvent: (callback: (event: ElectronTransferEvent) => void) => () => void;
   /** Devuelve la función para dejar de escuchar. */
-  onReminderFired: (callback: () => void) => () => void;
+  /** Avisa que salió un recordatorio, con el tono de su sección para reproducirlo. */
+  onReminderFired: (callback: (tone?: string) => void) => () => void;
   /** Descarga el instalador y comprueba su SHA-256 (rechaza enlaces fuera de los releases del repositorio). */
   downloadUpdate: (options: { url: string; sha256: string }) => Promise<{ success: boolean }>;
   /** Abre el asistente de instalación (modo actualización) y cierra la app mientras se instala. */

@@ -896,7 +896,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onToggleSpecific={(key) => void handleToggleSpecificNotification(key)}
                 onRequestPermission={() => void handleRequestPermission()}
                 onTestNotification={() => void handleTestNotification()}
-                onSelectTone={(tone) => void updateSettings({ notificationTone: tone })}
                 onUpdate={(partial) => updateSettings(partial)}
               />
             )}

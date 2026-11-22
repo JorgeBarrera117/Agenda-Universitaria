@@ -231,7 +231,9 @@ function checkReminders() {
     // El tono elegido lo reproduce la interfaz (Windows solo tiene su sonido genérico)
     showToast({ title: reminder.title, body: reminder.body, silent: reminder.playTone, icon: reminder.icon });
     if (reminder.playTone && mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('reminder-fired');
+      // El tono de su sección (Horario o Agenda); solo nombres de tono simples
+      const tone = typeof reminder.tone === 'string' && /^[a-z0-9_]{1,40}$/.test(reminder.tone) ? reminder.tone : undefined;
+      mainWindow.webContents.send('reminder-fired', tone);
     }
   }
   // Limpieza: solo interesan las claves de hoy

@@ -156,7 +156,16 @@ export interface AppSettings {
   notifyAtClassStart: boolean;
   notify15MinBefore: boolean;
   notificationSound: boolean;
+  /** Tono de los avisos de clase (Horario). */
   notificationTone: NotificationSoundTone;
+  /** Tono de los avisos de la Agenda (distinto al del Horario). */
+  agendaTone?: NotificationSoundTone;
+  /** Modo estudio: al empezar a concentrarse. */
+  studyStartTone?: NotificationSoundTone;
+  /** Modo estudio: al empezar la pausa. */
+  studyBreakTone?: NotificationSoundTone;
+  /** Modo estudio: al terminar la pausa (volver a estudiar). */
+  studyResumeTone?: NotificationSoundTone;
   /** Minutos de anticipación del aviso «antes de la clase» (notify15MinBefore lo activa). */
   reminderLeadMinutes?: ReminderLeadMinutes;
   /** Resumen del día: un aviso a esta hora con las clases de hoy. */

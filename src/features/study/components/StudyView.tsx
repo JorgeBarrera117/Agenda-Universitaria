@@ -63,6 +63,21 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
   const circumference = 2 * Math.PI * radius;
   const doneInCycle = timer.focusCount % STUDY_LONG_BREAK_EVERY;
   const ringColor = isBreak ? BREAK_COLOR : color;
+  const preset = STUDY_PRESETS[timer.presetId];
+  // Pausa terminada: esperando que empiece la siguiente sesión del ciclo
+  const waitingNext = !isBreak && !timer.running && timer.focusCount > 0 && timer.focusStartedAt === null;
+  // Ciclo: 4 sesiones con su pausa (la última, larga). Durante la pausa, focusCount ya cuenta la
+  // sesión que acaba de terminar
+  const cycleIndex = timer.focusCount % STUDY_LONG_BREAK_EVERY;
+  const sessionsDone = isBreak && cycleIndex === 0 ? STUDY_LONG_BREAK_EVERY : cycleIndex;
+  const cycleSteps = Array.from({ length: STUDY_LONG_BREAK_EVERY }, (_, i) => ({
+    i,
+    isLast: i === STUDY_LONG_BREAK_EVERY - 1,
+    sessionDone: i < sessionsDone,
+    sessionCurrent: !isBreak && i === cycleIndex,
+    breakCurrent: isBreak && i === sessionsDone - 1,
+    breakDone: i < (isBreak ? sessionsDone - 1 : cycleIndex),
+  }));
 
   const activeSubjects = subjects.filter((s) => !s.isArchived || s.id === timer.subjectId);
   const subjectName = (id: string) => subjects.find((s) => s.id === id)?.name ?? 'Sin materia';
@@ -195,6 +210,76 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
                 <SkipForward className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
+            {/* Pausa: mensaje grande con lo que queda para volver */}
+            {isBreak && (
+              <div className="flex w-full items-start gap-3 rounded-2xl bg-[#C8E6C9] px-4 py-3 text-[#1B5E20] dark:bg-[#1B5E20]/60 dark:text-[#C8E6C9]" role="status">
+                <Coffee className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-base font-black">{isLongBreak ? '¡Descanso largo, te lo ganaste!' : '¡Hora de una pausa!'}</p>
+                  <p className="text-sm">
+                    Levántate, estírate y toma agua.{' '}
+                    {timer.running ? (
+                      <>
+                        Vuelves a estudiar en <strong className="font-mono tabular-nums">{formatClock(remaining)}</strong>.
+                      </>
+                    ) : (
+                      'Toca ▶ para empezar la pausa.'
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+            {waitingNext && (
+              <div className="flex w-full items-start gap-3 rounded-2xl bg-[var(--color-md-primary-container)] px-4 py-3 text-[var(--color-md-on-primary-container)]" role="status">
+                <Timer className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-base font-black">¡Pausa terminada!</p>
+                  <p className="text-sm">
+                    Toca ▶ para empezar la sesión {cycleIndex + 1} de {STUDY_LONG_BREAK_EVERY}.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Tu ciclo: sesiones y pausas (la cuarta pausa es larga) */}
+            <div className="w-full space-y-1.5">
+              <p className="text-11px font-bold uppercase tracking-wide text-[var(--color-md-on-surface-variant)]">Tu ciclo</p>
+              <ol className="flex items-stretch gap-1" aria-label="Sesiones y pausas del ciclo">
+                {cycleSteps.map((step) => (
+                  <React.Fragment key={step.i}>
+                    <li
+                      className={`flex h-9 flex-[5] items-center justify-center rounded-lg text-10px font-bold ${
+                        step.sessionCurrent || step.sessionDone
+                          ? 'text-white'
+                          : 'bg-[var(--color-md-surface-container-high)] text-[var(--color-md-on-surface-variant)]'
+                      } ${step.sessionCurrent ? 'ring-2 ring-[var(--color-md-on-surface)]/40' : ''}`}
+                      style={step.sessionCurrent || step.sessionDone ? { backgroundColor: color, opacity: step.sessionCurrent ? 1 : 0.55 } : undefined}
+                      aria-label={`Sesión ${step.i + 1}: ${preset.focus} min${step.sessionCurrent ? ', ahora' : step.sessionDone ? ', hecha' : ''}`}
+                    >
+                      {preset.focus}′
+                    </li>
+                    <li
+                      className={`flex h-9 items-center justify-center rounded-lg ${step.isLast ? 'flex-[3]' : 'flex-[2]'} ${
+                        step.breakCurrent
+                          ? 'bg-[#2E7D32] text-white ring-2 ring-[var(--color-md-on-surface)]/40'
+                          : step.breakDone
+                            ? 'bg-[#2E7D32]/55 text-white'
+                            : 'bg-[#C8E6C9]/70 text-[#1B5E20] dark:bg-[#1B5E20]/40 dark:text-[#C8E6C9]'
+                      }`}
+                      aria-label={`${step.isLast ? 'Pausa larga' : 'Pausa'}: ${step.isLast ? preset.longBreak : preset.shortBreak} min${
+                        step.breakCurrent ? ', ahora' : step.breakDone ? ', hecha' : ''
+                      }`}
+                    >
+                      <Coffee className="h-3 w-3" aria-hidden="true" />
+                    </li>
+                  </React.Fragment>
+                ))}
+              </ol>
+              <p className="text-11px text-[var(--color-md-on-surface-variant)]">
+                {preset.focus} min de estudio y {preset.shortBreak} de pausa; cada {STUDY_LONG_BREAK_EVERY} sesiones, una pausa larga de {preset.longBreak} min.
+              </p>
+            </div>
+
             <p className="text-center text-xs text-[var(--color-md-on-surface-variant)]">
               {timer.running
                 ? 'Puedes cambiar de pestaña o salir de la app: te avisamos al terminar.'
