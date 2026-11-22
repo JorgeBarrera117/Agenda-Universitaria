@@ -9,9 +9,9 @@ export interface IdentityIconOption {
 }
 
 interface IdentityPickerProps {
-  /** Vista previa en vivo (avatar/insignia) que refleja color e ícono elegidos. */
-  preview: React.ReactNode;
-  previewTitle: string;
+  /** Vista previa en vivo (avatar/insignia). Opcional: los formularios ya la muestran arriba, en FormSheet. */
+  preview?: React.ReactNode;
+  previewTitle?: string;
   previewSubtitle?: string;
   colors: string[];
   color: string;
@@ -40,7 +40,8 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start">
+    <div className={preview ? 'grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start' : 'space-y-3'}>
+      {preview && (
       <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
         {preview}
         <div className="min-w-0 sm:max-w-[120px]">
@@ -50,6 +51,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({
           )}
         </div>
       </div>
+      )}
 
       <div className="min-w-0 space-y-3">
         <fieldset className="space-y-1.5">

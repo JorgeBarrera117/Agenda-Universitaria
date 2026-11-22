@@ -1,39 +1,5 @@
 import React from 'react';
-import {
-  User,
-  GraduationCap,
-  Briefcase,
-  BookOpen,
-  Laptop,
-  Atom,
-  Calculator,
-  Scale,
-  HeartPulse,
-  Award,
-  Sparkles,
-  Type,
-} from 'lucide-react';
-
-export interface ProfessorIconOption {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-export const PROFESSOR_ICONS: ProfessorIconOption[] = [
-  { id: 'user', label: 'Docente', icon: User },
-  { id: 'graduation-cap', label: 'Catedrático', icon: GraduationCap },
-  { id: 'briefcase', label: 'Profesional', icon: Briefcase },
-  { id: 'book', label: 'Humanidades', icon: BookOpen },
-  { id: 'laptop', label: 'Tecnología', icon: Laptop },
-  { id: 'atom', label: 'Ciencias', icon: Atom },
-  { id: 'calculator', label: 'Cálculo', icon: Calculator },
-  { id: 'scale', label: 'Leyes', icon: Scale },
-  { id: 'heart', label: 'Salud', icon: HeartPulse },
-  { id: 'award', label: 'Mérito', icon: Award },
-  { id: 'sparkles', label: 'Creativo', icon: Sparkles },
-  { id: 'initials', label: 'Iniciales', icon: Type },
-];
+import { professorIconComponent } from './professorIcons';
 
 export const PROFESSOR_PRESET_COLORS = [
   '#081d33', // Navy Universitario (Por defecto)
@@ -80,32 +46,8 @@ export const renderProfessorGlyph = (
     }
   }
 
-  // Mapeo de icono por identificador
-  switch (iconId) {
-    case 'graduation-cap':
-      return <GraduationCap className={iconClassName} />;
-    case 'briefcase':
-      return <Briefcase className={iconClassName} />;
-    case 'book':
-      return <BookOpen className={iconClassName} />;
-    case 'laptop':
-      return <Laptop className={iconClassName} />;
-    case 'atom':
-      return <Atom className={iconClassName} />;
-    case 'calculator':
-      return <Calculator className={iconClassName} />;
-    case 'scale':
-      return <Scale className={iconClassName} />;
-    case 'heart':
-      return <HeartPulse className={iconClassName} />;
-    case 'award':
-      return <Award className={iconClassName} />;
-    case 'sparkles':
-      return <Sparkles className={iconClassName} />;
-    case 'user':
-    default:
-      return <User className={iconClassName} />;
-  }
+  const Glyph = professorIconComponent(iconId);
+  return <Glyph className={iconClassName} />;
 };
 
 export const ProfessorAvatar: React.FC<ProfessorAvatarProps> = ({

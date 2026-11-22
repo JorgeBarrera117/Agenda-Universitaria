@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, MapPin } from 'lucide-react';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import type { Professor, CreateProfessorDTO } from '../types';
-import { PROFESSOR_ICONS, PROFESSOR_PRESET_COLORS, renderProfessorGlyph } from './ProfessorAvatar';
+import { PROFESSOR_PRESET_COLORS, ProfessorAvatar } from './ProfessorAvatar';
+import { PROFESSOR_ICONS } from './professorIcons';
+import { DetailChip, DetailHero } from '../../../shared/components/detail/DetailKit';
 import { AdvisingHoursHelper } from './AdvisingHoursHelper';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import {
@@ -66,10 +68,34 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
     }
   };
 
+  // Vista previa (como en «Nueva clase»): la tarjeta de su ficha, al día con lo que se escribe
+  const linkedSubjects = subjects.filter((s) => selectedSubjectIds.includes(s.id));
+  const preview = (
+    <DetailHero
+      compact
+      color={color}
+      leading={<ProfessorAvatar name={name.trim() || 'Docente'} icon={icon} color={color} size="xl" shape="circle" />}
+      kicker={
+        linkedSubjects.length === 1
+          ? linkedSubjects[0].name
+          : linkedSubjects.length > 1
+            ? `${linkedSubjects.length} materias`
+            : 'Catedrático'
+      }
+      title={name.trim() || <span className="text-[var(--color-md-on-surface-variant)]">Nombre del docente</span>}
+      chips={
+        office.trim() ? (
+          <DetailChip icon={<MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{office.trim()}</DetailChip>
+        ) : undefined
+      }
+    />
+  );
+
   return (
     <FormSheet
+      preview={preview}
       title={initialData ? 'Editar docente' : 'Nuevo docente'}
-      subtitle={name.trim() || 'Directorio docente y asesorías'}
+      subtitle="Directorio docente y asesorías"
       onBack={onCancel}
       backLabel="Volver al directorio docente"
       onSubmit={handleSubmit}
@@ -78,28 +104,8 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
       error={error}
       onDismissError={() => setError(null)}
     >
-      <FormSection>
-        <IdentityPicker
-          preview={
-            <div
-              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-black text-white shadow-sm transition-colors duration-150 sm:h-20 sm:w-20"
-              style={{ backgroundColor: color }}
-            >
-              {renderProfessorGlyph(icon, name.trim() || 'Docente', 'h-8 w-8 sm:h-9 sm:w-9')}
-            </div>
-          }
-          previewTitle={name.trim() || 'Nombre del docente'}
-          previewSubtitle={office.trim() || undefined}
-          colors={PROFESSOR_PRESET_COLORS}
-          color={color}
-          onColorChange={setColor}
-          icons={PROFESSOR_ICONS}
-          icon={icon}
-          onIconChange={setIcon}
-        />
-      </FormSection>
-
-      <FormSection title="Datos personales y grado">
+      {/* Nombre y apariencia juntos: lo que define cómo se ve en el directorio */}
+      <FormSection title="Nombre y apariencia">
         <FormField
           htmlFor="prof-name"
           label="Nombre completo"
@@ -117,6 +123,14 @@ export const ProfessorForm: React.FC<ProfessorFormProps> = ({ initialData, onSub
             autoFocus={!initialData}
           />
         </FormField>
+        <IdentityPicker
+          colors={PROFESSOR_PRESET_COLORS}
+          color={color}
+          onColorChange={setColor}
+          icons={PROFESSOR_ICONS}
+          icon={icon}
+          onIconChange={setIcon}
+        />
       </FormSection>
 
       <FormSection title="Canales de contacto">

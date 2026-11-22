@@ -15,7 +15,7 @@ import {
 import { shareText, type ShareOutcome } from '../../../shared/utils/shareText';
 import { subjectRepository } from '../../subjects/repositories/subjectRepository';
 import type { Subject } from '../../subjects/types';
-import { PROFESSOR_ICONS } from '../components/ProfessorAvatar';
+import { isProfessorIconId } from '../components/professorIcons';
 import { professorRepository } from '../repositories/professorRepository';
 import type { Professor } from '../types';
 
@@ -82,7 +82,7 @@ export interface ProfessorShareData {
   office?: string;
   /** Horarios de asesoría u otras notas (se conservan los saltos de línea). */
   notes?: string;
-  /** Uno de PROFESSOR_ICONS. */
+  /** Uno de PROFESSOR_ICONS (o de los anteriores). */
   icon?: string;
   /** Color #RRGGBB del avatar. */
   color?: string;
@@ -121,7 +121,7 @@ export function cleanProfessorShareData(raw: unknown): ProfessorShareData | unde
   if (!isRecord(raw)) return undefined;
   const name = cleanLine(raw.name, 120);
   if (!name) return undefined;
-  const icon = typeof raw.icon === 'string' && PROFESSOR_ICONS.some((option) => option.id === raw.icon) ? raw.icon : undefined;
+  const icon = typeof raw.icon === 'string' && isProfessorIconId(raw.icon) ? raw.icon : undefined;
   return {
     name,
     email: cleanLine(raw.email, 160),

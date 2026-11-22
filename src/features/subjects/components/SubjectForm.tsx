@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, X, UserX } from 'lucide-react';
+import { Award, MapPin, Plus, X, UserX } from 'lucide-react';
 import type { Subject, CreateSubjectDTO } from '../types';
 import { SubjectIcon, SUBJECT_ICONS, SUBJECT_PRESET_COLORS } from './SubjectIcon';
 import { useProfessors } from '../../professors/hooks/useProfessors';
 import { ProfessorAvatar, PROFESSOR_PRESET_COLORS } from '../../professors/components/ProfessorAvatar';
 import { M3Select } from '../../../shared/components/M3Select';
+import { DetailChip, DetailHero, DetailIconTile } from '../../../shared/components/detail/DetailKit';
 import {
   FormSheet,
   FormSection,
@@ -119,8 +120,40 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({ initialData, onSubmit,
     }
   };
 
+  // Vista previa (como en «Nueva clase»): la tarjeta de su ficha, al día con lo que se escribe
+  const previewProfessor = professors.find((p) => p.id === professorId);
+  const preview = (
+    <DetailHero
+      compact
+      color={color}
+      leading={
+        <DetailIconTile color={color} size="md">
+          <SubjectIcon icon={icon} className="h-6 w-6 text-white" />
+        </DetailIconTile>
+      }
+      kicker={previewProfessor?.name ?? 'Asignatura'}
+      title={name.trim() || <span className="text-[var(--color-md-on-surface-variant)]">Nombre de la asignatura</span>}
+      chips={
+        code.trim() || credits || classroomDefault.trim() ? (
+          <>
+            {code.trim() && <DetailChip tone="mono">{code.trim()}</DetailChip>}
+            {credits ? (
+              <DetailChip tone="tonal" icon={<Award className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>
+                {credits} {credits === 1 ? 'crédito' : 'créditos'}
+              </DetailChip>
+            ) : null}
+            {classroomDefault.trim() && (
+              <DetailChip icon={<MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{classroomDefault.trim()}</DetailChip>
+            )}
+          </>
+        ) : undefined
+      }
+    />
+  );
+
   return (
     <FormSheet
+      preview={preview}
       title={initialData ? 'Editar asignatura' : 'Nueva asignatura'}
       subtitle={code.trim() ? `${code.trim()} · Plan curricular` : 'Plan de estudios del semestre'}
       onBack={onCancel}
@@ -131,28 +164,8 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({ initialData, onSubmit,
       error={error}
       onDismissError={() => setError(null)}
     >
-      <FormSection>
-        <IdentityPicker
-          preview={
-            <div
-              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-colors duration-150 sm:h-20 sm:w-20"
-              style={{ backgroundColor: color }}
-            >
-              <SubjectIcon icon={icon} className="h-8 w-8 text-white sm:h-9 sm:w-9" />
-            </div>
-          }
-          previewTitle={name.trim() || 'Nombre de la asignatura'}
-          previewSubtitle={[code.trim(), credits ? `${credits} créditos` : ''].filter(Boolean).join(' · ') || undefined}
-          colors={SUBJECT_PRESET_COLORS}
-          color={color}
-          onColorChange={setColor}
-          icons={SUBJECT_ICONS}
-          icon={icon}
-          onIconChange={setIcon}
-        />
-      </FormSection>
-
-      <FormSection title="Datos curriculares">
+      {/* Nombre y apariencia juntos: lo que define cómo se ve en Materias y en el horario */}
+      <FormSection title="Nombre y apariencia">
         <FormField htmlFor="subject-name" label="Nombre de la asignatura" required>
           <input
             id="subject-name"
@@ -164,7 +177,17 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({ initialData, onSubmit,
             autoFocus={!initialData}
           />
         </FormField>
+        <IdentityPicker
+          colors={SUBJECT_PRESET_COLORS}
+          color={color}
+          onColorChange={setColor}
+          icons={SUBJECT_ICONS}
+          icon={icon}
+          onIconChange={setIcon}
+        />
+      </FormSection>
 
+      <FormSection title="Datos curriculares">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField htmlFor="subject-code" label="Código o sigla curricular">
             <input
