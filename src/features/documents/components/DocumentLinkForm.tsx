@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { Subject } from '../../subjects/types';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
+import { DetailChip, DetailHero, DetailIconTile } from '../../../shared/components/detail/DetailKit';
 import { M3Select, type M3SelectOption } from '../../../shared/components/M3Select';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
@@ -69,6 +70,12 @@ function describeFileType(fileName: string): { Icon: React.ComponentType<{ class
   if (ext === 'xls' || ext === 'xlsx') return { Icon: Table, label: 'Hoja de cálculo' };
   if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'bmp'].includes(ext)) return { Icon: ImageIcon, label: 'Imagen' };
   return { Icon: File, label: ext ? ext.toUpperCase() : 'Archivo' };
+}
+
+function formatPreviewSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
@@ -173,9 +180,47 @@ export const DocumentLinkForm: React.FC<DocumentLinkFormProps> = ({
 
   const fileType = selectedFile ? describeFileType(selectedFile.name) : null;
 
+  // Vista previa (como en los demás formularios): cómo se verá en Archivos, con el color de su materia
+  const previewColor = currentSubject?.color ?? '#5E6B7A';
+  const PreviewIcon = addMode === 'file' ? (fileType?.Icon ?? UploadCloud) : LinkIcon;
+  const previewTitle = addMode === 'file' ? selectedFile?.name : linkName.trim();
+  let previewHost = '';
+  if (addMode === 'link' && linkUrl.trim()) {
+    try {
+      previewHost = new URL(linkUrl.trim()).hostname.replace(/^www\./, '');
+    } catch {
+      previewHost = '';
+    }
+  }
+  const preview = (
+    <DetailHero
+      compact
+      color={currentSubject?.color}
+      leading={
+        <DetailIconTile color={previewColor} size="md">
+          <PreviewIcon className="h-6 w-6" />
+        </DetailIconTile>
+      }
+      kicker={`${addMode === 'file' ? (fileType?.label ?? 'Archivo') : 'Enlace web'} · ${currentSubject?.name ?? 'Sin materia'}`}
+      title={
+        previewTitle || (
+          <span className="text-[var(--color-md-on-surface-variant)]">{addMode === 'file' ? 'Elige un archivo' : 'Nombre del enlace'}</span>
+        )
+      }
+      chips={
+        addMode === 'file' && selectedFile ? (
+          <DetailChip icon={<HardDrive className="h-3 w-3 shrink-0" aria-hidden="true" />}>{formatPreviewSize(selectedFile.size)}</DetailChip>
+        ) : previewHost ? (
+          <DetailChip icon={<Globe className="h-3 w-3 shrink-0" aria-hidden="true" />}>{previewHost}</DetailChip>
+        ) : undefined
+      }
+    />
+  );
+
   return (
     <>
       <FormSheet
+        preview={preview}
         title="Vincular documento"
         subtitle={currentSubject ? `Para ${currentSubject.name}` : 'Guías, diapositivas y enlaces por materia'}
         onBack={onCancel}

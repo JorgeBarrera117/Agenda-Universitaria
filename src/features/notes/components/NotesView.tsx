@@ -31,7 +31,8 @@ import { useVoiceNoteSlots } from '../hooks/useVoiceNoteSlots';
 import { VOICE_NOTE_ATTR, getEmbeddedAudioIds, removeVoiceNoteEmbed } from '../utils/voiceNoteEmbeds';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { StickyToolbar } from '../../../shared/components/StickyToolbar';
-import { PageHeader } from '../../../shared/components/PageHeader';
+import { PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
+import { DetailAction, DetailActions, DetailChip, DetailHero, DetailIconTile } from '../../../shared/components/detail/DetailKit';
 import { SearchField } from '../../../shared/components/SearchField';
 import { M3Select } from '../../../shared/components/M3Select';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
@@ -426,16 +427,15 @@ export const NotesView: React.FC<NotesViewProps> = ({
           backLabel="Volver a los apuntes"
           className="px-3 sm:px-6"
           actions={
+          <>
+          <button type="button" onClick={() => handleOpenEdit(readingNote)} className={PAGE_HEADER_PRIMARY_BUTTON}>
+            <Edit2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Editar</span>
+          </button>
           <M3KebabMenu
             size="md"
             ariaLabel="Opciones del apunte"
             items={[
-              {
-                id: 'edit',
-                label: 'Editar apunte',
-                icon: <Edit2 className="h-4 w-4 text-[var(--color-md-primary)]" />,
-                onClick: () => handleOpenEdit(readingNote),
-              },
               {
                 id: 'camera',
                 label: 'Foto de cátedra',
@@ -483,6 +483,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
               },
             ]}
           />
+          </>
           }
         />
 
@@ -503,50 +504,47 @@ export const NotesView: React.FC<NotesViewProps> = ({
           className="hidden"
         />
 
-        <div className="w-full px-3 py-3 sm:px-6 sm:py-6">
-          <article className="md-card mx-auto w-full max-w-3xl space-y-5 rounded-3xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-5 text-[var(--color-md-on-surface)] shadow-xs sm:p-8">
-            <header className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[var(--color-md-surface-container)] py-0.5 pl-0.5 pr-2.5 font-semibold text-[var(--color-md-on-surface)]">
-                  <span
-                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                    style={{ backgroundColor: readingCategory.color }}
-                  >
-                    <SubjectIcon icon={readingCategory.icon} className="h-3 w-3 text-white" />
-                  </span>
-                  <span className="truncate">{readingCategory.name}</span>
-                  {readingCategory.code && (
-                    <span className="font-mono text-10px text-[var(--color-md-on-surface-variant)]">
-                      {readingCategory.code}
-                    </span>
-                  )}
-                </span>
-                <time dateTime={readingNote.createdAt} className="font-medium text-[var(--color-md-on-surface-variant)]">
-                  {formatNoteDate(readingNote.createdAt, today)}
-                  {wasEdited ? ` · editado ${formatNoteDate(readingNote.updatedAt, today).toLowerCase()}` : ''}
-                </time>
-              </div>
-
-              <h1 className="text-2xl font-black leading-tight tracking-tight sm:text-3xl">
-                {readingNote.title || 'Documento sin título'}
-              </h1>
-
-              {readingNote.tags.length > 0 && (
-                <ul className="flex flex-wrap gap-1.5" aria-label="Etiquetas">
-                  {readingNote.tags.map((t) => (
-                    <li
-                      key={t}
-                      className="rounded-full bg-[var(--color-md-secondary-container)] px-2.5 py-0.5 text-xs font-semibold text-[var(--color-md-on-secondary-container)]"
-                    >
-                      #{t}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </header>
-
-            <div className="h-px bg-[var(--color-md-outline-variant)]" />
-
+        <div className="mx-auto w-full max-w-3xl space-y-3 px-3 py-3 sm:px-6 sm:py-6">
+          {/* Identidad con el color de su materia y lo que más se hace al leer: foto, voz, compartir */}
+          <DetailHero
+            color={readingCategory.color}
+            leading={
+              <DetailIconTile color={readingCategory.color}>
+                <SubjectIcon icon={readingCategory.icon} className="h-8 w-8 text-white" />
+              </DetailIconTile>
+            }
+            kicker={readingCategory.code ? `${readingCategory.name} · ${readingCategory.code}` : readingCategory.name}
+            title={readingNote.title || 'Documento sin título'}
+            chips={
+              <>
+                <DetailChip>
+                  <time dateTime={readingNote.createdAt}>
+                    {formatNoteDate(readingNote.createdAt, today)}
+                    {wasEdited ? ` · editado ${formatNoteDate(readingNote.updatedAt, today).toLowerCase()}` : ''}
+                  </time>
+                </DetailChip>
+                {readingNote.tags.map((t) => (
+                  <DetailChip key={t} tone="tonal">
+                    #{t}
+                  </DetailChip>
+                ))}
+              </>
+            }
+            actions={
+              <DetailActions>
+                <DetailAction
+                  variant="primary"
+                  icon={<Camera className="h-4 w-4" aria-hidden="true" />}
+                  label="Foto"
+                  busy={isUploadingInReader}
+                  onClick={() => readerCameraInputRef.current?.click()}
+                />
+                <DetailAction icon={<Mic className="h-4 w-4" aria-hidden="true" />} label="Nota de voz" onClick={() => setIsRecorderOpen(true)} />
+                <DetailAction icon={<Share2 className="h-4 w-4" aria-hidden="true" />} label="Compartir" onClick={() => void handleShareNote(readingNote)} />
+              </DetailActions>
+            }
+          />
+          <article className="md-card w-full space-y-5 rounded-3xl border border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] p-5 text-[var(--color-md-on-surface)] shadow-xs sm:p-8">
             <div
               onClick={(e) => {
                 const target = e.target as HTMLElement;
