@@ -62,6 +62,13 @@ export function holidayKeysBetween(events: readonly AgendaEvent[], fromKey: stri
 
 const LEAD_MINUTES: Record<Exclude<AgendaReminderLead, 'none'>, number> = { at: 0, '1h': 60, '1d': 24 * 60, '2d': 48 * 60 };
 
+/** Fechas de una repetición: desde `start`, cada `everyWeeks` semanas, hasta `until` (como mucho `max`). */
+export function repeatDates(start: string, everyWeeks: number, until: string, max: number): string[] {
+  const dates: string[] = [];
+  for (let key = start; key <= until && dates.length < max; key = addDaysToKey(key, everyWeeks * 7)) dates.push(key);
+  return dates;
+}
+
 /** Momento del aviso de un evento (sin hora, cuenta desde las 08:00 de su día); null si no avisa. */
 export function reminderMoment(event: AgendaEvent): Date | null {
   if (event.remind === 'none' || event.done) return null;

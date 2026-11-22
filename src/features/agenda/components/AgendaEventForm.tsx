@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, BellOff, CalendarDays, Clock } from 'lucide-react';
+import { Bell, BellOff, CalendarDays, Check, Clock, ListChecks, Plus, Repeat, X } from 'lucide-react';
 import { FormField, FormSection, FormSheet, SegmentedControl, formInputClass } from '../../../shared/components/form';
 import { M3Select } from '../../../shared/components/M3Select';
 import { DatePickerField } from '../../../shared/components/pickers/DatePickerField';
@@ -13,12 +13,18 @@ import {
   AGENDA_LEAD_LABEL,
   AGENDA_TYPE_LABEL,
   AGENDA_REMINDER_LEADS,
+  AGENDA_REPEAT_MAX,
+  AGENDA_STUDY_LABEL,
+  AGENDA_STUDY_LEADS,
+  type AgendaChecklistItem,
+  type AgendaRepeat,
+  type AgendaStudyLead,
   type AgendaEvent,
   type AgendaEventType,
   type AgendaReminderLead,
   type CreateAgendaEventDTO,
 } from '../types';
-import { isDateKey, isTimeValue } from '../utils/agendaDates';
+import { addDaysToKey, isDateKey, isTimeValue, repeatDates } from '../utils/agendaDates';
 import { AgendaTypeIcon } from './AgendaTypeIcon';
 import { agendaEventColor } from './agendaVisuals';
 
@@ -28,7 +34,8 @@ interface AgendaEventFormProps {
   defaultDate: string;
   subjects: readonly Subject[];
   notificationsEnabled: boolean;
-  onSubmit: (data: CreateAgendaEventDTO) => Promise<void>;
+  /** Con `repeat`, se crea en cada fecha de la repetición (solo al crear). */
+  onSubmit: (data: CreateAgendaEventDTO, repeat?: AgendaRepeat) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -71,10 +78,31 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
   const [notes, setNotes] = useState(initialData?.notes ?? '');
   const [remind, setRemind] = useState<AgendaReminderLead>(initialData?.remind ?? DEFAULT_LEAD.task);
   const [remindTouched, setRemindTouched] = useState(Boolean(initialData));
+  const [checklist, setChecklist] = useState<AgendaChecklistItem[]>(initialData?.checklist ?? []);
+  const [newStep, setNewStep] = useState('');
+  // Repaso escalonado propuesto para los exámenes nuevos: 3 días y 1 día antes
+  const [study, setStudy] = useState<AgendaStudyLead[]>(initialData ? initialData.study ?? [] : ['3d', '1d']);
+  const [repeatEvery, setRepeatEvery] = useState<'none' | '1' | '2'>('none');
+  const [repeatUntil, setRepeatUntil] = useState(() => addDaysToKey(initialData?.date ?? defaultDate, 7 * 8));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isHoliday = type === 'holiday';
+  const canRepeat = !initialData && !isHoliday;
+  const repeatCount =
+    canRepeat && repeatEvery !== 'none' && isDateKey(date) && isDateKey(repeatUntil)
+      ? repeatDates(date, Number(repeatEvery), repeatUntil, AGENDA_REPEAT_MAX).length
+      : 0;
+
+  const addStep = () => {
+    const text = newStep.trim();
+    if (!text || checklist.length >= 30) return;
+    setChecklist((prev) => [...prev, { id: crypto.randomUUID(), text: text.slice(0, 140), done: false }]);
+    setNewStep('');
+  };
+
+  const toggleStudy = (lead: AgendaStudyLead) =>
+    setStudy((prev) => (prev.includes(lead) ? prev.filter((l) => l !== lead) : AGENDA_STUDY_LEADS.filter((l) => l === lead || prev.includes(l))));
   const timeFormatter = useTimeFormatter();
   const activeSubjects = subjects.filter((s) => !s.isArchived || s.id === subjectId);
 
@@ -102,6 +130,10 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
       setError('La hora no es válida.');
       return;
     }
+    if (canRepeat && repeatEvery !== 'none' && repeatCount < 2) {
+      setError('Para repetirlo, la fecha «Hasta» debe ser al menos una semana después.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       setError(null);
@@ -116,7 +148,10 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
         notes: notes.trim() || undefined,
         remind: isHoliday ? 'none' : remind,
         done: type === 'task' ? Boolean(initialData?.done) : undefined,
-      });
+        checklist: type === 'task' && checklist.length ? checklist : undefined,
+        study: type === 'exam' && study.length ? study : undefined,
+        seriesId: initialData?.seriesId,
+      }, canRepeat && repeatEvery !== 'none' ? { everyWeeks: repeatEvery === '2' ? 2 : 1, until: repeatUntil } : undefined);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar.');
       setIsSubmitting(false);
@@ -150,6 +185,16 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
           )}
           {!isHoliday && remind !== 'none' && (
             <DetailChip icon={<Bell className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>{AGENDA_LEAD_LABEL[remind]}</DetailChip>
+          )}
+          {type === 'task' && checklist.length > 0 && (
+            <DetailChip icon={<ListChecks className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>
+              {checklist.length} {checklist.length === 1 ? 'paso' : 'pasos'}
+            </DetailChip>
+          )}
+          {repeatCount > 1 && (
+            <DetailChip tone="tonal" icon={<Repeat className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}>
+              {repeatCount} fechas
+            </DetailChip>
           )}
         </>
       }
@@ -254,6 +299,55 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
         </FormSection>
       )}
 
+      {type === 'task' && (
+        <FormSection title="Subtareas" description="Divide la tarea en pasos y márcalos a medida que avanzas.">
+          {checklist.length > 0 && (
+            <ul className="space-y-1.5">
+              {checklist.map((item) => (
+                <li key={item.id} className="flex items-center gap-2 rounded-xl bg-[var(--color-md-surface-container)] py-1 pl-3 pr-1">
+                  <ListChecks className="h-4 w-4 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 break-words text-sm">{item.text}</span>
+                  <button
+                    type="button"
+                    onClick={() => setChecklist((prev) => prev.filter((i) => i.id !== item.id))}
+                    aria-label={`Quitar «${item.text}»`}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)]"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newStep}
+              onChange={(e) => setNewStep(e.target.value)}
+              onKeyDown={(e) => {
+                // Enter agrega el paso (no envía el formulario)
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                addStep();
+              }}
+              placeholder="Ej.: Buscar bibliografía"
+              maxLength={140}
+              aria-label="Nuevo paso"
+              className={`${formInputClass} min-w-0 flex-1`}
+            />
+            <button
+              type="button"
+              onClick={addStep}
+              disabled={!newStep.trim()}
+              aria-label="Agregar paso"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] transition-opacity disabled:opacity-40"
+            >
+              <Plus className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+        </FormSection>
+      )}
+
       {!isHoliday && (
         <FormSection title="Avisarme">
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Cuándo avisar">
@@ -288,6 +382,60 @@ export const AgendaEventForm: React.FC<AgendaEventFormProps> = ({
               <BellOff className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               Las notificaciones están apagadas en Ajustes: no llegará el aviso.
             </p>
+          )}
+        </FormSection>
+      )}
+
+      {type === 'exam' && (
+        <FormSection title="Avisos de repaso" description="Te recordamos estudiar con tiempo, a las 18:00 de esos días.">
+          <div className="flex flex-wrap gap-2">
+            {AGENDA_STUDY_LEADS.map((lead) => {
+              const selected = study.includes(lead);
+              return (
+                <button
+                  key={lead}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleStudy(lead)}
+                  className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors ${
+                    selected
+                      ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
+                      : 'border border-[var(--color-md-outline-variant)] text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)]'
+                  }`}
+                >
+                  {selected && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                  {AGENDA_STUDY_LABEL[lead]}
+                </button>
+              );
+            })}
+          </div>
+        </FormSection>
+      )}
+
+      {canRepeat && (
+        <FormSection title="Se repite" description="Para entregas o quices de cada semana: se crea en cada fecha.">
+          <SegmentedControl
+            value={repeatEvery}
+            onChange={setRepeatEvery}
+            ariaLabel="Se repite"
+            options={[
+              { value: 'none', label: 'No se repite', shortLabel: 'No' },
+              { value: '1', label: 'Cada semana', shortLabel: 'Semanal' },
+              { value: '2', label: 'Cada 2 semanas', shortLabel: 'Quincenal' },
+            ]}
+          />
+          {repeatEvery !== 'none' && (
+            <>
+              <FormField htmlFor="agenda-repeat-until" label="Hasta">
+                <DatePickerField id="agenda-repeat-until" value={repeatUntil} min={date} onChange={setRepeatUntil} dialogTitle="Última fecha" />
+              </FormField>
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-md-on-surface-variant)]">
+                <Repeat className="h-3.5 w-3.5 shrink-0 text-[var(--color-md-primary)]" aria-hidden="true" />
+                {repeatCount > 1
+                  ? `Se creará en ${repeatCount} fechas${repeatCount === AGENDA_REPEAT_MAX ? ' (el máximo)' : ''}.`
+                  : 'Elige una fecha «Hasta» posterior.'}
+              </p>
+            </>
           )}
         </FormSection>
       )}

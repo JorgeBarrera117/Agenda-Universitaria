@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Check, Edit2, MapPin, Trash2 } from 'lucide-react';
+import { Check, Edit2, ListChecks, MapPin, Repeat, Trash2 } from 'lucide-react';
 import { Card } from '../../../shared/components/atoms';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { ABOVE_STRETCHED_CLASS, STRETCHED_CARD_BUTTON_CLASS } from '../../../shared/styles/surfaces';
@@ -66,8 +66,24 @@ const AgendaEventCardComponent: React.FC<AgendaEventCardProps> = ({ event, subje
             <span className="sr-only"> · {longDayLabel(event.date)} · {status.label} · ver ficha</span>
           </button>
         </h3>
-        {showStatus && (
-          <span className={`inline-flex rounded-full px-2 py-0.5 text-11px font-bold ${AGENDA_STATUS_CLASS[status.tone]}`}>{status.label}</span>
+        {(showStatus || (event.checklist?.length ?? 0) > 0 || event.seriesId) && (
+          <span className="flex flex-wrap items-center gap-1">
+            {showStatus && (
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-11px font-bold ${AGENDA_STATUS_CLASS[status.tone]}`}>{status.label}</span>
+            )}
+            {event.checklist && event.checklist.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/60 px-2 py-0.5 text-11px font-bold text-[var(--color-md-on-surface-variant)] dark:bg-black/20">
+                <ListChecks className="h-3 w-3" aria-hidden="true" />
+                {event.checklist.filter((item) => item.done).length}/{event.checklist.length}
+              </span>
+            )}
+            {event.seriesId && (
+              <span className="inline-flex items-center rounded-full bg-white/60 px-1.5 py-0.5 text-[var(--color-md-on-surface-variant)] dark:bg-black/20" title="Se repite">
+                <Repeat className="h-3 w-3" aria-hidden="true" />
+                <span className="sr-only">Se repite</span>
+              </span>
+            )}
+          </span>
         )}
         <p
           className={`text-xs ${

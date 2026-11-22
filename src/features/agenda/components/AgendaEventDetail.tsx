@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, BellOff, CalendarDays, Check, Clock, Edit2, Info, MapPin, Share2, StickyNote, Trash2, Undo2 } from 'lucide-react';
+import { Bell, BellOff, BookOpenCheck, CalendarDays, Check, Clock, Edit2, Info, ListChecks, MapPin, Repeat, Share2, StickyNote, Trash2, Undo2 } from 'lucide-react';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { PAGE_HEADER_PRIMARY_BUTTON } from '../../../shared/components/PageHeader';
 import {
@@ -16,7 +16,7 @@ import { formatClockTime } from '../../../shared/utils/timeFormat';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
 import type { Subject } from '../../subjects/types';
 import type { TimeFormat } from '../../settings/types';
-import { AGENDA_LEAD_LABEL, AGENDA_TYPE_LABEL, type AgendaEvent } from '../types';
+import { AGENDA_LEAD_LABEL, AGENDA_STUDY_LABEL, AGENDA_TYPE_LABEL, type AgendaEvent } from '../types';
 import { longDayLabel, relativeDayLabel } from '../utils/agendaDates';
 import { AGENDA_STATUS_CLASS, agendaStatus } from '../utils/agendaStatus';
 import { agendaEventColor } from './agendaVisuals';
@@ -34,6 +34,10 @@ interface AgendaEventDetailProps {
   onToggleDone: () => void;
   onShare: () => void;
   onOpenSubject?: (subjectId: string) => void;
+  /** Marca o desmarca una subtarea. */
+  onToggleChecklistItem: (itemId: string) => void;
+  /** Si es parte de una repetición: cuál de cuántas, y la última fecha. */
+  series?: { index: number; total: number; last: string };
 }
 
 const ROW_ICON = 'h-[18px] w-[18px]';
@@ -54,6 +58,8 @@ export const AgendaEventDetail: React.FC<AgendaEventDetailProps> = ({
   onToggleDone,
   onShare,
   onOpenSubject,
+  onToggleChecklistItem,
+  series,
 }) => {
   const subject = event.subjectId ? subjects.find((s) => s.id === event.subjectId) : undefined;
   const color = agendaEventColor(event, subjects);
@@ -61,6 +67,8 @@ export const AgendaEventDetail: React.FC<AgendaEventDetailProps> = ({
   const isTask = event.type === 'task';
   const isHoliday = event.type === 'holiday';
   const multiDay = isHoliday && event.endDate && event.endDate > event.date;
+  const steps = event.checklist ?? [];
+  const stepsDone = steps.filter((item) => item.done).length;
 
   const dateValue = multiDay
     ? `Del ${longDayLabel(event.date).toLowerCase()} al ${longDayLabel(event.endDate as string).toLowerCase()}`
@@ -110,7 +118,17 @@ export const AgendaEventDetail: React.FC<AgendaEventDetailProps> = ({
         kicker={`${AGENDA_TYPE_LABEL[event.type]} · ${isHoliday ? 'Sin avisos de clase' : subject?.name ?? 'Personal'}`}
         title={event.title}
         strike={event.done}
-        chips={<span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${AGENDA_STATUS_CLASS[status.tone]}`}>{status.label}</span>}
+        chips={
+          <>
+            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${AGENDA_STATUS_CLASS[status.tone]}`}>{status.label}</span>
+            {steps.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/60 px-2.5 py-1 text-xs font-bold text-[var(--color-md-on-surface-variant)] dark:bg-black/20">
+                <ListChecks className="h-3.5 w-3.5" aria-hidden="true" />
+                {stepsDone}/{steps.length} pasos
+              </span>
+            )}
+          </>
+        }
         actions={
           <DetailActions>
             {isTask && (
@@ -152,6 +170,20 @@ export const AgendaEventDetail: React.FC<AgendaEventDetailProps> = ({
             />
           )}
           {isHoliday && <DetailRow icon={<BellOff className={ROW_ICON} />} label="Clases" value="Esos días la app no te avisa de tus clases." />}
+          {event.type === 'exam' && event.study && event.study.length > 0 && (
+            <DetailRow
+              icon={<BookOpenCheck className={ROW_ICON} />}
+              label="Avisos de repaso"
+              value={`${event.study.map((lead) => AGENDA_STUDY_LABEL[lead]).join(', ')} · a las 18:00`}
+            />
+          )}
+          {series && series.total > 1 && (
+            <DetailRow
+              icon={<Repeat className={ROW_ICON} />}
+              label="Se repite"
+              value={`Fecha ${series.index} de ${series.total} · hasta el ${longDayLabel(series.last).toLowerCase()}`}
+            />
+          )}
           {subject && (
             <DetailRow
               icon={null}
@@ -168,6 +200,50 @@ export const AgendaEventDetail: React.FC<AgendaEventDetailProps> = ({
           )}
         </DetailRows>
       </DetailSection>
+
+      {steps.length > 0 && (
+        <DetailSection
+          icon={<ListChecks className="h-4 w-4" />}
+          title="Subtareas"
+          trailing={<span className="text-xs font-bold text-[var(--color-md-on-surface-variant)]">{stepsDone} de {steps.length}</span>}
+        >
+          {/* Barra de avance */}
+          <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-[var(--color-md-surface-container-high)]" aria-hidden="true">
+            <div className="h-full rounded-full bg-[var(--color-md-primary)] transition-[width] duration-300" style={{ width: `${(stepsDone / steps.length) * 100}%` }} />
+          </div>
+          <ul className="-mx-2">
+            {steps.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={item.done}
+                  onClick={() => onToggleChecklistItem(item.id)}
+                  className="flex min-h-12 w-full items-center gap-3 rounded-2xl px-2 text-left transition-colors hover:bg-[var(--color-md-surface-container)]"
+                >
+                  <span
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
+                      item.done
+                        ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
+                        : 'border-[var(--color-md-on-surface-variant)] text-transparent'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <Check className="h-4 w-4 stroke-[3]" />
+                  </span>
+                  <span
+                    className={`min-w-0 flex-1 break-words text-sm ${
+                      item.done ? 'text-[var(--color-md-on-surface-variant)] line-through' : 'text-[var(--color-md-on-surface)]'
+                    }`}
+                  >
+                    {item.text}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </DetailSection>
+      )}
 
       {event.notes && (
         <DetailSection icon={<StickyNote className="h-4 w-4" />} title="Notas">

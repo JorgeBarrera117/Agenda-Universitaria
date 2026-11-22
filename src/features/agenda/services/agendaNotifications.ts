@@ -1,5 +1,5 @@
 import type { Subject } from '../../subjects/types';
-import type { AgendaEvent } from '../types';
+import { AGENDA_STUDY_DAYS, AGENDA_STUDY_LABEL, type AgendaEvent } from '../types';
 import {
   addDaysToKey,
   fromDateKey,
@@ -63,6 +63,23 @@ export function buildAgendaReminders(events: readonly AgendaEvent[], subjects: r
       body = `Recordatorio para ${day}${time}${subjectPart}`;
     }
     specs.push({ id: 4_000_000 + (hash32(event.id) % 10_000_000), at, title, body, subject });
+  }
+  // Avisos de repaso de los exámenes: N días antes, a las 18:00
+  for (const event of events) {
+    if (event.type !== 'exam' || !event.study?.length) continue;
+    const subject = event.subjectId ? subjects.find((s) => s.id === event.subjectId) : undefined;
+    for (const lead of event.study) {
+      const days = AGENDA_STUDY_DAYS[lead];
+      const at = fromDateKey(addDaysToKey(event.date, -days), '18:00');
+      if (at.getTime() <= now.getTime()) continue;
+      specs.push({
+        id: 4_000_000 + (hash32(`${event.id}:study:${lead}`) % 10_000_000),
+        at,
+        title: `Repasa para: ${event.title}`,
+        body: `El examen es en ${days === 1 ? '1 día' : `${days} días`}${subject ? ` · ${subject.name}` : ''} (${AGENDA_STUDY_LABEL[lead].toLowerCase()})`,
+        subject,
+      });
+    }
   }
   return specs.sort((a, b) => a.at.getTime() - b.at.getTime()).slice(0, MAX_AGENDA_REMINDERS);
 }

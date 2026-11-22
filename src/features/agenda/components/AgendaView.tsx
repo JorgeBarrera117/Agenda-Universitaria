@@ -5,7 +5,7 @@ import { useTodayKey } from '../hooks/useTodayKey';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { useSchedule } from '../../schedule/hooks/useSchedule';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
-import { AGENDA_TYPE_LABEL, type AgendaEvent, type AgendaEventType, type CreateAgendaEventDTO } from '../types';
+import { AGENDA_TYPE_LABEL, type AgendaEvent, type AgendaEventType, type AgendaRepeat, type CreateAgendaEventDTO } from '../types';
 import { addDaysToKey, eventCoversDay, fromDateKey, holidayOn, longDayLabel, scheduleWeekday } from '../utils/agendaDates';
 import { MonthCalendar } from './MonthCalendar';
 import { AgendaEventCard } from './AgendaEventCard';
@@ -68,7 +68,7 @@ interface Group {
  * horario) y lo que tiene en la agenda.
  */
 export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubjectDetail, onEditorActiveChange, isActive = true }) => {
-  const { events, addEvent, updateEvent, setDone, removeEvent } = useAgenda();
+  const { events, addEvent, addSeries, updateEvent, setDone, setChecklist, removeEvent, removeSeries } = useAgenda();
   const { subjects } = useSubjects();
   const { slots } = useSchedule();
   const { settings } = useAppSettings();
@@ -198,23 +198,45 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
     [setDone, showToast]
   );
 
-  const handleSubmit = async (data: CreateAgendaEventDTO) => {
+  const handleSubmit = async (data: CreateAgendaEventDTO, repeat?: AgendaRepeat) => {
     const editing = formState?.event;
+    let created = 1;
     if (editing) await updateEvent(editing.id, data);
+    else if (repeat) created = await addSeries(data, repeat);
     else await addEvent(data);
     setFormState(null);
     setSelectedDay(data.date);
     const date = fromDateKey(data.date);
     setVisibleMonth({ year: date.getFullYear(), month: date.getMonth() });
-    showToast(editing ? 'Cambios guardados.' : `${AGENDA_TYPE_LABEL[data.type]} guardado en la agenda.`);
+    showToast(
+      editing
+        ? 'Cambios guardados.'
+        : created > 1
+          ? `«${data.title}» se guardó en ${created} fechas.`
+          : `«${data.title}» se guardó en la agenda.`
+    );
   };
 
-  const confirmDelete = async () => {
+  // Cuántos eventos tiene la serie del que se va a eliminar (para ofrecer borrar toda la serie)
+  const toDeleteSeriesCount = toDelete?.seriesId ? events.filter((e) => e.seriesId === toDelete.seriesId).length : 0;
+
+  const confirmDelete = async (wholeSeries = false) => {
     if (!toDelete) return;
-    await removeEvent(toDelete.id);
-    showToast(`«${toDelete.title}» se eliminó.`);
-    if (detailId === toDelete.id) setDetailId(null);
+    if (wholeSeries && toDelete.seriesId) {
+      const removed = await removeSeries(toDelete.seriesId);
+      showToast(`Se eliminaron ${removed} fechas de «${toDelete.title}».`);
+      if (detailId && events.some((e) => e.id === detailId && e.seriesId === toDelete.seriesId)) setDetailId(null);
+    } else {
+      await removeEvent(toDelete.id);
+      showToast(`«${toDelete.title}» se eliminó.`);
+      if (detailId === toDelete.id) setDetailId(null);
+    }
     setToDelete(null);
+  };
+
+  const toggleChecklistItem = (event: AgendaEvent, itemId: string) => {
+    const checklist = (event.checklist ?? []).map((item) => (item.id === itemId ? { ...item, done: !item.done } : item));
+    void setChecklist(event.id, checklist);
   };
 
   const shareEvent = async (event: AgendaEvent) => {
@@ -258,8 +280,19 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
   const deleteModal = (
     <Modal isOpen={toDelete !== null} onClose={() => setToDelete(null)} title="¿Eliminar de la agenda?" maxWidth="sm">
       <p className="text-sm text-[var(--color-md-on-surface-variant)]">
-        Se eliminará «{toDelete?.title}» y su aviso. No se puede deshacer.
+        {toDeleteSeriesCount > 1
+          ? `«${toDelete?.title}» se repite en ${toDeleteSeriesCount} fechas. Puedes eliminar solo esta o todas. No se puede deshacer.`
+          : `Se eliminará «${toDelete?.title}» y su aviso. No se puede deshacer.`}
       </p>
+      {toDeleteSeriesCount > 1 && (
+        <button
+          type="button"
+          onClick={() => void confirmDelete(true)}
+          className="mt-3 h-11 w-full rounded-full border border-[#BA1A1A] text-sm font-bold text-[#BA1A1A] hover:bg-[#BA1A1A]/10 dark:border-[#FFB4AB] dark:text-[#FFB4AB]"
+        >
+          Eliminar las {toDeleteSeriesCount} fechas
+        </button>
+      )}
       <ModalActions>
         <button
           type="button"
@@ -273,7 +306,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           onClick={() => void confirmDelete()}
           className="h-10 rounded-full bg-[#BA1A1A] px-5 text-sm font-bold text-white hover:bg-[#93000A]"
         >
-          Eliminar
+          {toDeleteSeriesCount > 1 ? 'Solo esta' : 'Eliminar'}
         </button>
       </ModalActions>
     </Modal>
@@ -295,6 +328,15 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           onToggleDone={() => toggleDone(detailEvent)}
           onShare={() => void shareEvent(detailEvent)}
           onOpenSubject={onOpenSubjectDetail}
+          onToggleChecklistItem={(itemId) => toggleChecklistItem(detailEvent, itemId)}
+          series={
+            detailEvent.seriesId
+              ? (() => {
+                  const dates = events.filter((e) => e.seriesId === detailEvent.seriesId).map((e) => e.date).sort();
+                  return { index: dates.indexOf(detailEvent.date) + 1, total: dates.length, last: dates[dates.length - 1] };
+                })()
+              : undefined
+          }
         />
         {deleteModal}
       </div>

@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../shared/db/AppDatabase';
 import { agendaRepository } from '../repositories/agendaRepository';
-import type { AgendaEvent, CreateAgendaEventDTO, UpdateAgendaEventDTO } from '../types';
+import type { AgendaChecklistItem, AgendaEvent, AgendaRepeat, CreateAgendaEventDTO, UpdateAgendaEventDTO } from '../types';
 
 const EMPTY: AgendaEvent[] = [];
 
@@ -19,6 +19,9 @@ export function useAgenda() {
   return {
     events,
     addEvent: (dto: CreateAgendaEventDTO) => agendaRepository.create(dto),
+    addSeries: (dto: CreateAgendaEventDTO, repeat: AgendaRepeat) => agendaRepository.createSeries(dto, repeat),
+    setChecklist: (id: string, checklist: AgendaChecklistItem[]) => agendaRepository.setChecklist(id, checklist),
+    removeSeries: (seriesId: string) => agendaRepository.deleteSeries(seriesId),
     updateEvent: (id: string, dto: UpdateAgendaEventDTO) => agendaRepository.update(id, dto),
     setDone: (id: string, done: boolean) => agendaRepository.setDone(id, done),
     removeEvent: (id: string) => agendaRepository.delete(id),

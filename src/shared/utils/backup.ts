@@ -7,7 +7,10 @@ import type { ScheduleSlot } from '../../features/schedule/types';
 import {
   AGENDA_EVENT_TYPES,
   AGENDA_REMINDER_LEADS,
+  AGENDA_STUDY_LEADS,
+  type AgendaChecklistItem,
   type AgendaEvent,
+  type AgendaStudyLead,
   type AgendaEventType,
   type AgendaReminderLead,
 } from '../../features/agenda/types';
@@ -425,6 +428,24 @@ function parseBackupPayload(parsed: unknown): ParsedBackup {
   return { subjects, professors, scheduleSlots, notes, images, audios, agendaEvents: parseAgendaEvents(data) };
 }
 
+/** Subtareas de una tarea del respaldo (como mucho 30, con texto). */
+function parseChecklist(value: unknown): AgendaChecklistItem[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const items: AgendaChecklistItem[] = [];
+  for (const raw of value.slice(0, 30)) {
+    if (!isRecord(raw) || !isString(raw.text) || !raw.text.trim()) continue;
+    items.push({ id: isString(raw.id) ? raw.id.slice(0, 80) : crypto.randomUUID(), text: raw.text.trim().slice(0, 140), done: raw.done === true });
+  }
+  return items.length ? items : undefined;
+}
+
+/** Avisos de repaso de un examen del respaldo (solo los conocidos, sin repetir). */
+function parseStudy(value: unknown): AgendaStudyLead[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const leads = AGENDA_STUDY_LEADS.filter((lead) => value.includes(lead));
+  return leads.length ? leads : undefined;
+}
+
 /** Eventos de la agenda de un respaldo (puede venir de otra persona): se valida cada campo. */
 function parseAgendaEvents(data: UnknownRecord): AgendaEvent[] | null {
   if (data.agendaEvents === undefined) return null;
@@ -447,6 +468,9 @@ function parseAgendaEvents(data: UnknownRecord): AgendaEvent[] | null {
       notes: text(raw.notes, 1000),
       remind: type === 'holiday' ? 'none' : remind,
       done: type === 'task' ? raw.done === true : undefined,
+      checklist: type === 'task' ? parseChecklist(raw.checklist) : undefined,
+      study: type === 'exam' ? parseStudy(raw.study) : undefined,
+      seriesId: text(raw.seriesId, 80),
       createdAt: isString(raw.createdAt) ? raw.createdAt : now,
       updatedAt: isString(raw.updatedAt) ? raw.updatedAt : now,
     });
