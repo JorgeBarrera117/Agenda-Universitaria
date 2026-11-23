@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.11.1",
+  "latestVersion": "1.7.11.2",
   "releaseDate": "2026-11-22",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.1/Agenda-Universitaria-v1.7.11.1.apk",
-  "apkSha256": "a27a88190b4d7d27ef09e44fe6035d88a0362f2c002cc1cf55f66114d8421168",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.1/Agenda-Universitaria-Setup-v1.7.11.1.exe",
-  "desktopSha256": "e35d6e014d264b3f8ce59be15b9a541f70ffdf2350b0eb1cdb8b9c5cec05dc0e",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.2/Agenda-Universitaria-v1.7.11.2.apk",
+  "apkSha256": "291ce931fe77e5c07f35f29754871ce5a1c71bc47f86270559e9096716501136",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.2/Agenda-Universitaria-Setup-v1.7.11.2.exe",
+  "desktopSha256": "d06beed1b93c8fcf3741974e251d7d333c7ed13ad0c34ec7860615ae9775d927",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Sonidos nuevos para cada fase del Estudio",
-    "El Estudio con el color de tu tema y reloj de arena en la notificación"
+    "Notificación del Estudio con el tiempo en grande y botón Saltar",
+    "Horario, Agenda y Materias más claros y fáciles de usar"
   ]
 }
