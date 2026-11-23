@@ -46,7 +46,7 @@ export function buildRoomInviteText(invite: RoomInvite): string {
 }
 
 function isValidHost(host: string): boolean {
-  return isPrivateIPv4(host) || host === 'dev';
+  return isPrivateIPv4(host) || host === 'dev' || host === 'nearby';
 }
 
 function isValidPin(pin: string): boolean {
@@ -455,7 +455,8 @@ export interface HostTransportHandlers {
 
 /** Servidor de la red local, puente fino hacia el motor del anfitrión. */
 export interface HostTransport {
-  start: (handlers: HostTransportHandlers) => Promise<{ port: number; hosts: string[] }>;
+  /** hosts vacío = sin red local (solo cercanía). nearby = también se anuncia por cercanía. */
+  start: (handlers: HostTransportHandlers) => Promise<{ port: number; hosts: string[]; nearby?: boolean }>;
   stop: () => Promise<void>;
   respond: (requestId: string, status: number, body: string) => void;
   push: (streamId: string, data: string) => void;
@@ -471,4 +472,6 @@ export interface GuestStreamHandlers {
 export interface GuestTransport {
   request: (url: string, body: string, timeoutMs: number) => Promise<{ status: number; body: string }>;
   openStream: (url: string, handlers: GuestStreamHandlers) => Promise<() => void>;
+  /** Cierra el canal al salir (por cercanía: desconecta del anfitrión). */
+  dispose?: () => void;
 }

@@ -155,6 +155,8 @@ export interface RoomInvite {
   pin: string;
   /** Nombre de la sala (solo para mostrarlo mientras se conecta). */
   name?: string;
+  /** La sala también se anuncia por cercanía (Bluetooth / Wi-Fi Direct, sin red wifi). */
+  nearby?: boolean;
 }
 
 /** Por qué terminó la sala para este dispositivo. */

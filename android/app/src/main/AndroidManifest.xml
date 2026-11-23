@@ -165,4 +165,25 @@
          (Capacitor pide el permiso la primera vez). No se exige cámara para instalar la app. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Sala Local por cercanía (Google Nearby Connections: Bluetooth y Wi-Fi Direct, sin red wifi).
+         Se piden en tiempo de ejecución solo al usar «Salas cercanas», con una explicación previa.
+         - Android 12+: Bluetooth "dispositivos cercanos" (buscar, anunciarse, conectar).
+         - Android 13+: Wi-Fi cercano, declarado sin uso de ubicación (neverForLocation).
+         - Android 6 a 12L: Bluetooth y wifi exigen permiso de ubicación.
+         - Buscar salas (no anunciarlas): Google Nearby exige la ubicación PRECISA en todas las versiones
+           (errores 8034/8036 MISSING_PERMISSION_ACCESS_COARSE/FINE_LOCATION, comprobado en Android 17).
+           Solo se pide al buscar; anunciar una sala no la necesita. La app no lee la ubicación. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
 </manifest>

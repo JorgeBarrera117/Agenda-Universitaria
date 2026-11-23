@@ -17,12 +17,35 @@ export interface LocalRoomPlugin {
   clientOpenStream(options: { url: string; streamId: string }): Promise<void>;
   clientCloseStream(options: { streamId: string }): Promise<void>;
 
+  /* Por cercanía (Google Nearby Connections: Bluetooth y Wi-Fi Direct, sin red wifi) */
+  /** permission: anunciar una sala · discoveryPermission: buscar salas (incluye ubicación precisa). */
+  nearbyStatus(): Promise<{ available: boolean; permission: NearbyPermission; discoveryPermission: NearbyPermission }>;
+  requestNearbyPermissions(options: { purpose: NearbyPurpose }): Promise<{ permission: NearbyPermission }>;
+  nearbyStartAdvertising(options: { name: string }): Promise<void>;
+  nearbyStartDiscovery(): Promise<void>;
+  nearbyStopDiscovery(): Promise<void>;
+  nearbyConnect(options: { endpointId: string; name: string }): Promise<void>;
+  nearbySend(options: { endpointId: string; data: string }): Promise<void>;
+  nearbyDisconnect(options: { endpointId: string }): Promise<void>;
+  nearbyStopAll(): Promise<void>;
+
   addListener(eventName: 'roomRequest', listener: (event: { id: string; body: string; remote: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomStreamOpen', listener: (event: { streamId: string; query: string; remote: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomStreamClosed', listener: (event: { streamId: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomStopped', listener: (event: { reason: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomClientData', listener: (event: { streamId: string; data: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomClientEnd', listener: (event: { streamId: string; error?: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'nearbyFound', listener: (event: { endpointId: string; name: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'nearbyLost', listener: (event: { endpointId: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'nearbyConnected', listener: (event: { endpointId: string; name: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'nearbyDisconnected', listener: (event: { endpointId: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'nearbyMessage', listener: (event: { endpointId: string; data: string }) => void): Promise<PluginListenerHandle>;
 }
+
+/** granted: listo · prompt: se puede pedir · denied: negado, hay que activarlo en Ajustes del teléfono. */
+export type NearbyPermission = 'granted' | 'prompt' | 'denied';
+
+/** host: abrir una sala y anunciarla · guest: buscar salas cercanas. */
+export type NearbyPurpose = 'host' | 'guest';
 
 export const LocalRoom = registerPlugin<LocalRoomPlugin>('LocalRoom');

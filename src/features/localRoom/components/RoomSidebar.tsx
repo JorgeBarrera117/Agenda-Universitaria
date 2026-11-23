@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { Ban, Copy, Crown, Eye, LockKeyhole, LogOut, MessageCircle, MessageSquareOff, Power, UserRoundCheck, UserRoundX, UsersRound } from 'lucide-react';
+import { Ban, Bluetooth, Copy, Crown, Eye, LockKeyhole, LogOut, MessageCircle, MessageSquareOff, Power, UserRoundCheck, UserRoundX, UsersRound } from 'lucide-react';
 import { CARD_SURFACE_CLASS } from '../../../shared/styles/surfaces';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3Switch } from '../../settings/components/SettingsPrimitives';
@@ -65,11 +65,14 @@ export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLe
             Invitar
           </h3>
           <div className="mt-3 flex flex-col items-center gap-3">
-            <div className="rounded-2xl bg-white p-2 shadow-2xs">
-              <Suspense fallback={<div className="h-[148px] w-[148px]" />}>
-                <QrCodeSvg value={buildRoomInviteText(invite)} size={148} label="Código QR para unirse a la sala" />
-              </Suspense>
-            </div>
+            {/* Sin red local (solo cercanía) no hay QR ni dirección: se entra desde «Salas cercanas» */}
+            {invite.hosts.length > 0 && (
+              <div className="rounded-2xl bg-white p-2 shadow-2xs">
+                <Suspense fallback={<div className="h-[148px] w-[148px]" />}>
+                  <QrCodeSvg value={buildRoomInviteText(invite)} size={148} label="Código QR para unirse a la sala" />
+                </Suspense>
+              </div>
+            )}
             <div className="w-full min-w-0 text-center">
               <p className="text-xs font-bold text-[var(--color-md-on-surface-variant)]">PIN</p>
               <p className="font-mono text-3xl font-extrabold tracking-[0.25em] text-[var(--color-md-on-surface)]" aria-label={`PIN ${invite.pin.split('').join(' ')}`}>
@@ -93,6 +96,15 @@ export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLe
             </div>
           </div>
         </section>
+      )}
+
+      {invite?.nearby && (
+        <p className="flex items-start gap-2 rounded-2xl bg-[var(--color-md-primary-container)]/60 px-3 py-2.5 text-xs font-semibold text-[var(--color-md-on-primary-container)]">
+          <Bluetooth className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {invite.hosts.length > 0
+            ? 'También visible por cercanía: los teléfonos Android sin tu wifi la encuentran en Salas cercanas y entran con el PIN.'
+            : 'Sin wifi: los teléfonos Android cercanos la encuentran en Salas cercanas (Bluetooth) y entran con el PIN.'}
+        </p>
       )}
 
       {/* Sala de espera */}

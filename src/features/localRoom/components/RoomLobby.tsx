@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Check, DoorOpen, KeyRound, LoaderCircle, MonitorSmartphone, Radio, ScanQrCode, Wifi } from 'lucide-react';
 import { CARD_SURFACE_CLASS } from '../../../shared/styles/surfaces';
 import { Modal } from '../../../shared/components/Modal';
@@ -6,7 +6,10 @@ import { SegmentedControl } from '../../../shared/components/form';
 import { M3Switch } from '../../settings/components/SettingsPrimitives';
 import { canScanTransfer, hostKind } from '../../transfer/services/transferAvailability';
 import { parseManualInvite, parseRoomInviteText } from '../services/roomProtocol';
-import { ROOM_PROFILE_COLORS, createRoom, joinRoom, saveRoomProfile } from '../services/roomStore';
+import { ROOM_PROFILE_COLORS, createRoom, joinNearbyRoom, joinRoom, saveRoomProfile } from '../services/roomStore';
+import { getNearbyStatus, isNearbyPlatform, requestNearbyPermission, type NearbyRoom, type NearbyStatus } from '../services/nearbyTransports';
+import { NearbyPermissionDialog } from './NearbyPermissionDialog';
+import { NearbyRoomsCard } from './NearbyRoomsCard';
 import type { RoomInvite, RoomProfile } from '../types/room';
 import { ROOM_FILLED_BUTTON, ROOM_INPUT, ROOM_SECTION_TITLE, ROOM_TONAL_BUTTON } from './roomStyles';
 import { RoomAvatar } from './RoomAvatar';
@@ -35,6 +38,41 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentNam
   const [fullCopyOpen, setFullCopyOpen] = useState(false);
   const [canScan] = useState(canScanTransfer);
   const [canFullCopy] = useState(() => hostKind() !== null);
+  // Por cercanía (solo Android): disponibilidad, permiso y la explicación previa al permiso
+  const [nearbyPlatform] = useState(isNearbyPlatform);
+  const [nearbyStatus, setNearbyStatus] = useState<NearbyStatus | null>(null);
+  const [nearbyHost, setNearbyHost] = useState(true);
+  const [permissionAsk, setPermissionAsk] = useState<{ denied: boolean; purpose: 'host' | 'guest'; resolve: (proceed: boolean) => void } | null>(null);
+
+  useEffect(() => {
+    if (!nearbyPlatform) return;
+    let alive = true;
+    void getNearbyStatus().then((status) => {
+      if (alive) setNearbyStatus(status);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [nearbyPlatform]);
+
+  const nearbyAvailable = nearbyStatus?.available ?? null;
+
+  /** Explica para qué es el permiso y, si acepta, lo pide al sistema. true = concedido. */
+  const ensureNearbyPermission = async (purpose: 'host' | 'guest'): Promise<boolean> => {
+    const status = await getNearbyStatus();
+    const current = purpose === 'guest' ? status.discoveryPermission : status.permission;
+    if (current === 'granted') return true;
+    const proceed = await new Promise<boolean>((resolve) => setPermissionAsk({ denied: current === 'denied', purpose, resolve }));
+    setPermissionAsk(null);
+    if (!proceed) return false;
+    const permission = await requestNearbyPermission(purpose);
+    setNearbyStatus(await getNearbyStatus());
+    if (permission !== 'granted') {
+      onShowToast('Sin el permiso de dispositivos cercanos no se pueden usar las salas sin wifi.');
+      return false;
+    }
+    return true;
+  };
 
   const profileReady = profile.name.trim().length > 0;
 
@@ -46,9 +84,21 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentNam
   const create = async () => {
     setError(null);
     try {
-      await createRoom({ roomName, pinLength, profile: { ...profile, name: profile.name.trim() }, rules: { waitingRoom } });
+      // Por cercanía solo si el teléfono puede y el estudiante da el permiso; si no, solo por wifi
+      const nearby = nearbyPlatform && nearbyAvailable === true && nearbyHost ? await ensureNearbyPermission('host') : false;
+      await createRoom({ roomName, pinLength, profile: { ...profile, name: profile.name.trim() }, rules: { waitingRoom }, nearby });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo abrir la sala.');
+    }
+  };
+
+  const joinNearby = async (room: NearbyRoom, roomPin: string) => {
+    setError(null);
+    try {
+      await joinNearbyRoom(room, roomPin, { ...profile, name: profile.name.trim() });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo entrar a la sala cercana.');
+      throw err;
     }
   };
 
@@ -158,6 +208,15 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentNam
             </span>
             <M3Switch checked={waitingRoom} onChange={setWaitingRoom} label="Sala de espera" />
           </div>
+          {nearbyPlatform && nearbyAvailable === true && (
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-[var(--color-md-surface-container-high)] px-4 py-3">
+              <span className="min-w-0">
+                <span className="block text-sm font-bold text-[var(--color-md-on-surface)]">También por cercanía</span>
+                <span className="block text-xs text-[var(--color-md-on-surface-variant)]">Bluetooth y Wi-Fi Direct, para teléfonos Android sin tu wifi</span>
+              </span>
+              <M3Switch checked={nearbyHost} onChange={setNearbyHost} label="También por cercanía" />
+            </div>
+          )}
           <div className="mt-auto pt-4">
             <button type="button" className={`${ROOM_FILLED_BUTTON} w-full`} disabled={!profileReady || busy !== null} onClick={() => void create()}>
               {busy === 'host' ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <DoorOpen aria-hidden="true" />}
@@ -211,6 +270,17 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentNam
         </section>
       </div>
 
+      {nearbyPlatform && (
+        <NearbyRoomsCard
+          available={nearbyAvailable}
+          disabled={!profileReady || busy !== null}
+          joining={busy === 'guest'}
+          ensurePermission={() => ensureNearbyPermission('guest')}
+          onJoin={joinNearby}
+          onShowToast={onShowToast}
+        />
+      )}
+
       {error && (
         <p role="alert" className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-200">
           {error}
@@ -219,7 +289,9 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentNam
 
       <p className="flex items-start gap-2 px-1 text-xs text-[var(--color-md-on-surface-variant)]">
         <Wifi className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        Todos deben estar en la misma red wifi, o conectados al punto de acceso del teléfono anfitrión. Lo que viaja por la sala va cifrado con el PIN.
+        {nearbyPlatform && nearbyAvailable
+          ? 'Por wifi: todos en la misma red o en el punto de acceso del anfitrión. Sin wifi: Salas cercanas (Bluetooth). Todo va cifrado con el PIN.'
+          : 'Todos deben estar en la misma red wifi, o conectados al punto de acceso del teléfono anfitrión. Lo que viaja por la sala va cifrado con el PIN.'}
       </p>
 
       {canFullCopy && (
@@ -235,6 +307,15 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentNam
             Copia completa
           </button>
         </section>
+      )}
+
+      {permissionAsk && (
+        <NearbyPermissionDialog
+          denied={permissionAsk.denied}
+          purpose={permissionAsk.purpose}
+          onContinue={() => permissionAsk.resolve(true)}
+          onClose={() => permissionAsk.resolve(false)}
+        />
       )}
 
       {scanning && (

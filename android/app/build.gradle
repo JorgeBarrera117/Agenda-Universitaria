@@ -95,6 +95,9 @@ dependencies {
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     // Desbloqueo de la agenda con huella o bloqueo de pantalla (Ajustes → Bloqueo de la app)
     implementation "androidx.biometric:biometric:1.1.0"
+    // Sala Local por cercanía (Bluetooth + Wi-Fi Direct, sin red wifi): Google Nearby Connections.
+    // Necesita los servicios de Google Play en el teléfono; sin ellos la app oculta esa opción.
+    implementation "com.google.android.gms:play-services-nearby:19.3.0"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"

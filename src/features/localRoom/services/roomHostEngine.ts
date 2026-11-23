@@ -180,13 +180,13 @@ export class RoomHostEngine {
   static async open(transport: HostTransport, options: RoomHostOptions): Promise<RoomHostEngine> {
     const engine = new RoomHostEngine(transport, options);
     engine.key = await deriveRoomKey(engine.pin, engine.salt);
-    const { port, hosts } = await transport.start({
+    const { port, hosts, nearby } = await transport.start({
       onRequest: (request) => void engine.handleRequest(request),
       onStreamOpen: (stream) => void engine.handleStreamOpen(stream),
       onStreamClosed: (streamId) => engine.handleStreamClosed(streamId),
       onStopped: (reason) => engine.finish('error', reason),
     });
-    engine.invite = { hosts, port, pin: engine.pin, name: engine.info.name };
+    engine.invite = { hosts, port, pin: engine.pin, name: engine.info.name, nearby };
     engine.uploadSweep = setInterval(() => engine.sweepUploads(), 30_000);
     engine.refreshView();
     return engine;

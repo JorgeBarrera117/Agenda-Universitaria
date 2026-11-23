@@ -355,6 +355,7 @@ export class RoomGuestClient {
     this.retryTimer = null;
     this.closeStream?.();
     this.closeStream = null;
+    this.transport.dispose?.();
     this.setState({ phase: 'ended', endReason: reason });
     this.endListener?.(reason, message);
   }

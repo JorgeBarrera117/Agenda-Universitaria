@@ -16,6 +16,8 @@ import { RoomGuestClient, RoomTransferCancelled } from './roomGuestClient';
 import { RoomHostEngine } from './roomHostEngine';
 import { assertRoomItemSize } from './roomItems';
 import { createGuestTransport, createHostTransport } from './roomTransports';
+import { combineHostTransports } from './nearbyLink';
+import { createNearbyGuestTransport, createNearbyHostTransport, type NearbyRoom } from './nearbyTransports';
 
 /**
  * Estado global de la sala para este dispositivo (una sola sala a la vez). Vive fuera de React
@@ -202,6 +204,8 @@ export interface CreateRoomOptions {
   pinLength: 4 | 6;
   profile: RoomProfile;
   rules: Partial<RoomRules>;
+  /** Android: anunciar la sala también por cercanía (Bluetooth / Wi-Fi Direct). */
+  nearby?: boolean;
 }
 
 function busy(): boolean {
@@ -212,7 +216,9 @@ export async function createRoom(options: CreateRoomOptions): Promise<void> {
   if (busy()) return;
   emit({ session: { phase: 'starting', role: 'host' }, ...resetRoomState() });
   try {
-    const created = await RoomHostEngine.open(createHostTransport(), options);
+    const roomName = options.roomName.trim() || 'Sala de clase';
+    const transport = options.nearby ? combineHostTransports(createHostTransport(), createNearbyHostTransport(roomName, options.profile.name)) : createHostTransport();
+    const created = await RoomHostEngine.open(transport, options);
     engine = created;
     detach = created.subscribe(syncFromEngine);
     created.onEnd((reason, message) =>
@@ -235,6 +241,24 @@ export async function joinRoom(invite: RoomInvite, profile: RoomProfile): Promis
     joined.onEnd((reason, message) => ended(reason, message ?? (reason === 'left' ? 'Saliste de la sala.' : 'La sala terminó.')));
     syncFromClient();
   } catch (error) {
+    emit({ session: { phase: 'idle' } });
+    throw error;
+  }
+}
+
+/** Entrar a una sala encontrada en «Salas cercanas» (sin red wifi), con su PIN. */
+export async function joinNearbyRoom(room: NearbyRoom, pin: string, profile: RoomProfile): Promise<void> {
+  if (busy()) return;
+  emit({ session: { phase: 'starting', role: 'guest' }, ...resetRoomState() });
+  const transport = createNearbyGuestTransport(room.endpointId, profile.name);
+  try {
+    const joined = await RoomGuestClient.connect(transport, { hosts: ['nearby'], port: 0, pin, name: room.roomName }, profile, deviceId());
+    client = joined;
+    detach = joined.subscribe(syncFromClient);
+    joined.onEnd((reason, message) => ended(reason, message ?? (reason === 'left' ? 'Saliste de la sala.' : 'La sala terminó.')));
+    syncFromClient();
+  } catch (error) {
+    transport.dispose();
     emit({ session: { phase: 'idle' } });
     throw error;
   }
