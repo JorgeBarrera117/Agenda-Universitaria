@@ -32,63 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: '1.7.11.4.5',
+    version: '1.7.11.5',
     date: '2026-11-23',
-    title: 'Sala Local en segundo plano (prueba)',
+    title: 'Sala de Intercambio Local',
     changes: [
-      { kind: 'nuevo', text: 'La Sala Local sigue conectada al minimizar la app, cambiar de app o bloquear la pantalla; solo sales con Salir de la sala o cuando el anfitrión la cierra.' },
-      { kind: 'nuevo', text: 'Android: notificación fija con el nombre de la sala, los conectados y el botón Salir de la sala (o Cerrar sala si eres el anfitrión).' },
-      { kind: 'nuevo', text: 'Avisos de mensajes, chats privados y elementos nuevos cuando estás fuera de la app (Android y Windows); al tocarlos se abre la sala o el chat.' },
-      { kind: 'nuevo', text: 'Cuando el anfitrión cierra la sala, todos ven el aviso La sala se ha cerrado · El anfitrión finalizó la sesión, también fuera de la app.' },
-    ],
-  },
-  {
-    version: '1.7.11.4.4',
-    date: '2026-11-23',
-    title: 'Sala Local: compañeros guardados y tu foto (prueba)',
-    changes: [
-      { kind: 'nuevo', text: 'Compañeros guardados: guarda a quienes coinciden contigo en la sala y míralos en la recepción; se marca con un punto verde quien tiene una sala cerca.' },
-      { kind: 'nuevo', text: 'El anfitrión puede admitir a sus compañeros guardados sin pasar por la sala de espera, y se ve la etiqueta Compañero junto a su nombre.' },
-      { kind: 'nuevo', text: 'Tu foto de Mi perfil aparece en la sala, en la lista de participantes y en los chats privados (si no tienes foto, tus iniciales con color).' },
-      { kind: 'mejora', text: 'Recepción de la Sala Local más compacta: pestañas Unirse a sala y Crear sala, sin tener que desplazarse.' },
-      { kind: 'mejora', text: 'Nadie puede hacerse pasar por un compañero guardado: cada dispositivo firma su entrada a la sala.' },
-    ],
-  },
-  {
-    version: '1.7.11.4.3',
-    date: '2026-11-23',
-    title: 'Sala Local sin wifi: salas cercanas por Bluetooth (prueba)',
-    changes: [
-      { kind: 'nuevo', text: 'Salas cercanas (Android): encuentra y únete a salas a pocos metros por Bluetooth y Wi-Fi Direct, sin red wifi ni datos.' },
-      { kind: 'nuevo', text: 'Al abrir una sala en Android puedes anunciarla también por cercanía: entran por wifi y por Bluetooth a la vez.' },
-      { kind: 'nuevo', text: 'Por cercanía funciona todo igual: PIN, sala de espera, chats privados y archivos pesados con progreso.' },
-      { kind: 'mejora', text: 'Antes de pedir el permiso de dispositivos cercanos, la app explica para qué es y que no usa tu ubicación.' },
-      { kind: 'mejora', text: 'Para cuidar la batería, la búsqueda y el anuncio se apagan al entrar a una sala, salir de la pantalla o dejar la app en segundo plano.' },
-    ],
-  },
-  {
-    version: '1.7.11.4.2',
-    date: '2026-11-23',
-    title: 'Sala Local: chats privados y archivos pesados (prueba)',
-    changes: [
-      { kind: 'nuevo', text: 'Chat privado 1 a 1 en la Sala Local: toca a un compañero para escribirle o enviarle un horario, materia, contacto, apunte o archivo que solo él recibe.' },
-      { kind: 'nuevo', text: 'Los mensajes privados sin leer se marcan sobre el avatar de cada compañero.' },
-      { kind: 'nuevo', text: 'Archivos pesados en la sala (hasta 300 MB): viajan por partes cifradas, con barra de progreso, peso, velocidad y botón para cancelar.' },
-      { kind: 'nuevo', text: 'El anfitrión puede activar o desactivar los chats privados.' },
-      { kind: 'mejora', text: 'Sala Local: los 8 colores del avatar caben en una sola fila en el teléfono.' },
-      { kind: 'correccion', text: 'Sala Local: tu nombre del perfil aparece de entrada (antes en la PC salía «Estudiante»).' },
-    ],
-  },
-  {
-    version: '1.7.11.4.1',
-    date: '2026-11-23',
-    title: 'Sala de Intercambio Local (prueba)',
-    changes: [
-      { kind: 'nuevo', text: 'Sala Local: comparte con compañeros cercanos por wifi o con el punto de acceso de un teléfono, sin internet. Se entra con un código QR o con la dirección y el PIN.' },
-      { kind: 'nuevo', text: 'En la sala se comparten horarios, materias, contactos docentes, apuntes y archivos de la Biblioteca, con un mensaje opcional.' },
-      { kind: 'nuevo', text: 'Guardar en mi agenda: lo que recibes se guarda sin duplicados (puedes combinar, actualizar o guardar como nuevo).' },
-      { kind: 'nuevo', text: 'El anfitrión decide: sala de espera, bloquear la entrada, solo lectura, permitir texto, retirar a alguien y cerrar la sala para todos.' },
-      { kind: 'mejora', text: 'Pasar datos con otro dispositivo ahora abre la Sala Local, donde también está la copia completa.' },
+      { kind: 'nuevo', text: 'Sala Local: comparte horarios, materias, contactos docentes, apuntes y archivos con compañeros cercanos, sin internet. Se entra con un código QR o con la dirección y el PIN.' },
+      { kind: 'nuevo', text: 'Funciona por wifi, con el punto de acceso de un teléfono o, entre teléfonos Android, por Bluetooth (Salas cercanas), sin red.' },
+      { kind: 'nuevo', text: 'Guardar en mi agenda sin duplicados: combina, actualiza o guarda como nuevo lo que recibes.' },
+      { kind: 'nuevo', text: 'Chats privados 1 a 1 y archivos pesados (hasta 300 MB) con barra de progreso, velocidad y opción de cancelar.' },
+      { kind: 'nuevo', text: 'El anfitrión decide: sala de espera, bloquear la entrada, solo lectura, texto, chats privados, retirar a alguien y cerrar la sala para todos.' },
+      { kind: 'nuevo', text: 'Compañeros guardados: tu foto de Mi perfil en la sala, la etiqueta Compañero y entrada sin espera para tus compañeros.' },
+      { kind: 'nuevo', text: 'La sala sigue conectada en segundo plano y con la pantalla bloqueada, con avisos de mensajes y del cierre de la sala.' },
+      { kind: 'mejora', text: 'Los selectores Materias | Profesores y Apuntes | Archivos usan el color de cada sección y un fondo sólido.' },
     ],
   },
   {
