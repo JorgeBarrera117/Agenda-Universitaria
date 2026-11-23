@@ -32,6 +32,19 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.4.2',
+    date: '2026-11-23',
+    title: 'Sala Local: chats privados y archivos pesados (prueba)',
+    changes: [
+      { kind: 'nuevo', text: 'Chat privado 1 a 1 en la Sala Local: toca a un compañero para escribirle o enviarle un horario, materia, contacto, apunte o archivo que solo él recibe.' },
+      { kind: 'nuevo', text: 'Los mensajes privados sin leer se marcan sobre el avatar de cada compañero.' },
+      { kind: 'nuevo', text: 'Archivos pesados en la sala (hasta 300 MB): viajan por partes cifradas, con barra de progreso, peso, velocidad y botón para cancelar.' },
+      { kind: 'nuevo', text: 'El anfitrión puede activar o desactivar los chats privados.' },
+      { kind: 'mejora', text: 'Sala Local: los 8 colores del avatar caben en una sola fila en el teléfono.' },
+      { kind: 'correccion', text: 'Sala Local: tu nombre del perfil aparece de entrada (antes en la PC salía «Estudiante»).' },
+    ],
+  },
+  {
     version: '1.7.11.4.1',
     date: '2026-11-23',
     title: 'Sala de Intercambio Local (prueba)',
