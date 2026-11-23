@@ -1,15 +1,14 @@
 {
-  "latestVersion": "1.7.11.5",
+  "latestVersion": "1.7.11.6",
   "releaseDate": "2026-11-23",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.5/Agenda-Universitaria-v1.7.11.5.apk",
-  "apkSha256": "ce26d9a66458cc32f6bf094979a7af03ae9a0d6608b25bd2330eb02784fe7d7b",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.5/Agenda-Universitaria-Setup-v1.7.11.5.exe",
-  "desktopSha256": "7d8f6bd487ec01a41047cac274cf5b50fc6c5b8819dcdcf2633ea09bb5bbf02c",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.6/Agenda-Universitaria-v1.7.11.6.apk",
+  "apkSha256": "0cc385e201bb3dba48dc909b2ea4ba59ab067ec884d5ffbca45936668f286826",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.6/Agenda-Universitaria-Setup-v1.7.11.6.exe",
+  "desktopSha256": "892b6976c908b0feb5666db66bb6fa80b0b1f3e07ab0f9acb420e905befb8a6c",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Sala Local: comparte con compañeros cercanos sin internet",
-    "Chats privados, archivos pesados y compañeros guardados",
-    "La sala sigue conectada en segundo plano"
+    "Acerca de la agenda: versión y actualizaciones arriba",
+    "Novedades más compactas y mensaje plegable"
   ]
 }
