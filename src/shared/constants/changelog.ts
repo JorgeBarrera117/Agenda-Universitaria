@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.4.4',
+    date: '2026-11-23',
+    title: 'Sala Local: compañeros guardados y tu foto (prueba)',
+    changes: [
+      { kind: 'nuevo', text: 'Compañeros guardados: guarda a quienes coinciden contigo en la sala y míralos en la recepción; se marca con un punto verde quien tiene una sala cerca.' },
+      { kind: 'nuevo', text: 'El anfitrión puede admitir a sus compañeros guardados sin pasar por la sala de espera, y se ve la etiqueta Compañero junto a su nombre.' },
+      { kind: 'nuevo', text: 'Tu foto de Mi perfil aparece en la sala, en la lista de participantes y en los chats privados (si no tienes foto, tus iniciales con color).' },
+      { kind: 'mejora', text: 'Recepción de la Sala Local más compacta: pestañas Unirse a sala y Crear sala, sin tener que desplazarse.' },
+      { kind: 'mejora', text: 'Nadie puede hacerse pasar por un compañero guardado: cada dispositivo firma su entrada a la sala.' },
+    ],
+  },
+  {
     version: '1.7.11.4.3',
     date: '2026-11-23',
     title: 'Sala Local sin wifi: salas cercanas por Bluetooth (prueba)',
