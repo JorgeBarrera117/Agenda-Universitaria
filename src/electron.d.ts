@@ -58,6 +58,18 @@ export type ElectronTransferEvent =
   | { type: 'blocked' }
   | { type: 'error'; message: string };
 
+/** Sala de Intercambio Local: eventos del servidor (anfitrión). Ver electron/roomServer.cjs. */
+export type ElectronRoomHostEvent =
+  | { type: 'request'; id: string; body: string; remote: string }
+  | { type: 'streamOpen'; streamId: string; query: string; remote: string }
+  | { type: 'streamClosed'; streamId: string }
+  | { type: 'stopped'; reason: string };
+
+/** Sala de Intercambio Local: eventos de la conexión SSE del invitado. */
+export type ElectronRoomClientEvent =
+  | { type: 'data'; streamId: string; data: string }
+  | { type: 'end'; streamId: string; error?: string };
+
 export interface ElectronAPI {
   isElectron: boolean;
   platform: string;
@@ -83,6 +95,19 @@ export interface ElectronAPI {
   installUpdate: () => Promise<{ success: boolean }>;
   /** Progreso 0-100 (o -1 si el servidor no informa el tamaño). Devuelve la función para dejar de escuchar. */
   onUpdateProgress: (callback: (percent: number) => void) => () => void;
+  /** Sala local (anfitrión): abre el servidor en la red local y reenvía peticiones y conexiones SSE. */
+  roomHostStart: () => Promise<{ port: number; hosts: string[] }>;
+  roomHostStop: () => Promise<void>;
+  roomHostRespond: (options: { id: string; status: number; body: string }) => Promise<void>;
+  roomHostPush: (options: { streamId: string; data: string }) => Promise<void>;
+  roomHostCloseStream: (options: { streamId: string }) => Promise<void>;
+  onRoomHostEvent: (callback: (event: ElectronRoomHostEvent) => void) => () => void;
+  /** Sala local (invitado): HTTP y SSE desde el proceso principal (la interfaz no puede abrir http:// de la red). */
+  roomClientRequest: (options: { url: string; body: string; timeoutMs: number }) => Promise<{ status: number; body: string }>;
+  /** streamId lo elige la interfaz: así ningún evento llega antes de saber a qué conexión pertenece. */
+  roomClientOpenStream: (options: { url: string; streamId: string }) => Promise<void>;
+  roomClientCloseStream: (options: { streamId: string }) => Promise<void>;
+  onRoomClientEvent: (callback: (event: ElectronRoomClientEvent) => void) => () => void;
 }
 
 declare global {

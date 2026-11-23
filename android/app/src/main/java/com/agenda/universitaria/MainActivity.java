@@ -16,6 +16,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WidgetBridgePlugin.class);
         registerPlugin(StudyTimerPlugin.class);
+        registerPlugin(com.agenda.universitaria.room.LocalRoomPlugin.class);
         clearStaleServiceWorkerOnUpdate();
         super.onCreate(savedInstanceState);
 

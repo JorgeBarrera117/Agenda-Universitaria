@@ -29,6 +29,7 @@ import { useTabCounts } from './shared/hooks/useTabCounts';
 import { useScrolledAttribute } from './shared/hooks/useScrolledAttribute';
 import { isPerformanceModeOn } from './shared/utils/deviceProfile';
 import { backButtonManager } from './shared/services/backButtonManager';
+import { useLocalRoom } from './features/localRoom/hooks/useLocalRoom';
 import { useIncomingSharedFile } from './shared/hooks/useIncomingSharedFile';
 import { DETAIL_TAB, type DetailRequest, type DetailReturn, type DetailTarget } from './shared/navigation/detailNavigation';
 import {
@@ -95,6 +96,9 @@ const ImportSubjectModal = lazy(() =>
 );
 const ImportScheduleModal = lazy(() =>
   import('./features/schedule/components/ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
+);
+const LocalRoomScreen = lazy(() =>
+  import('./features/localRoom/components/LocalRoomScreen').then((m) => ({ default: m.LocalRoomScreen }))
 );
 const DocumentsView = lazy(() => loadDocumentsView().then((m) => ({ default: memo(m.DocumentsView) })));
 const StudyView = lazy(() => loadStudyView().then((m) => ({ default: memo(m.StudyView) })));
@@ -178,6 +182,8 @@ export function App() {
 
   const { subjectCount, professorsCount, notesCount, documentsCount, agendaDueCount } = useTabCounts();
   const { settings } = useAppSettings();
+  // Sala de Intercambio Local: su pantalla se abre desde la barra superior o desde «Pasar datos»
+  const localRoom = useLocalRoom();
   // Bloqueo con PIN o huella (Ajustes → Bloqueo de la app): tapa la app hasta desbloquear
   const appLock = useAppLock();
 
@@ -600,6 +606,12 @@ export function App() {
               showToast(scheduleImportedMessage(summary, mode));
             }}
           />
+        </Suspense>
+      )}
+
+      {localRoom.screenOpen && (
+        <Suspense fallback={null}>
+          <LocalRoomScreen studentName={settings.studentName} onShowToast={showToast} />
         </Suspense>
       )}
 

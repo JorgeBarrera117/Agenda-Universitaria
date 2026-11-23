@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Download, MonitorSmartphone, ScanQrCode, Send } from 'lucide-react';
+import { Download, MonitorSmartphone, Radio, ScanQrCode, Send } from 'lucide-react';
+import { setRoomScreenOpen } from '../../localRoom/services/roomStore';
 import { SettingsBlock, SettingsCard } from '../../settings/components/SettingsPrimitives';
 import { hostKind } from '../services/transferAvailability';
 import { TransferTile } from './TransferTile';
@@ -33,6 +34,15 @@ export const DeviceTransferCard: React.FC<DeviceTransferCardProps> = ({ onShowTo
         }
         icon={<MonitorSmartphone className="h-4 w-4" />}
       >
+        {/* Compartir elementos sueltos con compañeros cercanos (Sala de Intercambio Local) */}
+        <div className="mb-2">
+          <TransferTile
+            icon={<Radio className="h-4 w-4" />}
+            title="Sala Local con compañeros"
+            subtitle="Comparte horarios, materias, contactos, apuntes y archivos con quienes estén cerca"
+            onClick={() => setRoomScreenOpen(true)}
+          />
+        </div>
         <div className={`grid grid-cols-1 gap-2 ${isPhone ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
           {isPhone && (
             <TransferTile

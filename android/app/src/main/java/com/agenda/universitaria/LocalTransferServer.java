@@ -313,7 +313,7 @@ public final class LocalTransferServer {
 
     /* ------------------------------------------------------------------ Direcciones de la red local */
 
-    static boolean isPrivateIPv4(byte[] a) {
+    public static boolean isPrivateIPv4(byte[] a) {
         int b0 = a[0] & 0xff;
         int b1 = a[1] & 0xff;
         return b0 == 10 || (b0 == 172 && b1 >= 16 && b1 <= 31) || (b0 == 192 && b1 == 168);

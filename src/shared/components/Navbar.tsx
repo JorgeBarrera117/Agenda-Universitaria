@@ -16,6 +16,7 @@ import { useSeason } from '../seasons/useSeason';
 import { SantaHat } from '../seasons/SantaHat';
 import { PartyHat } from '../seasons/PartyHat';
 import { NAV_TAB_OF, type NavTabId, type SectionId } from '../navigation/sections';
+import { LocalRoomButton } from '../../features/localRoom/components/LocalRoomButton';
 
 /** Sección visible (ver navigation/sections.ts). Se conserva el nombre para no tocar todo el código. */
 export type TabType = SectionId;
@@ -270,8 +271,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* M3 Tonal Action Button (Ajustes) */}
+          {/* Sala Local + Ajustes (botones tonales) */}
           <div className="flex items-center justify-end gap-2 shrink-0 lg:justify-self-end">
+            <LocalRoomButton />
             <button
               onClick={onOpenSettings}
               title="Ajustes y Personalización de la Agenda"

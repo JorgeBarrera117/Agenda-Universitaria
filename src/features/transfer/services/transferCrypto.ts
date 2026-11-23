@@ -80,7 +80,7 @@ export async function openTransferPayload(sealedBase64: string, keyBase64Url: st
 // Los respaldos con fotos y audios pesan decenas de MB: se convierte por partes para no
 // desbordar la pila con String.fromCharCode(...bytes).
 
-function bytesToBase64(bytes: Uint8Array): string {
+export function bytesToBase64(bytes: Uint8Array): string {
   const parts: string[] = [];
   for (let offset = 0; offset < bytes.length; offset += BASE64_CHUNK) {
     const chunk = bytes.subarray(offset, offset + BASE64_CHUNK);
@@ -91,7 +91,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return parts.join('');
 }
 
-function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
+export function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
   const clean = base64.replace(/\s+/g, '');
   const step = (BASE64_CHUNK / 3) * 4;
   const chunks: Uint8Array[] = [];

@@ -326,6 +326,56 @@ ipcMain.handle('transfer-start', async (event, options) => {
 
 ipcMain.handle('transfer-stop', () => stopTransferSession());
 
+/* ----------------------------------------------------------------------------------------------
+ * Sala de Intercambio Local. Ver roomServer.cjs: este proceso solo reenvía; la sala vive en la interfaz.
+ * ---------------------------------------------------------------------------------------------- */
+const { createRoomHost, createRoomClient, clientRequest: roomClientRequest } = require('./roomServer.cjs');
+let roomHost = null;
+let roomClient = null;
+
+function stopRoomHost() {
+  if (roomHost) {
+    roomHost.stop();
+    roomHost = null;
+  }
+}
+
+ipcMain.handle('room-host-start', async (event) => {
+  stopRoomHost();
+  const sender = event.sender;
+  let host = null;
+  host = await createRoomHost((roomEvent) => {
+    if (!sender.isDestroyed()) sender.send('room-host-event', roomEvent);
+    if (roomEvent.type === 'stopped' && roomHost === host) roomHost = null;
+  });
+  roomHost = host;
+  // Si se cierra o recarga la ventana, la sala se apaga con ella
+  sender.once('destroyed', () => {
+    if (roomHost === host) stopRoomHost();
+  });
+  return host.info;
+});
+ipcMain.handle('room-host-stop', () => stopRoomHost());
+ipcMain.handle('room-host-respond', (_event, o) => roomHost && o && roomHost.respond(String(o.id), Number(o.status), String(o.body)));
+ipcMain.handle('room-host-push', (_event, o) => roomHost && o && roomHost.push(String(o.streamId), String(o.data)));
+ipcMain.handle('room-host-close-stream', (_event, o) => roomHost && o && roomHost.closeStream(String(o.streamId)));
+
+ipcMain.handle('room-client-request', (_event, o) => roomClientRequest(String(o && o.url), String(o && o.body), Number(o && o.timeoutMs)));
+ipcMain.handle('room-client-open', (event, o) => {
+  const sender = event.sender;
+  if (!roomClient) {
+    roomClient = createRoomClient((clientEvent) => {
+      if (!sender.isDestroyed()) sender.send('room-client-event', clientEvent);
+    });
+    sender.once('destroyed', () => {
+      if (roomClient) roomClient.closeAll();
+      roomClient = null;
+    });
+  }
+  roomClient.openStream(String(o && o.url), String(o && o.streamId));
+});
+ipcMain.handle('room-client-close', (_event, o) => roomClient && o && roomClient.closeStream(String(o.streamId)));
+
 ipcMain.handle('get-launch-at-login', () => app.getLoginItemSettings({ path: launcherPath(), args: [START_HIDDEN_ARG] }).openAtLogin);
 
 ipcMain.handle('set-launch-at-login', (_event, enabled) => {

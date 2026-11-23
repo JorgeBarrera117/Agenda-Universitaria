@@ -33,6 +33,7 @@ import { CampusPulseBento } from './CampusPulseBento';
 import { ClassProgressBar } from './ClassProgressBar';
 import { SeasonalGreeting } from '../../../shared/seasons/SeasonalGreeting';
 import { transferShortcutLabel } from '../../transfer/services/transferAvailability';
+import { setRoomScreenOpen } from '../../localRoom/services/roomStore';
 import { isSlotVirtual, meetingPlatform } from '../utils/slotModality';
 import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
 import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
@@ -115,10 +116,6 @@ const SubjectDocumentsModal = lazy(() =>
 const ImportScheduleModal = lazy(() =>
   import('./ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
-// Y con la transferencia por QR entre el teléfono y la PC (menú ⋮)
-const TransferLauncher = lazy(() =>
-  import('../../transfer/components/TransferLauncher').then((m) => ({ default: m.TransferLauncher }))
-);
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onNavigateToNotes,
@@ -140,7 +137,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const currentDayOfWeek = pulse.todayDayOfWeek;
   const nowTimeString = pulse.nowTimeString;
   const [subjectForFiles, setSubjectForFiles] = useState<Subject | null>(null);
-  const [transferOpen, setTransferOpen] = useState(false);
   const [transferLabel] = useState(transferShortcutLabel);
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(currentDayOfWeek);
@@ -348,15 +344,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
       onClick: agschedulePicker.open,
     },
-    // Acceso directo a pasar los datos por QR (solo en las apps de Android y Windows)
+    // Abre la Sala Local: compartir con compañeros cercanos o pasar todos los datos (solo apps)
     ...(transferLabel
       ? [
           {
             id: 'device-transfer',
             label: transferLabel,
-            description: 'Pasa todos tus datos a tu otro dispositivo con un código QR.',
+            description: 'Comparte con compañeros cercanos en una Sala Local o pasa todos tus datos a tu otro dispositivo.',
             icon: <MonitorSmartphone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-            onClick: () => setTransferOpen(true),
+            onClick: () => setRoomScreenOpen(true),
           },
         ]
       : []),
@@ -464,11 +460,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               color={AREA_COLOR.schedule}
               items={shareItems}
             />
-          )}
-          {transferOpen && (
-            <Suspense fallback={null}>
-              <TransferLauncher onClose={() => setTransferOpen(false)} onShowToast={showToast} />
-            </Suspense>
           )}
         </div>
       </div>

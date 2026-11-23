@@ -36,6 +36,34 @@ function declaredType(content: string): string | undefined {
 }
 
 /**
+ * Valida el contenido de un apunte, contacto, materia u horario compartido con el parser de su
+ * formato (carga diferida: DOMPurify y compañía no pesan en el arranque). Lo usan los archivos
+ * abiertos desde otra app y la Sala de Intercambio Local. Lanza un Error con mensaje legible.
+ */
+export async function parseSharedFileContent(content: string): Promise<IncomingSharedFile> {
+  switch (declaredType(content)) {
+    case 'note': {
+      const { parseAgnoteContent } = await import('../../features/notes/services/noteShareService');
+      return { kind: 'note', sharePackage: parseAgnoteContent(content) };
+    }
+    case 'single_professor': {
+      const { parseAgcontactContent } = await import('../../features/professors/services/professorShareService');
+      return { kind: 'contact', sharePackage: parseAgcontactContent(content) };
+    }
+    case 'single_subject': {
+      const { parseAgclassContent } = await import('../../features/subjects/services/subjectShareService');
+      return { kind: 'subject', sharePackage: parseAgclassContent(content) };
+    }
+    case 'full_schedule': {
+      const { parseAgscheduleContent } = await import('../../features/schedule/services/scheduleShareService');
+      return { kind: 'schedule', sharePackage: parseAgscheduleContent(content) };
+    }
+    default:
+      throw new Error(UNKNOWN_FILE_MESSAGE);
+  }
+}
+
+/**
  * Apunte (.agnote), contacto (.agcontact), materia (.agclass) u horario (.agschedule) con el que
  * se abrió la app, p. ej. tocado en WhatsApp.
  * Solo en Android: el plugin nativo emite "incomingFile" con el URI, se lee con readContentUri y
@@ -56,32 +84,7 @@ export function useIncomingSharedFile(onError: (message: string) => void): {
       void (async () => {
         try {
           const { content } = await WidgetBridge.readContentUri({ uri });
-          // Carga diferida: los validadores (DOMPurify en apuntes) no pesan en el arranque
-          let next: IncomingSharedFile;
-          switch (declaredType(content)) {
-            case 'note': {
-              const { parseAgnoteContent } = await import('../../features/notes/services/noteShareService');
-              next = { kind: 'note', sharePackage: parseAgnoteContent(content) };
-              break;
-            }
-            case 'single_professor': {
-              const { parseAgcontactContent } = await import('../../features/professors/services/professorShareService');
-              next = { kind: 'contact', sharePackage: parseAgcontactContent(content) };
-              break;
-            }
-            case 'single_subject': {
-              const { parseAgclassContent } = await import('../../features/subjects/services/subjectShareService');
-              next = { kind: 'subject', sharePackage: parseAgclassContent(content) };
-              break;
-            }
-            case 'full_schedule': {
-              const { parseAgscheduleContent } = await import('../../features/schedule/services/scheduleShareService');
-              next = { kind: 'schedule', sharePackage: parseAgscheduleContent(content) };
-              break;
-            }
-            default:
-              throw new Error(UNKNOWN_FILE_MESSAGE);
-          }
+          const next = await parseSharedFileContent(content);
           if (!disposed) setIncoming(next);
         } catch (err) {
           if (!disposed) onError(err instanceof Error ? err.message : 'No se pudo abrir el archivo recibido.');

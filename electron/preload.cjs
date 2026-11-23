@@ -21,6 +21,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('transfer-event', listener);
     return () => ipcRenderer.removeListener('transfer-event', listener);
   },
+  // Sala de Intercambio Local (ver electron/roomServer.cjs)
+  roomHostStart: () => ipcRenderer.invoke('room-host-start'),
+  roomHostStop: () => ipcRenderer.invoke('room-host-stop'),
+  roomHostRespond: (options) => ipcRenderer.invoke('room-host-respond', options),
+  roomHostPush: (options) => ipcRenderer.invoke('room-host-push', options),
+  roomHostCloseStream: (options) => ipcRenderer.invoke('room-host-close-stream', options),
+  onRoomHostEvent: (callback) => {
+    const listener = (_event, roomEvent) => callback(roomEvent);
+    ipcRenderer.on('room-host-event', listener);
+    return () => ipcRenderer.removeListener('room-host-event', listener);
+  },
+  roomClientRequest: (options) => ipcRenderer.invoke('room-client-request', options),
+  roomClientOpenStream: (options) => ipcRenderer.invoke('room-client-open', options),
+  roomClientCloseStream: (options) => ipcRenderer.invoke('room-client-close', options),
+  onRoomClientEvent: (callback) => {
+    const listener = (_event, clientEvent) => callback(clientEvent);
+    ipcRenderer.on('room-client-event', listener);
+    return () => ipcRenderer.removeListener('room-client-event', listener);
+  },
   // Actualizaciones: descarga verificada del instalador y su ejecución (la app se cierra y vuelve a abrir)
   downloadUpdate: (options) => ipcRenderer.invoke('download-update', options),
   installUpdate: () => ipcRenderer.invoke('install-update'),
