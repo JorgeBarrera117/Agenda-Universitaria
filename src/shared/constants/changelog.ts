@@ -32,6 +32,16 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.6',
+    date: '2026-11-23',
+    title: 'Acerca de la agenda, más clara',
+    changes: [
+      { kind: 'mejora', text: 'Acerca de la agenda: arriba, en una sola tarjeta, la versión, Buscar actualizaciones y si tu app está al día.' },
+      { kind: 'mejora', text: 'Novedades de la versión más compactas: las 3 principales y el resto en Ver todas las novedades.' },
+      { kind: 'mejora', text: 'El mensaje para ti se abre con Leer mensaje completo, y la autoría y la privacidad van en un pie breve.' },
+    ],
+  },
+  {
     version: '1.7.11.5',
     date: '2026-11-23',
     title: 'Sala de Intercambio Local',
