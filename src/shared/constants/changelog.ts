@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.4.3',
+    date: '2026-11-23',
+    title: 'Sala Local sin wifi: salas cercanas por Bluetooth (prueba)',
+    changes: [
+      { kind: 'nuevo', text: 'Salas cercanas (Android): encuentra y únete a salas a pocos metros por Bluetooth y Wi-Fi Direct, sin red wifi ni datos.' },
+      { kind: 'nuevo', text: 'Al abrir una sala en Android puedes anunciarla también por cercanía: entran por wifi y por Bluetooth a la vez.' },
+      { kind: 'nuevo', text: 'Por cercanía funciona todo igual: PIN, sala de espera, chats privados y archivos pesados con progreso.' },
+      { kind: 'mejora', text: 'Antes de pedir el permiso de dispositivos cercanos, la app explica para qué es y que no usa tu ubicación.' },
+      { kind: 'mejora', text: 'Para cuidar la batería, la búsqueda y el anuncio se apagan al entrar a una sala, salir de la pantalla o dejar la app en segundo plano.' },
+    ],
+  },
+  {
     version: '1.7.11.4.2',
     date: '2026-11-23',
     title: 'Sala Local: chats privados y archivos pesados (prueba)',
