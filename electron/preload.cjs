@@ -35,6 +35,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   roomClientRequest: (options) => ipcRenderer.invoke('room-client-request', options),
   roomClientOpenStream: (options) => ipcRenderer.invoke('room-client-open', options),
   roomClientCloseStream: (options) => ipcRenderer.invoke('room-client-close', options),
+  /** Aviso de la sala si la ventana no está a la vista; al hacer clic llega onRoomOpen. */
+  roomNotify: (options) => ipcRenderer.invoke('room-notify', options),
+  onRoomOpen: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('room-open', listener);
+    return () => ipcRenderer.removeListener('room-open', listener);
+  },
   onRoomClientEvent: (callback) => {
     const listener = (_event, clientEvent) => callback(clientEvent);
     ipcRenderer.on('room-client-event', listener);

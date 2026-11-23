@@ -135,6 +135,14 @@
                 android:resource="@xml/schedule_day_widget_info" />
         </receiver>
 
+        <!-- Sala Local activa: mantiene la sala conectada con la app en segundo plano o la pantalla
+             bloqueada (servidor y cliente HTTP/SSE de la red local y Nearby). connectedDevice: la app
+             se comunica con otros dispositivos por wifi, Bluetooth y Wi-Fi Direct. -->
+        <service
+            android:name=".room.LocalRoomForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
         <!-- Servicio de datos para el Widget 2 de Horario por Día -->
         <service
             android:name=".ScheduleDayWidgetService"
@@ -185,5 +193,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+    <!-- Sala Local en segundo plano: servicio en primer plano (tipo connectedDevice; su requisito lo
+         cumple CHANGE_WIFI_STATE), CPU despierta y wifi activo con la pantalla bloqueada. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
 </manifest>

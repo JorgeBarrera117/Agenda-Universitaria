@@ -376,6 +376,27 @@ ipcMain.handle('room-client-open', (event, o) => {
 });
 ipcMain.handle('room-client-close', (_event, o) => roomClient && o && roomClient.closeStream(String(o.streamId)));
 
+/**
+ * Avisos de la Sala Local con la ventana minimizada, oculta en la bandeja o sin foco: mensajes,
+ * chats privados, elementos y el cierre de la sala. Al hacer clic se muestra la ventana y la
+ * interfaz abre la sala (o el chat privado). Con la ventana a la vista no se notifica.
+ */
+ipcMain.handle('room-notify', (_event, o) => {
+  if (!o || typeof o.title !== 'string' || typeof o.body !== 'string') return false;
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+  const inView = mainWindow.isVisible() && !mainWindow.isMinimized() && mainWindow.isFocused();
+  if (inView || !Notification.isSupported()) return false;
+  if (readPermissions().notifications !== 'granted') return false;
+  const chat = typeof o.chat === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(o.chat) ? o.chat : null;
+  const toast = new Notification({ title: o.title.slice(0, 120), body: o.body.slice(0, 300), icon: appIcon(256) });
+  toast.on('click', () => {
+    showMainWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('room-open', { chat });
+  });
+  toast.show();
+  return true;
+});
+
 ipcMain.handle('get-launch-at-login', () => app.getLoginItemSettings({ path: launcherPath(), args: [START_HIDDEN_ARG] }).openAtLogin);
 
 ipcMain.handle('set-launch-at-login', (_event, enabled) => {

@@ -257,7 +257,7 @@ export class RoomGuestClient {
       }
       case 'end': {
         const messages: Record<typeof event.reason, string> = {
-          closed: 'El anfitrión cerró la sala.',
+          closed: 'El anfitrión finalizó la sesión.',
           kicked: 'El anfitrión te retiró de la sala.',
           rejected: 'El anfitrión no aceptó tu solicitud.',
         };

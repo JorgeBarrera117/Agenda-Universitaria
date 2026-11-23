@@ -16,7 +16,9 @@ import { loadRoomIdentity, randomToken } from './roomCrypto';
 import { roomContactRepository } from '../repositories/roomContactRepository';
 import { RoomGuestClient, RoomTransferCancelled } from './roomGuestClient';
 import { RoomHostEngine } from './roomHostEngine';
-import { assertRoomItemSize } from './roomItems';
+import { ROOM_ITEM_LABEL, assertRoomItemSize } from './roomItems';
+import { endRoomPresence, initRoomPresenceListeners, notifyRoomActivity, updateRoomPresence } from './roomPresence';
+import type { RoomMessage } from '../types/room';
 import { createGuestTransport, createHostTransport } from './roomTransports';
 import { combineHostTransports } from './nearbyLink';
 import { createNearbyGuestTransport, createNearbyHostTransport, type NearbyRoom } from './nearbyTransports';
@@ -160,6 +162,8 @@ function countUnread(snapshot: RoomSnapshot): Pick<RoomStoreState, 'unread' | 'p
     if (seenMessages.has(message.id)) continue;
     seenMessages.add(message.id);
     if (message.system || message.authorId === snapshot.selfId) continue;
+    // Fuera de la app: aviso nativo (Android en segundo plano / Windows sin foco)
+    notifyRoomActivity(noticeFor(message, snapshot));
     if (message.to) {
       const peer = message.authorId;
       if (!(state.screenOpen && state.activeChat === peer)) privateUnread = { ...privateUnread, [peer]: (privateUnread[peer] ?? 0) + 1 };
@@ -170,10 +174,33 @@ function countUnread(snapshot: RoomSnapshot): Pick<RoomStoreState, 'unread' | 'p
   return { unread, privateUnread };
 }
 
+/** Texto del aviso de un mensaje de otro participante. */
+function noticeFor(message: RoomMessage, snapshot: RoomSnapshot): { key: string; title: string; body: string; chat?: string } {
+  const isPrivate = Boolean(message.to);
+  const item = message.item;
+  const itemText = item ? `${isPrivate ? 'Te envió' : 'Compartió'} ${ROOM_ITEM_LABEL[item.kind].toLowerCase()}: ${item.title}` : '';
+  const body = [itemText, message.text ?? ''].filter(Boolean).join(' · ') || 'Nuevo mensaje';
+  return isPrivate
+    ? { key: `chat:${message.authorId}`, title: `${message.authorName} · Chat privado`, body, chat: message.authorId }
+    : { key: 'room', title: `${message.authorName} · ${snapshot.info.name}`, body };
+}
+
+/** Notificación persistente: sala, conectados y rol. */
+function presenceFor(snapshot: RoomSnapshot, isHost: boolean): void {
+  const online = snapshot.members.filter((m) => m.status === 'active' && m.online).length;
+  const people = `${online} ${online === 1 ? 'conectado' : 'conectados'}`;
+  updateRoomPresence({
+    roomName: snapshot.info.name,
+    subtitle: isHost ? `Eres el anfitrión · ${people}` : `${people} · Anfitrión: ${snapshot.info.hostName}`,
+    isHost,
+  });
+}
+
 function syncFromEngine(): void {
   const view = engine?.getView();
   if (!view) return;
   emit({ session: { phase: 'active', role: 'host', snapshot: view.snapshot, invite: view.invite, connection: 'online' }, ...countUnread(view.snapshot) });
+  presenceFor(view.snapshot, true);
 }
 
 function syncFromClient(): void {
@@ -182,9 +209,31 @@ function syncFromClient(): void {
   if (guest.phase === 'ended') return; // lo resuelve onEnd con su mensaje
   if (guest.phase === 'waiting' || !guest.snapshot) {
     emit({ session: { phase: 'waiting', info: guest.info, connection: guest.connection } });
+    updateRoomPresence({ roomName: guest.info.name, subtitle: 'Esperando a que el anfitrión te acepte', isHost: false });
     return;
   }
   emit({ session: { phase: 'active', role: 'guest', snapshot: guest.snapshot, connection: guest.connection }, ...countUnread(guest.snapshot) });
+  presenceFor(guest.snapshot, false);
+}
+
+/** Aviso fuera de la app cuando la sala termina sin que este dispositivo lo haya pedido. */
+const END_NOTICES: Partial<Record<RoomEndReason, { title: string; body: string }>> = {
+  closed: { title: 'La sala se ha cerrado', body: 'El anfitrión finalizó la sesión' },
+  kicked: { title: 'Ya no estás en la sala', body: 'El anfitrión te retiró de la sala' },
+  rejected: { title: 'No te aceptaron en la sala', body: 'El anfitrión no aceptó tu solicitud' },
+  lost: { title: 'Se perdió la conexión con la sala', body: 'Vuelve a entrar cuando estés cerca del anfitrión' },
+};
+
+/** Las notificaciones (persistente y de mensajes) devuelven acciones a la sala. */
+function listenToNotifications(): void {
+  initRoomPresenceListeners({
+    onLeave: () => void leaveRoom().catch(() => undefined),
+    onOpen: (chat) => {
+      setRoomScreenOpen(true);
+      const snapshot = state.session.phase === 'active' ? state.session.snapshot : null;
+      setActiveChat(chat && snapshot?.members.some((m) => m.id === chat) ? chat : null);
+    },
+  });
 }
 
 function resetRoomState(): Partial<RoomStoreState> {
@@ -195,6 +244,9 @@ function resetRoomState(): Partial<RoomStoreState> {
 }
 
 function ended(reason: RoomEndReason, message: string): void {
+  // El anfitrión que cierra (o el invitado que sale) no necesita aviso; los demás, sí
+  const wasHost = engine !== null;
+  endRoomPresence(wasHost ? undefined : END_NOTICES[reason]);
   detach?.();
   detach = null;
   trustedWatch?.unsubscribe();
@@ -221,6 +273,7 @@ function busy(): boolean {
 
 export async function createRoom(options: CreateRoomOptions): Promise<void> {
   if (busy()) return;
+  listenToNotifications();
   emit({ session: { phase: 'starting', role: 'host' }, ...resetRoomState() });
   try {
     const roomName = options.roomName.trim() || 'Sala de clase';
@@ -248,6 +301,7 @@ export async function createRoom(options: CreateRoomOptions): Promise<void> {
 
 export async function joinRoom(invite: RoomInvite, profile: RoomProfile): Promise<void> {
   if (busy()) return;
+  listenToNotifications();
   emit({ session: { phase: 'starting', role: 'guest' }, ...resetRoomState() });
   try {
     const joined = await RoomGuestClient.connect(createGuestTransport(), invite, profile, deviceId(), await loadRoomIdentity());
@@ -264,6 +318,7 @@ export async function joinRoom(invite: RoomInvite, profile: RoomProfile): Promis
 /** Entrar a una sala encontrada en «Salas cercanas» (sin red wifi), con su PIN. */
 export async function joinNearbyRoom(room: NearbyRoom, pin: string, profile: RoomProfile): Promise<void> {
   if (busy()) return;
+  listenToNotifications();
   emit({ session: { phase: 'starting', role: 'guest' }, ...resetRoomState() });
   const transport = createNearbyGuestTransport(room.endpointId, profile.name);
   try {

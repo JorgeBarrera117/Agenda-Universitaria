@@ -1,7 +1,14 @@
 package com.agenda.universitaria.room;
 
 import android.Manifest;
+import android.app.NotificationManager;
+import android.content.Intent;
 import android.os.Build;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+import com.agenda.universitaria.R;
+import java.lang.ref.WeakReference;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -35,6 +42,7 @@ import java.util.concurrent.Executors;
         @Permission(alias = LocalRoomPlugin.ALIAS_LOCATION, strings = {
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION
         }),
+        @Permission(alias = LocalRoomPlugin.ALIAS_NOTIFICATIONS, strings = { Manifest.permission.POST_NOTIFICATIONS }),
     }
 )
 public class LocalRoomPlugin extends Plugin {
@@ -42,6 +50,262 @@ public class LocalRoomPlugin extends Plugin {
     static final String ALIAS_BLUETOOTH = "nearbyBluetooth";
     static final String ALIAS_WIFI = "nearbyWifi";
     static final String ALIAS_LOCATION = "nearbyLocation";
+    static final String ALIAS_NOTIFICATIONS = "roomNotifications";
+    static final String EXTRA_OPEN_ROOM = "agenda_open_local_room";
+    static final String EXTRA_OPEN_CHAT = "agenda_open_local_room_chat";
+
+    private static WeakReference<LocalRoomPlugin> instance = new WeakReference<>(null);
+    /** La app está en primer plano (solo entonces NO se notifica: la sala ya se ve en pantalla). */
+    private volatile boolean foreground = true;
+
+    @Override
+    public void load() {
+        instance = new WeakReference<>(this);
+        // Arranque en frío desde una notificación de la sala
+        if (getActivity() != null) deliverOpenRequest(getActivity().getIntent());
+    }
+
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        deliverOpenRequest(intent);
+    }
+
+    private void deliverOpenRequest(Intent intent) {
+        if (intent == null || !intent.getBooleanExtra(EXTRA_OPEN_ROOM, false)) return;
+        JSObject event = new JSObject();
+        String chat = intent.getStringExtra(EXTRA_OPEN_CHAT);
+        if (chat != null) event.put("chat", chat);
+        intent.removeExtra(EXTRA_OPEN_ROOM);
+        intent.removeExtra(EXTRA_OPEN_CHAT);
+        // Retenido hasta que la interfaz escuche (arranque en frío)
+        notifyListeners("roomOpenRequest", event, true);
+    }
+
+    /** El servicio pide salir de la sala (botón de la notificación). false = no hay interfaz viva. */
+    static boolean emitNotificationAction(String action) {
+        LocalRoomPlugin plugin = instance.get();
+        if (plugin == null || plugin.getBridge() == null) return false;
+        JSObject event = new JSObject();
+        event.put("action", action);
+        plugin.notifyListeners("roomNotificationAction", event, true);
+        return true;
+    }
+
+    /* ------------------------------------------------------------------ Servicio en primer plano */
+
+    private Intent serviceIntent(PluginCall call, String action) {
+        Intent intent = new Intent(getContext(), LocalRoomForegroundService.class).setAction(action);
+        intent.putExtra(LocalRoomForegroundService.EXTRA_ROOM, call.getString("roomName", "Sala Local"));
+        intent.putExtra(LocalRoomForegroundService.EXTRA_SUBTITLE, call.getString("subtitle", "Conectado"));
+        intent.putExtra(LocalRoomForegroundService.EXTRA_HOST, Boolean.TRUE.equals(call.getBoolean("isHost", false)));
+        return intent;
+    }
+
+    /**
+     * El WebView corre en un proceso aparte (renderer). Por defecto, cuando no se ve, Android lo
+     * pasa a segundo plano y con la pantalla apagada casi no recibe CPU: el JavaScript de la sala
+     * (motor del anfitrión, mensajes, avisos) quedaba en pausa hasta volver a la app (comprobado en
+     * Android 17). Mientras haya sala, el renderer conserva la prioridad del servicio en primer plano.
+     */
+    private void keepRendererAwake(boolean keep) {
+        roomActive = keep;
+        if (getBridge() == null) return;
+        getBridge().executeOnMainThread(() -> {
+            android.webkit.WebView webView = getBridge().getWebView();
+            if (webView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                webView.setRendererPriorityPolicy(android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT, !keep);
+            }
+        });
+        if (keep) registerScreenOffReceiver();
+        else unregisterScreenOffReceiver();
+    }
+
+    /* ------------------------------------------------------------------ WebView activo sin pantalla */
+    // Chromium deja de ejecutar el JavaScript del WebView cuando su ventana pasa a «no visible»
+    // (al apagar la pantalla): la conexión seguía viva, pero los mensajes se procesaban recién al
+    // volver a la app (comprobado en Android 17). Mientras haya sala, tras pausar o apagar la
+    // pantalla se le vuelve a indicar que su ventana está visible, como hacen los plugins de
+    // segundo plano de Cordova. No dibuja nada: solo sigue ejecutando el motor de la sala.
+
+    private volatile boolean roomActive = false;
+    private android.content.BroadcastReceiver screenOffReceiver;
+
+    private void keepWebViewRunning() {
+        if (!roomActive || getBridge() == null) return;
+        android.webkit.WebView webView = getBridge().getWebView();
+        if (webView == null) return;
+        webView.postDelayed(() -> {
+            if (roomActive) webView.dispatchWindowVisibilityChanged(android.view.View.VISIBLE);
+        }, 1000);
+    }
+
+    private void registerScreenOffReceiver() {
+        if (screenOffReceiver != null) return;
+        screenOffReceiver = new android.content.BroadcastReceiver() {
+            @Override
+            public void onReceive(android.content.Context context, Intent intent) {
+                keepWebViewRunning();
+            }
+        };
+        android.content.IntentFilter filter = new android.content.IntentFilter(Intent.ACTION_SCREEN_OFF);
+        ContextCompat.registerReceiver(getContext(), screenOffReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+    }
+
+    private void unregisterScreenOffReceiver() {
+        if (screenOffReceiver == null) return;
+        try {
+            getContext().unregisterReceiver(screenOffReceiver);
+        } catch (IllegalArgumentException ignored) {
+            // Ya no estaba registrado
+        }
+        screenOffReceiver = null;
+    }
+
+    /** Inicia o actualiza la notificación persistente de la sala. */
+    @PluginMethod
+    public void startRoomService(PluginCall call) {
+        try {
+            ContextCompat.startForegroundService(getContext(), serviceIntent(call, LocalRoomForegroundService.ACTION_START));
+            keepRendererAwake(true);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("No se pudo mantener la sala en segundo plano: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void stopRoomService(PluginCall call) {
+        stopRoomServiceInternal();
+        call.resolve();
+    }
+
+    private void stopRoomServiceInternal() {
+        keepRendererAwake(false);
+        try {
+            getContext().startService(new Intent(getContext(), LocalRoomForegroundService.class).setAction(LocalRoomForegroundService.ACTION_STOP));
+        } catch (Exception ignored) {
+            // El servicio ya no corría
+        }
+    }
+
+    @PluginMethod
+    public void roomNotificationStatus(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("permission", notificationPermission());
+        call.resolve(result);
+    }
+
+    private String notificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return NotificationManagerCompat.from(getContext()).areNotificationsEnabled() ? "granted" : "denied";
+        }
+        PermissionState state = getPermissionState(ALIAS_NOTIFICATIONS);
+        return state == PermissionState.GRANTED ? "granted" : state == PermissionState.DENIED ? "denied" : "prompt";
+    }
+
+    @PluginMethod
+    public void requestRoomNotificationPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || "granted".equals(notificationPermission())) {
+            roomNotificationCallback(call);
+            return;
+        }
+        requestPermissionForAlias(ALIAS_NOTIFICATIONS, call, "roomNotificationCallback");
+    }
+
+    @PermissionCallback
+    private void roomNotificationCallback(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("permission", notificationPermission());
+        call.resolve(result);
+    }
+
+    /**
+     * Aviso de mensaje, chat privado o elemento. Solo se muestra con la app en segundo plano; tocarlo
+     * abre la sala (o el chat privado). Una notificación por conversación, que se actualiza.
+     */
+    @PluginMethod
+    public void notifyRoomEvent(PluginCall call) {
+        JSObject result = new JSObject();
+        if (foreground) {
+            result.put("shown", false);
+            call.resolve(result);
+            return;
+        }
+        String key = call.getString("key", "room");
+        String chat = call.getString("chat");
+        int id = 7400 + Math.abs(key.hashCode() % 500);
+        postMessage(id, call.getString("title", "Sala Local"), call.getString("body", ""), chat);
+        result.put("shown", true);
+        call.resolve(result);
+    }
+
+    /** La sala terminó: se apaga el servicio y, si la app no está a la vista, se avisa. */
+    @PluginMethod
+    public void notifyRoomClosed(PluginCall call) {
+        stopRoomServiceInternal();
+        if (!foreground) postMessage(7399, call.getString("title", "La sala se ha cerrado"), call.getString("body", ""), null);
+        call.resolve();
+    }
+
+    private void postMessage(int id, String title, String body, String chat) {
+        try {
+            LocalRoomForegroundService.ensureChannels(getContext());
+            NotificationManagerCompat manager = NotificationManagerCompat.from(getContext());
+            if (!manager.areNotificationsEnabled()) return;
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), LocalRoomForegroundService.CHANNEL_MESSAGES)
+                .setSmallIcon(R.drawable.ic_stat_agenda)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                .setContentIntent(LocalRoomForegroundService.openRoomIntent(getContext(), chat, id))
+                .setAutoCancel(true)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setGroup(MESSAGE_GROUP);
+            manager.notify(id, builder.build());
+            pendingChats.put(id, chat == null ? "" : chat);
+            // Resumen propio del grupo: sin él, Android agrupa solo y su resumen abre la app sin la
+            // sala. Tocar el grupo abre la sala; cada aviso expandido abre su chat.
+            NotificationCompat.Builder summary = new NotificationCompat.Builder(getContext(), LocalRoomForegroundService.CHANNEL_MESSAGES)
+                .setSmallIcon(R.drawable.ic_stat_agenda)
+                .setContentTitle("Sala Local")
+                .setContentText("Mensajes nuevos en la sala")
+                .setContentIntent(LocalRoomForegroundService.openRoomIntent(getContext(), summaryChat(), SUMMARY_ID))
+                .setAutoCancel(true)
+                .setGroup(MESSAGE_GROUP)
+                .setGroupSummary(true)
+                .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN);
+            manager.notify(SUMMARY_ID, summary.build());
+        } catch (SecurityException ignored) {
+            // Sin permiso de notificaciones: la sala sigue funcionando igual
+        }
+    }
+
+    private static final String MESSAGE_GROUP = "com.agenda.universitaria.LOCAL_ROOM_MESSAGES";
+    private static final int SUMMARY_ID = 7398;
+    /** Avisos pendientes → chat que abren ("" = la sala). */
+    private final Map<Integer, String> pendingChats = new ConcurrentHashMap<>();
+
+    /** Si todos los avisos pendientes son del mismo chat privado, el grupo abre ese chat; si no, la sala. */
+    private String summaryChat() {
+        String only = null;
+        for (String chat : pendingChats.values()) {
+            if (chat.isEmpty() || (only != null && !only.equals(chat))) return null;
+            only = chat;
+        }
+        return only;
+    }
+
+    /** Al volver a la app se quitan los avisos de mensajes (ya se ven en pantalla). */
+    private void clearMessageNotifications() {
+        NotificationManager manager = (NotificationManager) getContext().getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+        pendingChats.clear();
+        if (manager == null) return;
+        for (android.service.notification.StatusBarNotification active : manager.getActiveNotifications()) {
+            if (active.getId() >= SUMMARY_ID && active.getId() < 7900) manager.cancel(active.getId());
+        }
+    }
 
     private LocalRoomServer server;
     private LocalRoomServer.Client client;
@@ -425,20 +689,32 @@ public class LocalRoomPlugin extends Plugin {
     }
 
     @Override
+    protected void handleOnStop() {
+        keepWebViewRunning();
+        super.handleOnStop();
+    }
+
+    @Override
     protected void handleOnPause() {
-        // Batería: en segundo plano no se anuncia ni se busca; las conexiones abiertas siguen
+        foreground = false;
+        keepWebViewRunning();
+        // Batería: en segundo plano no se BUSCAN salas. La sala abierta (anuncio y conexiones) sigue:
+        // solo se sale con «Salir de la sala» o cuando el anfitrión la cierra.
         if (nearby != null) nearby.pause();
         super.handleOnPause();
     }
 
     @Override
     protected void handleOnResume() {
+        foreground = true;
         if (nearby != null) nearby.resumeAdvertising();
+        clearMessageNotifications();
         super.handleOnResume();
     }
 
     @Override
     protected void handleOnDestroy() {
+        stopRoomServiceInternal();
         if (nearby != null) nearby.stopAll();
         stopServerInternal();
         synchronized (this) {

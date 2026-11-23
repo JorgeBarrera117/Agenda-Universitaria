@@ -246,7 +246,7 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, s
             <Radio className="h-7 w-7" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-lg font-bold">La sala terminó</p>
+            <p className="text-lg font-bold">{session.reason === 'closed' ? 'La sala se ha cerrado' : 'La sala terminó'}</p>
             <p className="mt-1 text-sm text-[var(--color-md-on-surface-variant)]">{session.message}</p>
             <p className="mt-1 text-sm text-[var(--color-md-on-surface-variant)]">Lo que guardaste sigue en tu agenda.</p>
           </div>

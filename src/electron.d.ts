@@ -108,6 +108,10 @@ export interface ElectronAPI {
   roomClientOpenStream: (options: { url: string; streamId: string }) => Promise<void>;
   roomClientCloseStream: (options: { streamId: string }) => Promise<void>;
   onRoomClientEvent: (callback: (event: ElectronRoomClientEvent) => void) => () => void;
+  /** Aviso de la Sala Local (solo si la ventana no está a la vista). true = se mostró. */
+  roomNotify: (options: { title: string; body: string; chat?: string }) => Promise<boolean>;
+  /** Clic en un aviso de la sala: abrir la sala (y el chat privado si viene). */
+  onRoomOpen: (callback: (payload: { chat: string | null }) => void) => () => void;
 }
 
 declare global {

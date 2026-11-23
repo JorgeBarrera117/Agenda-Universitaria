@@ -29,6 +29,16 @@ export interface LocalRoomPlugin {
   nearbyDisconnect(options: { endpointId: string }): Promise<void>;
   nearbyStopAll(): Promise<void>;
 
+  /* Segundo plano: servicio en primer plano con notificación persistente y avisos de la sala */
+  startRoomService(options: { roomName: string; subtitle: string; isHost: boolean }): Promise<void>;
+  stopRoomService(): Promise<void>;
+  roomNotificationStatus(): Promise<{ permission: NearbyPermission }>;
+  requestRoomNotificationPermission(): Promise<{ permission: NearbyPermission }>;
+  /** Solo se muestra con la app en segundo plano. */
+  notifyRoomEvent(options: { key: string; title: string; body: string; chat?: string }): Promise<{ shown: boolean }>;
+  /** Detiene el servicio y, si la app no está a la vista, avisa del cierre. */
+  notifyRoomClosed(options: { title: string; body: string }): Promise<void>;
+
   addListener(eventName: 'roomRequest', listener: (event: { id: string; body: string; remote: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomStreamOpen', listener: (event: { streamId: string; query: string; remote: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'roomStreamClosed', listener: (event: { streamId: string }) => void): Promise<PluginListenerHandle>;
@@ -40,6 +50,8 @@ export interface LocalRoomPlugin {
   addListener(eventName: 'nearbyConnected', listener: (event: { endpointId: string; name: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'nearbyDisconnected', listener: (event: { endpointId: string }) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'nearbyMessage', listener: (event: { endpointId: string; data: string }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'roomNotificationAction', listener: (event: { action: 'leave' }) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'roomOpenRequest', listener: (event: { chat?: string }) => void): Promise<PluginListenerHandle>;
 }
 
 /** granted: listo · prompt: se puede pedir · denied: negado, hay que activarlo en Ajustes del teléfono. */

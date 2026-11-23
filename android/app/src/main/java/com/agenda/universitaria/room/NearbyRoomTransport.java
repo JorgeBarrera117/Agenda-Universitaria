@@ -278,10 +278,12 @@ public final class NearbyRoomTransport {
         names.clear();
     }
 
-    /** En segundo plano no se anuncia ni se busca (batería); las conexiones abiertas siguen. */
+    /**
+     * En segundo plano se deja de BUSCAR (batería). El anuncio de una sala abierta y sus conexiones
+     * siguen (el servicio en primer plano mantiene viva la app): nadie sale por minimizar.
+     */
     public void pause() {
         stopDiscovery();
-        stopAdvertising();
     }
 
     public boolean isAdvertising() {
