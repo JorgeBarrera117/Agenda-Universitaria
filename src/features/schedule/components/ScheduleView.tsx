@@ -875,7 +875,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
                   {/* Pie: solo los botones reales, en la zona del pulgar */}
                   {(onNavigateToNotes || joinUrl || subject) && (
-                    <div className="mt-auto flex flex-wrap items-center justify-end gap-2 border-t border-[var(--color-md-outline-variant)] pt-2.5">
+                    <div className="mt-auto space-y-2 border-t border-[var(--color-md-outline-variant)] pt-2.5">
+                      {/* Clase virtual con enlace: unirse es lo principal, a todo el ancho y arriba */}
+                      {joinUrl && (
+                        <Button
+                          variant="primary"
+                          size="xs"
+                          onClick={() => void openExternalUrl(joinUrl)}
+                          aria-label={`Unirse a la clase de ${subject?.name || 'la materia'}${platform ? ` en ${platform}` : ''}`}
+                          icon={<Video className="h-4 w-4" />}
+                          className={`${ABOVE_STRETCHED_CLASS} min-h-10 w-full whitespace-nowrap`}
+                        >
+                          {platform ? `Unirse a ${platform}` : 'Unirse a la clase'}
+                        </Button>
+                      )}
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                       {/* Archivos de la materia: tonal (secundaria) */}
                       {subject && (
                         <Button
@@ -902,18 +916,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           Tomar apunte
                         </Button>
                       )}
-                      {joinUrl && (
-                        <Button
-                          variant="primary"
-                          size="xs"
-                          onClick={() => void openExternalUrl(joinUrl)}
-                          aria-label={`Unirse a la clase de ${subject?.name || 'la materia'}${platform ? ` en ${platform}` : ''}`}
-                          icon={<Video className="h-4 w-4" />}
-                          className={`${ABOVE_STRETCHED_CLASS} min-h-10 shrink-0 whitespace-nowrap`}
-                        >
-                          {platform ? `Unirse a ${platform}` : 'Unirse a la clase'}
-                        </Button>
-                      )}
+                      </div>
                     </div>
                   )}
                 </Card>

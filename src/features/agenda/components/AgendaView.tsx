@@ -552,7 +552,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ focusRequest, onOpenSubj
           ) : groups.length === 0 ? (
             <div className="md-card rounded-[24px] border border-dashed border-[var(--color-md-outline-variant)] bg-[var(--md-card-surface)] px-5 py-8 text-center">
               <p className="text-sm font-bold text-[var(--color-md-on-surface)]">
-                {events.length === 0 ? 'Tu agenda está vacía' : 'Nada pendiente con este filtro'}
+                {events.length === 0 ? 'Tu agenda está vacía' : filter === 'all' ? 'Nada pendiente por ahora' : 'Nada pendiente con este filtro'}
               </p>
               <p className="mt-1 text-xs text-[var(--color-md-on-surface-variant)]">
                 Agrega tareas, exámenes, recordatorios o días libres; te avisamos a tiempo.
