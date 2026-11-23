@@ -369,8 +369,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
    * sistema. Va antes del "return null" porque los hooks deben llamarse siempre en el mismo orden.
    */
   useEffect(() => {
-    if (!editor) return;
-    const dom = editor.view.dom;
+    if (!editor || editor.isDestroyed) return;
     const LONG_PRESS_MS = 420;
     const MOVE_TOLERANCE_PX = 10;
 
@@ -437,13 +436,28 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
     };
 
-    dom.addEventListener('touchstart', onTouchStart, { passive: true });
-    dom.addEventListener('touchmove', onTouchMove, { passive: true });
-    dom.addEventListener('touchend', cancelTimer);
-    dom.addEventListener('touchcancel', cancelTimer);
-    dom.addEventListener('contextmenu', onContextMenu);
+    let dom: HTMLElement | null = null;
+    const bind = () => {
+      if (dom) return;
+      try {
+        dom = editor.view.dom;
+      } catch {
+        // Vista aún sin montar (p. ej. al abrir el editor directo con «Tomar apunte», cuando React
+        // reconecta el efecto al salir de un Suspense): se engancha al montarse (evento «mount»)
+        return;
+      }
+      dom.addEventListener('touchstart', onTouchStart, { passive: true });
+      dom.addEventListener('touchmove', onTouchMove, { passive: true });
+      dom.addEventListener('touchend', cancelTimer);
+      dom.addEventListener('touchcancel', cancelTimer);
+      dom.addEventListener('contextmenu', onContextMenu);
+    };
+    bind();
+    editor.on('mount', bind);
     return () => {
+      editor.off('mount', bind);
       cancelTimer();
+      if (!dom) return;
       dom.removeEventListener('touchstart', onTouchStart);
       dom.removeEventListener('touchmove', onTouchMove);
       dom.removeEventListener('touchend', cancelTimer);

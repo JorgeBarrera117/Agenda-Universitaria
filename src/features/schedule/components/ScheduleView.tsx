@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
+import type { NotesIntent } from '../../notes/types/notesRequest';
 import {
   Plus,
   Edit2,
@@ -93,7 +94,7 @@ function rememberSessionView(mode: ScheduleViewMode): void {
 }
 
 interface ScheduleViewProps {
-  onNavigateToNotes?: (subjectId?: string) => void;
+  onNavigateToNotes?: (subjectId?: string, intent?: NotesIntent) => void;
   /** Tocar una clase abre la ficha técnica de su materia (App cambia a la pestaña Materias). */
   onOpenSubjectDetail?: (subjectId: string) => void;
   onEditorActiveChange?: (isActive: boolean) => void;
@@ -477,7 +478,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {/* 2. CAMPUS PULSE: clase en curso, próxima clase y resumen de la jornada en tiempo real */}
       <CampusPulseBento
         pulse={pulse}
-        onTakeNote={onNavigateToNotes}
+        onTakeNote={onNavigateToNotes ? (subjectId) => onNavigateToNotes(subjectId, 'compose') : undefined}
         onOpenFiles={setSubjectForFiles}
       />
 
@@ -647,7 +648,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                                             id: 'notes',
                                             label: 'Tomar apunte',
                                             icon: <FileEdit className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-                                            onClick: () => onNavigateToNotes(slot.subjectId),
+                                            onClick: () => onNavigateToNotes(slot.subjectId, 'compose'),
                                           },
                                         ]
                                       : []),
@@ -908,7 +909,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                         <Button
                           variant={joinUrl ? 'action-indigo' : 'primary'}
                           size="xs"
-                          onClick={() => onNavigateToNotes(slot.subjectId)}
+                          onClick={() => onNavigateToNotes(slot.subjectId, 'compose')}
                           aria-label={`Tomar apunte de ${subject?.name || 'la clase'}`}
                           icon={<FileEdit className="h-4 w-4" />}
                           className={`${ABOVE_STRETCHED_CLASS} min-h-10 shrink-0 whitespace-nowrap`}

@@ -57,10 +57,12 @@ import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 import { CARD_INTERACTIVE_CLASS, CARD_SURFACE_CLASS, HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { notePlainText, parseNotePreview, type NotePreviewData } from '../utils/notePreview';
-import { PERSONAL_CATEGORY, PERSONAL_CHOICE, getNoteCategory } from '../utils/personalNotes';
+import { PERSONAL_CATEGORY, PERSONAL_CHOICE, getNoteCategory, subjectIdToChoice } from '../utils/personalNotes';
+import type { NotesRequest } from '../types/notesRequest';
 
 interface NotesViewProps {
-  initialSubjectFilterId?: string;
+  /** Pedido de otra pestaña: escribir un apunte de una materia o ver sus apuntes. */
+  request?: NotesRequest | null;
   onEditorActiveChange?: (isActive: boolean) => void;
   isActive?: boolean;
 }
@@ -80,20 +82,13 @@ function formatNoteDate(iso: string, today: Date): string {
 }
 
 export const NotesView: React.FC<NotesViewProps> = ({
-  initialSubjectFilterId,
+  request,
   onEditorActiveChange,
   isActive = true,
 }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(
-    initialSubjectFilterId || 'all'
+    request?.subjectId ? subjectIdToChoice(request.subjectId) : 'all'
   );
-  const [prevInitialFilterId, setPrevInitialFilterId] = useState(initialSubjectFilterId);
-
-  // Sincronizar filtro si cambia la materia entrante sin disparar useEffect cascada
-  if (initialSubjectFilterId !== prevInitialFilterId) {
-    setPrevInitialFilterId(initialSubjectFilterId);
-    setSelectedSubjectId(initialSubjectFilterId || 'all');
-  }
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -132,6 +127,30 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // Vistas a pantalla completa: 'list' (galería), 'editor' (crear/editar), 'reader' (lectura)
   const [viewMode, setViewMode] = useState<'list' | 'editor' | 'reader'>('list');
   const [editingNote, setEditingNote] = useState<Note | undefined>(undefined);
+
+  // Pedido de otra pestaña: se atiende durante el render al cambiar el nonce (sin efectos en cascada).
+  // «Ver apuntes» muestra la lista filtrada; «Tomar apunte» deja el editor pendiente (ver abajo)
+  const [seenRequestNonce, setSeenRequestNonce] = useState<number | null>(null);
+  const [composePending, setComposePending] = useState(false);
+  if (request && request.nonce !== seenRequestNonce) {
+    setSeenRequestNonce(request.nonce);
+    setSelectedSubjectId(request.subjectId ? subjectIdToChoice(request.subjectId) : 'all');
+    setViewMode('list');
+    setComposePending(request.intent === 'compose');
+  }
+
+  // «Tomar apunte»: el editor se abre un cuadro después, ya montada la pestaña. Si se montara en el
+  // mismo render en que aparece la pestaña (que sale de su Suspense), React desconecta y reconecta
+  // sus efectos y Tiptap queda con un editor destruido. Igual que al tocar el botón flotante
+  useEffect(() => {
+    if (!composePending) return;
+    const timer = window.setTimeout(() => {
+      setComposePending(false);
+      setEditingNote(undefined);
+      setViewMode('editor');
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [composePending]);
   const [readingNote, setReadingNote] = useState<Note | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
   const [zoomedImage, setZoomedImage] = useState<NoteImage | null>(null);

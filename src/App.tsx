@@ -54,6 +54,7 @@ const TAB_ORDER = SECTION_ORDER;
 const loadAgendaView = () => import('./features/agenda/components/AgendaView');
 const loadSubjectsView = () => import('./features/subjects/components/SubjectsView');
 const loadProfessorsView = () => import('./features/professors/components/ProfessorsView');
+import type { NotesIntent, NotesRequest } from './features/notes/types/notesRequest';
 const loadNotesView = () => import('./features/notes/components/NotesView');
 const loadDocumentsView = () => import('./features/documents/components/DocumentsView');
 const loadStudyView = () => import('./features/study/components/StudyView');
@@ -129,7 +130,7 @@ export function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [selectedSubjectForNotes, setSelectedSubjectForNotes] = useState<string | undefined>(undefined);
+  const [notesRequest, setNotesRequest] = useState<NotesRequest | null>(null);
   const [activeEditorTab, setActiveEditorTab] = useState<TabType | null>(null);
 
   const handleEditorActiveChange = useCallback((tab: TabType, isActive: boolean) => {
@@ -377,9 +378,6 @@ export function App() {
 
   const handleTabChange = useCallback((tab: TabType) => {
     rememberSection(tab);
-    if (tab !== 'notes') {
-      setSelectedSubjectForNotes(undefined);
-    }
     setActiveTab((prevTab) => {
       const prevIndex = TAB_ORDER.indexOf(prevTab);
       const nextIndex = TAB_ORDER.indexOf(tab);
@@ -456,12 +454,10 @@ export function App() {
     [openDetail]
   );
 
-  // Atajo contextual UX: Tomar apunte de la clase activa en el horario
-  const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string) => {
+  // «Tomar apunte» (abre el editor con la materia elegida) o «Ver apuntes» (lista filtrada)
+  const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string, intent: NotesIntent = 'browse') => {
     rememberSection('notes');
-    if (subjectId) {
-      setSelectedSubjectForNotes(subjectId);
-    }
+    setNotesRequest((prev) => ({ subjectId, intent, nonce: (prev?.nonce ?? 0) + 1 }));
     setActiveTab((prevTab) => {
       const prevIndex = TAB_ORDER.indexOf(prevTab);
       const nextIndex = TAB_ORDER.indexOf('notes');
@@ -713,7 +709,7 @@ export function App() {
               {mountedTabs.has('notes') && (
                 <Suspense fallback={<ViewSkeleton />}>
                   <NotesView
-                    initialSubjectFilterId={selectedSubjectForNotes}
+                    request={notesRequest}
                     onEditorActiveChange={handleNotesEditorChange}
                     isActive={activeTab === 'notes'}
                   />

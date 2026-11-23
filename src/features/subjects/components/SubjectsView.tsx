@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import type { NotesIntent } from '../../notes/types/notesRequest';
 import {
   Plus,
   Edit2,
@@ -53,7 +54,7 @@ import type { ScheduleSlot } from '../../schedule/types';
 type CatalogTab = 'active' | 'archived';
 
 interface SubjectsViewProps {
-  onNavigateToNotes?: (subjectId?: string) => void;
+  onNavigateToNotes?: (subjectId?: string, intent?: NotesIntent) => void;
   onEditorActiveChange?: (isActive: boolean) => void;
   isActive?: boolean;
   /** Petición de App para abrir la ficha de una materia (desde el Horario o una ficha docente). */
@@ -327,7 +328,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           onNavigateToNotes={(subjectId) => {
             // Se sale de la ficha: en Apuntes vuelve a verse el Navbar
             detail.dismiss();
-            onNavigateToNotes?.(subjectId);
+            onNavigateToNotes?.(subjectId, 'browse');
           }}
           onNavigateToDocs={(subject) => setSelectedSubjectForDocs(subject)}
           onEditSlot={(slot) => setSlotEditor({ subject: selectedSubject, slot })}
@@ -591,7 +592,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                               id: 'notes',
                               label: `Ver apuntes (${noteCount})`,
                               icon: <BookOpen className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-                              onClick: () => onNavigateToNotes(subject.id),
+                              onClick: () => onNavigateToNotes(subject.id, 'browse'),
                             },
                           ]
                         : []),
@@ -676,7 +677,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
                     <Button
                       variant="primary"
                       size="xs"
-                      onClick={() => onNavigateToNotes(subject.id)}
+                      onClick={() => onNavigateToNotes(subject.id, 'compose')}
                       aria-label={`Tomar apunte de ${subject.name}`}
                       icon={<BookPlus className="h-4 w-4 stroke-[2.2]" />}
                       className={`${ABOVE_STRETCHED_CLASS} ml-auto min-h-10 shrink-0 whitespace-nowrap`}
