@@ -44,7 +44,7 @@ export const FloatingSectionSwitcher = <T extends string>({ value, options, onCh
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={`fab-autohide transition-opacity duration-200 md:pointer-events-none md:opacity-0 scrolled:md:pointer-events-auto scrolled:md:opacity-100 fixed z-40 flex flex-col gap-3 ${slot.onRight ? 'right-4 items-end' : 'left-4 items-start'}`}
+      className={`transition-opacity duration-200 md:pointer-events-none md:opacity-0 scrolled:md:pointer-events-auto scrolled:md:opacity-100 fixed z-40 flex flex-col gap-3 ${slot.onRight ? 'right-4 items-end' : 'left-4 items-start'}`}
       style={{ top: slot.top }}
     >
       {options.map((option, index) => {

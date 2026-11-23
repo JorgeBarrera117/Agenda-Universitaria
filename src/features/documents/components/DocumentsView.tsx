@@ -24,7 +24,6 @@ import { StickyToolbar } from '../../../shared/components/StickyToolbar';
 import { SearchField } from '../../../shared/components/SearchField';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { ContextualToast } from '../../../shared/components/ContextualToast';
 import { DocumentLinkForm } from './DocumentLinkForm';
 import { DocumentDetailView } from './DocumentDetailView';
@@ -74,8 +73,6 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       onEditorActiveChange?.(false);
     };
   }, [viewMode, onEditorActiveChange]);
-  // Al bajar por los archivos, el botón de agregar y el selector Apuntes | Archivos se apartan
-  useAutoHideFabs(isActive && viewMode === 'list');
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -667,7 +664,6 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       {isActive && viewMode === 'list' && (
         <DraggableFAB
           colorScheme="documents"
-          autoHideOnScroll
           onClick={handleOpenAdd}
           label="Vincular Documento"
           icon={<FolderPlus className="w-6 h-6 stroke-[2.2]" />}

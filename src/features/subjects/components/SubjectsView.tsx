@@ -40,7 +40,6 @@ import { ProfessorAvatar } from '../../professors/components/ProfessorAvatar';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Subject, CreateSubjectDTO } from '../types';
@@ -96,8 +95,6 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
 
   // Formulario o ficha a pantalla completa: App oculta el Navbar y la barra inferior
   const isFullScreen = isModalOpen || selectedSubject !== undefined;
-  // Al bajar por la lista, el botón de agregar y el selector Materias | Profesores se apartan
-  useAutoHideFabs(isActive && !isFullScreen && !slotEditor);
   useEffect(() => {
     onEditorActiveChange?.(isFullScreen);
     return () => {
@@ -722,7 +719,6 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="subjects"
-          autoHideOnScroll
           onClick={handleOpenCreate}
           label="Inscribir Asignatura"
           icon={<BookPlus className="w-6 h-6 stroke-[2.2]" />}

@@ -22,7 +22,6 @@ import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { M3KebabMenu } from '../../../shared/components/M3KebabMenu';
 import { DraggableFAB } from '../../../shared/components/DraggableFAB';
-import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { Button, Card } from '../../../shared/components/atoms';
 import type { Professor, CreateProfessorDTO } from '../types';
 import {
@@ -96,8 +95,6 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       onEditorActiveChange?.(false);
     };
   }, [isFullScreen, onEditorActiveChange]);
-  // Al bajar por la lista, el botón de agregar y el selector Materias | Profesores se apartan
-  useAutoHideFabs(isActive && !isFullScreen);
 
   const handleOpenCreate = () => {
     setEditingProfessor(undefined);
@@ -665,7 +662,6 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="professors"
-          autoHideOnScroll
           onClick={handleOpenCreate}
           label="Registrar Catedrático"
           icon={<UserPlus className="w-6 h-6 stroke-[2.2]" />}

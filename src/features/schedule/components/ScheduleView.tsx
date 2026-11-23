@@ -35,7 +35,6 @@ import { SeasonalGreeting } from '../../../shared/seasons/SeasonalGreeting';
 import { transferShortcutLabel } from '../../transfer/services/transferAvailability';
 import { isSlotVirtual, meetingPlatform } from '../utils/slotModality';
 import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
-import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
@@ -158,8 +157,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   // PC: «Próximos en tu agenda» sube junto al resumen del día (en el teléfono queda al final)
   const isWide = useMediaQuery('(min-width: 1024px)');
 
-  // Al bajar por la lista, los botones flotantes se apartan para no tapar las tarjetas
-  useAutoHideFabs(isActive && !isModalOpen);
 
   useEffect(() => {
     onEditorActiveChange?.(isModalOpen);
@@ -972,7 +969,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="schedule"
-          autoHideOnScroll
           onClick={() => handleOpenCreate(activeDay)}
           label="Programar Nueva Cátedra"
           icon={<CalendarPlus className="w-6 h-6 stroke-[2.2]" />}

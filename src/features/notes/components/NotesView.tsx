@@ -20,7 +20,6 @@ import {
   Mic,
   NotebookPen,
 } from 'lucide-react';
-import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
 import { useNotes } from '../hooks/useNotes';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge, SubjectIcon } from '../../subjects/components/SubjectIcon';
@@ -229,8 +228,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
       onEditorActiveChange?.(false);
     };
   }, [viewMode, onEditorActiveChange]);
-  // Al bajar por los apuntes, el botón de agregar y el selector Apuntes | Archivos se apartan
-  useAutoHideFabs(isActive && viewMode === 'list');
 
   // Salida animada del lector al volver al catálogo
   const readerExit = useExitTransition(MOTION_EXIT_MS.sheet);
@@ -1249,7 +1246,6 @@ export const NotesView: React.FC<NotesViewProps> = ({
       {isActive && (
         <DraggableFAB
           colorScheme="notes"
-          autoHideOnScroll
           onClick={handleOpenCreate}
           label="Nuevo Apunte"
           icon={<NotebookPen className="w-6 h-6 stroke-[2.2]" />}

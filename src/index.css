@@ -1259,17 +1259,3 @@ body {
     animation-duration: 1ms !important;
   }
 }
-
-/*
- * Botones flotantes que se apartan al desplazarse hacia abajo (useAutoHideFabs marca
- * data-fabs-hidden en :root). Solo opacidad: el contenedor del botón de agregar no debe llevar
- * transform, porque volvería relativo a él la posición fija del botón.
- */
-.fab-autohide {
-  transition: opacity 200ms ease-out;
-}
-
-:root[data-fabs-hidden='true'] .fab-autohide {
-  opacity: 0;
-  pointer-events: none;
-}
