@@ -17,7 +17,7 @@ import {
   type RoomRules,
   type RoomSnapshot,
 } from '../types/room';
-import { base64StringToBytes, bytesToBase64String, createPin, createSalt, deriveRoomKey, openJson, randomToken, sealJson } from './roomCrypto';
+import { base64StringToBytes, bytesToBase64String, createPin, createSalt, deriveRoomKey, openJson, randomToken, sealJson, verifyIdentity } from './roomCrypto';
 import {
   chunkCount,
   isOtherProtocolVersion,
@@ -71,6 +71,10 @@ interface HostMember {
   status: RoomMember['status'];
   joinedAt: number;
   streams: Set<string>;
+  /** Miniatura de su foto de perfil. */
+  avatar?: string;
+  /** Huella verificada de su dispositivo (solo si firmó la entrada). */
+  peerId?: string;
 }
 
 interface StoredItem {
@@ -106,6 +110,10 @@ export interface RoomHostOptions {
   profile: RoomProfile;
   pinLength: 4 | 6;
   rules?: Partial<RoomRules>;
+  /** Huella del dispositivo del anfitrión (para que los demás puedan guardarlo como compañero). */
+  peerId?: string;
+  /** ¿Es un compañero guardado por el anfitrión? (entra sin sala de espera si la regla lo permite). */
+  isTrusted?: (peerId: string) => boolean;
 }
 
 /** Lo que ve la interfaz del anfitrión. */
@@ -145,6 +153,8 @@ export class RoomHostEngine {
   private readonly transport: HostTransport;
   private readonly info: RoomInfo;
   private readonly profile: RoomProfile;
+  private readonly hostPeerId?: string;
+  private readonly isTrusted: (peerId: string) => boolean;
   private readonly pin: string;
   private readonly salt: string;
   private key: CryptoKey | null = null;
@@ -170,6 +180,8 @@ export class RoomHostEngine {
   private constructor(transport: HostTransport, options: RoomHostOptions) {
     this.transport = transport;
     this.profile = options.profile;
+    this.hostPeerId = options.peerId;
+    this.isTrusted = options.isTrusted ?? (() => false);
     this.info = { name: options.roomName.trim().slice(0, 60) || 'Sala de clase', hostName: options.profile.name, pinLength: options.pinLength };
     this.pin = createPin(options.pinLength);
     this.salt = createSalt();
@@ -217,7 +229,7 @@ export class RoomHostEngine {
 
   private memberList(includePending: boolean): RoomMember[] {
     const list: RoomMember[] = [
-      { id: HOST_MEMBER_ID, name: this.profile.name, color: this.profile.color, isHost: true, status: 'active', online: true, joinedAt: this.createdAt },
+      { id: HOST_MEMBER_ID, name: this.profile.name, color: this.profile.color, isHost: true, status: 'active', online: true, joinedAt: this.createdAt, peerId: this.hostPeerId },
     ];
     for (const member of this.members.values()) {
       if (!includePending && member.status !== 'active') continue;
@@ -229,9 +241,26 @@ export class RoomHostEngine {
         status: member.status,
         online: member.streams.size > 0,
         joinedAt: member.joinedAt,
+        peerId: member.peerId,
       });
     }
     return list;
+  }
+
+  /** Fotos visibles para un participante (el anfitrión ve también las de quienes esperan). */
+  private avatarsFor(memberId: string): Record<string, string> {
+    const avatars: Record<string, string> = {};
+    if (this.profile.avatar) avatars[HOST_MEMBER_ID] = this.profile.avatar;
+    for (const member of this.members.values()) {
+      if (member.avatar && (member.status === 'active' || memberId === HOST_MEMBER_ID)) avatars[member.id] = member.avatar;
+    }
+    return avatars;
+  }
+
+  /** La foto de alguien que acaba de entrar viaja una sola vez a los demás (no en cada cambio). */
+  private shareAvatar(member: HostMember): void {
+    if (!member.avatar || member.status !== 'active') return;
+    void this.broadcast({ type: 'avatars', avatars: { [member.id]: member.avatar } }, (m) => m.id !== member.id);
   }
 
   private snapshotFor(memberId: string): RoomSnapshot {
@@ -241,6 +270,7 @@ export class RoomHostEngine {
       members: this.memberList(memberId === HOST_MEMBER_ID),
       messages: this.messages.filter((m) => visibleTo(m, memberId)),
       selfId: memberId,
+      avatars: this.avatarsFor(memberId),
     };
   }
 
@@ -361,6 +391,8 @@ export class RoomHostEngine {
     if (!request) return error(400, 'bad-request');
     this.pinFailures.delete(remote);
     if (this.blockedDevices.has(request.deviceId)) return error(403, 'blocked');
+    // La huella solo se acepta si la firma del dispositivo es válida para ESTA sala
+    const peerId = request.identity ? ((await verifyIdentity(request.identity, this.salt, request.deviceId)) ?? undefined) : undefined;
 
     // El mismo dispositivo que vuelve (se cerró la app, cambió de red…): conserva su lugar
     const existing = [...this.members.values()].find((m) => m.deviceId === request.deviceId);
@@ -368,7 +400,11 @@ export class RoomHostEngine {
       existing.token = randomToken();
       existing.name = request.name;
       existing.color = request.color;
+      const avatarChanged = existing.avatar !== request.avatar;
+      existing.avatar = request.avatar;
+      existing.peerId = peerId;
       this.membersChanged();
+      if (avatarChanged) this.shareAvatar(existing);
       const result: JoinResult = { memberId: existing.id, token: existing.token };
       return json(200, { s: await sealJson(key, result) });
     }
@@ -376,19 +412,24 @@ export class RoomHostEngine {
     if (this.rules.locked) return error(423, 'locked');
     if (this.members.size + 1 >= ROOM_MAX_MEMBERS) return error(409, 'full');
 
+    // Compañeros guardados por el anfitrión: sin sala de espera si así lo decidió
+    const trusted = Boolean(peerId && this.rules.trustedAutoAdmit && this.isTrusted(peerId));
     const member: HostMember = {
       id: randomToken(9),
       name: request.name,
       color: request.color,
       deviceId: request.deviceId,
       token: randomToken(),
-      status: this.rules.waitingRoom ? 'pending' : 'active',
+      status: this.rules.waitingRoom && !trusted ? 'pending' : 'active',
       joinedAt: now,
       streams: new Set(),
+      avatar: request.avatar,
+      peerId,
     };
     this.members.set(member.id, member);
     if (member.status === 'active') this.systemMessage(`${member.name} se unió a la sala`);
     this.membersChanged();
+    this.shareAvatar(member);
     const result: JoinResult = { memberId: member.id, token: member.token };
     return json(200, { s: await sealJson(key, result) });
   }
@@ -588,6 +629,7 @@ export class RoomHostEngine {
     member.status = 'active';
     this.systemMessage(`${member.name} se unió a la sala`);
     this.membersChanged();
+    this.shareAvatar(member);
     await this.pushTo(member, { type: 'snapshot', snapshot: this.snapshotFor(member.id) });
   }
 

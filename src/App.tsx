@@ -611,7 +611,7 @@ export function App() {
 
       {localRoom.screenOpen && (
         <Suspense fallback={null}>
-          <LocalRoomScreen studentName={settings.studentName} onShowToast={showToast} />
+          <LocalRoomScreen studentName={settings.studentName} studentPhoto={settings.studentAvatarUrl} onShowToast={showToast} />
         </Suspense>
       )}
 

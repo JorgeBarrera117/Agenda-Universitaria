@@ -109,3 +109,85 @@ function fromBase64Url(value: string): Uint8Array<ArrayBuffer> {
   const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
   return base64ToBytes(base64 + '='.repeat((4 - (base64.length % 4)) % 4));
 }
+
+/* ------------------------------------------------------------------ Identidad del dispositivo */
+// Cada dispositivo tiene un par de claves ECDSA P-256 propio. Al entrar a una sala firma la sal de
+// la sala junto con su identificador; el anfitrión verifica la firma y publica la HUELLA de la
+// clave pública (peerId). Así «Compañeros guardados» y «Admitir sin espera» no se pueden falsificar
+// copiando un identificador: hace falta la clave privada, que nunca sale del dispositivo.
+
+const IDENTITY_KEY = 'agenda_room_identity_v1';
+const IDENTITY_ALGORITHM = { name: 'ECDSA', namedCurve: 'P-256' } as const;
+const SIGN_ALGORITHM = { name: 'ECDSA', hash: 'SHA-256' } as const;
+
+export interface RoomIdentity {
+  /** Huella pública estable de este dispositivo (lo que guardan los compañeros). */
+  peerId: string;
+  x: string;
+  y: string;
+  privateKey: CryptoKey;
+}
+
+/** Prueba de identidad que viaja (cifrada) en la solicitud de entrada. */
+export interface RoomIdentityProof {
+  x: string;
+  y: string;
+  sig: string;
+}
+
+export async function identityFingerprint(x: string, y: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${x}.${y}`)));
+  return toBase64Url(digest).slice(0, 22);
+}
+
+let identityCache: Promise<RoomIdentity> | null = null;
+
+/** Clave del dispositivo: se crea la primera vez y se guarda (JWK) para todas las salas. */
+export function loadRoomIdentity(): Promise<RoomIdentity> {
+  if (!identityCache) {
+    identityCache = (async () => {
+      let jwk: JsonWebKey | null = null;
+      try {
+        const raw = localStorage.getItem(IDENTITY_KEY);
+        const parsed: unknown = raw ? JSON.parse(raw) : null;
+        if (parsed && typeof parsed === 'object' && 'd' in parsed && 'x' in parsed && 'y' in parsed) jwk = parsed as JsonWebKey;
+      } catch {
+        jwk = null;
+      }
+      if (!jwk) {
+        const pair = await crypto.subtle.generateKey(IDENTITY_ALGORITHM, true, ['sign', 'verify']);
+        jwk = await crypto.subtle.exportKey('jwk', pair.privateKey);
+        try {
+          localStorage.setItem(IDENTITY_KEY, JSON.stringify(jwk));
+        } catch {
+          // Sin almacenamiento: identidad solo para esta sesión
+        }
+      }
+      const privateKey = await crypto.subtle.importKey('jwk', jwk, IDENTITY_ALGORITHM, false, ['sign']);
+      const x = jwk.x ?? '';
+      const y = jwk.y ?? '';
+      return { peerId: await identityFingerprint(x, y), x, y, privateKey };
+    })();
+  }
+  return identityCache;
+}
+
+function joinStatement(salt: string, deviceId: string): Uint8Array<ArrayBuffer> {
+  return new TextEncoder().encode(`agenda-room-join|${salt}|${deviceId}`);
+}
+
+export async function proveIdentity(identity: RoomIdentity, salt: string, deviceId: string): Promise<RoomIdentityProof> {
+  const signature = new Uint8Array(await crypto.subtle.sign(SIGN_ALGORITHM, identity.privateKey, joinStatement(salt, deviceId)));
+  return { x: identity.x, y: identity.y, sig: toBase64Url(signature) };
+}
+
+/** Devuelve la huella si la firma es válida para esta sala; null si no lo es. */
+export async function verifyIdentity(proof: RoomIdentityProof, salt: string, deviceId: string): Promise<string | null> {
+  try {
+    const key = await crypto.subtle.importKey('jwk', { kty: 'EC', crv: 'P-256', x: proof.x, y: proof.y, ext: true }, IDENTITY_ALGORITHM, false, ['verify']);
+    const ok = await crypto.subtle.verify(SIGN_ALGORITHM, key, fromBase64Url(proof.sig), joinStatement(salt, deviceId));
+    return ok ? identityFingerprint(proof.x, proof.y) : null;
+  } catch {
+    return null;
+  }
+}

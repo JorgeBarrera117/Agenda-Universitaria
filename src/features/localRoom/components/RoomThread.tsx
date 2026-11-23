@@ -6,11 +6,17 @@ import { ROOM_ITEM_LABEL, formatRoomBytes } from '../services/roomItems';
 import { ROOM_TEXT_MAX, type RoomItemInfo, type RoomMessage, type RoomTransfer } from '../types/room';
 import { ROOM_ICON_BUTTON, ROOM_ITEM_ICON } from './roomStyles';
 import { RoomAvatar } from './RoomAvatar';
+import { CompanionTag } from './CompanionTag';
+import { useRoomContacts } from '../hooks/useRoomContacts';
+import type { RoomMember } from '../types/room';
 import { RoomTransferBar } from './RoomTransferBar';
 
 interface RoomThreadProps {
   /** Mensajes de este hilo (sala o chat privado), ya filtrados. */
   messages: RoomMessage[];
+  /** Participantes (para la etiqueta «Compañero») y sus fotos. */
+  members: RoomMember[];
+  avatars: Readonly<Record<string, string>>;
   selfId: string;
   /** Chat privado: destinatario de lo que se escribe. */
   postTo?: string;
@@ -35,6 +41,8 @@ const timeFormatter = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '
 /** Hilo (de la sala o de un chat privado) en tiempo real y caja para escribir o adjuntar. */
 export const RoomThread: React.FC<RoomThreadProps> = ({
   messages,
+  members,
+  avatars,
   selfId,
   postTo,
   canPost,
@@ -52,6 +60,8 @@ export const RoomThread: React.FC<RoomThreadProps> = ({
 }) => {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const { savedIds } = useRoomContacts();
+  const companionIds = new Set(members.filter((m) => m.peerId && savedIds.has(m.peerId)).map((m) => m.id));
   const listRef = useRef<HTMLDivElement | null>(null);
   const stickToBottom = useRef(true);
   const uploads = Object.values(transfers).filter((t) => t.direction === 'up' && t.chat === (postTo ?? null));
@@ -113,6 +123,8 @@ export const RoomThread: React.FC<RoomThreadProps> = ({
                 transfer={message.item ? transfers[downloadTransferId(message.item.id)] : undefined}
                 onSave={() => onSave(message)}
                 onOpenChat={onOpenChat}
+                photo={avatars[message.authorId]}
+                companion={companionIds.has(message.authorId)}
               />
             ))}
             {uploads.map((transfer) => (
@@ -213,9 +225,11 @@ interface MessageRowProps {
   transfer?: RoomTransfer;
   onSave: () => void;
   onOpenChat?: (memberId: string) => void;
+  photo?: string;
+  companion: boolean;
 }
 
-const MessageRow: React.FC<MessageRowProps> = ({ message, mine, saved, transfer, onSave, onOpenChat }) => {
+const MessageRow: React.FC<MessageRowProps> = ({ message, mine, saved, transfer, onSave, onOpenChat, photo, companion }) => {
   if (message.system) {
     return (
       <li className="text-center text-xs font-medium text-[var(--color-md-on-surface-variant)]">
@@ -232,19 +246,23 @@ const MessageRow: React.FC<MessageRowProps> = ({ message, mine, saved, transfer,
       {!mine &&
         (openChat ? (
           <button type="button" onClick={openChat} className="shrink-0 rounded-full active:scale-95" aria-label={`Chat privado con ${message.authorName}`} title="Chat privado">
-            <RoomAvatar name={message.authorName} color={message.authorColor} size="sm" />
+            <RoomAvatar name={message.authorName} color={message.authorColor} photo={photo} size="sm" />
           </button>
         ) : (
-          <RoomAvatar name={message.authorName} color={message.authorColor} size="sm" />
+          <RoomAvatar name={message.authorName} color={message.authorColor} photo={photo} size="sm" />
         ))}
       <div className={`flex min-w-0 max-w-[85%] flex-col gap-1 sm:max-w-[75%] ${mine ? 'items-end' : 'items-start'}`}>
         {!mine &&
           (openChat ? (
             <button type="button" onClick={openChat} className="px-2 text-left text-xs font-bold text-[var(--color-md-on-surface-variant)] hover:text-[var(--color-md-primary)]">
               {message.authorName}
+              {companion && <CompanionTag />}
             </button>
           ) : (
-            <span className="px-2 text-xs font-bold text-[var(--color-md-on-surface-variant)]">{message.authorName}</span>
+            <span className="px-2 text-xs font-bold text-[var(--color-md-on-surface-variant)]">
+              {message.authorName}
+              {companion && <CompanionTag />}
+            </span>
           ))}
         {item && (
           <div className={`${CARD_SURFACE_CLASS} w-72 max-w-full p-3`}>

@@ -57,7 +57,7 @@ public final class NearbyRoomTransport {
     }
 
     /** Identifica el servicio: solo se ven entre sí las salas de esta app y esta versión del protocolo. */
-    static final String SERVICE_ID = "com.agenda.universitaria.localroom.v2";
+    static final String SERVICE_ID = "com.agenda.universitaria.localroom.v3";
     private static final Strategy STRATEGY = Strategy.P2P_STAR;
     /** Tope de un mensaje recibido (un bloque cifrado ocupa ~0,9 MB). */
     private static final int MAX_MESSAGE_BYTES = LocalRoomServer.MAX_BODY_BYTES;

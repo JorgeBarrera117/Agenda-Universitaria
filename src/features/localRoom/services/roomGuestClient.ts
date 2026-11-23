@@ -10,7 +10,7 @@ import {
   type RoomProfile,
   type RoomSnapshot,
 } from '../types/room';
-import { base64StringToBytes, bytesToBase64String, deriveRoomKey, openJson, sealJson } from './roomCrypto';
+import { base64StringToBytes, bytesToBase64String, deriveRoomKey, openJson, proveIdentity, sealJson, type RoomIdentity } from './roomCrypto';
 import {
   ROOM_ERROR_MESSAGES,
   ROOM_PROTOCOL_VERSION,
@@ -109,7 +109,7 @@ export class RoomGuestClient {
   }
 
   /** Busca al anfitrión en sus direcciones, valida el PIN al entrar y abre la conexión de eventos. */
-  static async connect(transport: GuestTransport, invite: RoomInvite, profile: RoomProfile, deviceId: string): Promise<RoomGuestClient> {
+  static async connect(transport: GuestTransport, invite: RoomInvite, profile: RoomProfile, deviceId: string, identity?: RoomIdentity): Promise<RoomGuestClient> {
     let found: { host: string; salt: string; info: RoomInfo; locked: boolean } | null = null;
     let otherVersion = false;
     for (const host of invite.hosts) {
@@ -134,7 +134,9 @@ export class RoomGuestClient {
     if (found.locked) throw new RoomJoinError(ROOM_ERROR_MESSAGES.locked);
 
     const key = await deriveRoomKey(invite.pin, found.salt);
-    const join: JoinRequest = { name: profile.name, color: profile.color, deviceId };
+    // La firma del dispositivo permite que lo guarden como compañero (y que entre sin espera)
+    const proof = identity ? await proveIdentity(identity, found.salt, deviceId) : undefined;
+    const join: JoinRequest = { name: profile.name, color: profile.color, deviceId, avatar: profile.avatar, identity: proof };
     const response = await transport.request(rpcUrl(found.host, invite.port), JSON.stringify({ v: ROOM_PROTOCOL_VERSION, op: 'join', s: await sealJson(key, join) }), CALL_TIMEOUT_MS);
     if (response.status !== 200) {
       const code = errorCodeOf(response.body);
@@ -246,6 +248,11 @@ export class RoomGuestClient {
       case 'rules': {
         const snapshot = this.state.snapshot;
         if (snapshot) this.setState({ ...online, snapshot: { ...snapshot, rules: event.rules } });
+        break;
+      }
+      case 'avatars': {
+        const snapshot = this.state.snapshot;
+        if (snapshot) this.setState({ ...online, snapshot: { ...snapshot, avatars: { ...snapshot.avatars, ...event.avatars } } });
         break;
       }
       case 'end': {

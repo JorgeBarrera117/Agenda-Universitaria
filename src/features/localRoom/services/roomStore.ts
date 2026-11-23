@@ -11,7 +11,9 @@ import type {
   RoomSnapshot,
   RoomTransfer,
 } from '../types/room';
-import { randomToken } from './roomCrypto';
+import { liveQuery } from 'dexie';
+import { loadRoomIdentity, randomToken } from './roomCrypto';
+import { roomContactRepository } from '../repositories/roomContactRepository';
 import { RoomGuestClient, RoomTransferCancelled } from './roomGuestClient';
 import { RoomHostEngine } from './roomHostEngine';
 import { assertRoomItemSize } from './roomItems';
@@ -73,6 +75,9 @@ let detach: (() => void) | null = null;
 /** Mensajes ya contados (para no volver a sumarlos como no leídos). null = aún no llegó el primer estado. */
 let seenMessages: Set<string> | null = null;
 const controllers = new Map<string, AbortController>();
+/** Compañeros guardados del anfitrión (entran sin sala de espera si la regla lo permite). */
+let trustedPeers = new Set<string>();
+let trustedWatch: { unsubscribe: () => void } | null = null;
 
 function emit(next: Partial<RoomStoreState>): void {
   state = { ...state, ...next };
@@ -192,6 +197,8 @@ function resetRoomState(): Partial<RoomStoreState> {
 function ended(reason: RoomEndReason, message: string): void {
   detach?.();
   detach = null;
+  trustedWatch?.unsubscribe();
+  trustedWatch = null;
   engine = null;
   client = null;
   emit({ session: { phase: 'ended', reason, message }, ...resetRoomState() });
@@ -217,8 +224,14 @@ export async function createRoom(options: CreateRoomOptions): Promise<void> {
   emit({ session: { phase: 'starting', role: 'host' }, ...resetRoomState() });
   try {
     const roomName = options.roomName.trim() || 'Sala de clase';
-    const transport = options.nearby ? combineHostTransports(createHostTransport(), createNearbyHostTransport(roomName, options.profile.name)) : createHostTransport();
-    const created = await RoomHostEngine.open(transport, options);
+    const identity = await loadRoomIdentity();
+    // Lista de confianza en vivo: si el anfitrión guarda a alguien durante la sala, vale de inmediato
+    trustedPeers = await roomContactRepository.peerIds();
+    trustedWatch = liveQuery(() => roomContactRepository.peerIds()).subscribe({ next: (ids) => (trustedPeers = ids), error: () => undefined });
+    const transport = options.nearby
+      ? combineHostTransports(createHostTransport(), createNearbyHostTransport(roomName, options.profile.name, identity.peerId))
+      : createHostTransport();
+    const created = await RoomHostEngine.open(transport, { ...options, peerId: identity.peerId, isTrusted: (peerId) => trustedPeers.has(peerId) });
     engine = created;
     detach = created.subscribe(syncFromEngine);
     created.onEnd((reason, message) =>
@@ -226,6 +239,8 @@ export async function createRoom(options: CreateRoomOptions): Promise<void> {
     );
     syncFromEngine();
   } catch (error) {
+    trustedWatch?.unsubscribe();
+    trustedWatch = null;
     emit({ session: { phase: 'idle' } });
     throw error;
   }
@@ -235,7 +250,7 @@ export async function joinRoom(invite: RoomInvite, profile: RoomProfile): Promis
   if (busy()) return;
   emit({ session: { phase: 'starting', role: 'guest' }, ...resetRoomState() });
   try {
-    const joined = await RoomGuestClient.connect(createGuestTransport(), invite, profile, deviceId());
+    const joined = await RoomGuestClient.connect(createGuestTransport(), invite, profile, deviceId(), await loadRoomIdentity());
     client = joined;
     detach = joined.subscribe(syncFromClient);
     joined.onEnd((reason, message) => ended(reason, message ?? (reason === 'left' ? 'Saliste de la sala.' : 'La sala terminó.')));
@@ -252,7 +267,7 @@ export async function joinNearbyRoom(room: NearbyRoom, pin: string, profile: Roo
   emit({ session: { phase: 'starting', role: 'guest' }, ...resetRoomState() });
   const transport = createNearbyGuestTransport(room.endpointId, profile.name);
   try {
-    const joined = await RoomGuestClient.connect(transport, { hosts: ['nearby'], port: 0, pin, name: room.roomName }, profile, deviceId());
+    const joined = await RoomGuestClient.connect(transport, { hosts: ['nearby'], port: 0, pin, name: room.roomName }, profile, deviceId(), await loadRoomIdentity());
     client = joined;
     detach = joined.subscribe(syncFromClient);
     joined.onEnd((reason, message) => ended(reason, message ?? (reason === 'left' ? 'Saliste de la sala.' : 'La sala terminó.')));

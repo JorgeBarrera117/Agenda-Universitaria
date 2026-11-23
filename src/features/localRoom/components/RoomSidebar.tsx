@@ -8,6 +8,9 @@ import { roomModeration } from '../services/roomStore';
 import type { RoomInvite, RoomMember, RoomRules, RoomSnapshot } from '../types/room';
 import { ROOM_DANGER_BUTTON, ROOM_FILLED_BUTTON, ROOM_ICON_BUTTON, ROOM_SECTION_TITLE, ROOM_TONAL_BUTTON, ROOM_TEXT_BUTTON } from './roomStyles';
 import { RoomAvatar } from './RoomAvatar';
+import { CompanionTag } from './CompanionTag';
+import { SaveCompanionButton } from './SaveCompanionButton';
+import { useRoomContacts } from '../hooks/useRoomContacts';
 
 const QrCodeSvg = lazy(() => import('../../transfer/components/QrCodeSvg').then((m) => ({ default: m.QrCodeSvg })));
 
@@ -29,6 +32,7 @@ const RULE_ROWS: { key: keyof RoomRules; title: string; description: string }[] 
   { key: 'readOnly', title: 'Solo lectura', description: 'Solo tú publicas; los demás miran y guardan' },
   { key: 'textEnabled', title: 'Permitir texto', description: 'Si lo apagas, solo se comparten elementos' },
   { key: 'privateChat', title: 'Chats privados', description: 'Los participantes pueden escribirse 1 a 1' },
+  { key: 'trustedAutoAdmit', title: 'Admitir compañeros guardados sin espera', description: 'Tus compañeros guardados entran directo, sin aprobarlos' },
 ];
 
 /**
@@ -36,6 +40,8 @@ const RULE_ROWS: { key: keyof RoomRules; title: string; description: string }[] 
  * participantes, sala de espera y controles del anfitrión.
  */
 export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLeave, onShowToast, privateUnread, onOpenChat }) => {
+  const { savedIds } = useRoomContacts();
+  const isSaved = (member: RoomMember) => Boolean(member.peerId && savedIds.has(member.peerId));
   const isHost = Boolean(invite);
   const [toKick, setToKick] = useState<RoomMember | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
@@ -116,8 +122,11 @@ export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLe
           <ul className="mt-2 space-y-2">
             {pending.map((member) => (
               <li key={member.id} className="flex items-center gap-3 rounded-2xl bg-[var(--color-md-surface-container-high)] p-2 pl-3">
-                <RoomAvatar name={member.name} color={member.color} size="sm" online={member.online} />
-                <span className="min-w-0 flex-1 truncate text-sm font-bold text-[var(--color-md-on-surface)]">{member.name}</span>
+                <RoomAvatar name={member.name} color={member.color} photo={snapshot.avatars[member.id]} size="sm" online={member.online} />
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-[var(--color-md-on-surface)]">
+                  {member.name}
+                  {isSaved(member) && <CompanionTag />}
+                </span>
                 <button type="button" className={ROOM_ICON_BUTTON} onClick={() => roomModeration.reject(member.id)} aria-label={`Rechazar a ${member.name}`} title="Rechazar">
                   <UserRoundX aria-hidden="true" />
                 </button>
@@ -150,7 +159,7 @@ export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLe
             const content = (
               <>
                 <span className="relative shrink-0">
-                  <RoomAvatar name={member.name} color={member.color} size="sm" online={member.online} />
+                  <RoomAvatar name={member.name} color={member.color} photo={snapshot.avatars[member.id]} size="sm" online={member.online} />
                   {unread > 0 && (
                     <span className="absolute -right-1.5 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-red-600 px-1 text-10px font-bold text-white" aria-hidden="true">
                       {unread > 9 ? '9+' : unread}
@@ -161,6 +170,7 @@ export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLe
                   <span className="block truncate text-sm font-bold text-[var(--color-md-on-surface)]">
                     {member.name}
                     {self && <span className="font-medium text-[var(--color-md-on-surface-variant)]"> (tú)</span>}
+                    {!self && isSaved(member) && <CompanionTag />}
                   </span>
                   {member.isHost && (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-md-primary)]">
@@ -187,6 +197,7 @@ export const RoomSidebar: React.FC<RoomSidebarProps> = ({ snapshot, invite, onLe
               ) : (
                 <div className="flex min-h-12 min-w-0 flex-1 items-center gap-3">{content}</div>
               )}
+              {!self && <SaveCompanionButton member={member} photo={snapshot.avatars[member.id]} saved={isSaved(member)} onShowToast={onShowToast} compact />}
               {isHost && !member.isHost && (
                 <button type="button" className={ROOM_ICON_BUTTON} onClick={() => setToKick(member)} aria-label={`Retirar a ${member.name}`} title="Retirar y bloquear">
                   <Ban aria-hidden="true" />

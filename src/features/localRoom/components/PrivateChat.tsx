@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import { ArrowLeft, LockKeyhole } from 'lucide-react';
 import type { RoomMember, RoomMessage, RoomSnapshot, RoomTransfer } from '../types/room';
 import { RoomAvatar } from './RoomAvatar';
+import { SaveCompanionButton } from './SaveCompanionButton';
+import { useRoomContacts } from '../hooks/useRoomContacts';
 import { RoomThread } from './RoomThread';
 import { ROOM_ICON_BUTTON } from './roomStyles';
 
@@ -26,6 +28,7 @@ interface PrivateChatProps {
  */
 export const PrivateChat: React.FC<PrivateChatProps> = ({ peerId, snapshot, isHost, reconnecting, saved, transfers, roomUnread, onBack, onSave, onAttach, onShowToast }) => {
   const peer: RoomMember | undefined = snapshot.members.find((m) => m.id === peerId);
+  const { savedIds } = useRoomContacts();
   const selfId = snapshot.selfId;
   const messages = useMemo(
     () => snapshot.messages.filter((m) => m.to && ((m.authorId === selfId && m.to === peerId) || (m.authorId === peerId && m.to === selfId))),
@@ -44,7 +47,7 @@ export const PrivateChat: React.FC<PrivateChatProps> = ({ peerId, snapshot, isHo
           <ArrowLeft aria-hidden="true" />
           {roomUnread > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-600" aria-hidden="true" />}
         </button>
-        <RoomAvatar name={peerName} color={peerColor} size="sm" online={present ? peer?.online : undefined} />
+        <RoomAvatar name={peerName} color={peerColor} photo={snapshot.avatars[peerId]} size="sm" online={present ? peer?.online : undefined} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-[var(--color-md-on-surface)]">{peerName}</p>
           <p className="flex items-center gap-1 text-xs text-[var(--color-md-on-surface-variant)]">
@@ -52,9 +55,12 @@ export const PrivateChat: React.FC<PrivateChatProps> = ({ peerId, snapshot, isHo
             <span className="truncate">Chat privado · solo ustedes dos lo ven</span>
           </p>
         </div>
+        {peer && <SaveCompanionButton member={peer} photo={snapshot.avatars[peerId]} saved={Boolean(peer.peerId && savedIds.has(peer.peerId))} onShowToast={onShowToast} />}
       </div>
       <RoomThread
         messages={messages}
+        members={snapshot.members}
+        avatars={snapshot.avatars}
         selfId={selfId}
         postTo={peerId}
         canPost={allowed && present}

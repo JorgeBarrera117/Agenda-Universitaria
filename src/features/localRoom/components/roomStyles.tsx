@@ -31,3 +31,6 @@ export const ROOM_ITEM_ICON: Record<RoomItemKind, React.ReactNode> = {
   note: <NotebookPen aria-hidden="true" />,
   document: <FileText aria-hidden="true" />,
 };
+
+/** Campo de texto sin ancho fijo, para ponerlo en fila con otros (dirección + PIN). */
+export const ROOM_INPUT_INLINE = ROOM_INPUT.replace('w-full ', '');

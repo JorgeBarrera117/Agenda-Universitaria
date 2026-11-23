@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useCallback, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import { roomContactRepository } from '../repositories/roomContactRepository';
 import { ArrowLeft, Hourglass, LoaderCircle, LogOut, Radio, UsersRound } from 'lucide-react';
 import { Modal } from '../../../shared/components/Modal';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
@@ -37,6 +38,8 @@ const ImportScheduleModal = lazy(() => import('../../schedule/components/ImportS
 
 interface LocalRoomScreenProps {
   studentName?: string;
+  /** Foto de Mi perfil (se comparte como miniatura de 96 px). */
+  studentPhoto?: string;
   onShowToast: (message: string) => void;
 }
 
@@ -47,7 +50,7 @@ type SaveTarget = { itemId: string } & ({ kind: 'package'; parsed: IncomingShare
  * - PC: dos columnas (invitar, participantes y controles | hilo o chat privado).
  * - Teléfono: cabecera compacta e hilo a pantalla completa; los participantes en una hoja.
  */
-export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, onShowToast }) => {
+export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, studentPhoto, onShowToast }) => {
   const { session, saved, transfers, activeChat, privateUnread, unread } = useLocalRoom();
   const isWide = useMediaQuery('(min-width: 1024px)');
   const [membersOpen, setMembersOpen] = useState(false);
@@ -114,6 +117,15 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
   const reconnecting = active?.connection === 'reconnecting';
   const chatOpen = Boolean(active && activeChat);
 
+  // Coincidir en una sala actualiza nombre, foto y «visto por última vez» de los compañeros guardados
+  const membersKey = snapshot ? snapshot.members.map((m) => `${m.id}:${m.name}:${m.status}:${snapshot.avatars[m.id]?.length ?? 0}`).join('|') : '';
+  useEffect(() => {
+    if (!snapshot || !membersKey) return;
+    void roomContactRepository.touch(snapshot.members, snapshot.avatars).catch(() => undefined);
+    // Solo cuando cambian los participantes (membersKey), no con cada mensaje
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [membersKey]);
+
   const title = active ? active.snapshot.info.name : session.phase === 'waiting' ? session.info.name : 'Sala Local';
 
   return (
@@ -160,7 +172,7 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
       {/* Contenido */}
       {(session.phase === 'idle' || session.phase === 'starting') && (
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom,0px)]">
-          <RoomLobby initialProfile={profile} studentName={studentName ?? ''} busy={session.phase === 'starting' ? session.role : null} onShowToast={onShowToast} />
+          <RoomLobby initialProfile={profile} studentName={studentName ?? ''} studentPhoto={studentPhoto} busy={session.phase === 'starting' ? session.role : null} onShowToast={onShowToast} />
         </div>
       )}
 
@@ -204,6 +216,8 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
           ) : (
             <RoomThread
               messages={roomMessages}
+              members={snapshot.members}
+              avatars={snapshot.avatars}
               selfId={snapshot.selfId}
               canPost={isHost || !snapshot.rules.readOnly}
               blockedNote="Solo lectura: solo el anfitrión publica."

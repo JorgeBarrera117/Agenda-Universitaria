@@ -5,6 +5,7 @@ import type { ScheduleSlot } from '../../features/schedule/types';
 import type { Note, NoteAudio, NoteImage } from '../../features/notes/types';
 import type { AgendaEvent } from '../../features/agenda/types';
 import type { StudySession } from '../../features/study/types';
+import type { RoomContact } from '../../features/localRoom/types/room';
 
 export class AppDatabase extends Dexie {
   subjects!: Table<Subject, string>;
@@ -18,6 +19,8 @@ export class AppDatabase extends Dexie {
   agendaEvents!: Table<AgendaEvent, string>;
   /** Modo estudio: sesiones de concentración terminadas (horas por materia). */
   studySessions!: Table<StudySession, string>;
+  /** Sala Local: compañeros guardados (clave = huella verificada de su dispositivo). */
+  roomContacts!: Table<RoomContact, string>;
 
   constructor() {
     super('AgendaUniversitariaDB');
@@ -44,6 +47,10 @@ export class AppDatabase extends Dexie {
     // Modo estudio (tabla nueva): las existentes no cambian, la migración no toca datos
     this.version(6).stores({
       studySessions: 'id, subjectId, startedAt',
+    });
+    // Sala Local: compañeros guardados (tabla nueva, la migración no toca datos)
+    this.version(7).stores({
+      roomContacts: 'deviceId, lastSeen, name',
     });
   }
 }

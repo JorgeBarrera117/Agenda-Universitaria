@@ -1,5 +1,6 @@
 import { isPrivateIPv4 } from '../../transfer/services/transferProtocol';
 import {
+  ROOM_AVATAR_MAX_CHARS,
   ROOM_CHUNK_BYTES,
   ROOM_ITEM_KINDS,
   ROOM_ITEM_MAX_BYTES,
@@ -24,6 +25,7 @@ import {
  *
  * Versión 2 (Fase 2): chats privados (mensajes con destinatario) y elementos por bloques de
  * 512 KB cifrados (uploadStart, uploadChunk…, uploadFinish; fetchChunk para descargar).
+ * Versión 3: identidad firmada del dispositivo (compañeros guardados) y fotos de perfil.
  *
  * Los servidores nativos (LocalRoomServer.java en Android y roomServer.cjs en Windows) no conocen
  * este formato: entregan cada petición y cada conexión de eventos a la interfaz, que es donde vive
@@ -31,7 +33,7 @@ import {
  */
 
 export const ROOM_BASE_PATH = '/room/v1';
-export const ROOM_PROTOCOL_VERSION = 2;
+export const ROOM_PROTOCOL_VERSION = 3;
 const INVITE_PREFIX = 'agenda-room://v1?';
 
 /* --------------------------------------------------------------------------------- Invitación */
@@ -85,9 +87,9 @@ export function eventsUrl(host: string, port: number, memberId: string, proof: s
 /* --------------------------------------------------------------------------------- Mensajes */
 
 export type WireRequest =
-  | { v: 2; op: 'hello' }
-  | { v: 2; op: 'join'; s: string }
-  | { v: 2; op: 'call'; m: string; s: string };
+  | { v: 3; op: 'hello' }
+  | { v: 3; op: 'join'; s: string }
+  | { v: 3; op: 'call'; m: string; s: string };
 
 export interface HelloResponse {
   app: 'agenda-universitaria';
@@ -104,6 +106,10 @@ export interface JoinRequest {
   name: string;
   color: string;
   deviceId: string;
+  /** Miniatura de la foto de perfil (opcional). */
+  avatar?: string;
+  /** Firma de la clave del dispositivo sobre la sal de la sala (ver roomCrypto.proveIdentity). */
+  identity?: { x: string; y: string; sig: string };
 }
 
 export interface JoinResult {
@@ -139,6 +145,8 @@ export type RoomEvent =
   | { type: 'message'; message: RoomMessage }
   | { type: 'members'; members: RoomMember[] }
   | { type: 'rules'; rules: RoomRules }
+  /** Fotos nuevas (alguien entró): se suman a las que ya se tenían. */
+  | { type: 'avatars'; avatars: Record<string, string> }
   | { type: 'end'; reason: RoomEndEventReason };
 
 /** Códigos de error de la sala (en el cuerpo de respuestas no 200). */
@@ -197,9 +205,9 @@ export function parseWireRequest(raw: string): WireRequest | null {
     return null;
   }
   if (!isRecord(parsed) || parsed.v !== ROOM_PROTOCOL_VERSION) return null;
-  if (parsed.op === 'hello') return { v: 2, op: 'hello' };
-  if (parsed.op === 'join' && typeof parsed.s === 'string') return { v: 2, op: 'join', s: parsed.s };
-  if (parsed.op === 'call' && typeof parsed.s === 'string' && typeof parsed.m === 'string') return { v: 2, op: 'call', m: parsed.m, s: parsed.s };
+  if (parsed.op === 'hello') return { v: 3, op: 'hello' };
+  if (parsed.op === 'join' && typeof parsed.s === 'string') return { v: 3, op: 'join', s: parsed.s };
+  if (parsed.op === 'call' && typeof parsed.s === 'string' && typeof parsed.m === 'string') return { v: 3, op: 'call', m: parsed.m, s: parsed.s };
   return null;
 }
 
@@ -213,12 +221,39 @@ export function isOtherProtocolVersion(raw: string): boolean {
   }
 }
 
+/** Solo miniaturas raster en data URL y de tamaño acotado (nunca SVG ni URLs externas). */
+export function parseAvatar(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length > ROOM_AVATAR_MAX_CHARS) return undefined;
+  return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value) ? value : undefined;
+}
+
+function base64UrlField(value: unknown, max: number): string | undefined {
+  return typeof value === 'string' && value.length > 0 && value.length <= max && /^[A-Za-z0-9_-]+$/.test(value) ? value : undefined;
+}
+
 export function parseJoinRequest(value: unknown): JoinRequest | null {
   if (!isRecord(value)) return null;
   const name = text(value.name, 40);
   const deviceId = text(value.deviceId, 64);
   if (!name || !deviceId) return null;
-  return { name, color: color(value.color), deviceId };
+  let identity: JoinRequest['identity'];
+  if (isRecord(value.identity)) {
+    const x = base64UrlField(value.identity.x, 64);
+    const y = base64UrlField(value.identity.y, 64);
+    const sig = base64UrlField(value.identity.sig, 128);
+    if (x && y && sig) identity = { x, y, sig };
+  }
+  return { name, color: color(value.color), deviceId, avatar: parseAvatar(value.avatar), identity };
+}
+
+function parseAvatarMap(value: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!isRecord(value)) return out;
+  for (const [id, avatar] of Object.entries(value).slice(0, 60)) {
+    const clean = parseAvatar(avatar);
+    if (clean && id.length <= 64) out[id] = clean;
+  }
+  return out;
 }
 
 export function parseItemInfo(value: unknown): RoomItemInfo | null {
@@ -296,9 +331,9 @@ export function parseSealedCall(value: unknown): SealedCall | null {
 
 function parseRules(value: unknown): RoomRules | null {
   if (!isRecord(value)) return null;
-  const { waitingRoom, locked, readOnly, textEnabled, privateChat } = value;
-  if (typeof waitingRoom !== 'boolean' || typeof locked !== 'boolean' || typeof readOnly !== 'boolean' || typeof textEnabled !== 'boolean' || typeof privateChat !== 'boolean') return null;
-  return { waitingRoom, locked, readOnly, textEnabled, privateChat };
+  const { waitingRoom, locked, readOnly, textEnabled, privateChat, trustedAutoAdmit } = value;
+  if (typeof waitingRoom !== 'boolean' || typeof locked !== 'boolean' || typeof readOnly !== 'boolean' || typeof textEnabled !== 'boolean' || typeof privateChat !== 'boolean' || typeof trustedAutoAdmit !== 'boolean') return null;
+  return { waitingRoom, locked, readOnly, textEnabled, privateChat, trustedAutoAdmit };
 }
 
 function parseInfo(value: unknown): RoomInfo | null {
@@ -321,6 +356,7 @@ function parseMember(value: unknown): RoomMember | null {
     status: value.status === 'pending' ? 'pending' : 'active',
     online: value.online === true,
     joinedAt: typeof value.joinedAt === 'number' ? value.joinedAt : 0,
+    peerId: typeof value.peerId === 'string' && /^[A-Za-z0-9_-]{8,44}$/.test(value.peerId) ? value.peerId : undefined,
   };
 }
 
@@ -381,7 +417,7 @@ export function parseRoomEvent(value: unknown): RoomEvent | null {
       if (!info || !rules) return null;
       return {
         type: 'snapshot',
-        snapshot: { info, rules, selfId: s.selfId, members: parseList(s.members, parseMember), messages: parseList(s.messages, parseMessage) },
+        snapshot: { info, rules, selfId: s.selfId, members: parseList(s.members, parseMember), messages: parseList(s.messages, parseMessage), avatars: parseAvatarMap(s.avatars) },
       };
     }
     case 'message': {
@@ -394,6 +430,8 @@ export function parseRoomEvent(value: unknown): RoomEvent | null {
       const rules = parseRules(value.rules);
       return rules ? { type: 'rules', rules } : null;
     }
+    case 'avatars':
+      return { type: 'avatars', avatars: parseAvatarMap(value.avatars) };
     case 'end':
       return value.reason === 'kicked' || value.reason === 'rejected' ? { type: 'end', reason: value.reason } : { type: 'end', reason: 'closed' };
     default:

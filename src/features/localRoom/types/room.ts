@@ -23,6 +23,8 @@ export interface RoomRules {
   textEnabled: boolean;
   /** Los participantes pueden abrir chats privados 1 a 1. */
   privateChat: boolean;
+  /** Los compañeros guardados por el anfitrión entran sin pasar por la sala de espera. */
+  trustedAutoAdmit: boolean;
 }
 
 export const DEFAULT_ROOM_RULES: RoomRules = {
@@ -31,6 +33,7 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   readOnly: false,
   textEnabled: true,
   privateChat: true,
+  trustedAutoAdmit: true,
 };
 
 export type RoomMemberStatus = 'pending' | 'active';
@@ -46,6 +49,8 @@ export interface RoomMember {
   /** Tiene la conexión de eventos abierta ahora mismo. */
   online: boolean;
   joinedAt: number;
+  /** Huella verificada de su dispositivo (firma ECDSA): sirve para guardarlo como compañero. */
+  peerId?: string;
 }
 
 /** Ficha de un elemento compartido: lo que viaja en el hilo. El contenido se pide aparte. */
@@ -91,6 +96,8 @@ export interface RoomSnapshot {
   members: RoomMember[];
   messages: RoomMessage[];
   selfId: string;
+  /** Fotos (miniaturas de 96 px) por id de participante. Llegan una vez, no en cada cambio. */
+  avatars: Record<string, string>;
 }
 
 /** Datos visibles de un elemento antes de publicarlo (sin id ni tamaño: los pone el anfitrión). */
@@ -146,7 +153,12 @@ export interface RoomTransfer {
 export interface RoomProfile {
   name: string;
   color: string;
+  /** Miniatura de la foto de Mi perfil (data:image/jpeg, 96 px, < 25 KB). */
+  avatar?: string;
 }
+
+/** Tope de una miniatura en base64 (25 KB de imagen). */
+export const ROOM_AVATAR_MAX_CHARS = 34_500;
 
 /** Datos para entrar: los lleva el QR o se escriben a mano. */
 export interface RoomInvite {
@@ -173,3 +185,17 @@ export const ROOM_ITEM_MAX_BYTES = 300 * 1024 * 1024;
 export const ROOM_CHUNK_BYTES = 512 * 1024;
 /** Bloques que viajan a la vez (aprovecha la red sin saturar el puente nativo). */
 export const ROOM_CHUNK_PARALLEL = 3;
+
+/**
+ * Compañero guardado (tabla roomContacts de Dexie). deviceId es la HUELLA verificada de su
+ * dispositivo (peerId), no un identificador interno: no se puede falsificar sin su clave privada.
+ */
+export interface RoomContact {
+  deviceId: string;
+  name: string;
+  /** Miniatura de su foto (si tenía). */
+  avatarThumb?: string;
+  color: string;
+  /** Última vez que coincidieron en una sala (ms). */
+  lastSeen: number;
+}

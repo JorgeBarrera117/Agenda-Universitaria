@@ -12,7 +12,12 @@ export interface NearbyRoom {
   endpointId: string;
   roomName: string;
   hostName: string;
+  /** Inicio de la huella del anfitrión: permite marcar «cerca» a un compañero guardado. */
+  hostTag?: string;
 }
+
+/** Largo de la etiqueta del anfitrión en el nombre anunciado (el nombre debe ser corto). */
+export const NEARBY_TAG_LENGTH = 10;
 
 export interface NearbyStatus {
   available: boolean;
@@ -65,8 +70,8 @@ function ensureHub(): Promise<void> {
         else host?.handleDisconnected(endpointId);
       }),
       LocalRoom.addListener('nearbyFound', ({ endpointId, name }) => {
-        const [roomName, hostName] = name.split(NAME_SEPARATOR);
-        discoveryListener?.found({ endpointId, roomName: roomName || 'Sala cercana', hostName: hostName || '' });
+        const [roomName, hostName, hostTag] = name.split(NAME_SEPARATOR);
+        discoveryListener?.found({ endpointId, roomName: roomName || 'Sala cercana', hostName: hostName || '', hostTag: hostTag || undefined });
       }),
       LocalRoom.addListener('nearbyLost', ({ endpointId }) => discoveryListener?.lost(endpointId)),
     ]).then(() => undefined);
@@ -77,8 +82,8 @@ function ensureHub(): Promise<void> {
 /* ------------------------------------------------------------------ Anfitrión */
 
 /** El anfitrión se anuncia con el nombre de la sala; los demás lo ven en «Salas cercanas». */
-export function createNearbyHostTransport(roomName: string, hostName: string): FramedHostTransport {
-  const name = `${roomName.slice(0, 40)}${NAME_SEPARATOR}${hostName.slice(0, 30)}`;
+export function createNearbyHostTransport(roomName: string, hostName: string, hostPeerId: string): FramedHostTransport {
+  const name = [roomName.slice(0, 32), hostName.slice(0, 24), hostPeerId.slice(0, NEARBY_TAG_LENGTH)].join(NAME_SEPARATOR);
   const transport = createFramedHostTransport({
     start: async () => {
       await ensureHub();
