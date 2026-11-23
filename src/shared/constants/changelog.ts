@@ -32,6 +32,17 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.3',
+    date: '2026-11-22',
+    title: 'Tomar apunte directo y la notificación en vivo de vuelta',
+    changes: [
+      { kind: 'mejora', text: 'Tomar apunte abre directo el editor con la materia ya elegida (Horario y Materias).' },
+      { kind: 'mejora', text: 'La notificación del Estudio vuelve a mostrarse en vivo en la barra de estado, con el ícono de la app y el cronómetro del Estudio.' },
+      { kind: 'correccion', text: 'Los títulos de las listas (como Lunes · 1 clase) se leen sobre cualquier foto de fondo.' },
+      { kind: 'correccion', text: 'La casilla de las tareas en la Agenda queda alineada con su menú.' },
+    ],
+  },
+  {
     version: '1.7.11.2',
     date: '2026-11-22',
     title: 'Pantallas más claras en toda la app',
