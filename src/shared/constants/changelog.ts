@@ -32,6 +32,17 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.4.5',
+    date: '2026-11-23',
+    title: 'Sala Local en segundo plano (prueba)',
+    changes: [
+      { kind: 'nuevo', text: 'La Sala Local sigue conectada al minimizar la app, cambiar de app o bloquear la pantalla; solo sales con Salir de la sala o cuando el anfitrión la cierra.' },
+      { kind: 'nuevo', text: 'Android: notificación fija con el nombre de la sala, los conectados y el botón Salir de la sala (o Cerrar sala si eres el anfitrión).' },
+      { kind: 'nuevo', text: 'Avisos de mensajes, chats privados y elementos nuevos cuando estás fuera de la app (Android y Windows); al tocarlos se abre la sala o el chat.' },
+      { kind: 'nuevo', text: 'Cuando el anfitrión cierra la sala, todos ven el aviso La sala se ha cerrado · El anfitrión finalizó la sesión, también fuera de la app.' },
+    ],
+  },
+  {
     version: '1.7.11.4.4',
     date: '2026-11-23',
     title: 'Sala Local: compañeros guardados y tu foto (prueba)',
