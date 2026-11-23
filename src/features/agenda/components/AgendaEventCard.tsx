@@ -103,28 +103,28 @@ const AgendaEventCardComponent: React.FC<AgendaEventCardProps> = ({ event, subje
         )}
       </div>
 
-      <div className={`flex shrink-0 items-start gap-0.5 ${ABOVE_STRETCHED_CLASS}`}>
+      <div className={`-mr-1 -mt-0.5 flex shrink-0 items-center gap-0.5 ${ABOVE_STRETCHED_CLASS}`}>
         {isTask && (
           <button
             type="button"
             onClick={() => onToggleDone(event)}
             aria-pressed={Boolean(event.done)}
             aria-label={event.done ? `Marcar «${event.title}» como pendiente` : `Marcar «${event.title}» como hecha`}
-            className="-mt-1 flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-[var(--color-md-on-surface)]/5"
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-[background-color,transform] duration-150 hover:bg-[var(--color-md-on-surface)]/5 active:scale-90"
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors ${
+              className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors ${
                 event.done
                   ? 'border-[var(--color-md-primary)] bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
                   : 'border-[var(--color-md-on-surface-variant)] text-transparent'
               }`}
             >
-              <Check className="h-4 w-4 stroke-[3]" aria-hidden="true" />
+              <Check className="h-3.5 w-3.5 stroke-[3]" aria-hidden="true" />
             </span>
           </button>
         )}
         <M3KebabMenu
-          size="sm"
+          size="md"
           ariaLabel={`Opciones de «${event.title}»`}
           items={[
             {

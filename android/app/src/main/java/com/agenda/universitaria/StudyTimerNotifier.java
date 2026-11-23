@@ -12,14 +12,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
-import android.os.SystemClock;
 import android.text.format.DateFormat;
-import android.widget.RemoteViews;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -29,10 +26,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Modo estudio en Android: notificación en curso con el tiempo que queda en grande (cronómetro del
- * sistema dentro de una vista propia), la fase, una barra de avance y botones con ícono
- * (Pausar/Reanudar, Saltar y Detener), más la alarma exacta del fin de cada fase. El cambio de fase
- * no publica otra tarjeta: la misma notificación suena una vez con el tono de esa fase.
+ * Modo estudio en Android: notificación en curso con la plantilla estándar del sistema (cuenta
+ * regresiva en vivo, fase, detalle, barra de avance y botones con ícono Pausar/Reanudar, Saltar y
+ * Detener), promovida a «actualización en vivo» en Android 16+, más la alarma exacta del fin de cada
+ * fase. El cambio de fase no publica otra tarjeta: la misma notificación suena una vez con su tono.
  *
  * El estado lo manda la app (StudyTimerPlugin.sync) y se guarda en SharedPreferences, así el
  * receptor (StudyTimerReceiver) puede pausar, reanudar, detener y pasar de concentración a pausa
@@ -229,8 +226,8 @@ final class StudyTimerNotifier {
         String channelId = ensureAlertChannel(ctx, s.optBoolean("soundOn", true) ? tone : "silent");
         int color = parseColor(s.optString("color"), Color.parseColor("#00639B"));
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, channelId)
-            .setSmallIcon(R.drawable.ic_stat_study_timer)
-            .setLargeIcon(circleIcon(ctx, R.drawable.ic_stat_study_timer, color))
+            .setSmallIcon(R.drawable.ic_stat_agenda)
+            .setLargeIcon(circleIcon(ctx, R.drawable.ic_study_stopwatch, color))
             .setContentTitle(title)
             .setContentText(text)
             .setColor(color)
@@ -334,33 +331,42 @@ final class StudyTimerNotifier {
         if (alertMessage != null) detail = alertMessage;
 
         int phaseColor = parseColor(isBreak ? BREAK_HEX : s.optString("color"), Color.parseColor("#00639B"));
-        int glyph = isBreak ? R.drawable.ic_stat_study_break : R.drawable.ic_stat_study_timer;
+        // Ícono grande: el mismo de la pestaña Estudio (cronómetro) o la taza del descanso
+        int phaseGlyph = isBreak ? R.drawable.ic_study_coffee : R.drawable.ic_study_stopwatch;
         int totalSec = (int) Math.max(1, phaseTotal / 1000);
         int elapsedSec = (int) Math.min(totalSec, Math.max(0, (phaseTotal - remaining) / 1000));
-
-        RemoteViews small = timerViews(ctx, R.layout.notification_study_timer, running, remaining, phase, null, totalSec, elapsedSec, phaseColor);
-        RemoteViews big = timerViews(ctx, R.layout.notification_study_timer_big, running, remaining, phase, detail, totalSec, elapsedSec, phaseColor);
+        // En pausa no corre el cronómetro del sistema: el tiempo que queda va en el título
+        String title = running || untouched ? phase : phase + " · " + clock(remaining);
 
         boolean alerting = alertTone != null;
         String channel = alerting ? ensureAlertChannel(ctx, s.optBoolean("soundOn", true) ? alertTone : "silent") : ONGOING_CHANNEL;
+        // Plantilla estándar de Android (Material 3 del sistema): así puede ser «actualización en
+        // vivo» (pastilla con el tiempo en la barra de estado / isla, Android 16+). Una vista propia
+        // lo impediría. Ícono pequeño: el de la app
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, channel)
-            .setSmallIcon(glyph)
-            .setLargeIcon(circleIcon(ctx, glyph, phaseColor))
-            // Título y texto para lectores de pantalla y para Android si no puede mostrar la vista
-            .setContentTitle(clock(remaining) + " · " + phase)
+            .setSmallIcon(R.drawable.ic_stat_agenda)
+            .setLargeIcon(circleIcon(ctx, phaseGlyph, phaseColor))
+            .setContentTitle(title)
             .setContentText(detail)
-            .setCustomContentView(small)
-            .setCustomBigContentView(big)
-            .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
+            .setProgress(totalSec, elapsedSec, false)
             .setColor(phaseColor)
             .setOngoing(true)
-            .setShowWhen(false)
             .setOnlyAlertOnce(!alerting)
             .setSilent(!alerting)
             .setPriority(alerting ? NotificationCompat.PRIORITY_HIGH : NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(alerting ? NotificationCompat.CATEGORY_ALARM : NotificationCompat.CATEGORY_PROGRESS)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            // Android 16: «actualización en vivo» (pastilla en la barra de estado, arriba de todo)
+            .setRequestPromotedOngoing(true)
             .setContentIntent(openAppIntent(ctx));
+
+        if (running) {
+            // Cuenta regresiva en vivo del sistema (en la cabecera y en la pastilla de la barra de estado)
+            b.setWhen(endsAt).setShowWhen(true).setUsesChronometer(true).setChronometerCountDown(true);
+        } else {
+            b.setShowWhen(false);
+            b.setShortCriticalText(waiting ? "A estudiar" : untouched ? (isBreak ? "Descanso" : "Estudio") : "En pausa");
+        }
 
         // Acciones con ícono: Pausar o Empezar/Reanudar (cambia con el estado), Saltar y Detener
         if (running) {
@@ -383,22 +389,6 @@ final class StudyTimerNotifier {
             cancelAlarm(ctx);
             cancelTick(ctx);
         }
-    }
-
-    /** Vista de la notificación: cronómetro (corre solo si está en marcha), fase, detalle y avance. */
-    private static RemoteViews timerViews(Context ctx, int layout, boolean running, long remaining, String phase, String detail,
-                                          int totalSec, int elapsedSec, int color) {
-        RemoteViews v = new RemoteViews(ctx.getPackageName(), layout);
-        // Cuenta regresiva: la base es «cuándo llega a cero» en el reloj del sistema; detenido, muestra lo que queda
-        v.setChronometer(R.id.study_chrono, SystemClock.elapsedRealtime() + remaining, running ? null : chronoText(remaining), running);
-        v.setChronometerCountDown(R.id.study_chrono, true);
-        v.setTextViewText(R.id.study_phase, phase);
-        if (detail != null) v.setTextViewText(R.id.study_detail, detail);
-        v.setProgressBar(R.id.study_progress, totalSec, elapsedSec, false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            v.setColorStateList(R.id.study_progress, "setProgressTintList", ColorStateList.valueOf(color));
-        }
-        return v;
     }
 
     private static void scheduleTick(Context ctx, long at) {
@@ -508,17 +498,6 @@ final class StudyTimerNotifier {
         } catch (Exception e) {
             return fallback;
         }
-    }
-
-    /** Mismo formato que el cronómetro del sistema: 04:58, 24:56 o 1:05:00. */
-    private static String chronoText(long ms) {
-        long total = (ms + 999) / 1000;
-        long h = total / 3600;
-        long m = (total % 3600) / 60;
-        long sec = total % 60;
-        return h > 0
-            ? String.format(Locale.ROOT, "%d:%02d:%02d", h, m, sec)
-            : String.format(Locale.ROOT, "%02d:%02d", m, sec);
     }
 
     private static String clock(long ms) {

@@ -5,6 +5,14 @@
  */
 
 /** Cápsula de cabecera de pantalla: título, insignias, subtítulo y acciones principales. */
+/**
+ * Encabezado de una lista («Lunes · 2 clases», «Directorio alfabético»): franja a todo el ancho
+ * con la superficie al 85 % y desenfoque, para leerse sobre cualquier foto de fondo. Es plana y
+ * rectangular (no una píldora), así no parece un botón.
+ */
+export const LIST_HEADER_CLASS =
+  'flex items-baseline justify-between gap-2 rounded-xl bg-[var(--color-md-surface)]/85 px-3 py-1.5 backdrop-blur-md';
+
 export const HEADER_SCRIM_CLASS =
   'md-card rounded-2xl border border-[var(--color-md-outline-variant)]/30 bg-[var(--color-md-surface)]/70 p-3 shadow-2xs backdrop-blur-md';
 

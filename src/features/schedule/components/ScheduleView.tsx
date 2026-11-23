@@ -63,6 +63,7 @@ import {
   CARD_INTERACTIVE_CLASS,
   CARD_SURFACE_CLASS,
   HEADER_SCRIM_CLASS,
+  LIST_HEADER_CLASS,
   STRETCHED_CARD_BUTTON_CLASS,
 } from '../../../shared/styles/surfaces';
 import { AgendaUpcomingStrip } from '../../agenda/components/AgendaUpcomingStrip';
@@ -721,7 +722,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {/* 5. VISTA DIARIA (Compacta y Fluida) */}
       <div className={viewMode === 'weekly' ? 'hidden' : 'space-y-2.5'}>
         {/* Encabezado de la lista completa del día (distinto del resumen rápido de arriba) */}
-        <div className="flex items-baseline justify-between gap-2 px-1">
+        <div className={LIST_HEADER_CLASS}>
           <h3 className="text-sm font-black text-[var(--color-md-on-surface)] sm:text-base">
             {activeDay === currentDayOfWeek ? `Hoy, ${DAY_NAMES[activeDay].toLowerCase()}` : DAY_NAMES[activeDay]}
           </h3>

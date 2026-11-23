@@ -28,6 +28,7 @@ import type { Professor, CreateProfessorDTO } from '../types';
 import {
   ABOVE_STRETCHED_CLASS,
   HEADER_SCRIM_CLASS,
+  LIST_HEADER_CLASS,
   STRETCHED_CARD_BUTTON_CLASS,
 } from '../../../shared/styles/surfaces';
 import { useDetailSelection, type DetailRequest, type DetailReturn } from '../../../shared/navigation/detailNavigation';
@@ -378,7 +379,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
       </StickyToolbar>
 
       {/* Encabezado de la lista: texto alineado a la izquierda (no una píldora que parezca botón) */}
-      <div className="flex items-baseline justify-between gap-2 px-1">
+      <div className={`${LIST_HEADER_CLASS} !items-center`}>
         <h3 className="text-sm font-black text-[var(--color-md-on-surface)]">
           {searchQuery ? 'Resultados' : 'Directorio alfabético'}
           <span className="ml-1.5 text-xs font-medium text-[var(--color-md-on-surface-variant)]">
