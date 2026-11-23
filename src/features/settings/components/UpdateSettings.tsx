@@ -52,15 +52,19 @@ export const UpdateSettings: React.FC<UpdateSettingsProps> = ({ initialResult, o
 
   return (
     <SettingsCard>
-      {/* Va debajo de la tarjeta "Acerca de", que ya muestra el ícono y la versión */}
+      {/* Tarjeta principal de «Acerca de la agenda»: identidad de la app + actualizaciones */}
       <header className="flex flex-wrap items-center gap-3">
+        <img
+          src="./app-icon-claro.svg"
+          alt=""
+          className="h-14 w-14 shrink-0 rounded-2xl bg-white object-contain p-1 shadow-2xs ring-1 ring-[var(--color-md-outline-variant)]"
+        />
         {/* Ancho mínimo: si no cabe junto al botón, el botón baja de línea en vez de partir el texto */}
-        <div className="min-w-[11rem] flex-1">
-          <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--color-md-on-surface)]">
-            <Sparkles className="h-4 w-4 text-[var(--color-md-primary)]" aria-hidden="true" />
-            Actualizaciones
-          </h3>
-          <p className="mt-0.5 whitespace-nowrap text-xs text-[var(--color-md-on-surface-variant)]">Tienes la versión {APP_INFO.version}.</p>
+        <div className="min-w-[9rem] flex-1">
+          <h3 className="truncate text-base font-black text-[var(--color-md-on-surface)]">{APP_INFO.name}</h3>
+          <span className="mt-1 inline-flex rounded-full bg-[var(--color-md-primary-container)] px-2.5 py-0.5 text-11px font-bold text-[var(--color-md-on-primary-container)]">
+            Versión {APP_INFO.version}
+          </span>
         </div>
         {/* Botón tonal relleno: se lee como acción, no como etiqueta */}
         <button

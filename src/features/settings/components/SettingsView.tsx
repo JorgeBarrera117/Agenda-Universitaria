@@ -45,8 +45,7 @@ import { ScheduleSettings } from './ScheduleSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { MediaSettings } from './MediaSettings';
 import { AboutSettings } from './AboutSettings';
-import { ChangelogList, ChangelogPreview } from './ChangelogSettings';
-import { UpdateSettings } from './UpdateSettings';
+import { ChangelogList } from './ChangelogSettings';
 import { getLastUpdateCheck, UPDATE_CHECK_EVENT, type UpdateCheckResult } from '../../../shared/services/updateService';
 import { PageHeader, PAGE_HEADER_PRIMARY_BUTTON } from '../../../shared/components/PageHeader';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
@@ -922,11 +921,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* ---------------- SUB-VISTA 6: ACERCA DE LA AGENDA (con actualizaciones) ---------------- */}
             {activeSubView === 'about' && (
-              <>
-                <AboutSettings />
-                <ChangelogPreview onOpenAll={() => setActiveSubView('changelog')} />
-                <UpdateSettings initialResult={updateResult} onResult={setUpdateResult} onShowToast={onShowToast} />
-              </>
+              <AboutSettings
+                updateResult={updateResult}
+                onUpdateResult={setUpdateResult}
+                onOpenChangelog={() => setActiveSubView('changelog')}
+                onShowToast={onShowToast}
+              />
             )}
 
             {/* ---------------- SUB-VISTA 7: NOVEDADES DE LA VERSIÓN ---------------- */}

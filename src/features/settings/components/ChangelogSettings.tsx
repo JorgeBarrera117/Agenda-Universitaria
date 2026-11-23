@@ -5,9 +5,14 @@ import { APP_INFO } from '../../../shared/constants/appInfo';
 import { changelogUpTo } from '../../../shared/constants/changelog';
 import { SettingsCard } from './SettingsPrimitives';
 
-/** En "Acerca de la agenda": lo que trajo la versión instalada y acceso al historial completo. */
+/** Novedades que se ven sin abrir el historial (el resto, en «Ver todas las novedades»). */
+const PREVIEW_ITEMS = 3;
+
+/** En "Acerca de la agenda": las 3 novedades principales de la versión instalada y acceso al historial completo. */
 export const ChangelogPreview: React.FC<{ onOpenAll: () => void }> = ({ onOpenAll }) => {
-  const current = changelogUpTo().find((entry) => entry.version === APP_INFO.version);
+  const full = changelogUpTo().find((entry) => entry.version === APP_INFO.version);
+  const current = full ? { ...full, changes: full.changes.slice(0, PREVIEW_ITEMS) } : undefined;
+  const hidden = full ? full.changes.length - PREVIEW_ITEMS : 0;
   return (
     <SettingsCard>
       <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--color-md-on-surface)]">
@@ -24,7 +29,10 @@ export const ChangelogPreview: React.FC<{ onOpenAll: () => void }> = ({ onOpenAl
         onClick={onOpenAll}
         className="group flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-[var(--color-md-primary)]/40 bg-[var(--color-md-card-bg)] px-4 text-sm font-bold text-[var(--color-md-primary)] shadow-2xs transition-[transform,box-shadow,background-color,border-color] duration-150 ease-out hover:border-[var(--color-md-primary)] hover:bg-[var(--color-md-primary-container)] hover:shadow-xs active:scale-[0.99]"
       >
-        Ver todas las novedades
+        <span>
+          Ver todas las novedades
+          {hidden > 0 && <span className="font-semibold opacity-80"> · {hidden} más</span>}
+        </span>
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </button>
     </SettingsCard>
