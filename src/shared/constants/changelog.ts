@@ -32,6 +32,23 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.2',
+    date: '2026-11-22',
+    title: 'Pantallas más claras en toda la app',
+    changes: [
+      { kind: 'nuevo', text: 'La notificación del Estudio muestra el tiempo en grande, la fase, una barra de avance y el botón Saltar; cada cambio de fase avisa en la misma tarjeta.' },
+      { kind: 'nuevo', text: 'Horario: vista Semana con columnas que se deslizan en el celular, y la vista se elige sola (Día en el celular, Semana en la PC).' },
+      { kind: 'nuevo', text: 'Las clases virtuales con enlace tienen el botón Unirse a Zoom, Meet o Teams.' },
+      { kind: 'nuevo', text: 'Estudio: botón de sonidos en el temporizador y desglose de tu semana día por día.' },
+      { kind: 'nuevo', text: 'Materias: botón para compartir el plan completo.' },
+      { kind: 'mejora', text: 'Agenda: el día elegido se ve en un solo bloque, un solo botón para agregar y el aviso de pendientes lleva directo a lo vencido.' },
+      { kind: 'mejora', text: 'Tarjetas más limpias: los datos se ven como texto y solo los botones parecen botones.' },
+      { kind: 'mejora', text: 'Los botones flotantes se apartan al bajar por las listas para no tapar las tarjetas.' },
+      { kind: 'mejora', text: 'Mejor lectura en modo Cristal y sobre foto de fondo en Ajustes y en las pestañas principales.' },
+      { kind: 'mejora', text: 'Desde Próximos en tu agenda puedes marcar una tarea como hecha.' },
+    ],
+  },
+  {
     version: '1.7.11.1',
     date: '2026-11-22',
     title: 'Sonidos para cada fase del Estudio',
