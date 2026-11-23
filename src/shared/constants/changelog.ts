@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.4.1',
+    date: '2026-11-23',
+    title: 'Sala de Intercambio Local (prueba)',
+    changes: [
+      { kind: 'nuevo', text: 'Sala Local: comparte con compañeros cercanos por wifi o con el punto de acceso de un teléfono, sin internet. Se entra con un código QR o con la dirección y el PIN.' },
+      { kind: 'nuevo', text: 'En la sala se comparten horarios, materias, contactos docentes, apuntes y archivos de la Biblioteca, con un mensaje opcional.' },
+      { kind: 'nuevo', text: 'Guardar en mi agenda: lo que recibes se guarda sin duplicados (puedes combinar, actualizar o guardar como nuevo).' },
+      { kind: 'nuevo', text: 'El anfitrión decide: sala de espera, bloquear la entrada, solo lectura, permitir texto, retirar a alguien y cerrar la sala para todos.' },
+      { kind: 'mejora', text: 'Pasar datos con otro dispositivo ahora abre la Sala Local, donde también está la copia completa.' },
+    ],
+  },
+  {
     version: '1.7.11.4',
     date: '2026-11-22',
     title: 'La app se ve mejor en la PC',
