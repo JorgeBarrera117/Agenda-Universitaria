@@ -32,6 +32,18 @@ export const CHANGE_KIND_LABELS: Record<ChangeKind, string> = {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: '1.7.11.4',
+    date: '2026-11-22',
+    title: 'La app se ve mejor en la PC',
+    changes: [
+      { kind: 'mejora', text: 'En la PC las pantallas ya no se estiran: Ajustes, Estudio, Materias, Biblioteca y el editor de apuntes usan un ancho cómodo.' },
+      { kind: 'mejora', text: 'Horario en la PC: Próximos en tu agenda va junto al resumen del día.' },
+      { kind: 'nuevo', text: 'En la PC también flotan, al bajar, los selectores Materias | Profesores y Apuntes | Archivos y el botón Compartir del Horario.' },
+      { kind: 'correccion', text: 'Los botones flotantes ya no desaparecen al desplazarse.' },
+      { kind: 'correccion', text: 'En la PC el botón de agregar queda alineado con los demás botones flotantes.' },
+    ],
+  },
+  {
     version: '1.7.11.3',
     date: '2026-11-22',
     title: 'Tomar apunte directo y la notificación en vivo de vuelta',
