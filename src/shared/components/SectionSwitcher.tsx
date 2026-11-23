@@ -73,10 +73,16 @@ export const SectionSwitcher: React.FC<SectionSwitcherProps> = ({ activeSection,
   };
   const ariaLabel = tab === 'courses' ? 'Ver materias o profesores' : 'Ver apuntes o archivos';
 
+  // El mismo color que su botón flotante del teléfono (Materias índigo, Profesores verde azulado,
+  // Apuntes terracota, Archivos azul cobalto)
+  const areaColor = (section: SectionId): string =>
+    section === 'subjects' || section === 'professors' || section === 'notes' || section === 'documents' ? AREA_COLOR[section] : AREA_COLOR.schedule;
+
   const options: SegmentedOption<SectionId>[] = sections.map((section) => ({
     value: section,
     label: labelOf(section),
     icon: iconOf(section, 'h-4 w-4 shrink-0'),
+    color: areaColor(section),
   }));
 
   const hint = MOVED_HINT[tab];
@@ -100,12 +106,19 @@ export const SectionSwitcher: React.FC<SectionSwitcherProps> = ({ activeSection,
           value: section,
           label: SECTION_LABEL[section],
           icon: iconOf(section, 'h-5 w-5 shrink-0'),
-          color: section === 'subjects' || section === 'professors' || section === 'notes' || section === 'documents' ? AREA_COLOR[section] : AREA_COLOR.schedule,
+          color: areaColor(section),
         }))}
       />
       <div className="flex flex-col gap-2.5 md:mb-3">
         <div className="hidden md:block">
-          <SegmentedControl value={activeSection} onChange={onChange} options={options} ariaLabel={ariaLabel} className="md-card w-full max-w-md" />
+          {/* Fondo de superficie sólido (sin md-card, que con el acabado Cristal deja ver el patrón) */}
+          <SegmentedControl
+            value={activeSection}
+            onChange={onChange}
+            options={options}
+            ariaLabel={ariaLabel}
+            className="w-full max-w-md shadow-xs"
+          />
         </div>
         {showHint && hint && (
           <div

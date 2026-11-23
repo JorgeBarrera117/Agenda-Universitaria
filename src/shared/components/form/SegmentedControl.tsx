@@ -6,6 +6,8 @@ export interface SegmentedOption<T extends string | number> {
   /** Texto alternativo corto para pantallas estrechas (p. ej. "Lun" en lugar de "Lunes"). */
   shortLabel?: string;
   icon?: React.ReactNode;
+  /** Color propio del segmento activo (p. ej. el de su área); sin él, el primario del tema. */
+  color?: string;
 }
 
 interface SegmentedControlProps<T extends string | number> {
@@ -59,9 +61,12 @@ export const SegmentedControl = <T extends string | number>({
             tabIndex={isSelected ? 0 : -1}
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => handleKeyDown(e, index)}
+            style={isSelected && option.color ? { backgroundColor: option.color } : undefined}
             className={`flex min-h-[40px] min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-bold transition-all duration-150 ease-out active:scale-[0.98] ${
               isSelected
-                ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs'
+                ? option.color
+                  ? 'text-white shadow-xs'
+                  : 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs'
                 : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
             }`}
           >
