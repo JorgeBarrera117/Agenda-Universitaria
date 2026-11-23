@@ -2,12 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { CopyPlus, FileText, LoaderCircle, Save, TriangleAlert } from 'lucide-react';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
-import { documentPayloadBytes, findDuplicateDocument, formatRoomBytes, saveRoomDocument, suggestDocumentSubject } from '../services/roomItems';
-import type { RoomItemPayload } from '../types/room';
+import { findDuplicateDocument, formatRoomBytes, saveRoomDocument, suggestDocumentSubject } from '../services/roomItems';
+import type { RoomReceivedItem } from '../types/room';
 import { ROOM_FILLED_BUTTON, ROOM_INPUT, ROOM_TONAL_BUTTON } from './roomStyles';
 
 interface RoomDocumentSaveModalProps {
-  payload: RoomItemPayload;
+  item: RoomReceivedItem;
   onClose: () => void;
   /** alreadyHad: el estudiante ya tenía el mismo archivo y decidió no duplicarlo. */
   onSaved: (result: { subjectName: string; alreadyHad: boolean }) => void;
@@ -17,7 +17,8 @@ interface RoomDocumentSaveModalProps {
  * Guardar un archivo recibido en la Biblioteca: propone la materia de origen si existe con el
  * mismo nombre y avisa si ese archivo (mismo nombre y tamaño) ya está en la materia elegida.
  */
-export const RoomDocumentSaveModal: React.FC<RoomDocumentSaveModalProps> = ({ payload, onClose, onSaved }) => {
+export const RoomDocumentSaveModal: React.FC<RoomDocumentSaveModalProps> = ({ item, onClose, onSaved }) => {
+  const payload = item.meta;
   const { subjects } = useSubjects();
   const current = useMemo(() => subjects.filter((s) => !s.isArchived), [subjects]);
   const [subjectId, setSubjectId] = useState<string>('');
@@ -26,7 +27,7 @@ export const RoomDocumentSaveModal: React.FC<RoomDocumentSaveModalProps> = ({ pa
 
   const selectedId = subjectId || suggestDocumentSubject(current, payload.subjectName)?.id || current[0]?.id || '';
   const selected = current.find((s) => s.id === selectedId);
-  const sizeBytes = documentPayloadBytes(payload);
+  const sizeBytes = item.blob.size;
   const fileName = payload.fileName || payload.title;
   const duplicate = selectedId ? findDuplicateDocument(selectedId, fileName, sizeBytes) : undefined;
 
@@ -35,7 +36,7 @@ export const RoomDocumentSaveModal: React.FC<RoomDocumentSaveModalProps> = ({ pa
     setSaving(true);
     setError(null);
     try {
-      await saveRoomDocument(payload, selected.id);
+      await saveRoomDocument(item, selected.id);
       onSaved({ subjectName: selected.name, alreadyHad: false });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar el archivo.');

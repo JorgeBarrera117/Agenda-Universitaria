@@ -7,7 +7,7 @@ import { useProfessors } from '../../professors/hooks/useProfessors';
 import { useNotes } from '../../notes/hooks/useNotes';
 import { useSubjectDocuments } from '../../subjects/hooks/useSubjectDocuments';
 import { useAppSettings } from '../../settings/hooks/useAppSettings';
-import { postToRoom } from '../services/roomStore';
+import { shareItem } from '../services/roomStore';
 import {
   ROOM_ITEM_LABEL,
   assertRoomItemSize,
@@ -18,12 +18,14 @@ import {
   buildSubjectRoomItem,
   formatRoomBytes,
 } from '../services/roomItems';
-import { ROOM_ITEM_KINDS, ROOM_ITEM_MAX_BYTES, ROOM_TEXT_MAX, type RoomItemKind, type RoomItemPayload } from '../types/room';
+import { ROOM_ITEM_KINDS, ROOM_ITEM_MAX_BYTES, ROOM_TEXT_MAX, type RoomItemDraft, type RoomItemKind } from '../types/room';
 import { ROOM_FILLED_BUTTON, ROOM_INPUT, ROOM_ITEM_ICON, ROOM_TEXT_BUTTON } from './roomStyles';
 
 interface RoomAttachSheetProps {
   /** Si el anfitrión desactivó el texto, el mensaje opcional no se ofrece. */
   textAllowed: boolean;
+  /** Chat privado: destinatario (sin él, va al hilo de la sala). */
+  to?: string;
   onClose: () => void;
   onShowToast: (message: string) => void;
 }
@@ -33,7 +35,7 @@ const KIND_DESCRIPTION: Record<RoomItemKind, string> = {
   subject: 'Una materia con sus clases y su docente',
   contact: 'Correo, teléfono y oficina de un docente',
   note: 'Un apunte con sus fotos y audios',
-  document: 'Un archivo de la Biblioteca (hasta 10 MB)',
+  document: 'Un archivo de la Biblioteca (hasta 300 MB)',
 };
 
 interface PickOption {
@@ -41,11 +43,11 @@ interface PickOption {
   title: string;
   subtitle?: string;
   disabled?: boolean;
-  build: () => Promise<RoomItemPayload>;
+  build: () => Promise<RoomItemDraft>;
 }
 
 /** Selector de adjuntos: los cinco tipos académicos y, después, el elemento concreto. */
-export const RoomAttachSheet: React.FC<RoomAttachSheetProps> = ({ textAllowed, onClose, onShowToast }) => {
+export const RoomAttachSheet: React.FC<RoomAttachSheetProps> = ({ textAllowed, to, onClose, onShowToast }) => {
   const [kind, setKind] = useState<RoomItemKind | null>(null);
   const [query, setQuery] = useState('');
   const [chosen, setChosen] = useState<PickOption | null>(null);
@@ -87,7 +89,7 @@ export const RoomAttachSheet: React.FC<RoomAttachSheetProps> = ({ textAllowed, o
             return {
               id: d.id,
               title: d.name,
-              subtitle: [subjectName(d.subjectId), d.sizeBytes ? formatRoomBytes(d.sizeBytes) : undefined, tooBig ? 'más de 10 MB' : undefined].filter(Boolean).join(' · '),
+              subtitle: [subjectName(d.subjectId), d.sizeBytes ? formatRoomBytes(d.sizeBytes) : undefined, tooBig ? 'más de 300 MB' : undefined].filter(Boolean).join(' · '),
               disabled: tooBig,
               build: () => buildDocumentRoomItem(d, subjectName(d.subjectId)),
             };
@@ -129,7 +131,8 @@ export const RoomAttachSheet: React.FC<RoomAttachSheetProps> = ({ textAllowed, o
     try {
       const item = await chosen.build();
       assertRoomItemSize(item);
-      await postToRoom({ item, text: textAllowed ? text.trim() || undefined : undefined });
+      // La subida sigue en segundo plano: su tarjeta en el hilo muestra el progreso
+      shareItem(item, { text: textAllowed ? text.trim() || undefined : undefined, to });
       onClose();
     } catch (err) {
       onShowToast(err instanceof Error ? err.message : 'No se pudo compartir.');
@@ -138,7 +141,8 @@ export const RoomAttachSheet: React.FC<RoomAttachSheetProps> = ({ textAllowed, o
     }
   };
 
-  const title = chosen ? 'Compartir en la sala' : kind ? ROOM_ITEM_LABEL[kind] : 'Adjuntar';
+  const shareLabel = to ? 'Enviar en privado' : 'Compartir en la sala';
+  const title = chosen ? shareLabel : kind ? ROOM_ITEM_LABEL[kind] : 'Adjuntar';
 
   return (
     <Modal isOpen onClose={onClose} title={title} maxWidth="md">
@@ -237,7 +241,7 @@ export const RoomAttachSheet: React.FC<RoomAttachSheetProps> = ({ textAllowed, o
           )}
           <button type="button" className={`${ROOM_FILLED_BUTTON} w-full`} onClick={() => void share()} disabled={sending}>
             {sending ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <SendHorizontal aria-hidden="true" />}
-            {sending ? 'Compartiendo…' : 'Compartir en la sala'}
+            {sending ? 'Preparando…' : shareLabel}
           </button>
         </div>
       )}

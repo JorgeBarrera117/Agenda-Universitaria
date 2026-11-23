@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useCallback, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { ArrowLeft, Hourglass, LoaderCircle, LogOut, Radio, UsersRound } from 'lucide-react';
 import { Modal } from '../../../shared/components/Modal';
 import { useBackButton, BACK_PRIORITY } from '../../../shared/hooks/useBackButton';
@@ -7,9 +7,22 @@ import type { IncomingSharedFile } from '../../../shared/hooks/useIncomingShared
 import { professorImportedMessage } from '../../professors/utils/importMessage';
 import { scheduleImportedMessage, subjectImportedMessage } from '../../schedule/utils/importMessages';
 import { useLocalRoom } from '../hooks/useLocalRoom';
-import { dismissRoomEnd, fetchRoomItem, leaveRoom, loadRoomProfile, markRoomItemSaved, setRoomScreenOpen } from '../services/roomStore';
+import { RoomTransferCancelled } from '../services/roomGuestClient';
+import {
+  dismissRoomEnd,
+  downloadRoomItem,
+  downloadTransferId,
+  getRoomStoreState,
+  leaveRoom,
+  loadRoomProfile,
+  markRoomItemSaved,
+  setActiveChat,
+  setRoomScreenOpen,
+  totalPrivateUnread,
+} from '../services/roomStore';
 import { parseRoomPackage } from '../services/roomItems';
-import type { RoomItemPayload, RoomMessage } from '../types/room';
+import type { RoomMessage, RoomReceivedItem } from '../types/room';
+import { PrivateChat } from './PrivateChat';
 import { RoomLobby } from './RoomLobby';
 import { RoomSidebar } from './RoomSidebar';
 import { RoomThread } from './RoomThread';
@@ -27,24 +40,27 @@ interface LocalRoomScreenProps {
   onShowToast: (message: string) => void;
 }
 
-type SaveTarget = { itemId: string } & ({ kind: 'package'; parsed: IncomingSharedFile } | { kind: 'document'; payload: RoomItemPayload });
+type SaveTarget = { itemId: string } & ({ kind: 'package'; parsed: IncomingSharedFile } | { kind: 'document'; item: RoomReceivedItem });
 
 /**
  * Pantalla de la Sala de Intercambio Local (encima de la app; la sala sigue abierta al volver).
- * - PC: dos columnas (invitar, participantes y controles | hilo y adjuntos).
+ * - PC: dos columnas (invitar, participantes y controles | hilo o chat privado).
  * - Teléfono: cabecera compacta e hilo a pantalla completa; los participantes en una hoja.
  */
 export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, onShowToast }) => {
-  const { session, saved } = useLocalRoom();
+  const { session, saved, transfers, activeChat, privateUnread, unread } = useLocalRoom();
   const isWide = useMediaQuery('(min-width: 1024px)');
   const [membersOpen, setMembersOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
   const [saveTarget, setSaveTarget] = useState<SaveTarget | null>(null);
   const [profile] = useState(() => loadRoomProfile(studentName ?? ''));
 
-  const close = useCallback(() => setRoomScreenOpen(false), []);
-  useBackButton(close, BACK_PRIORITY.SETTINGS);
+  // Atrás: primero sale del chat privado; después cierra la pantalla (la sala sigue abierta)
+  const back = useCallback(() => {
+    if (activeChat) setActiveChat(null);
+    else setRoomScreenOpen(false);
+  }, [activeChat]);
+  useBackButton(back, BACK_PRIORITY.SETTINGS);
 
   // Al salir de la sala activa se cierran las hojas abiertas (ajuste durante el render, sin efecto)
   const [lastPhase, setLastPhase] = useState(session.phase);
@@ -57,17 +73,18 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
   }
 
   const save = async (message: RoomMessage) => {
-    const item = message.item;
-    if (!item || savingId) return;
-    setSavingId(item.id);
+    const meta = message.item;
+    if (!meta) return;
     try {
-      const payload = await fetchRoomItem(item.id);
-      if (payload.kind === 'document') setSaveTarget({ itemId: item.id, kind: 'document', payload });
-      else setSaveTarget({ itemId: item.id, kind: 'package', parsed: await parseRoomPackage(payload) });
+      const item = await downloadRoomItem(meta);
+      if (meta.kind === 'document') setSaveTarget({ itemId: meta.id, kind: 'document', item });
+      else setSaveTarget({ itemId: meta.id, kind: 'package', parsed: await parseRoomPackage(item) });
     } catch (err) {
-      onShowToast(err instanceof Error ? err.message : 'No se pudo abrir el elemento.');
-    } finally {
-      setSavingId(null);
+      // Cancelado por el usuario: no hace falta avisar. Un error de red queda en la tarjeta.
+      const failedOnCard = getRoomStoreState().transfers[downloadTransferId(meta.id)]?.status === 'error';
+      if (!(err instanceof RoomTransferCancelled) && !failedOnCard) {
+        onShowToast(err instanceof Error ? err.message : 'No se pudo abrir el elemento.');
+      }
     }
   };
 
@@ -81,11 +98,21 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
     void leaveRoom().catch((err: unknown) => onShowToast(err instanceof Error ? err.message : 'No se pudo salir.'));
   };
 
+  const openChat = (memberId: string) => {
+    setMembersOpen(false);
+    setActiveChat(memberId);
+  };
+
   const active = session.phase === 'active' ? session : null;
   const isHost = active?.role === 'host';
   const invite = active && active.role === 'host' ? active.invite : undefined;
-  const activeMembers = active ? active.snapshot.members.filter((m) => m.status === 'active').length : 0;
-  const pendingCount = active && isHost ? active.snapshot.members.filter((m) => m.status === 'pending').length : 0;
+  const snapshot = active?.snapshot;
+  const activeMembers = snapshot ? snapshot.members.filter((m) => m.status === 'active').length : 0;
+  const pendingCount = snapshot && isHost ? snapshot.members.filter((m) => m.status === 'pending').length : 0;
+  const privateCount = totalPrivateUnread(privateUnread);
+  const roomMessages = useMemo(() => snapshot?.messages.filter((m) => !m.to) ?? [], [snapshot?.messages]);
+  const reconnecting = active?.connection === 'reconnecting';
+  const chatOpen = Boolean(active && activeChat);
 
   const title = active ? active.snapshot.info.name : session.phase === 'waiting' ? session.info.name : 'Sala Local';
 
@@ -100,7 +127,7 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
     >
       {/* Cabecera */}
       <header className="flex min-h-14 shrink-0 items-center gap-2 border-b border-[var(--color-md-outline-variant)]/50 bg-[var(--color-md-surface-container)] px-2 sm:px-4">
-        <button type="button" className={ROOM_ICON_BUTTON} onClick={close} aria-label="Volver a la agenda (la sala sigue abierta)" title="Volver a la agenda">
+        <button type="button" className={ROOM_ICON_BUTTON} onClick={() => setRoomScreenOpen(false)} aria-label="Volver a la agenda (la sala sigue abierta)" title="Volver a la agenda">
           <ArrowLeft aria-hidden="true" />
         </button>
         <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)] sm:flex">
@@ -118,9 +145,12 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
           <button type="button" className={`${ROOM_TONAL_BUTTON} relative min-h-10 px-3`} onClick={() => setMembersOpen(true)} aria-label={isHost ? 'Participantes y controles' : 'Participantes'}>
             <UsersRound aria-hidden="true" />
             {activeMembers}
-            {pendingCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-10px font-bold text-white" aria-label={`${pendingCount} esperando`}>
-                {pendingCount}
+            {pendingCount + privateCount > 0 && (
+              <span
+                className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-10px font-bold text-white"
+                aria-label={[pendingCount > 0 ? `${pendingCount} esperando` : '', privateCount > 0 ? `${privateCount} mensajes privados` : ''].filter(Boolean).join(', ')}
+              >
+                {pendingCount + privateCount}
               </span>
             )}
           </button>
@@ -130,7 +160,7 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
       {/* Contenido */}
       {(session.phase === 'idle' || session.phase === 'starting') && (
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom,0px)]">
-          <RoomLobby initialProfile={profile} busy={session.phase === 'starting' ? session.role : null} onShowToast={onShowToast} />
+          <RoomLobby initialProfile={profile} studentName={studentName ?? ''} busy={session.phase === 'starting' ? session.role : null} onShowToast={onShowToast} />
         </div>
       )}
 
@@ -150,23 +180,49 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
         </div>
       )}
 
-      {active && (
+      {active && snapshot && (
         <div className="flex min-h-0 flex-1">
           {isWide && (
             <aside className="custom-scrollbar w-[360px] shrink-0 overflow-y-auto overflow-x-hidden border-r border-[var(--color-md-outline-variant)]/50 p-4 xl:w-[400px]" aria-label="Datos de la sala">
-              <RoomSidebar snapshot={active.snapshot} invite={invite} onLeave={leave} onShowToast={onShowToast} />
+              <RoomSidebar snapshot={snapshot} invite={invite} onLeave={leave} onShowToast={onShowToast} privateUnread={privateUnread} onOpenChat={openChat} />
             </aside>
           )}
-          <RoomThread
-            snapshot={active.snapshot}
-            isHost={isHost}
-            reconnecting={active.connection === 'reconnecting'}
-            saved={saved}
-            savingId={savingId}
-            onSave={(message) => void save(message)}
-            onAttach={() => setAttachOpen(true)}
-            onShowToast={onShowToast}
-          />
+          {chatOpen && activeChat ? (
+            <PrivateChat
+              peerId={activeChat}
+              snapshot={snapshot}
+              isHost={isHost}
+              reconnecting={reconnecting}
+              saved={saved}
+              transfers={transfers}
+              roomUnread={unread}
+              onBack={() => setActiveChat(null)}
+              onSave={(message) => void save(message)}
+              onAttach={() => setAttachOpen(true)}
+              onShowToast={onShowToast}
+            />
+          ) : (
+            <RoomThread
+              messages={roomMessages}
+              selfId={snapshot.selfId}
+              canPost={isHost || !snapshot.rules.readOnly}
+              blockedNote="Solo lectura: solo el anfitrión publica."
+              textAllowed={isHost || snapshot.rules.textEnabled}
+              emptyTitle="Todavía no hay nada en la sala"
+              emptyText={
+                isHost || !snapshot.rules.readOnly
+                  ? 'Comparte tu horario, una materia, un contacto, un apunte o un archivo con el clip.'
+                  : 'Aquí verás lo que comparta el anfitrión.'
+              }
+              reconnecting={reconnecting}
+              saved={saved}
+              transfers={transfers}
+              onSave={(message) => void save(message)}
+              onAttach={() => setAttachOpen(true)}
+              onOpenChat={isHost || snapshot.rules.privateChat ? openChat : undefined}
+              onShowToast={onShowToast}
+            />
+          )}
         </div>
       )}
 
@@ -187,23 +243,30 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
       )}
 
       {/* Hojas */}
-      {membersOpen && active && !isWide && (
+      {membersOpen && active && snapshot && !isWide && (
         <Modal isOpen onClose={() => setMembersOpen(false)} title={isHost ? 'Sala y participantes' : 'Participantes'} maxWidth="md">
           <RoomSidebar
-            snapshot={active.snapshot}
+            snapshot={snapshot}
             invite={invite}
             onLeave={() => {
               setMembersOpen(false);
               leave();
             }}
             onShowToast={onShowToast}
+            privateUnread={privateUnread}
+            onOpenChat={openChat}
           />
         </Modal>
       )}
 
-      {attachOpen && active && (
+      {attachOpen && active && snapshot && (
         <Suspense fallback={null}>
-          <RoomAttachSheet textAllowed={isHost || active.snapshot.rules.textEnabled} onClose={() => setAttachOpen(false)} onShowToast={onShowToast} />
+          <RoomAttachSheet
+            textAllowed={Boolean(activeChat) || isHost || snapshot.rules.textEnabled}
+            to={activeChat ?? undefined}
+            onClose={() => setAttachOpen(false)}
+            onShowToast={onShowToast}
+          />
         </Suspense>
       )}
 
@@ -211,7 +274,7 @@ export const LocalRoomScreen: React.FC<LocalRoomScreenProps> = ({ studentName, o
         <Suspense fallback={null}>
           {saveTarget.kind === 'document' && (
             <RoomDocumentSaveModal
-              payload={saveTarget.payload}
+              item={saveTarget.item}
               onClose={() => setSaveTarget(null)}
               onSaved={({ subjectName, alreadyHad }) => finishSave(alreadyHad ? `Ya tenías este archivo en ${subjectName}.` : `Archivo guardado en ${subjectName}.`)}
             />

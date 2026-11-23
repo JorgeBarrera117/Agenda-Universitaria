@@ -1,7 +1,20 @@
-import type { RoomEndReason, RoomInfo, RoomInvite, RoomItemPayload, RoomPostDraft, RoomProfile, RoomRules, RoomSnapshot } from '../types/room';
+import type {
+  RoomEndReason,
+  RoomInfo,
+  RoomInvite,
+  RoomItemDraft,
+  RoomItemMeta,
+  RoomPostDraft,
+  RoomProfile,
+  RoomReceivedItem,
+  RoomRules,
+  RoomSnapshot,
+  RoomTransfer,
+} from '../types/room';
 import { randomToken } from './roomCrypto';
-import { RoomGuestClient } from './roomGuestClient';
+import { RoomGuestClient, RoomTransferCancelled } from './roomGuestClient';
 import { RoomHostEngine } from './roomHostEngine';
+import { assertRoomItemSize } from './roomItems';
 import { createGuestTransport, createHostTransport } from './roomTransports';
 
 /**
@@ -20,23 +33,44 @@ export type RoomSession =
 
 export interface RoomStoreState {
   session: RoomSession;
-  /** Mensajes nuevos de otros mientras la pantalla de la sala estaba cerrada. */
+  /** Mensajes nuevos del hilo que todavía no se vieron (pantalla cerrada o en un chat privado). */
   unread: number;
+  /** Mensajes privados sin leer, por compañero (id del participante). */
+  privateUnread: Readonly<Record<string, number>>;
   screenOpen: boolean;
+  /** Chat privado abierto (id del compañero) o null para el hilo de la sala. */
+  activeChat: string | null;
   /** Elementos que este dispositivo ya guardó en su agenda (id del elemento). */
   saved: ReadonlySet<string>;
+  /** Subidas y descargas en curso o con error, por id de transferencia. */
+  transfers: Readonly<Record<string, RoomTransfer>>;
 }
 
 const PROFILE_KEY = 'agenda_room_profile_v1';
 const DEVICE_KEY = 'agenda_room_device_id_v1';
+const DEFAULT_NAME = 'Estudiante';
+/** Cada cuánto se repinta una barra de progreso (no en cada bloque). */
+const PROGRESS_THROTTLE_MS = 150;
 export const ROOM_PROFILE_COLORS = ['#1e6bd6', '#0f8a6d', '#b3261e', '#8e44ad', '#c76a00', '#00838f', '#6d4c41', '#3f51b5'] as const;
 
-let state: RoomStoreState = { session: { phase: 'idle' }, unread: 0, screenOpen: false, saved: new Set() };
+const INITIAL: RoomStoreState = {
+  session: { phase: 'idle' },
+  unread: 0,
+  privateUnread: {},
+  screenOpen: false,
+  activeChat: null,
+  saved: new Set(),
+  transfers: {},
+};
+
+let state: RoomStoreState = INITIAL;
 const listeners = new Set<() => void>();
 let engine: RoomHostEngine | null = null;
 let client: RoomGuestClient | null = null;
 let detach: (() => void) | null = null;
-let seenMessages = 0;
+/** Mensajes ya contados (para no volver a sumarlos como no leídos). null = aún no llegó el primer estado. */
+let seenMessages: Set<string> | null = null;
+const controllers = new Map<string, AbortController>();
 
 function emit(next: Partial<RoomStoreState>): void {
   state = { ...state, ...next };
@@ -54,25 +88,32 @@ export function getRoomStoreState(): RoomStoreState {
 
 /* ------------------------------------------------------------------ Perfil y dispositivo */
 
-export function loadRoomProfile(fallbackName: string): RoomProfile {
+/**
+ * Nombre en la sala: el que el estudiante escribió a mano en la sala o, si no lo cambió, el de su
+ * perfil (Ajustes → Mi perfil). Así en la PC no queda «Estudiante» si el perfil tiene nombre.
+ */
+export function loadRoomProfile(studentName: string): RoomProfile {
+  const fromProfile = studentName.trim().slice(0, 40);
+  let stored: { name: string; color: string; custom: boolean } | null = null;
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
-    if (raw) {
-      const parsed: unknown = JSON.parse(raw);
-      if (typeof parsed === 'object' && parsed !== null && 'name' in parsed && 'color' in parsed) {
-        const { name, color } = parsed as { name: unknown; color: unknown };
-        if (typeof name === 'string' && name.trim() && typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) return { name: name.trim().slice(0, 40), color };
-      }
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    if (typeof parsed === 'object' && parsed !== null && 'name' in parsed && 'color' in parsed) {
+      const { name, color } = parsed as { name: unknown; color: unknown };
+      const custom = 'custom' in parsed ? (parsed as { custom: unknown }).custom === true : typeof name === 'string' && name.trim() !== DEFAULT_NAME;
+      if (typeof name === 'string' && typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) stored = { name: name.trim().slice(0, 40), color, custom };
     }
   } catch {
     // Sin almacenamiento: perfil por defecto
   }
-  return { name: fallbackName.trim().slice(0, 40) || 'Estudiante', color: ROOM_PROFILE_COLORS[0] };
+  const name = stored?.custom && stored.name ? stored.name : fromProfile || stored?.name || DEFAULT_NAME;
+  return { name, color: stored?.color ?? ROOM_PROFILE_COLORS[0] };
 }
 
-export function saveRoomProfile(profile: RoomProfile): void {
+export function saveRoomProfile(profile: RoomProfile, studentName: string): void {
   try {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: profile.name.trim().slice(0, 40), color: profile.color }));
+    const name = profile.name.trim().slice(0, 40);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name, color: profile.color, custom: name !== studentName.trim() }));
   } catch {
     // Se usa solo en esta sesión
   }
@@ -92,21 +133,40 @@ function deviceId(): string {
 
 /* ------------------------------------------------------------------ Sincronización con el motor/cliente */
 
-function countUnread(snapshot: RoomSnapshot): number {
-  const messages = snapshot.messages;
-  if (state.screenOpen || messages.length <= seenMessages) {
-    seenMessages = messages.length;
-    return state.screenOpen ? 0 : state.unread;
+/** Suma como no leído lo nuevo de otros que no se está viendo ahora mismo. */
+function countUnread(snapshot: RoomSnapshot): Pick<RoomStoreState, 'unread' | 'privateUnread'> {
+  let unread = state.unread;
+  let privateUnread = state.privateUnread;
+  if (!seenMessages) {
+    // Primer estado (al entrar): el hilo anterior no cuenta como nuevo, pero los privados que ya
+    // me escribieron (p. ej. el anfitrión al aceptarme) sí están sin leer
+    seenMessages = new Set(snapshot.messages.map((m) => m.id));
+    for (const message of snapshot.messages) {
+      if (!message.to || message.to !== snapshot.selfId || message.authorId === snapshot.selfId) continue;
+      if (!(state.screenOpen && state.activeChat === message.authorId)) {
+        privateUnread = { ...privateUnread, [message.authorId]: (privateUnread[message.authorId] ?? 0) + 1 };
+      }
+    }
+    return { unread, privateUnread };
   }
-  const fresh = messages.slice(seenMessages).filter((m) => !m.system && m.authorId !== snapshot.selfId).length;
-  seenMessages = messages.length;
-  return state.unread + fresh;
+  for (const message of snapshot.messages) {
+    if (seenMessages.has(message.id)) continue;
+    seenMessages.add(message.id);
+    if (message.system || message.authorId === snapshot.selfId) continue;
+    if (message.to) {
+      const peer = message.authorId;
+      if (!(state.screenOpen && state.activeChat === peer)) privateUnread = { ...privateUnread, [peer]: (privateUnread[peer] ?? 0) + 1 };
+    } else if (!(state.screenOpen && state.activeChat === null)) {
+      unread += 1;
+    }
+  }
+  return { unread, privateUnread };
 }
 
 function syncFromEngine(): void {
   const view = engine?.getView();
   if (!view) return;
-  emit({ session: { phase: 'active', role: 'host', snapshot: view.snapshot, invite: view.invite, connection: 'online' }, unread: countUnread(view.snapshot) });
+  emit({ session: { phase: 'active', role: 'host', snapshot: view.snapshot, invite: view.invite, connection: 'online' }, ...countUnread(view.snapshot) });
 }
 
 function syncFromClient(): void {
@@ -117,7 +177,14 @@ function syncFromClient(): void {
     emit({ session: { phase: 'waiting', info: guest.info, connection: guest.connection } });
     return;
   }
-  emit({ session: { phase: 'active', role: 'guest', snapshot: guest.snapshot, connection: guest.connection }, unread: countUnread(guest.snapshot) });
+  emit({ session: { phase: 'active', role: 'guest', snapshot: guest.snapshot, connection: guest.connection }, ...countUnread(guest.snapshot) });
+}
+
+function resetRoomState(): Partial<RoomStoreState> {
+  for (const controller of controllers.values()) controller.abort();
+  controllers.clear();
+  seenMessages = null;
+  return { unread: 0, privateUnread: {}, activeChat: null, saved: new Set(), transfers: {} };
 }
 
 function ended(reason: RoomEndReason, message: string): void {
@@ -125,11 +192,10 @@ function ended(reason: RoomEndReason, message: string): void {
   detach = null;
   engine = null;
   client = null;
-  seenMessages = 0;
-  emit({ session: { phase: 'ended', reason, message }, unread: 0, saved: new Set() });
+  emit({ session: { phase: 'ended', reason, message }, ...resetRoomState() });
 }
 
-/* ------------------------------------------------------------------ Acciones */
+/* ------------------------------------------------------------------ Entrar y salir */
 
 export interface CreateRoomOptions {
   roomName: string;
@@ -138,9 +204,13 @@ export interface CreateRoomOptions {
   rules: Partial<RoomRules>;
 }
 
+function busy(): boolean {
+  return state.session.phase === 'active' || state.session.phase === 'waiting' || state.session.phase === 'starting';
+}
+
 export async function createRoom(options: CreateRoomOptions): Promise<void> {
-  if (state.session.phase === 'active' || state.session.phase === 'waiting' || state.session.phase === 'starting') return;
-  emit({ session: { phase: 'starting', role: 'host' }, unread: 0, saved: new Set() });
+  if (busy()) return;
+  emit({ session: { phase: 'starting', role: 'host' }, ...resetRoomState() });
   try {
     const created = await RoomHostEngine.open(createHostTransport(), options);
     engine = created;
@@ -148,7 +218,6 @@ export async function createRoom(options: CreateRoomOptions): Promise<void> {
     created.onEnd((reason, message) =>
       ended(reason === 'closed' ? 'closed' : 'error', reason === 'closed' ? 'Cerraste la sala para todos.' : `La sala se cerró: ${message ?? 'se perdió la red local'}.`)
     );
-    seenMessages = 0;
     syncFromEngine();
   } catch (error) {
     emit({ session: { phase: 'idle' } });
@@ -157,14 +226,13 @@ export async function createRoom(options: CreateRoomOptions): Promise<void> {
 }
 
 export async function joinRoom(invite: RoomInvite, profile: RoomProfile): Promise<void> {
-  if (state.session.phase === 'active' || state.session.phase === 'waiting' || state.session.phase === 'starting') return;
-  emit({ session: { phase: 'starting', role: 'guest' }, unread: 0, saved: new Set() });
+  if (busy()) return;
+  emit({ session: { phase: 'starting', role: 'guest' }, ...resetRoomState() });
   try {
     const joined = await RoomGuestClient.connect(createGuestTransport(), invite, profile, deviceId());
     client = joined;
     detach = joined.subscribe(syncFromClient);
     joined.onEnd((reason, message) => ended(reason, message ?? (reason === 'left' ? 'Saliste de la sala.' : 'La sala terminó.')));
-    seenMessages = 0;
     syncFromClient();
   } catch (error) {
     emit({ session: { phase: 'idle' } });
@@ -185,16 +253,107 @@ export function dismissRoomEnd(): void {
   if (state.session.phase === 'ended') emit({ session: { phase: 'idle' } });
 }
 
+/* ------------------------------------------------------------------ Publicar */
+
+/** Texto en el hilo o, con draft.to, en un chat privado. */
 export async function postToRoom(draft: RoomPostDraft): Promise<void> {
-  if (engine) return engine.post(draft);
+  if (engine) return engine.postText(draft);
   if (client) return client.post(draft);
   throw new Error('No estás en una sala.');
 }
 
-export async function fetchRoomItem(itemId: string): Promise<RoomItemPayload> {
-  if (engine) return engine.fetchItem(itemId);
-  if (client) return client.fetchItem(itemId);
-  throw new Error('No estás en una sala.');
+/* ------------------------------------------------------------------ Transferencias */
+
+function setTransfer(id: string, patch: Partial<RoomTransfer> | null, base?: RoomTransfer): void {
+  const transfers = { ...state.transfers };
+  if (patch === null) delete transfers[id];
+  else {
+    const current = transfers[id] ?? base;
+    if (!current) return;
+    transfers[id] = { ...current, ...patch };
+  }
+  emit({ transfers });
+}
+
+/** Avance con velocidad promedio; se repinta como mucho cada PROGRESS_THROTTLE_MS. */
+function progressReporter(id: string): (doneBytes: number) => void {
+  const startedAt = performance.now();
+  let lastPaint = 0;
+  return (doneBytes) => {
+    const now = performance.now();
+    const current = state.transfers[id];
+    if (!current || current.status !== 'running') return;
+    if (now - lastPaint < PROGRESS_THROTTLE_MS && doneBytes < current.totalBytes) return;
+    lastPaint = now;
+    const seconds = Math.max((now - startedAt) / 1000, 0.001);
+    setTransfer(id, { doneBytes, bytesPerSecond: doneBytes / seconds });
+  };
+}
+
+function transferError(err: unknown): string {
+  return err instanceof Error ? err.message : 'La transferencia falló.';
+}
+
+/**
+ * Comparte un elemento en el hilo o en un privado (options.to).
+ * - Anfitrión: queda en su memoria al instante.
+ * - Invitado: se sube por bloques en segundo plano; su tarjeta muestra el progreso y se puede cancelar.
+ */
+export function shareItem(draft: RoomItemDraft, options: { text?: string; to?: string }): void {
+  assertRoomItemSize(draft);
+  if (engine) {
+    engine.postItem(draft, options);
+    return;
+  }
+  const guest = client;
+  if (!guest) throw new Error('No estás en una sala.');
+  const id = `up:${randomToken(6)}`;
+  const { blob, ...info } = draft;
+  const controller = new AbortController();
+  controllers.set(id, controller);
+  setTransfer(id, {}, { id, direction: 'up', info, chat: options.to ?? null, totalBytes: blob.size, doneBytes: 0, bytesPerSecond: 0, status: 'running' });
+  void guest
+    .uploadItem(draft, options, progressReporter(id), controller.signal)
+    .then(() => setTransfer(id, null))
+    .catch((err: unknown) => setTransfer(id, err instanceof RoomTransferCancelled ? null : { status: 'error', error: transferError(err) }))
+    .finally(() => controllers.delete(id));
+}
+
+/** Id de la transferencia de descarga de un elemento (para mostrar su progreso en la tarjeta). */
+export function downloadTransferId(itemId: string): string {
+  return `down:${itemId}`;
+}
+
+/**
+ * Trae un elemento para guardarlo. Del anfitrión es inmediato; un invitado lo descarga por
+ * bloques con progreso. Lanza RoomTransferCancelled si el usuario cancela.
+ */
+export async function downloadRoomItem(meta: RoomItemMeta): Promise<RoomReceivedItem> {
+  if (engine) return engine.getItem(meta.id);
+  const guest = client;
+  if (!guest) throw new Error('No estás en una sala.');
+  const id = downloadTransferId(meta.id);
+  if (state.transfers[id]?.status === 'running') throw new Error('Ya se está descargando.');
+  const controller = new AbortController();
+  controllers.set(id, controller);
+  setTransfer(id, {}, { id, direction: 'down', itemId: meta.id, chat: null, totalBytes: meta.sizeBytes, doneBytes: 0, bytesPerSecond: 0, status: 'running' });
+  try {
+    const blob = await guest.downloadItem(meta, progressReporter(id), controller.signal);
+    setTransfer(id, null);
+    return { meta, blob };
+  } catch (err) {
+    setTransfer(id, err instanceof RoomTransferCancelled ? null : { status: 'error', error: transferError(err) });
+    throw err;
+  } finally {
+    controllers.delete(id);
+  }
+}
+
+/** Cancela una transferencia en curso, o descarta el aviso de una que falló. */
+export function cancelTransfer(id: string): void {
+  const controller = controllers.get(id);
+  if (controller) controller.abort();
+  else setTransfer(id, null);
 }
 
 export function markRoomItemSaved(itemId: string): void {
@@ -203,8 +362,25 @@ export function markRoomItemSaved(itemId: string): void {
   emit({ saved });
 }
 
+/* ------------------------------------------------------------------ Pantalla y chats */
+
 export function setRoomScreenOpen(open: boolean): void {
-  emit({ screenOpen: open, unread: open ? 0 : state.unread });
+  if (!open) {
+    emit({ screenOpen: false });
+    return;
+  }
+  const chat = state.activeChat;
+  emit(chat ? { screenOpen: true, privateUnread: { ...state.privateUnread, [chat]: 0 } } : { screenOpen: true, unread: 0 });
+}
+
+/** Abre un chat privado (id del compañero) o vuelve al hilo de la sala (null). */
+export function setActiveChat(peerId: string | null): void {
+  if (peerId) emit({ activeChat: peerId, privateUnread: { ...state.privateUnread, [peerId]: 0 } });
+  else emit({ activeChat: null, unread: state.screenOpen ? 0 : state.unread });
+}
+
+export function totalPrivateUnread(privateUnread: Readonly<Record<string, number>>): number {
+  return Object.values(privateUnread).reduce((sum, n) => sum + n, 0);
 }
 
 /* ------------------------------------------------------------------ Moderación (solo anfitrión) */

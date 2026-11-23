@@ -21,6 +21,8 @@ export interface RoomRules {
   readOnly: boolean;
   /** Se permite escribir texto (si no, solo se comparten elementos). */
   textEnabled: boolean;
+  /** Los participantes pueden abrir chats privados 1 a 1. */
+  privateChat: boolean;
 }
 
 export const DEFAULT_ROOM_RULES: RoomRules = {
@@ -28,6 +30,7 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   locked: false,
   readOnly: false,
   textEnabled: true,
+  privateChat: true,
 };
 
 export type RoomMemberStatus = 'pending' | 'active';
@@ -56,6 +59,8 @@ export interface RoomItemMeta {
   /** Solo archivos de la Biblioteca. */
   fileName?: string;
   mimeType?: string;
+  /** Archivo de la Biblioteca: materia de origen (para proponer dónde guardarlo). */
+  subjectName?: string;
 }
 
 export interface RoomMessage {
@@ -68,6 +73,8 @@ export interface RoomMessage {
   system?: boolean;
   text?: string;
   item?: RoomItemMeta;
+  /** Chat privado: id del destinatario. Solo lo reciben el autor y el destinatario. */
+  to?: string;
 }
 
 export interface RoomInfo {
@@ -86,26 +93,53 @@ export interface RoomSnapshot {
   selfId: string;
 }
 
-/** Contenido de un elemento, tal como se publica y se descarga. */
-export interface RoomItemPayload {
+/** Datos visibles de un elemento antes de publicarlo (sin id ni tamaño: los pone el anfitrión). */
+export interface RoomItemInfo {
   kind: RoomItemKind;
   title: string;
   subtitle?: string;
   fileName?: string;
   mimeType?: string;
-  /**
-   * Horario, materia, contacto y apunte: el JSON de su archivo (.agschedule, .agclass, .agcontact,
-   * .agnote). Archivo de la Biblioteca: el contenido en base64.
-   */
-  data: string;
-  /** Archivo de la Biblioteca: materia de origen (para proponer dónde guardarlo). */
   subjectName?: string;
 }
 
-/** Lo que el participante escribe o adjunta antes de publicarlo. */
+/**
+ * Elemento listo para compartir. El contenido va como Blob y viaja por bloques:
+ * - horario, materia, contacto y apunte: el JSON de su archivo (.agschedule, .agclass, .agcontact, .agnote);
+ * - archivo de la Biblioteca: el archivo tal cual (se lee por partes, nunca entero en memoria como texto).
+ */
+export interface RoomItemDraft extends RoomItemInfo {
+  blob: Blob;
+}
+
+/** Elemento recibido (descargado por bloques) listo para guardar. */
+export interface RoomReceivedItem {
+  meta: RoomItemMeta;
+  blob: Blob;
+}
+
+/** Texto para el hilo o para un chat privado (to = destinatario). */
 export interface RoomPostDraft {
-  text?: string;
-  item?: RoomItemPayload;
+  text: string;
+  to?: string;
+}
+
+/** Subida o descarga en curso de un elemento (barra de progreso en su tarjeta). */
+export interface RoomTransfer {
+  id: string;
+  direction: 'up' | 'down';
+  /** Descarga: elemento que se baja. */
+  itemId?: string;
+  /** Subida: datos para dibujar la tarjeta mientras se envía. */
+  info?: RoomItemInfo;
+  /** Chat donde aparece (null = hilo de la sala). */
+  chat: string | null;
+  totalBytes: number;
+  doneBytes: number;
+  /** Bytes por segundo (promedio desde el inicio). */
+  bytesPerSecond: number;
+  status: 'running' | 'error' | 'cancelled';
+  error?: string;
 }
 
 /** Perfil con el que uno aparece en la sala. */
@@ -128,5 +162,12 @@ export type RoomEndReason = 'closed' | 'kicked' | 'rejected' | 'left' | 'lost' |
 
 export const ROOM_TEXT_MAX = 250;
 export const ROOM_MAX_MEMBERS = 25;
-/** Tope de un elemento (antes de cifrar). Los archivos más pesados llegan en la Fase 2. */
-export const ROOM_ITEM_MAX_BYTES = 10 * 1024 * 1024;
+/**
+ * Tope de un elemento. Viaja por bloques, así que el límite es la memoria del anfitrión, que
+ * guarda lo publicado mientras dure la sala (ver MAX_ITEM_STORE_BYTES en roomHostEngine).
+ */
+export const ROOM_ITEM_MAX_BYTES = 300 * 1024 * 1024;
+/** Tamaño de cada bloque (antes de cifrar). */
+export const ROOM_CHUNK_BYTES = 512 * 1024;
+/** Bloques que viajan a la vez (aprovecha la red sin saturar el puente nativo). */
+export const ROOM_CHUNK_PARALLEL = 3;

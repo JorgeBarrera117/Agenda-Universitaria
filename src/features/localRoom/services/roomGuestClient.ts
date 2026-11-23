@@ -1,12 +1,24 @@
-import type { RoomEndReason, RoomInfo, RoomInvite, RoomItemPayload, RoomPostDraft, RoomProfile, RoomSnapshot } from '../types/room';
-import { deriveRoomKey, openJson, sealJson } from './roomCrypto';
+import {
+  ROOM_CHUNK_BYTES,
+  ROOM_CHUNK_PARALLEL,
+  type RoomEndReason,
+  type RoomInfo,
+  type RoomInvite,
+  type RoomItemDraft,
+  type RoomItemMeta,
+  type RoomPostDraft,
+  type RoomProfile,
+  type RoomSnapshot,
+} from '../types/room';
+import { base64StringToBytes, bytesToBase64String, deriveRoomKey, openJson, sealJson } from './roomCrypto';
 import {
   ROOM_ERROR_MESSAGES,
+  ROOM_PROTOCOL_VERSION,
+  chunkCount,
   errorCodeOf,
   eventsUrl,
   isRecord,
   parseHelloResponse,
-  parseItemPayload,
   parseRoomEvent,
   rpcUrl,
   type GuestTransport,
@@ -15,7 +27,6 @@ import {
   type RoomEvent,
   type SealedCall,
 } from './roomProtocol';
-import { ROOM_ITEM_MAX_BYTES } from '../types/room';
 
 /**
  * Cliente del invitado: entra a la sala, mantiene abierta la conexión SSE (y la reabre si se corta)
@@ -24,13 +35,39 @@ import { ROOM_ITEM_MAX_BYTES } from '../types/room';
 
 const HELLO_TIMEOUT_MS = 4_000;
 const CALL_TIMEOUT_MS = 20_000;
-const UPLOAD_TIMEOUT_MS = 90_000;
+/** Cada bloque (512 KB cifrado) tiene este tiempo para ir y volver. */
+const CHUNK_TIMEOUT_MS = 60_000;
 /** Sin conexión con el anfitrión durante este tiempo, la sala se da por perdida. */
 const LOST_AFTER_MS = 60_000;
 /** Conexiones que el anfitrión cierra sin enviar nada: ya no somos parte de la sala. */
 const MAX_SILENT_CLOSES = 3;
 
 export class RoomJoinError extends Error {}
+
+/** El usuario canceló la subida o la descarga. */
+export class RoomTransferCancelled extends Error {
+  constructor() {
+    super('Transferencia cancelada.');
+  }
+}
+
+/**
+ * Recorre los bloques 0…count-1 con varios a la vez. Si se cancela, no se piden más bloques y
+ * se lanza RoomTransferCancelled.
+ */
+export async function runChunks(count: number, task: (index: number) => Promise<void>, signal: AbortSignal): Promise<void> {
+  let next = 0;
+  const worker = async () => {
+    while (next < count) {
+      if (signal.aborted) throw new RoomTransferCancelled();
+      const index = next;
+      next += 1;
+      await task(index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(ROOM_CHUNK_PARALLEL, count) }, worker));
+  if (signal.aborted) throw new RoomTransferCancelled();
+}
 
 export interface RoomGuestState {
   phase: 'waiting' | 'active' | 'ended';
@@ -74,11 +111,15 @@ export class RoomGuestClient {
   /** Busca al anfitrión en sus direcciones, valida el PIN al entrar y abre la conexión de eventos. */
   static async connect(transport: GuestTransport, invite: RoomInvite, profile: RoomProfile, deviceId: string): Promise<RoomGuestClient> {
     let found: { host: string; salt: string; info: RoomInfo; locked: boolean } | null = null;
+    let otherVersion = false;
     for (const host of invite.hosts) {
       try {
-        const response = await transport.request(rpcUrl(host, invite.port), JSON.stringify({ v: 1, op: 'hello' }), HELLO_TIMEOUT_MS);
+        const response = await transport.request(rpcUrl(host, invite.port), JSON.stringify({ v: ROOM_PROTOCOL_VERSION, op: 'hello' }), HELLO_TIMEOUT_MS);
+        // Un anfitrión con la Fase 1 responde 400 a la versión 2
+        if (response.status === 426 || response.status === 400) otherVersion = true;
         const hello = response.status === 200 ? parseHelloResponse(response.body) : null;
-        if (hello) {
+        if (hello && hello.v !== ROOM_PROTOCOL_VERSION) otherVersion = true;
+        if (hello && hello.v === ROOM_PROTOCOL_VERSION) {
           found = { host, salt: hello.salt, info: { name: hello.room, hostName: hello.host, pinLength: hello.pinLength }, locked: hello.locked };
           break;
         }
@@ -86,6 +127,7 @@ export class RoomGuestClient {
         // Se prueba la siguiente dirección
       }
     }
+    if (!found && otherVersion) throw new RoomJoinError(ROOM_ERROR_MESSAGES.version);
     if (!found) {
       throw new RoomJoinError('No se encontró la sala. Revisa que ambos estén en la misma red wifi (o en el punto de acceso del anfitrión) y que la sala siga abierta.');
     }
@@ -93,7 +135,7 @@ export class RoomGuestClient {
 
     const key = await deriveRoomKey(invite.pin, found.salt);
     const join: JoinRequest = { name: profile.name, color: profile.color, deviceId };
-    const response = await transport.request(rpcUrl(found.host, invite.port), JSON.stringify({ v: 1, op: 'join', s: await sealJson(key, join) }), CALL_TIMEOUT_MS);
+    const response = await transport.request(rpcUrl(found.host, invite.port), JSON.stringify({ v: ROOM_PROTOCOL_VERSION, op: 'join', s: await sealJson(key, join) }), CALL_TIMEOUT_MS);
     if (response.status !== 200) {
       const code = errorCodeOf(response.body);
       throw new RoomJoinError(code ? ROOM_ERROR_MESSAGES[code] : 'El anfitrión no respondió como se esperaba.');
@@ -223,7 +265,7 @@ export class RoomGuestClient {
   private async call(call: RoomCall, timeoutMs = CALL_TIMEOUT_MS): Promise<unknown> {
     if (this.state.phase === 'ended') throw new Error('La sala ya terminó.');
     const sealed: SealedCall = { token: this.token, call };
-    const body = JSON.stringify({ v: 1, op: 'call', m: this.memberId, s: await sealJson(this.key, sealed) });
+    const body = JSON.stringify({ v: ROOM_PROTOCOL_VERSION, op: 'call', m: this.memberId, s: await sealJson(this.key, sealed) });
     let response: { status: number; body: string };
     try {
       response = await this.transport.request(rpcUrl(this.host, this.port), body, timeoutMs);
@@ -239,14 +281,58 @@ export class RoomGuestClient {
   }
 
   async post(draft: RoomPostDraft): Promise<void> {
-    await this.call({ op: 'post', draft }, draft.item ? UPLOAD_TIMEOUT_MS : CALL_TIMEOUT_MS);
+    await this.call({ op: 'post', draft });
   }
 
-  async fetchItem(itemId: string): Promise<RoomItemPayload> {
-    const result = await this.call({ op: 'fetch', itemId }, UPLOAD_TIMEOUT_MS);
-    const payload = isRecord(result) ? parseItemPayload(result.payload, ROOM_ITEM_MAX_BYTES) : null;
-    if (!payload) throw new Error('El elemento llegó incompleto.');
-    return payload;
+  /**
+   * Sube un elemento por bloques cifrados (varios a la vez) y lo publica al terminar.
+   * onProgress recibe los bytes enviados. Si se cancela, avisa al anfitrión para que lo descarte.
+   */
+  async uploadItem(draft: RoomItemDraft, options: { text?: string; to?: string }, onProgress: (doneBytes: number) => void, signal: AbortSignal): Promise<void> {
+    const { blob, ...info } = draft;
+    const started = await this.call({ op: 'uploadStart', info, size: blob.size, to: options.to });
+    if (!isRecord(started) || typeof started.uploadId !== 'string') throw new Error('El anfitrión no aceptó el elemento.');
+    const uploadId = started.uploadId;
+    let done = 0;
+    try {
+      await runChunks(
+        chunkCount(blob.size),
+        async (index) => {
+          const start = index * ROOM_CHUNK_BYTES;
+          const part = blob.slice(start, start + ROOM_CHUNK_BYTES);
+          const data = bytesToBase64String(new Uint8Array(await part.arrayBuffer()));
+          await this.call({ op: 'uploadChunk', uploadId, index, data }, CHUNK_TIMEOUT_MS);
+          done += part.size;
+          onProgress(done);
+        },
+        signal
+      );
+    } catch (err) {
+      void this.call({ op: 'uploadCancel', uploadId }, 5_000).catch(() => undefined);
+      throw err;
+    }
+    await this.call({ op: 'uploadFinish', uploadId, text: options.text });
+  }
+
+  /** Descarga un elemento por bloques (varios a la vez) y lo arma como Blob. */
+  async downloadItem(meta: RoomItemMeta, onProgress: (doneBytes: number) => void, signal: AbortSignal): Promise<Blob> {
+    const parts: Uint8Array<ArrayBuffer>[] = new Array(chunkCount(meta.sizeBytes));
+    let done = 0;
+    await runChunks(
+      parts.length,
+      async (index) => {
+        const result = await this.call({ op: 'fetchChunk', itemId: meta.id, index }, CHUNK_TIMEOUT_MS);
+        if (!isRecord(result) || typeof result.data !== 'string') throw new Error('El elemento llegó incompleto.');
+        const bytes = base64StringToBytes(result.data);
+        parts[index] = bytes;
+        done += bytes.length;
+        onProgress(done);
+      },
+      signal
+    );
+    const blob = new Blob(parts, { type: meta.mimeType || 'application/octet-stream' });
+    if (blob.size !== meta.sizeBytes) throw new Error('El elemento llegó incompleto.');
+    return blob;
   }
 
   async leave(): Promise<void> {

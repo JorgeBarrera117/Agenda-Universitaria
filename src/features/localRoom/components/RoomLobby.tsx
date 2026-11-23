@@ -16,12 +16,14 @@ const TransferLauncher = lazy(() => import('../../transfer/components/TransferLa
 
 interface RoomLobbyProps {
   initialProfile: RoomProfile;
+  /** Nombre del perfil (Ajustes → Mi perfil): si el de la sala es igual, no cuenta como escrito a mano. */
+  studentName: string;
   busy: 'host' | 'guest' | null;
   onShowToast: (message: string) => void;
 }
 
 /** Recepción: perfil, crear una sala o unirse por QR o con la dirección y el PIN. */
-export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, busy, onShowToast }) => {
+export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, studentName, busy, onShowToast }) => {
   const [profile, setProfile] = useState<RoomProfile>(initialProfile);
   const [roomName, setRoomName] = useState(() => `Sala de ${initialProfile.name.split(/\s+/)[0] || 'clase'}`);
   const [pinLength, setPinLength] = useState<4 | 6>(4);
@@ -38,7 +40,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, busy, onSh
 
   const updateProfile = (next: RoomProfile) => {
     setProfile(next);
-    if (next.name.trim()) saveRoomProfile(next);
+    if (next.name.trim()) saveRoomProfile(next, studentName);
   };
 
   const create = async () => {
@@ -108,7 +110,8 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, busy, onSh
             className={ROOM_INPUT}
           />
         </div>
-        <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Color de tu avatar">
+        {/* Los 8 colores siempre en una sola fila (en el teléfono se achican para caber) */}
+        <div className="mt-3 grid max-w-sm grid-cols-8 gap-1.5 sm:gap-2" role="radiogroup" aria-label="Color de tu avatar">
           {ROOM_PROFILE_COLORS.map((color) => (
             <button
               key={color}
@@ -117,7 +120,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({ initialProfile, busy, onSh
               aria-checked={profile.color === color}
               aria-label={`Color ${color}`}
               onClick={() => updateProfile({ ...profile, color })}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-white ring-offset-2 ring-offset-[var(--color-md-surface-container)] transition-transform active:scale-90 aria-checked:ring-2 aria-checked:ring-[var(--color-md-primary)]"
+              className="flex aspect-square w-full max-w-9 items-center justify-center justify-self-center rounded-full text-white ring-offset-2 ring-offset-[var(--color-md-surface-container)] transition-transform active:scale-90 aria-checked:ring-2 aria-checked:ring-[var(--color-md-primary)]"
               style={{ backgroundColor: color }}
             >
               {profile.color === color && <Check className="h-4 w-4" aria-hidden="true" />}

@@ -1,12 +1,14 @@
 import { isPrivateIPv4 } from '../../transfer/services/transferProtocol';
 import {
+  ROOM_CHUNK_BYTES,
   ROOM_ITEM_KINDS,
+  ROOM_ITEM_MAX_BYTES,
   ROOM_TEXT_MAX,
   type RoomInfo,
   type RoomInvite,
+  type RoomItemInfo,
   type RoomItemKind,
   type RoomItemMeta,
-  type RoomItemPayload,
   type RoomMember,
   type RoomMessage,
   type RoomPostDraft,
@@ -20,13 +22,16 @@ import {
  *   POST /room/v1/rpc     cuerpo JSON (WireRequest). hello va en claro; join y call, cifrados.
  *   GET  /room/v1/events  Server-Sent Events: cada `data:` es un RoomEvent cifrado.
  *
+ * Versión 2 (Fase 2): chats privados (mensajes con destinatario) y elementos por bloques de
+ * 512 KB cifrados (uploadStart, uploadChunk…, uploadFinish; fetchChunk para descargar).
+ *
  * Los servidores nativos (LocalRoomServer.java en Android y roomServer.cjs en Windows) no conocen
  * este formato: entregan cada petición y cada conexión de eventos a la interfaz, que es donde vive
  * el motor del anfitrión (roomHostEngine.ts). Así hay una sola implementación de las reglas.
  */
 
 export const ROOM_BASE_PATH = '/room/v1';
-export const ROOM_PROTOCOL_VERSION = 1;
+export const ROOM_PROTOCOL_VERSION = 2;
 const INVITE_PREFIX = 'agenda-room://v1?';
 
 /* --------------------------------------------------------------------------------- Invitación */
@@ -80,12 +85,14 @@ export function eventsUrl(host: string, port: number, memberId: string, proof: s
 /* --------------------------------------------------------------------------------- Mensajes */
 
 export type WireRequest =
-  | { v: 1; op: 'hello' }
-  | { v: 1; op: 'join'; s: string }
-  | { v: 1; op: 'call'; m: string; s: string };
+  | { v: 2; op: 'hello' }
+  | { v: 2; op: 'join'; s: string }
+  | { v: 2; op: 'call'; m: string; s: string };
 
 export interface HelloResponse {
   app: 'agenda-universitaria';
+  /** Versión del protocolo del anfitrión. */
+  v: number;
   room: string;
   host: string;
   salt: string;
@@ -106,8 +113,17 @@ export interface JoinResult {
 
 export type RoomCall =
   | { op: 'post'; draft: RoomPostDraft }
-  | { op: 'fetch'; itemId: string }
+  | { op: 'uploadStart'; info: RoomItemInfo; size: number; to?: string }
+  | { op: 'uploadChunk'; uploadId: string; index: number; data: string }
+  | { op: 'uploadFinish'; uploadId: string; text?: string }
+  | { op: 'uploadCancel'; uploadId: string }
+  | { op: 'fetchChunk'; itemId: string; index: number }
   | { op: 'leave' };
+
+/** Cantidad de bloques de un contenido de size bytes (al menos uno). */
+export function chunkCount(size: number): number {
+  return Math.max(1, Math.ceil(size / ROOM_CHUNK_BYTES));
+}
 
 /** Petición cifrada de un participante: su token prueba quién es. */
 export interface SealedCall {
@@ -126,7 +142,7 @@ export type RoomEvent =
   | { type: 'end'; reason: RoomEndEventReason };
 
 /** Códigos de error de la sala (en el cuerpo de respuestas no 200). */
-export type RoomErrorCode = 'pin' | 'locked' | 'full' | 'blocked' | 'too-many' | 'auth' | 'gone' | 'rule' | 'bad-request' | 'not-found' | 'too-large';
+export type RoomErrorCode = 'pin' | 'locked' | 'full' | 'blocked' | 'too-many' | 'auth' | 'gone' | 'rule' | 'bad-request' | 'not-found' | 'too-large' | 'version';
 
 export const ROOM_ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   pin: 'El PIN no es correcto.',
@@ -139,7 +155,8 @@ export const ROOM_ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   rule: 'El anfitrión no lo permite ahora.',
   'bad-request': 'La sala no entendió la petición.',
   'not-found': 'Ese elemento ya no está disponible en la sala.',
-  'too-large': 'El elemento es demasiado pesado para la sala.',
+  'too-large': 'El elemento es demasiado pesado para la sala (máximo 300 MB).',
+  version: 'La sala usa otra versión de la app. Actualicen los dos dispositivos a la misma versión.',
 };
 
 /* --------------------------------------------------------------------------------- Validación */
@@ -180,10 +197,20 @@ export function parseWireRequest(raw: string): WireRequest | null {
     return null;
   }
   if (!isRecord(parsed) || parsed.v !== ROOM_PROTOCOL_VERSION) return null;
-  if (parsed.op === 'hello') return { v: 1, op: 'hello' };
-  if (parsed.op === 'join' && typeof parsed.s === 'string') return { v: 1, op: 'join', s: parsed.s };
-  if (parsed.op === 'call' && typeof parsed.s === 'string' && typeof parsed.m === 'string') return { v: 1, op: 'call', m: parsed.m, s: parsed.s };
+  if (parsed.op === 'hello') return { v: 2, op: 'hello' };
+  if (parsed.op === 'join' && typeof parsed.s === 'string') return { v: 2, op: 'join', s: parsed.s };
+  if (parsed.op === 'call' && typeof parsed.s === 'string' && typeof parsed.m === 'string') return { v: 2, op: 'call', m: parsed.m, s: parsed.s };
   return null;
+}
+
+/** Petición de un cliente con otra versión del protocolo (para avisar en vez de fallar en silencio). */
+export function isOtherProtocolVersion(raw: string): boolean {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return isRecord(parsed) && typeof parsed.v === 'number' && parsed.v !== ROOM_PROTOCOL_VERSION;
+  } catch {
+    return false;
+  }
 }
 
 export function parseJoinRequest(value: unknown): JoinRequest | null {
@@ -194,9 +221,8 @@ export function parseJoinRequest(value: unknown): JoinRequest | null {
   return { name, color: color(value.color), deviceId };
 }
 
-export function parseItemPayload(value: unknown, maxBytes: number): RoomItemPayload | null {
-  if (!isRecord(value) || !isKind(value.kind) || typeof value.data !== 'string') return null;
-  if (value.data.length === 0 || value.data.length > Math.ceil(maxBytes * 1.4)) return null;
+export function parseItemInfo(value: unknown): RoomItemInfo | null {
+  if (!isRecord(value) || !isKind(value.kind)) return null;
   const title = text(value.title, 120);
   if (!title) return null;
   return {
@@ -206,30 +232,73 @@ export function parseItemPayload(value: unknown, maxBytes: number): RoomItemPayl
     fileName: text(value.fileName, 160),
     mimeType: text(value.mimeType, 120),
     subjectName: text(value.subjectName, 120),
-    data: value.data,
   };
 }
 
-export function parseSealedCall(value: unknown, maxItemBytes: number): SealedCall | null {
+function shortId(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 && value.length <= 64 ? value : undefined;
+}
+
+function chunkIndex(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value < 100_000 ? value : undefined;
+}
+
+/** Un bloque en base64 no puede pasar de ROOM_CHUNK_BYTES una vez decodificado. */
+const MAX_CHUNK_BASE64 = Math.ceil(ROOM_CHUNK_BYTES / 3) * 4;
+
+export function parseSealedCall(value: unknown): SealedCall | null {
   if (!isRecord(value) || typeof value.token !== 'string' || !isRecord(value.call)) return null;
+  const token = value.token;
   const call = value.call;
-  if (call.op === 'leave') return { token: value.token, call: { op: 'leave' } };
-  if (call.op === 'fetch' && typeof call.itemId === 'string') return { token: value.token, call: { op: 'fetch', itemId: call.itemId.slice(0, 64) } };
-  if (call.op === 'post' && isRecord(call.draft)) {
-    const draftText = typeof call.draft.text === 'string' ? call.draft.text.trim().slice(0, ROOM_TEXT_MAX) : undefined;
-    const item = call.draft.item === undefined ? undefined : parseItemPayload(call.draft.item, maxItemBytes);
-    if (item === null) return null;
-    if (!draftText && !item) return null;
-    return { token: value.token, call: { op: 'post', draft: { text: draftText || undefined, item } } };
+  switch (call.op) {
+    case 'leave':
+      return { token, call: { op: 'leave' } };
+    case 'post': {
+      if (!isRecord(call.draft)) return null;
+      const draftText = typeof call.draft.text === 'string' ? call.draft.text.trim().slice(0, ROOM_TEXT_MAX) : '';
+      const draftTo = shortId(call.draft.to);
+      if (!draftText || (call.draft.to !== undefined && !draftTo)) return null;
+      return { token, call: { op: 'post', draft: { text: draftText, to: draftTo } } };
+    }
+    case 'uploadStart': {
+      const info = parseItemInfo(call.info);
+      const size = call.size;
+      const to = shortId(call.to);
+      if (!info || typeof size !== 'number' || !Number.isInteger(size) || size < 1 || size > ROOM_ITEM_MAX_BYTES) return null;
+      if (call.to !== undefined && !to) return null;
+      return { token, call: { op: 'uploadStart', info, size, to } };
+    }
+    case 'uploadChunk': {
+      const uploadId = shortId(call.uploadId);
+      const i = chunkIndex(call.index);
+      if (!uploadId || i === undefined || typeof call.data !== 'string' || call.data.length === 0 || call.data.length > MAX_CHUNK_BASE64) return null;
+      return { token, call: { op: 'uploadChunk', uploadId, index: i, data: call.data } };
+    }
+    case 'uploadFinish': {
+      const uploadId = shortId(call.uploadId);
+      if (!uploadId) return null;
+      const finishText = typeof call.text === 'string' ? call.text.trim().slice(0, ROOM_TEXT_MAX) : '';
+      return { token, call: { op: 'uploadFinish', uploadId, text: finishText || undefined } };
+    }
+    case 'uploadCancel': {
+      const uploadId = shortId(call.uploadId);
+      return uploadId ? { token, call: { op: 'uploadCancel', uploadId } } : null;
+    }
+    case 'fetchChunk': {
+      const itemId = shortId(call.itemId);
+      const i = chunkIndex(call.index);
+      return itemId && i !== undefined ? { token, call: { op: 'fetchChunk', itemId, index: i } } : null;
+    }
+    default:
+      return null;
   }
-  return null;
 }
 
 function parseRules(value: unknown): RoomRules | null {
   if (!isRecord(value)) return null;
-  const { waitingRoom, locked, readOnly, textEnabled } = value;
-  if (typeof waitingRoom !== 'boolean' || typeof locked !== 'boolean' || typeof readOnly !== 'boolean' || typeof textEnabled !== 'boolean') return null;
-  return { waitingRoom, locked, readOnly, textEnabled };
+  const { waitingRoom, locked, readOnly, textEnabled, privateChat } = value;
+  if (typeof waitingRoom !== 'boolean' || typeof locked !== 'boolean' || typeof readOnly !== 'boolean' || typeof textEnabled !== 'boolean' || typeof privateChat !== 'boolean') return null;
+  return { waitingRoom, locked, readOnly, textEnabled, privateChat };
 }
 
 function parseInfo(value: unknown): RoomInfo | null {
@@ -267,6 +336,7 @@ function parseItemMeta(value: unknown): RoomItemMeta | undefined {
     sizeBytes: typeof value.sizeBytes === 'number' ? value.sizeBytes : 0,
     fileName: text(value.fileName, 160),
     mimeType: text(value.mimeType, 120),
+    subjectName: text(value.subjectName, 120),
   };
 }
 
@@ -281,6 +351,7 @@ function parseMessage(value: unknown): RoomMessage | null {
     system: value.system === true || undefined,
     text: text(value.text, ROOM_TEXT_MAX + 80),
     item: parseItemMeta(value.item),
+    to: shortId(value.to),
   };
   return message.text || message.item ? message : null;
 }
@@ -340,6 +411,7 @@ export function parseHelloResponse(raw: string): HelloResponse | null {
   if (!isRecord(parsed) || parsed.app !== 'agenda-universitaria' || typeof parsed.salt !== 'string') return null;
   return {
     app: 'agenda-universitaria',
+    v: typeof parsed.v === 'number' ? parsed.v : 1,
     room: text(parsed.room, 60) ?? 'Sala',
     host: text(parsed.host, 40) ?? 'Anfitrión',
     salt: parsed.salt,

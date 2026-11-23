@@ -17,8 +17,11 @@ const crypto = require('crypto');
 const { lanAddresses } = require('./transferServer.cjs');
 
 const BASE_PATH = '/room/v1';
-/** Tope del cuerpo de una petición (un elemento de hasta 10 MB, cifrado y en base64). */
-const MAX_BODY_BYTES = 40 * 1024 * 1024;
+/**
+ * Tope de UNA petición. Los elementos viajan por bloques de 512 KB (cifrados y en base64 ocupan
+ * ~0,9 MB), así que no hay límite por archivo: este tope solo frena peticiones anómalas.
+ */
+const MAX_BODY_BYTES = 4 * 1024 * 1024;
 /** La interfaz tiene este tiempo para responder una petición. */
 const RESPONSE_TIMEOUT_MS = 30_000;
 /** Comentario SSE periódico: mantiene viva la conexión y detecta a quien se fue. */

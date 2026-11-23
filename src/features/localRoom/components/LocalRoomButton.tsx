@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Radio } from 'lucide-react';
 import { useLocalRoom } from '../hooks/useLocalRoom';
-import { setRoomScreenOpen } from '../services/roomStore';
+import { setRoomScreenOpen, totalPrivateUnread } from '../services/roomStore';
 import { isLocalRoomAvailable } from '../services/roomTransports';
 
 /**
@@ -12,7 +12,8 @@ import { isLocalRoomAvailable } from '../services/roomTransports';
  */
 export const LocalRoomButton: React.FC = () => {
   const [available] = useState(isLocalRoomAvailable);
-  const { session, unread } = useLocalRoom();
+  const { session, unread: roomUnread, privateUnread } = useLocalRoom();
+  const unread = roomUnread + totalPrivateUnread(privateUnread);
   if (!available) return null;
 
   const inRoom = session.phase === 'active' || session.phase === 'waiting';

@@ -61,8 +61,11 @@ public final class LocalRoomServer {
     }
 
     static final String BASE_PATH = "/room/v1";
-    /** Tope de una petición (un elemento de hasta 10 MB, cifrado y en base64). */
-    static final int MAX_BODY_BYTES = 40 * 1024 * 1024;
+    /**
+     * Tope de UNA petición. Los elementos viajan por bloques de 512 KB (cifrados y en base64 ocupan
+     * ~0,9 MB), así que no hay límite por archivo: este tope solo frena peticiones anómalas.
+     */
+    static final int MAX_BODY_BYTES = 4 * 1024 * 1024;
     private static final int MAX_HEADER_BYTES = 16 * 1024;
     private static final long RESPONSE_TIMEOUT_MS = 30_000L;
     private static final long HEARTBEAT_MS = 15_000L;

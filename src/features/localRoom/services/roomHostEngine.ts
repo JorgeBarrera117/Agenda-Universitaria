@@ -1,21 +1,26 @@
 import {
   DEFAULT_ROOM_RULES,
+  ROOM_CHUNK_BYTES,
   ROOM_ITEM_MAX_BYTES,
   ROOM_MAX_MEMBERS,
   ROOM_TEXT_MAX,
   type RoomInfo,
   type RoomInvite,
+  type RoomItemDraft,
+  type RoomItemInfo,
   type RoomItemMeta,
-  type RoomItemPayload,
   type RoomMember,
   type RoomMessage,
   type RoomPostDraft,
   type RoomProfile,
+  type RoomReceivedItem,
   type RoomRules,
   type RoomSnapshot,
 } from '../types/room';
-import { createPin, createSalt, deriveRoomKey, openJson, randomToken, sealJson } from './roomCrypto';
+import { base64StringToBytes, bytesToBase64String, createPin, createSalt, deriveRoomKey, openJson, randomToken, sealJson } from './roomCrypto';
 import {
+  chunkCount,
+  isOtherProtocolVersion,
   isRecord,
   parseJoinRequest,
   parseSealedCall,
@@ -27,6 +32,7 @@ import {
   type JoinResult,
   type RoomErrorCode,
   type RoomEvent,
+  ROOM_PROTOCOL_VERSION,
 } from './roomProtocol';
 
 /**
@@ -35,19 +41,24 @@ import {
  *
  * Responsabilidades:
  * - validar el PIN (la solicitud de entrada llega cifrada con la clave derivada del PIN);
- * - sala de espera, bloqueo de entrada, solo lectura, texto sí/no, expulsar y bloquear;
- * - guardar en memoria los elementos publicados y difundir solo su ficha (el contenido se pide
- *   aparte con fetch, así el hilo es liviano);
+ * - sala de espera, bloqueo de entrada, solo lectura, texto sí/no, chats privados, expulsar;
+ * - recibir elementos por bloques cifrados (sin tope de 10 MB) y guardarlos como Blob mientras
+ *   dure la sala; al hilo va solo su ficha y cada uno descarga los bloques cuando quiere guardarlo;
+ * - mensajes privados: solo se entregan al autor y al destinatario (y sus elementos solo ellos
+ *   dos los pueden descargar);
  * - empujar cada cambio por SSE a quien corresponda, sin sondeos.
  */
 
 export const HOST_MEMBER_ID = 'host';
 
-const MAX_MESSAGES = 300;
+const MAX_MESSAGES = 400;
 /** Memoria total para el contenido de los elementos; al pasarla se descartan los más antiguos. */
-const MAX_ITEM_STORE_BYTES = 150 * 1024 * 1024;
+const MAX_ITEM_STORE_BYTES = 1024 * 1024 * 1024;
 const MAX_PIN_FAILURES = 5;
 const PIN_LOCKOUT_MS = 60_000;
+/** Una subida sin bloques nuevos durante este tiempo se descarta. */
+const UPLOAD_IDLE_MS = 120_000;
+const MAX_UPLOADS_PER_MEMBER = 3;
 /** Tras cerrar la sala se espera un momento para que el aviso «end» alcance a salir. */
 const CLOSE_FLUSH_MS = 400;
 
@@ -63,13 +74,31 @@ interface HostMember {
 }
 
 interface StoredItem {
-  payload: RoomItemPayload;
-  bytes: number;
+  meta: RoomItemMeta;
+  blob: Blob;
+  authorId: string;
+  to?: string;
+}
+
+interface PendingUpload {
+  memberId: string;
+  info: RoomItemInfo;
+  size: number;
+  to?: string;
+  chunks: (Uint8Array<ArrayBuffer> | undefined)[];
+  received: number;
+  lastAt: number;
 }
 
 interface HttpResult {
   status: number;
   body: string;
+}
+
+interface Author {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export interface RoomHostOptions {
@@ -102,9 +131,14 @@ function sameToken(a: string, b: string): boolean {
   return diff === 0;
 }
 
-function payloadBytes(payload: RoomItemPayload): number {
-  // Base64 → bytes reales del archivo; JSON → caracteres (aprox. bytes)
-  return payload.kind === 'document' ? Math.floor((payload.data.length * 3) / 4) : payload.data.length;
+function expectedChunkBytes(size: number, index: number): number {
+  const total = chunkCount(size);
+  return index < total - 1 ? ROOM_CHUNK_BYTES : size - (total - 1) * ROOM_CHUNK_BYTES;
+}
+
+/** Visible para un participante: lo público, lo que escribió y lo que le escribieron. */
+function visibleTo(message: RoomMessage, memberId: string): boolean {
+  return !message.to || message.to === memberId || message.authorId === memberId;
 }
 
 export class RoomHostEngine {
@@ -124,6 +158,8 @@ export class RoomHostEngine {
   private messages: RoomMessage[] = [];
   private readonly items = new Map<string, StoredItem>();
   private itemBytes = 0;
+  private readonly uploads = new Map<string, PendingUpload>();
+  private uploadSweep: ReturnType<typeof setInterval> | null = null;
   private readonly createdAt = Date.now();
 
   private ended = false;
@@ -151,6 +187,7 @@ export class RoomHostEngine {
       onStopped: (reason) => engine.finish('error', reason),
     });
     engine.invite = { hosts, port, pin: engine.pin, name: engine.info.name };
+    engine.uploadSweep = setInterval(() => engine.sweepUploads(), 30_000);
     engine.refreshView();
     return engine;
   }
@@ -202,9 +239,14 @@ export class RoomHostEngine {
       info: this.info,
       rules: this.rules,
       members: this.memberList(memberId === HOST_MEMBER_ID),
-      messages: this.messages,
+      messages: this.messages.filter((m) => visibleTo(m, memberId)),
       selfId: memberId,
     };
+  }
+
+  /** ¿Puede este participante recibir un privado? (el anfitrión o alguien activo). */
+  private isRecipient(id: string): boolean {
+    return id === HOST_MEMBER_ID || this.members.get(id)?.status === 'active';
   }
 
   /* ------------------------------------------------------------------ Envío por SSE */
@@ -215,10 +257,10 @@ export class RoomHostEngine {
     for (const streamId of member.streams) this.transport.push(streamId, sealed);
   }
 
-  /** Mismo evento a todos los activos: se cifra una sola vez. */
-  private async broadcast(event: RoomEvent): Promise<void> {
+  /** El mismo evento a varios: se cifra una sola vez. Sin filtro = todos los activos. */
+  private async broadcast(event: RoomEvent, only?: (member: HostMember) => boolean): Promise<void> {
     if (!this.key) return;
-    const targets = [...this.members.values()].filter((m) => m.status === 'active' && m.streams.size > 0);
+    const targets = [...this.members.values()].filter((m) => m.status === 'active' && m.streams.size > 0 && (!only || only(m)));
     if (targets.length === 0) return;
     const sealed = await sealJson(this.key, event);
     for (const member of targets) for (const streamId of member.streams) this.transport.push(streamId, sealed);
@@ -232,7 +274,7 @@ export class RoomHostEngine {
   private addMessage(message: RoomMessage): void {
     this.messages = [...this.messages, message].slice(-MAX_MESSAGES);
     this.refreshView();
-    void this.broadcast({ type: 'message', message });
+    void this.broadcast({ type: 'message', message }, message.to ? (m) => visibleTo(message, m.id) : undefined);
   }
 
   private systemMessage(text: string): void {
@@ -247,32 +289,24 @@ export class RoomHostEngine {
     });
   }
 
-  private storeItem(payload: RoomItemPayload): RoomItemMeta {
+  private storeItem(info: RoomItemInfo, blob: Blob, authorId: string, to?: string): RoomItemMeta {
     const id = randomToken(9);
-    const bytes = payloadBytes(payload);
-    this.items.set(id, { payload, bytes });
-    this.itemBytes += bytes;
+    const meta: RoomItemMeta = { id, ...info, sizeBytes: blob.size };
+    this.items.set(id, { meta, blob, authorId, to });
+    this.itemBytes += blob.size;
     // Se descartan los más antiguos (Map conserva el orden de inserción)
     for (const [oldId, stored] of this.items) {
       if (this.itemBytes <= MAX_ITEM_STORE_BYTES || oldId === id) break;
       this.items.delete(oldId);
-      this.itemBytes -= stored.bytes;
+      this.itemBytes -= stored.blob.size;
     }
-    return {
-      id,
-      kind: payload.kind,
-      title: payload.title,
-      subtitle: payload.subtitle,
-      sizeBytes: bytes,
-      fileName: payload.fileName,
-      mimeType: payload.mimeType,
-    };
+    return meta;
   }
 
-  private publish(author: { id: string; name: string; color: string }, draft: RoomPostDraft): void {
-    const text = draft.text?.trim().slice(0, ROOM_TEXT_MAX) || undefined;
-    const item = draft.item ? this.storeItem(draft.item) : undefined;
-    this.addMessage({ id: randomToken(9), createdAt: Date.now(), authorId: author.id, authorName: author.name, authorColor: author.color, text, item });
+  private publish(author: Author, text: string | undefined, item: RoomItemMeta | undefined, to: string | undefined): void {
+    const clean = text?.trim().slice(0, ROOM_TEXT_MAX) || undefined;
+    if (!clean && !item) return;
+    this.addMessage({ id: randomToken(9), createdAt: Date.now(), authorId: author.id, authorName: author.name, authorColor: author.color, text: clean, item, to });
   }
 
   /* ------------------------------------------------------------------ Peticiones HTTP */
@@ -290,11 +324,12 @@ export class RoomHostEngine {
   private async route(request: HostRequest): Promise<HttpResult> {
     if (this.ended || !this.key) return error(410, 'gone');
     const wire = parseWireRequest(request.body);
-    if (!wire) return error(400, 'bad-request');
+    if (!wire) return isOtherProtocolVersion(request.body) ? error(426, 'version') : error(400, 'bad-request');
 
     if (wire.op === 'hello') {
       const hello: HelloResponse = {
         app: 'agenda-universitaria',
+        v: ROOM_PROTOCOL_VERSION,
         room: this.info.name,
         host: this.info.hostName,
         salt: this.salt,
@@ -358,6 +393,18 @@ export class RoomHostEngine {
     return json(200, { s: await sealJson(key, result) });
   }
 
+  /** Reglas para publicar en el hilo (to vacío) o en un privado. null = permitido. */
+  private postRule(member: HostMember, to: string | undefined, hasText: boolean, hasItem: boolean): RoomErrorCode | null {
+    if (to) {
+      if (!this.rules.privateChat) return 'rule';
+      if (to === member.id || !this.isRecipient(to)) return 'not-found';
+      return null;
+    }
+    if (this.rules.readOnly) return 'rule';
+    if (hasText && !hasItem && !this.rules.textEnabled) return 'rule';
+    return null;
+  }
+
   private async call(memberId: string, sealed: string): Promise<HttpResult> {
     const key = this.key;
     if (!key) return error(410, 'gone');
@@ -365,7 +412,7 @@ export class RoomHostEngine {
     if (!member) return error(410, 'gone');
     let request: ReturnType<typeof parseSealedCall>;
     try {
-      request = parseSealedCall(await openJson(key, sealed), ROOM_ITEM_MAX_BYTES);
+      request = parseSealedCall(await openJson(key, sealed));
     } catch {
       return error(401, 'auth');
     }
@@ -381,21 +428,77 @@ export class RoomHostEngine {
     }
     if (member.status !== 'active') return error(403, 'rule');
 
-    if (call.op === 'fetch') {
-      const stored = this.items.get(call.itemId);
-      return stored ? ok({ payload: stored.payload }) : error(404, 'not-found');
-    }
+    switch (call.op) {
+      case 'post': {
+        const rule = this.postRule(member, call.draft.to, true, false);
+        if (rule) return error(rule === 'not-found' ? 404 : 403, rule);
+        this.publish(member, call.draft.text, undefined, call.draft.to);
+        return ok({ ok: true });
+      }
 
-    // post
-    if (this.rules.readOnly) return error(403, 'rule');
-    const draft: RoomPostDraft = { ...call.draft };
-    if (!this.rules.textEnabled) {
-      if (!draft.item) return error(403, 'rule');
-      draft.text = undefined;
+      case 'uploadStart': {
+        const rule = this.postRule(member, call.to, false, true);
+        if (rule) return error(rule === 'not-found' ? 404 : 403, rule);
+        if (call.size > ROOM_ITEM_MAX_BYTES) return error(413, 'too-large');
+        const mine = [...this.uploads.values()].filter((u) => u.memberId === member.id).length;
+        if (mine >= MAX_UPLOADS_PER_MEMBER) return error(429, 'too-many');
+        const uploadId = randomToken(9);
+        this.uploads.set(uploadId, { memberId: member.id, info: call.info, size: call.size, to: call.to, chunks: new Array(chunkCount(call.size)), received: 0, lastAt: Date.now() });
+        return ok({ uploadId, chunkBytes: ROOM_CHUNK_BYTES });
+      }
+
+      case 'uploadChunk': {
+        const upload = this.uploads.get(call.uploadId);
+        if (!upload || upload.memberId !== member.id) return error(404, 'not-found');
+        if (call.index >= upload.chunks.length) return error(400, 'bad-request');
+        const bytes = base64StringToBytes(call.data);
+        if (bytes.length !== expectedChunkBytes(upload.size, call.index)) return error(400, 'bad-request');
+        if (!upload.chunks[call.index]) upload.received += 1;
+        upload.chunks[call.index] = bytes;
+        upload.lastAt = Date.now();
+        return ok({ ok: true });
+      }
+
+      case 'uploadFinish': {
+        const upload = this.uploads.get(call.uploadId);
+        if (!upload || upload.memberId !== member.id) return error(404, 'not-found');
+        if (upload.received !== upload.chunks.length) return error(400, 'bad-request');
+        this.uploads.delete(call.uploadId);
+        // Las reglas pudieron cambiar mientras subía
+        const rule = this.postRule(member, upload.to, false, true);
+        if (rule) return error(rule === 'not-found' ? 404 : 403, rule);
+        const parts = upload.chunks.filter((c): c is Uint8Array<ArrayBuffer> => c !== undefined);
+        const blob = new Blob(parts, { type: upload.info.mimeType || 'application/octet-stream' });
+        const meta = this.storeItem(upload.info, blob, member.id, upload.to);
+        const text = upload.to || this.rules.textEnabled ? call.text : undefined;
+        this.publish(member, text, meta, upload.to);
+        return ok({ itemId: meta.id });
+      }
+
+      case 'uploadCancel': {
+        const upload = this.uploads.get(call.uploadId);
+        if (upload && upload.memberId === member.id) this.uploads.delete(call.uploadId);
+        return ok({ ok: true });
+      }
+
+      case 'fetchChunk': {
+        const stored = this.items.get(call.itemId);
+        if (!stored || !this.canRead(stored, member.id)) return error(404, 'not-found');
+        if (call.index >= chunkCount(stored.blob.size)) return error(400, 'bad-request');
+        const start = call.index * ROOM_CHUNK_BYTES;
+        const bytes = new Uint8Array(await stored.blob.slice(start, start + ROOM_CHUNK_BYTES).arrayBuffer());
+        return ok({ data: bytesToBase64String(bytes) });
+      }
     }
-    if (draft.item && payloadBytes(draft.item) > ROOM_ITEM_MAX_BYTES) return error(413, 'too-large');
-    this.publish(member, draft);
-    return ok({ ok: true });
+  }
+
+  private canRead(stored: StoredItem, memberId: string): boolean {
+    return !stored.to || stored.to === memberId || stored.authorId === memberId;
+  }
+
+  private sweepUploads(): void {
+    const limit = Date.now() - UPLOAD_IDLE_MS;
+    for (const [id, upload] of this.uploads) if (upload.lastAt < limit) this.uploads.delete(id);
   }
 
   /* ------------------------------------------------------------------ Conexiones SSE */
@@ -443,6 +546,7 @@ export class RoomHostEngine {
       this.transport.closeStream(streamId);
     }
     member.streams.clear();
+    for (const [id, upload] of this.uploads) if (upload.memberId === member.id) this.uploads.delete(id);
     const wasActive = member.status === 'active';
     this.members.delete(member.id);
     if (notice && wasActive) this.systemMessage(notice);
@@ -451,17 +555,31 @@ export class RoomHostEngine {
 
   /* ------------------------------------------------------------------ Acciones del anfitrión */
 
-  async post(draft: RoomPostDraft): Promise<void> {
-    if (this.ended) return;
-    if (draft.item && payloadBytes(draft.item) > ROOM_ITEM_MAX_BYTES) throw new Error('El elemento es demasiado pesado para la sala (máximo 10 MB).');
-    // El anfitrión siempre puede escribir, aunque haya desactivado el texto para los demás
-    this.publish({ id: HOST_MEMBER_ID, name: this.profile.name, color: this.profile.color }, draft);
+  private get hostAuthor(): Author {
+    return { id: HOST_MEMBER_ID, name: this.profile.name, color: this.profile.color };
   }
 
-  fetchItem(itemId: string): RoomItemPayload {
+  /** Texto del anfitrión (siempre puede escribir, aunque haya desactivado el texto para los demás). */
+  postText(draft: RoomPostDraft): void {
+    if (this.ended) return;
+    if (draft.to && !this.isRecipient(draft.to)) throw new Error('Esa persona ya no está en la sala.');
+    this.publish(this.hostAuthor, draft.text, undefined, draft.to);
+  }
+
+  /** Elemento del anfitrión: queda en su memoria, sin viajar por la red hasta que alguien lo pide. */
+  postItem(draft: RoomItemDraft, options: { text?: string; to?: string }): void {
+    if (this.ended) return;
+    if (draft.blob.size > ROOM_ITEM_MAX_BYTES) throw new Error('El elemento es demasiado pesado para la sala (máximo 300 MB).');
+    if (options.to && !this.isRecipient(options.to)) throw new Error('Esa persona ya no está en la sala.');
+    const { blob, ...info } = draft;
+    const meta = this.storeItem(info, blob, HOST_MEMBER_ID, options.to);
+    this.publish(this.hostAuthor, options.text, meta, options.to);
+  }
+
+  getItem(itemId: string): RoomReceivedItem {
     const stored = this.items.get(itemId);
-    if (!stored) throw new Error('Ese elemento ya no está disponible en la sala.');
-    return stored.payload;
+    if (!stored || !this.canRead(stored, HOST_MEMBER_ID)) throw new Error('Ese elemento ya no está disponible en la sala.');
+    return { meta: stored.meta, blob: stored.blob };
   }
 
   async approve(memberId: string): Promise<void> {
@@ -517,9 +635,11 @@ export class RoomHostEngine {
   private finish(reason: RoomHostEndReason, message?: string): void {
     if (this.ended) return;
     this.ended = true;
+    if (this.uploadSweep) clearInterval(this.uploadSweep);
     this.members.clear();
     this.streamOwner.clear();
     this.items.clear();
+    this.uploads.clear();
     void this.transport.stop().catch(() => undefined);
     this.endListener?.(reason, message);
   }
