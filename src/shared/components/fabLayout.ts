@@ -66,7 +66,7 @@ export function useFabBottomReserve(): number {
 
 /** Borde inferior más bajo para el botón (y en px desde arriba). */
 export function fabSafeBottom(vh: number, vw: number, reserve: number): number {
-  const bottomMargin = vw >= 768 ? FAB_BUTTON_SIZE + 24 : PHONE_BOTTOM_MARGIN + reserve;
+  const bottomMargin = vw >= 768 ? FAB_BUTTON_SIZE + 24 + reserve : PHONE_BOTTOM_MARGIN + reserve;
   return Math.max(FAB_SAFE_TOP + FAB_BUTTON_SIZE, vh - bottomMargin);
 }
 
@@ -75,4 +75,13 @@ export function fabDockedPosition(dock: DockPosition, vw: number, vh: number, re
   const x = dock.side === 'left' ? FAB_EDGE_OFFSET : Math.max(FAB_EDGE_OFFSET, vw - FAB_BUTTON_SIZE - FAB_EDGE_OFFSET);
   const y = Math.min(Math.max(dock.yRatio * vh, FAB_SAFE_TOP), fabSafeBottom(vh, vw, reserve));
   return { x, y };
+}
+
+/**
+ * Ancho útil para colocar los flotantes: sin la barra de desplazamiento de la PC (innerWidth la
+ * incluye y el botón de agregar quedaba más a la derecha que los de abajo, que usan right de CSS).
+ * En el teléfono la barra no ocupa sitio y ambos valen lo mismo.
+ */
+export function fabViewportWidth(): number {
+  return document.documentElement.clientWidth || window.innerWidth;
 }

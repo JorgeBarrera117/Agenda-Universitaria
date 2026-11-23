@@ -522,7 +522,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </Card>
       ) : (
         // pb-28 en el teléfono: el último «Tomar apunte» queda libre de los botones flotantes
-        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:grid-cols-2 sm:gap-3 md:pb-0 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
           {visibleSubjects.map((subject) => {
             const classCount = slots.filter((s) => s.subjectId === subject.id).length;
             const noteCount = notes.filter((n) => n.subjectId === subject.id).length;

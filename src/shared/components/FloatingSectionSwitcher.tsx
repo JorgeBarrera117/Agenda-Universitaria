@@ -22,15 +22,14 @@ const ITEM_SIZE = 48;
 const ITEM_GAP = 12;
 
 /**
- * Selector de sección del teléfono (Materias | Profesores, Apuntes | Archivos) como botones
- * flotantes justo debajo del botón de agregar, del mismo lado. Cada área tiene su propio color
+ * Selector de sección (Materias | Profesores, Apuntes | Archivos) como botones flotantes justo
+ * debajo del botón de agregar, del mismo lado. En el teléfono siempre; en PC al bajar (arriba ya
+ * está el selector de la cabecera). Cada área tiene su propio color
  * sólido (sin contorno); la elegida se extiende con su nombre y la otra muestra solo el ícono.
  */
 export const FloatingSectionSwitcher = <T extends string>({ value, options, onChange, ariaLabel }: FloatingSectionSwitcherProps<T>) => {
   const slot = useBelowFabSlot(options.length * ITEM_SIZE + (options.length - 1) * ITEM_GAP);
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
-
-  if (!slot) return null;
 
   const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
     const step = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 0;
@@ -45,7 +44,7 @@ export const FloatingSectionSwitcher = <T extends string>({ value, options, onCh
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={`fab-autohide fixed z-40 flex flex-col gap-3 ${slot.onRight ? 'right-4 items-end' : 'left-4 items-start'}`}
+      className={`fab-autohide transition-opacity duration-200 md:pointer-events-none md:opacity-0 scrolled:md:pointer-events-auto scrolled:md:opacity-100 fixed z-40 flex flex-col gap-3 ${slot.onRight ? 'right-4 items-end' : 'left-4 items-start'}`}
       style={{ top: slot.top }}
     >
       {options.map((option, index) => {

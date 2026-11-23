@@ -959,7 +959,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </Card>
       ) : galleryLayout === 'grid' ? (
         /* Cuadrícula Compacta Responsiva */
-        <div className="grid grid-cols-2 items-start gap-2.5 pb-28 sm:grid-cols-3 sm:gap-3 md:pb-0 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <div className="grid grid-cols-2 items-start gap-2.5 pb-28 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {sortedNotes.map((note) => {
             const category = getNoteCategory(note, subjectMap);
             const imageCount = imageCounts?.[note.id] || 0;
@@ -1118,7 +1118,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         </div>
       ) : (
         /* Vista de Lista Agrupada */
-        <div className="mb-28 md:mb-0 bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-2xs">
+        <div className="mb-28 bg-white dark:bg-[#1D2024] border border-[#C3C7D0]/40 dark:border-[#43474E]/40 rounded-2xl divide-y divide-slate-100 dark:divide-white/5 overflow-hidden shadow-2xs">
           {sortedNotes.map((note) => {
             const category = getNoteCategory(note, subjectMap);
             const imageCount = imageCounts?.[note.id] || 0;

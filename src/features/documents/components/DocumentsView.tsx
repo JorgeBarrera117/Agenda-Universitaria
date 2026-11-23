@@ -528,7 +528,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         </div>
       ) : (
         // pb-28 en el teléfono: la última tarjeta queda libre de los botones flotantes
-        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:gap-3 md:grid-cols-2 md:pb-0 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {filteredAndSortedDocs.map((doc) => {
             const visuals = getFormatVisuals(doc.fileExtension, doc.isExternalLink);
             const subj = subjectsMap.get(doc.subjectId);

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-const PHONE_QUERY = '(max-width: 767px)';
 /** Desplazamiento mínimo (px) para decidir la dirección: evita parpadeos con el temblor del dedo. */
 const DELTA = 8;
 /** Tras dejar de desplazarse, los botones vuelven a aparecer. */
@@ -10,7 +9,7 @@ const TOP_ZONE = 80;
 
 /**
  * Oculta los botones flotantes (los que llevan la clase .fab-autohide) mientras se desplaza la
- * página hacia abajo en el teléfono, para que no tapen las tarjetas de abajo; reaparecen al
+ * página hacia abajo (en el teléfono y en PC), para que no tapen las tarjetas de abajo; reaparecen al
  * volver hacia arriba o al detenerse. Solo marca un atributo en :root (data-fabs-hidden): el CSS
  * hace la transición, así no se vuelve a dibujar ningún componente en cada evento de scroll.
  */
@@ -18,7 +17,6 @@ export function useAutoHideFabs(active: boolean): void {
   useEffect(() => {
     if (!active) return;
     const root = document.documentElement;
-    const media = window.matchMedia(PHONE_QUERY);
     let lastY = window.scrollY;
     let hidden = false;
     let frame = 0;
@@ -37,7 +35,7 @@ export function useAutoHideFabs(active: boolean): void {
       const delta = y - lastY;
       if (Math.abs(delta) < DELTA) return;
       lastY = y;
-      setHidden(media.matches && delta > 0 && y > TOP_ZONE);
+      setHidden(delta > 0 && y > TOP_ZONE);
     };
 
     const onScroll = () => {

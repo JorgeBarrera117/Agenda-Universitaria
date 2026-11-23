@@ -432,7 +432,7 @@ export const ProfessorsView: React.FC<ProfessorsViewProps> = ({
         </Card>
       ) : (
         // pb-28 en el teléfono: el último «Correo» queda libre de los botones flotantes
-        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:gap-3 md:grid-cols-2 md:pb-0 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 pb-28 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredProfessors.map((prof) => {
             // Acciones visibles: Correo (si hay correo) y Contacto (si hay teléfono: llamar,
             // WhatsApp, Telegram o guardarlo). La principal va rellena; la otra, tonal.

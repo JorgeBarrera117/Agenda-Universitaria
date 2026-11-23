@@ -8,6 +8,7 @@ import {
   FAB_SAFE_TOP as SAFE_TOP,
   FAB_STORAGE_KEY,
   fabDockedPosition,
+  fabViewportWidth,
   fabSafeBottom,
   readFabDock,
   useFabBottomReserve,
@@ -111,7 +112,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   const currentTheme = FAB_THEMES[colorScheme] || FAB_THEMES.schedule;
   // Dimensiones del viewport
   const [viewport, setViewport] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 390,
+    width: typeof window !== 'undefined' ? fabViewportWidth() : 390,
     height: typeof window !== 'undefined' ? window.innerHeight : 844,
   });
 
@@ -174,7 +175,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
   useEffect(() => {
     const handleResize = () => {
       setViewport({
-        width: window.innerWidth,
+        width: fabViewportWidth(),
         height: window.innerHeight,
       });
     };
@@ -212,7 +213,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {}
 
-    const vw = window.innerWidth;
+    const vw = fabViewportWidth();
     const vh = window.innerHeight;
     const startCoords = getDockedPosition(dock, vw, vh);
     livePosRef.current = startCoords;
@@ -243,7 +244,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
         setIsDragging(true);
       }
 
-      const vw = window.innerWidth;
+      const vw = fabViewportWidth();
       const vh = window.innerHeight;
       const sBottom = getSafeBottom(vh, vw);
 
@@ -307,7 +308,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     }
 
     // Si hubo arrastre, encajar suavemente contra el borde izquierdo o derecho más cercano
-    const vw = window.innerWidth;
+    const vw = fabViewportWidth();
     const vh = window.innerHeight;
     const finalPos = livePosRef.current;
 
@@ -349,7 +350,7 @@ export const DraggableFAB: React.FC<DraggableFABProps> = ({
     pointerStartRef.current = null;
     setIsDragging(false);
     if (btnRef.current) {
-      const resetCoords = getDockedPosition(dock, window.innerWidth, window.innerHeight);
+      const resetCoords = getDockedPosition(dock, fabViewportWidth(), window.innerHeight);
       btnRef.current.style.transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
       btnRef.current.style.transform = `translate3d(${Math.round(resetCoords.x)}px, ${Math.round(resetCoords.y)}px, 0)`;
     }

@@ -39,8 +39,6 @@ export const FloatingMenuButton: React.FC<FloatingMenuButtonProps> = ({ label, s
     []
   );
 
-  if (!slot) return null;
-
   // Primero se extiende con su nombre (se alcanza a leer) y enseguida se abre la hoja
   const press = () => {
     if (isExpanded) return;
@@ -63,7 +61,7 @@ export const FloatingMenuButton: React.FC<FloatingMenuButtonProps> = ({ label, s
     <>
       {createPortal(
         // fab-autohide: se aparta al bajar por la lista junto con el botón de agregar (useAutoHideFabs)
-        <div className={`fab-autohide fixed z-40 ${slot.onRight ? 'right-4' : 'left-4'}`} style={{ top: slot.top }}>
+        <div className={`fab-autohide transition-opacity duration-200 md:pointer-events-none md:opacity-0 scrolled:md:pointer-events-auto scrolled:md:opacity-100 fixed z-40 ${slot.onRight ? 'right-4' : 'left-4'}`} style={{ top: slot.top }}>
           <button
             type="button"
             onClick={press}
