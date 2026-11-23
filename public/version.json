@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.7.11.3",
+  "latestVersion": "1.7.11.4",
   "releaseDate": "2026-11-22",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.3/Agenda-Universitaria-v1.7.11.3.apk",
-  "apkSha256": "ec1acf106f13f6ddcdc7095d4a2b87c541911166fac320008b935309a66d2ff3",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.3/Agenda-Universitaria-Setup-v1.7.11.3.exe",
-  "desktopSha256": "6e8b0aeac3cd10b2897608c1eb46275fe33bfe5283cc46e806b4d323580406ab",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.4/Agenda-Universitaria-v1.7.11.4.apk",
+  "apkSha256": "0ebfa0edf43751cc9d57515b6b0e8a5b5ce5a2812848c6f3e967238701897d77",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.4/Agenda-Universitaria-Setup-v1.7.11.4.exe",
+  "desktopSha256": "66b846806b2d7b30d23649a5b081ddb4a6cf9295c42ea7a1fc8da25c7c436a2a",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "Tomar apunte abre el editor con la materia ya elegida",
-    "La notificación del Estudio vuelve a verse en vivo en la barra de estado"
+    "En la PC las pantallas ya no se estiran",
+    "Los botones flotantes ya no desaparecen al desplazarse"
   ]
 }
