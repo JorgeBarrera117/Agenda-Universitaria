@@ -371,7 +371,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="glass-legible relative min-h-screen text-[var(--color-md-on-surface)] pb-16 m3-view-enter">
-      <div className="w-full mx-auto pt-1 sm:pt-3 space-y-3">
+      {/* En PC, columna de 768 px centrada (como fichas y formularios): las filas no se estiran */}
+      <div className="w-full max-w-3xl mx-auto pt-1 sm:pt-3 space-y-3">
 
         {/* =========================================================================
             VISTA 1: MENÚ PRINCIPAL COMPACTO DE AJUSTES (ESTILO TELEGRAM / WHATSAPP)

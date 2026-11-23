@@ -816,7 +816,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
 
       {/* 2. Barra de Búsqueda: se queda fija bajo el Navbar al hacer scroll */}
       {/* Búsqueda, orden y vista en una sola fila (como en Archivos): más apuntes a la vista */}
-      <StickyToolbar>
+      <StickyToolbar className="lg:max-w-3xl">
         <div className="flex items-center gap-2">
           <SearchField
             value={searchQuery}

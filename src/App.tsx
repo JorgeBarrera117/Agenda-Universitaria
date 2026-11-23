@@ -647,7 +647,8 @@ export function App() {
             </Suspense>
           </div>
         ) : (
-          <div className="flex-1 w-full min-w-0">
+          // En monitores muy anchos el contenido no pasa de 1600 px: sin estirarse de lado a lado
+          <div className="mx-auto w-full min-w-0 max-w-[1600px] flex-1">
             {/* Materias | Profesores y Apuntes | Archivos: se oculta en fichas, formularios y editores */}
             {!isAnyEditorActive && (
               <SectionSwitcher

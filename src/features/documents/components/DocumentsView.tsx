@@ -391,7 +391,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
       {/* 2. Búsqueda y orden: fijos bajo el Navbar al hacer scroll. Van fuera del bloque de
           filtros porque un elemento sticky solo se queda pegado mientras su contenedor esté visible */}
-      <StickyToolbar>
+      <StickyToolbar className="lg:max-w-3xl">
         <div className="flex items-center gap-2">
           {/* Campo de Búsqueda (mismo componente que Profesores y Apuntes) */}
           <SearchField

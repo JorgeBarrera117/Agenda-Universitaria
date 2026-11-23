@@ -277,7 +277,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
         }
         onBack={handleBack}
         backLabel="Volver"
-        className="w-full shrink-0 sm:px-6"
+        className="mx-auto w-full max-w-3xl shrink-0 sm:px-6"
         style={{
           paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',

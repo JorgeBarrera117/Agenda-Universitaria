@@ -94,13 +94,11 @@ function effectiveLimits(config: StudyConfig): Record<StudyDurationKey, { min: n
   };
 }
 
-const PROFILE_OPTIONS: { value: StudyProfileId; label: string; shortLabel: string }[] = [
-  ...Object.values(STUDY_PRESETS).map((p) => ({
-    value: p.id as StudyProfileId,
-    label: `${p.label} ${p.focusMin}/${p.shortBreakMin}/${p.longBreakMin}`,
-    shortLabel: p.shortLabel,
-  })),
-  { value: 'custom', label: 'Personalizado', shortLabel: 'Propio' },
+// Nombres cortos en todos los tamaños: en PC el panel mide 360 px y los largos se cortaban
+// («Clásico 2…»). Los minutos del perfil elegido ya se ven arriba (25/5/15 · cada 4)
+const PROFILE_OPTIONS: { value: StudyProfileId; label: string }[] = [
+  ...Object.values(STUDY_PRESETS).map((p) => ({ value: p.id as StudyProfileId, label: p.shortLabel })),
+  { value: 'custom', label: 'Propio' },
 ];
 
 /**

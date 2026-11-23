@@ -36,6 +36,7 @@ import { transferShortcutLabel } from '../../transfer/services/transferAvailabil
 import { isSlotVirtual, meetingPlatform } from '../utils/slotModality';
 import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
 import { useAutoHideFabs } from '../../../shared/hooks/useAutoHideFabs';
+import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
 import { getDisplayedDays, resolveVisibleDay } from '../utils/visibleDays';
 import type { Subject } from '../../subjects/types';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
@@ -154,6 +155,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<ScheduleSlot | undefined>(undefined);
   const [slotToDelete, setSlotToDelete] = useState<ScheduleSlot | null>(null);
+  // PC: «Próximos en tu agenda» sube junto al resumen del día (en el teléfono queda al final)
+  const isWide = useMediaQuery('(min-width: 1024px)');
 
   // Al bajar por la lista, los botones flotantes se apartan para no tapar las tarjetas
   useAutoHideFabs(isActive && !isModalOpen);
@@ -476,12 +479,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       {/* Saludo de temporada: Navidad (1–30 dic) y Año Nuevo (31 dic–31 ene) */}
       <SeasonalGreeting />
 
-      {/* 2. CAMPUS PULSE: clase en curso, próxima clase y resumen de la jornada en tiempo real */}
-      <CampusPulseBento
-        pulse={pulse}
-        onTakeNote={onNavigateToNotes ? (subjectId) => onNavigateToNotes(subjectId, 'compose') : undefined}
-        onOpenFiles={setSubjectForFiles}
-      />
+      {/* 2. CAMPUS PULSE: clase en curso, próxima clase y resumen de la jornada en tiempo real.
+          En PC (>= 1024 px) va junto a «Próximos en tu agenda», que en el teléfono queda al final */}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-start">
+        <CampusPulseBento
+          pulse={pulse}
+          onTakeNote={onNavigateToNotes ? (subjectId) => onNavigateToNotes(subjectId, 'compose') : undefined}
+          onOpenFiles={setSubjectForFiles}
+        />
+        {isWide && onOpenAgendaDay && onOpenAgenda && <AgendaUpcomingStrip onOpenDay={onOpenAgendaDay} onOpenAgenda={onOpenAgenda} />}
+      </div>
 
       {/* 3. SELECTOR DE DÍAS (solo en la vista Día: en Semana se ve toda la semana a la vez) */}
       <div className={viewMode === 'weekly' ? 'hidden' : 'block'}>
@@ -929,7 +936,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       </div>
 
       {/* Próximos en tu agenda: debajo del horario, que es lo principal de esta pestaña */}
-      {onOpenAgendaDay && onOpenAgenda && <AgendaUpcomingStrip onOpenDay={onOpenAgendaDay} onOpenAgenda={onOpenAgenda} />}
+      {!isWide && onOpenAgendaDay && onOpenAgenda && <AgendaUpcomingStrip onOpenDay={onOpenAgendaDay} onOpenAgenda={onOpenAgenda} />}
 
       {deleteSlotDialog}
 

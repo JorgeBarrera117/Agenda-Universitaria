@@ -111,7 +111,7 @@ export const StudyView: React.FC<StudyViewProps> = ({ isActive = true }) => {
   };
 
   return (
-    <div className="glass-legible w-full space-y-3.5">
+    <div className="glass-legible mx-auto w-full max-w-5xl space-y-3.5">
       {/* Cabecera, como las demás pestañas */}
       <div className={HEADER_SCRIM_CLASS}>
         <div className="flex flex-wrap items-center gap-2">
