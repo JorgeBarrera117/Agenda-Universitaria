@@ -1,14 +1,15 @@
 {
-  "latestVersion": "1.7.11.4",
-  "releaseDate": "2026-11-22",
+  "latestVersion": "1.7.11.5",
+  "releaseDate": "2026-11-23",
   "apkUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/latest",
-  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.4/Agenda-Universitaria-v1.7.11.4.apk",
-  "apkSha256": "0ebfa0edf43751cc9d57515b6b0e8a5b5ce5a2812848c6f3e967238701897d77",
-  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.4/Agenda-Universitaria-Setup-v1.7.11.4.exe",
-  "desktopSha256": "66b846806b2d7b30d23649a5b081ddb4a6cf9295c42ea7a1fc8da25c7c436a2a",
+  "apkDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.5/Agenda-Universitaria-v1.7.11.5.apk",
+  "apkSha256": "ce26d9a66458cc32f6bf094979a7af03ae9a0d6608b25bd2330eb02784fe7d7b",
+  "desktopDownloadUrl": "https://github.com/JorgeBarrera117/Agenda-Universitaria/releases/download/v1.7.11.5/Agenda-Universitaria-Setup-v1.7.11.5.exe",
+  "desktopSha256": "7d8f6bd487ec01a41047cac274cf5b50fc6c5b8819dcdcf2633ea09bb5bbf02c",
   "webUrl": "https://jorgebarrera117.github.io/Agenda-Universitaria/",
   "highlights": [
-    "En la PC las pantallas ya no se estiran",
-    "Los botones flotantes ya no desaparecen al desplazarse"
+    "Sala Local: comparte con compañeros cercanos sin internet",
+    "Chats privados, archivos pesados y compañeros guardados",
+    "La sala sigue conectada en segundo plano"
   ]
 }
