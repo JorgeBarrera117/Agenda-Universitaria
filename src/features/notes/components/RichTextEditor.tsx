@@ -642,6 +642,54 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const openCamera = useCallback(() => cameraInputRef.current?.click(), []);
   const openGallery = useCallback(() => galleryInputRef.current?.click(), []);
 
+  // Teclado en el navegador del teléfono (Chrome en Android): la página NO se achica, solo la zona
+  // visible (visualViewport), y la barra fija quedaba detrás del teclado. Se mide cuánto tapa el
+  // teclado y la barra se sube esa distancia. En la app (Capacitor) la pantalla sí se achica y queda en 0
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    let frame = 0;
+    const update = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+        setKeyboardInset((prev) => (Math.abs(prev - inset) < 2 ? prev : inset));
+      });
+    };
+    update();
+    viewport.addEventListener('resize', update);
+    viewport.addEventListener('scroll', update);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      viewport.removeEventListener('resize', update);
+      viewport.removeEventListener('scroll', update);
+    };
+  }, []);
+
+  // Con el teclado abierto en el navegador, la línea donde se escribe debe quedar encima de la barra
+  // (que ahora está sobre el teclado): si queda tapada, la página se desplaza lo justo
+  useEffect(() => {
+    if (!editor || keyboardInset === 0) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const reveal = () => {
+      if (!editor.isFocused) return;
+      const caret = editor.view.coordsAtPos(editor.state.selection.head);
+      const toolbarTop = viewport.offsetTop + viewport.height - (toolbarRef.current?.offsetHeight ?? 110);
+      const hidden = caret.bottom + 16 - toolbarTop;
+      if (hidden > 0) window.scrollBy({ top: hidden });
+    };
+    reveal();
+    editor.on('selectionUpdate', reveal);
+    editor.on('update', reveal);
+    return () => {
+      editor.off('selectionUpdate', reveal);
+      editor.off('update', reveal);
+    };
+  }, [editor, keyboardInset]);
+
   // Teclado del teléfono: al abrirse (la zona visible se achica) o al tocar el texto, el cursor sube
   // por encima de la barra de formato. Sin esto el sistema lo deja justo detrás de la barra.
   useEffect(() => {
@@ -1267,9 +1315,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           anima transform, un position:fixed dentro de él dejaría de anclarse a la pantalla. */}
       {createPortal(
       <div
+        ref={toolbarRef}
         style={{
           paddingLeft: 'max(0.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.5rem, env(safe-area-inset-right, 0px))',
+          // Encima del teclado en el navegador del teléfono (ver keyboardInset)
+          bottom: keyboardInset,
         }}
         className={`fixed bottom-0 left-0 right-0 z-30 ${toolbarMotionClass} border-t border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)]/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl sm:px-6`}
       >
