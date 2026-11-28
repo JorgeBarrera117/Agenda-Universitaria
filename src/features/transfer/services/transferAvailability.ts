@@ -27,9 +27,7 @@ export function canScanTransfer(): boolean {
   return isAndroidApp();
 }
 
-/** Texto del acceso directo según el dispositivo, o null si aquí no se puede transferir (web). */
+/** Texto corto del acceso directo (menú Compartir), o null si aquí no se puede transferir (web). */
 export function transferShortcutLabel(): string | null {
-  if (isElectronHost()) return 'Pasar datos con el teléfono';
-  if (isAndroidApp()) return 'Pasar datos con otro dispositivo';
-  return null;
+  return canHostTransfer() ? 'Pasar datos por QR' : null;
 }

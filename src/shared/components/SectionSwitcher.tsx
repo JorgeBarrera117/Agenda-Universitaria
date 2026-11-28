@@ -110,7 +110,8 @@ export const SectionSwitcher: React.FC<SectionSwitcherProps> = ({ activeSection,
         }))}
       />
       <div className="flex flex-col gap-2.5 md:mb-3">
-        <div className="hidden md:block">
+        {/* En PC y tableta, centrado */}
+        <div className="hidden md:flex md:justify-center">
           {/* Fondo de superficie sólido (sin md-card, que con el acabado Cristal deja ver el patrón) */}
           <SegmentedControl
             value={activeSection}
@@ -123,7 +124,7 @@ export const SectionSwitcher: React.FC<SectionSwitcherProps> = ({ activeSection,
         {showHint && hint && (
           <div
             role="status"
-            className="mb-3 flex items-start gap-2.5 rounded-2xl bg-[var(--color-md-primary-container)] py-2.5 pl-3.5 pr-2 text-[var(--color-md-on-primary-container)] md:mb-0 md:max-w-md"
+            className="mb-3 flex items-start gap-2.5 rounded-2xl bg-[var(--color-md-primary-container)] py-2.5 pl-3.5 pr-2 text-[var(--color-md-on-primary-container)] md:mx-auto md:mb-0 md:w-full md:max-w-md"
           >
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1 text-13px leading-snug">

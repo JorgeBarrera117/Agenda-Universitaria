@@ -402,8 +402,10 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
         </div>
       </div>
 
-      {/* 2. RESUMEN MÉTRICO COMPACTO (Jerarquía Nivel 2). En PC no se estira: tres fichas de 240 px */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-2.5 lg:max-w-3xl">
+      {/* 2. RESUMEN MÉTRICO + pestañas en curso/historial. En PC van en una sola fila: las fichas
+          (sin estirarse más de 768 px) y, en el hueco de la derecha, el selector a su misma altura */}
+      <div className="flex flex-col gap-3 sm:gap-3.5 lg:flex-row lg:items-stretch lg:gap-2.5">
+      <div className="grid grid-cols-3 gap-2 sm:gap-2.5 lg:min-w-0 lg:flex-1 lg:max-w-3xl">
         {/* Métricas: en el teléfono, ícono arriba y número con su etiqueta completa debajo */}
         <div className="md-card p-2 sm:p-2.5 rounded-2xl bg-[var(--md-card-surface)] border border-[var(--color-md-outline-variant)] shadow-2xs flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3 text-large:flex-col text-large:items-start">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -452,7 +454,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           value={catalogTab}
           onChange={setCatalogTab}
           ariaLabel="Mostrar materias"
-          className="md:max-w-lg"
+          className="md:max-w-lg lg:w-96 lg:max-w-none lg:shrink-0 lg:self-stretch"
           options={[
             {
               value: 'active',
@@ -469,6 +471,7 @@ export const SubjectsView: React.FC<SubjectsViewProps> = ({
           ]}
         />
       )}
+      </div>
 
       {/* 3. CATÁLOGO DE ASIGNATURAS */}
       {subjects.length > 0 && visibleSubjects.length === 0 ? (

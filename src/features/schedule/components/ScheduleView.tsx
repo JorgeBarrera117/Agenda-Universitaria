@@ -15,8 +15,8 @@ import {
   Laptop,
   ChevronLeft,
   ChevronRight,
+  ArrowLeftRight,
   Import,
-  MonitorSmartphone,
   Share2,
   UserRound,
   Video,
@@ -33,7 +33,6 @@ import { CampusPulseBento } from './CampusPulseBento';
 import { ClassProgressBar } from './ClassProgressBar';
 import { SeasonalGreeting } from '../../../shared/seasons/SeasonalGreeting';
 import { transferShortcutLabel } from '../../transfer/services/transferAvailability';
-import { setRoomScreenOpen } from '../../localRoom/services/roomStore';
 import { isSlotVirtual, meetingPlatform } from '../utils/slotModality';
 import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
 import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
@@ -116,6 +115,10 @@ const SubjectDocumentsModal = lazy(() =>
 const ImportScheduleModal = lazy(() =>
   import('./ImportScheduleModal').then((m) => ({ default: m.ImportScheduleModal }))
 );
+// Y con el selector de «Pasar datos por QR» (enviar, recibir o escanear)
+const TransferLauncher = lazy(() =>
+  import('../../transfer/components/TransferLauncher').then((m) => ({ default: m.TransferLauncher }))
+);
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   onNavigateToNotes,
@@ -138,6 +141,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   const nowTimeString = pulse.nowTimeString;
   const [subjectForFiles, setSubjectForFiles] = useState<Subject | null>(null);
   const [transferLabel] = useState(transferShortcutLabel);
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(currentDayOfWeek);
   // Vista al abrir: la que el estudiante eligió en esta sesión; si no, la de Ajustes
@@ -344,15 +348,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       icon: <Import className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
       onClick: agschedulePicker.open,
     },
-    // Abre la Sala Local: compartir con compañeros cercanos o pasar todos los datos (solo apps)
+    // Abre directo el selector de transferencia por QR, sin pasar por la Sala Local (solo apps)
     ...(transferLabel
       ? [
           {
             id: 'device-transfer',
             label: transferLabel,
-            description: 'Comparte con compañeros cercanos en una Sala Local o pasa todos tus datos a tu otro dispositivo.',
-            icon: <MonitorSmartphone className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
-            onClick: () => setRoomScreenOpen(true),
+            description: 'Envía o recibe todos tus datos con otro dispositivo escaneando un código QR.',
+            icon: <ArrowLeftRight className="w-3.5 h-3.5 text-[var(--color-md-primary)]" />,
+            onClick: () => setTransferOpen(true),
           },
         ]
       : []),
@@ -441,7 +445,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             size="sm"
             icon={<CalendarPlus className="w-4 h-4 stroke-[2.4]" />}
             onClick={() => handleOpenCreate(activeDay)}
-            className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[var(--color-md-primary)]/20 hover:scale-[1.02] whitespace-nowrap transition-all scale-100 opacity-100 scrolled:scale-75 scrolled:opacity-0 scrolled:pointer-events-none`}
+            // El mismo color que su botón flotante de agregar (acento del tema)
+            style={{ backgroundColor: 'var(--color-md-accent)', color: 'var(--color-md-on-accent)' }}
+            className={`hidden md:inline-flex h-9 px-4 text-xs font-bold shadow-xs ring-2 ring-[var(--color-md-accent)]/20 hover:scale-[1.02] hover:brightness-110 whitespace-nowrap transition-all scale-100 opacity-100 scrolled:scale-75 scrolled:opacity-0 scrolled:pointer-events-none`}
           >
             Nueva Clase
           </Button>
@@ -450,7 +456,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <input {...agschedulePicker.inputProps} />
           {/* En PC y tableta, aquí arriba; en el teléfono va flotando bajo el botón de agregar */}
           <div className="hidden md:block">
-            <M3KebabMenu ariaLabel="Compartir, importar o pasar datos" label="Compartir" icon={<Share2 />} items={shareItems} />
+            {/* El mismo color que su botón flotante del teléfono */}
+            <M3KebabMenu
+              ariaLabel="Compartir, importar o pasar datos"
+              label="Compartir"
+              icon={<Share2 />}
+              items={shareItems}
+              triggerStyle={{ backgroundColor: AREA_COLOR.schedule, color: '#ffffff' }}
+              triggerClassName="h-9 rounded-full pl-3.5 pr-3 text-xs font-bold shadow-xs hover:brightness-110"
+            />
           </div>
           {isActive && (
             <FloatingMenuButton
@@ -951,6 +965,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               showToast(scheduleImportedMessage(summary, mode));
             }}
           />
+        </Suspense>
+      )}
+
+      {transferOpen && (
+        <Suspense fallback={null}>
+          <TransferLauncher onClose={() => setTransferOpen(false)} onShowToast={showToast} />
         </Suspense>
       )}
 

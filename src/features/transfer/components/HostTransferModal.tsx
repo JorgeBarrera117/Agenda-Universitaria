@@ -167,7 +167,7 @@ export const HostTransferModal: React.FC<HostTransferModalProps> = ({ direction,
 
           <ol className="list-decimal space-y-1 pl-5 text-sm text-[var(--color-md-on-surface)]">
             <li>
-              En {texts.other}, en el inicio, toca <strong>Compartir → Pasar datos con otro dispositivo → Escanear un código</strong>.
+              En {texts.other}, en el inicio, toca <strong>Compartir → Pasar datos por QR → Escanear un código</strong>.
             </li>
             <li>Apunta la cámara a este código.</li>
           </ol>
