@@ -4,6 +4,13 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
+import { Color, FontFamily, FontSize, TextStyle } from '@tiptap/extension-text-style';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Subscript as SubscriptMark } from '@tiptap/extension-subscript';
+import { Superscript as SuperscriptMark } from '@tiptap/extension-superscript';
+import { PageBreak } from '../extensions/PageBreak';
+import { Pagination } from '../extensions/Pagination';
+import { TableKit } from '@tiptap/extension-table';
 import {
   DEFAULT_HIGHLIGHT,
   HIGHLIGHT_COLORS,
@@ -24,6 +31,9 @@ import {
   type NoteImageAttrs,
 } from '../extensions/NoteImage';
 import { VoiceNoteNode } from '../extensions/VoiceNoteNode';
+import { NoteTableCell, NoteTableHeader } from '../extensions/NoteTableCell';
+import { toHexColor } from '../utils/colorHex';
+import { hasMultiCellSelection, shadeTableCells, type ShadeTarget } from '../utils/tableShading';
 import { findNodePos, insertBlockNodeInView, moveBlockNodeInView } from '../utils/editorInsert';
 import { ImageEditModal } from './ImageEditModal';
 import {
@@ -53,6 +63,38 @@ import {
   Loader2,
   Heading1,
   Heading2,
+  Heading3,
+  Pilcrow,
+  SquareCode,
+  ChevronDown,
+  Code,
+  Link as LinkIcon,
+  Palette,
+  Table as TableIcon,
+  CalendarDays,
+  BetweenHorizontalEnd,
+  BetweenVerticalEnd,
+  TableRowsSplit,
+  TableColumnsSplit,
+  Grid2x2X,
+  PaintBucket,
+  PanelTop,
+  Type,
+  ALargeSmall,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  IndentIncrease,
+  IndentDecrease,
+  Subscript,
+  Superscript,
+  RemoveFormatting,
+  Omega,
+  SeparatorHorizontal,
+  TableCellsMerge,
+  TableCellsSplit,
+  BetweenHorizontalStart,
   Move,
   Scaling,
   PenLine,
@@ -64,6 +106,9 @@ import {
 import { compressImage } from '../utils/imageCompression';
 import { IMAGE_ACCEPT, isImageFile } from '../../../shared/utils/imageFormats';
 import { ImageZoomModal } from '../../../shared/components/ImageZoomModal';
+import { Modal, ModalActions } from '../../../shared/components/Modal';
+import { Button } from '../../../shared/components/atoms';
+import { DatePickerDialog } from '../../../shared/components/pickers/DatePickerField';
 import { Capacitor } from '@capacitor/core';
 import {
   blobToDataUrl,
@@ -84,6 +129,20 @@ interface RichTextEditorProps {
   toolbarMotionClass?: string;
   /** Si existe, la barra muestra el micrófono para grabar una nota de voz. */
   onRecordVoice?: () => void;
+  /** Apartado «Vista» de la barra (vista de hoja, modo enfoque…). */
+  viewCommands?: EditorCommand[];
+  /** Apartado «Archivo» de la barra (compartir, exportar, imprimir…). */
+  fileCommands?: EditorCommand[];
+}
+
+/** Un botón de la barra: también lo usa NoteEditor para los apartados Vista y Archivo. */
+export interface EditorCommand {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  run: () => void;
+  isActive?: boolean;
+  disabled?: boolean;
 }
 
 interface ToolbarAction {
@@ -95,6 +154,10 @@ interface ToolbarAction {
   disabled?: boolean;
   /** Franja de color bajo el ícono (el resaltador muestra el color que aplicará). */
   indicatorColor?: HighlightColor;
+  /** Franja de color libre (el color de texto activo). */
+  indicatorHex?: string;
+  /** Abre un menú de la barra: tocar fuera de él no lo cierra si se toca este botón. */
+  menuTrigger?: boolean;
 }
 
 interface ImageClip {
@@ -159,9 +222,11 @@ type ToolbarButtonProps = Omit<ToolbarAction, 'id' | 'run'> & {
   onClick: () => void;
   /** Botones del grupo fijo (cámara, galería, micrófono): color del contenedor tonal. */
   tonal?: boolean;
+  /** Muestra el texto junto al ícono (apartados con pocas opciones: Vista, Archivo). */
+  showLabel?: boolean;
 };
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled, tonal = false, indicatorColor }) => {
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClick, isActive, disabled, tonal = false, indicatorColor, indicatorHex, menuTrigger, showLabel = false }) => {
   const isToggle = isActive !== undefined;
   return (
     <button
@@ -171,9 +236,12 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      aria-pressed={isToggle ? isActive : undefined}
+      aria-pressed={isToggle && !menuTrigger ? isActive : undefined}
+      aria-haspopup={menuTrigger ? 'menu' : undefined}
+      aria-expanded={menuTrigger ? isActive : undefined}
+      data-menu-trigger={menuTrigger ? 'true' : undefined}
       title={label}
-      className={`relative flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl transition-all duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${
+      className={`relative flex h-[38px] shrink-0 items-center justify-center rounded-xl transition-all ${showLabel ? 'gap-2 px-3 text-xs font-bold' : 'w-[38px]'} duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${
         isActive
           ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
           : tonal
@@ -182,6 +250,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
       }`}
     >
       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+      {showLabel && <span className="whitespace-nowrap">{label}</span>}
       {indicatorColor && (
         <span
           data-color={indicatorColor}
@@ -189,15 +258,96 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, icon: Icon, onClic
           aria-hidden="true"
         />
       )}
+      {indicatorHex && (
+        <span
+          style={{ backgroundColor: indicatorHex }}
+          className="absolute bottom-1 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full ring-1 ring-black/10 dark:ring-white/15"
+          aria-hidden="true"
+        />
+      )}
     </button>
   );
 };
+
+/** Colores de texto: tonos medios que se leen sobre fondo claro y oscuro. */
+const TEXT_COLORS = [
+  { id: 'red', label: 'Rojo', value: '#DC2626' },
+  { id: 'orange', label: 'Naranja', value: '#EA580C' },
+  { id: 'amber', label: 'Ámbar', value: '#CA8A04' },
+  { id: 'green', label: 'Verde', value: '#16A34A' },
+  { id: 'blue', label: 'Azul', value: '#2563EB' },
+  { id: 'purple', label: 'Morado', value: '#9333EA' },
+  { id: 'pink', label: 'Rosa', value: '#DB2777' },
+  { id: 'gray', label: 'Gris', value: '#6B7280' },
+] as const;
+
+type BlockType = 'paragraph' | 'h1' | 'h2' | 'h3' | 'quote' | 'code';
+
+/** Tipos de bloque del menú «Texto ▾» (reemplaza los botones sueltos de H1, H2 y cita). */
+const BLOCK_TYPES: { id: BlockType; label: string; short: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'paragraph', label: 'Texto normal', short: 'Texto', icon: Pilcrow },
+  { id: 'h1', label: 'Título 1', short: 'Título 1', icon: Heading1 },
+  { id: 'h2', label: 'Título 2', short: 'Título 2', icon: Heading2 },
+  { id: 'h3', label: 'Título 3', short: 'Título 3', icon: Heading3 },
+  { id: 'quote', label: 'Cita destacada', short: 'Cita', icon: Quote },
+  { id: 'code', label: 'Bloque de código', short: 'Código', icon: SquareCode },
+];
+
+/** Fuentes del menú «Fuente» (null = la de la app). */
+const FONT_FAMILIES = [
+  { id: 'default', label: 'Predeterminada', value: null },
+  { id: 'serif', label: 'Con serifa', value: 'Georgia, serif' },
+  { id: 'mono', label: 'Monoespaciada', value: 'ui-monospace, Consolas, monospace' },
+] as const;
+
+/** Tamaños del menú «Tamaño» (null = el normal del apunte). */
+const FONT_SIZES = [
+  { id: 'small', label: 'Pequeño', value: '13px' },
+  { id: 'normal', label: 'Normal', value: null },
+  { id: 'large', label: 'Grande', value: '19px' },
+  { id: 'xlarge', label: 'Muy grande', value: '24px' },
+  { id: 'huge', label: 'Enorme', value: '30px' },
+] as const;
+
+/** Símbolos frecuentes en apuntes universitarios (matemática, física, griego, flechas). */
+const SYMBOLS = ['±', '×', '÷', '≈', '≠', '≤', '≥', '∞', '√', '∑', '∫', '∂', 'π', 'α', 'β', 'γ', 'δ', 'θ', 'λ', 'μ', 'σ', 'Ω', 'Δ', '∇', '→', '←', '↔', '⇒', '⇔', '∈', '∉', '⊂', '∪', '∩', '∀', '∃', '°', '²', '³', '½'];
+
+/** Apartados de la barra, como las pestañas de Word en el teléfono. «Tabla» solo dentro de una tabla. */
+type ToolbarSection = 'inicio' | 'insertar' | 'tabla' | 'vista' | 'archivo';
+const TOOLBAR_SECTIONS: { id: ToolbarSection; label: string }[] = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'insertar', label: 'Insertar' },
+  { id: 'tabla', label: 'Tabla' },
+  { id: 'vista', label: 'Vista' },
+  { id: 'archivo', label: 'Archivo' },
+];
+
+/** Menús que salen sobre la barra (uno a la vez). */
+type ToolbarMenuId = 'block' | 'highlight' | 'color' | 'shade' | 'font' | 'size' | 'symbol';
+
+const TOOLBAR_MENU_CLASS =
+  'm3-menu-enter absolute bottom-[calc(100%+10px)] z-10 max-w-[calc(100vw-1rem)] origin-bottom rounded-[22px] border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]';
+
+/** Una fecha en palabras («sábado, 28 de noviembre de 2026»); con mayúscula si abre un párrafo. */
+function dateText(date: Date, capitalize: boolean): string {
+  const text = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  return capitalize ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}
+
+/** Completa lo escrito como enlace: sin esquema se asume https; un correo pasa a mailto. */
+function normalizeLinkUrl(raw: string): string | null {
+  const text = raw.trim();
+  if (!text) return null;
+  if (/^(https?:|mailto:|tel:)/i.test(text)) return text;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) return `mailto:${text}`;
+  return `https://${text}`;
+}
 
 /**
  * Márgenes que el cursor debe guardar al desplazarse: arriba la cabecera fija del editor (~80 px)
  * y abajo la barra de formato con su pie (~100 px) más un respiro para leer lo que se escribe.
  */
-const CARET_SCROLL_MARGIN = { top: 96, bottom: 150, left: 0, right: 0 };
+const CARET_SCROLL_MARGIN = { top: 96, bottom: 185, left: 0, right: 0 };
 
 const LAST_HIGHLIGHT_KEY = 'agenda_last_highlight';
 /** Etiqueta del botón del resaltador (también sirve para reconocerlo al cerrar la paleta). */
@@ -221,6 +371,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onEditorReady,
   onImageError,
   toolbarMotionClass = '',
+  viewCommands = [],
+  fileCommands = [],
 }) => {
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
@@ -269,7 +421,28 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     // Re-render en cada transacción para que los estados activos de la barra sigan al cursor
     shouldRerenderOnTransaction: true,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2] } }),
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+        // Enlaces: se editan con el botón de la barra (tocar uno no lo abre mientras se escribe)
+        link: { openOnClick: false, autolink: true, defaultProtocol: 'https', HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' } },
+      }),
+      // Color, fuente y tamaño de texto (span con style), desde la barra
+      TextStyle,
+      Color,
+      FontFamily,
+      FontSize,
+      // Alineación de párrafos y títulos (style="text-align")
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      SubscriptMark,
+      SuperscriptMark,
+      PageBreak,
+      // Paginación A4 real en la vista de hoja (no hace nada fuera de ella)
+      Pagination,
+      // Tablas con fila de encabezado; en el teléfono se desplazan de lado si no caben
+      // Las celdas son las propias (NoteTableCell/Header): suman el sombreado por nombre de tono
+      TableKit.configure({ table: { resizable: false }, tableCell: false, tableHeader: false }),
+      NoteTableCell,
+      NoteTableHeader,
       NoteImage.configure({
         inline: false,
         allowBase64: true,
@@ -492,21 +665,32 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     };
   }, [editor]);
 
-  // Paleta del resaltador: abierta/cerrada y último color usado (se recuerda entre apuntes)
-  const [isHighlightMenuOpen, setIsHighlightMenuOpen] = useState(false);
+  // Menús sobre la barra (tipo de bloque, resaltador, color de texto): uno abierto a la vez.
+  // Del resaltador se recuerda el último color usado entre apuntes
+  const [openMenu, setOpenMenu] = useState<ToolbarMenuId | null>(null);
+  const toggleMenu = (menu: ToolbarMenuId) => setOpenMenu((current) => (current === menu ? null : menu));
   const [lastHighlight, setLastHighlight] = useState<HighlightColor>(readLastHighlight);
-  const highlightMenuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // Apartado visible de la barra; «Tabla» se abre solo al entrar en una tabla (ver más abajo)
+  const [section, setSection] = useState<ToolbarSection>('inicio');
+  const [prevInTable, setPrevInTable] = useState(false);
+  // Sombreado de tabla: a qué se aplica (celda, fila o columna)
+  const [shadeTarget, setShadeTarget] = useState<ShadeTarget>('cell');
+  // Calendario para insertar una fecha
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  // Enlace en edición: null = cuadro cerrado
+  const [linkDraft, setLinkDraft] = useState<{ url: string; text: string; needsText: boolean } | null>(null);
   useEffect(() => {
-    if (!isHighlightMenuOpen) return;
+    if (!openMenu) return;
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Element | null;
-      if (highlightMenuRef.current?.contains(target) || target?.closest(`[aria-label="${HIGHLIGHT_BUTTON_LABEL}"]`)) return;
-      setIsHighlightMenuOpen(false);
+      if (menuRef.current?.contains(target) || target?.closest('[data-menu-trigger]')) return;
+      setOpenMenu(null);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        setIsHighlightMenuOpen(false);
+        setOpenMenu(null);
       }
     };
     document.addEventListener('pointerdown', onPointerDown);
@@ -515,7 +699,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [isHighlightMenuOpen]);
+  }, [openMenu]);
 
   // Menú de tamaño de la foto: se cierra al tocar fuera o con Escape
   useEffect(() => {
@@ -815,56 +999,250 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     } catch {
       // Sin almacenamiento: solo no se recuerda el color para la próxima vez
     }
-    setIsHighlightMenuOpen(false);
+    setOpenMenu(null);
   };
 
-  // Orden por uso al tomar apuntes: lo más frecuente queda a la vista sin desplazar
-  const toolbarGroups: { label: string; actions: ToolbarAction[] }[] = [
-    {
-      label: 'Estilo de texto',
-      actions: [
-        { id: 'bold', label: 'Negrita (Ctrl+B)', icon: Bold, run: () => chain().toggleBold().run(), isActive: editor.isActive('bold') },
-        { id: 'italic', label: 'Cursiva (Ctrl+I)', icon: Italic, run: () => chain().toggleItalic().run(), isActive: editor.isActive('italic') },
-        { id: 'underline', label: 'Subrayado (Ctrl+U)', icon: Underline, run: () => chain().toggleUnderline().run(), isActive: editor.isActive('underline') },
-        {
-          id: 'highlight',
-          label: HIGHLIGHT_BUTTON_LABEL,
-          icon: Highlighter,
-          run: () => setIsHighlightMenuOpen((open) => !open),
-          isActive: editor.isActive('highlight') || isHighlightMenuOpen,
-          indicatorColor: activeHighlight ?? lastHighlight,
-        },
-      ],
-    },
-    {
-      label: 'Listas',
-      actions: [
-        { id: 'bullet', label: 'Lista con viñetas', icon: List, run: () => chain().toggleBulletList().run(), isActive: editor.isActive('bulletList') },
-        { id: 'ordered', label: 'Lista numerada', icon: ListOrdered, run: () => chain().toggleOrderedList().run(), isActive: editor.isActive('orderedList') },
-        { id: 'tasks', label: 'Lista de tareas', icon: ListChecks, run: () => chain().toggleTaskList().run(), isActive: editor.isActive('taskList') },
-      ],
-    },
-    {
-      label: 'Encabezados',
-      actions: [
-        { id: 'h1', label: 'Título (H1)', icon: Heading1, run: () => chain().toggleHeading({ level: 1 }).run(), isActive: editor.isActive('heading', { level: 1 }) },
-        { id: 'h2', label: 'Subtítulo (H2)', icon: Heading2, run: () => chain().toggleHeading({ level: 2 }).run(), isActive: editor.isActive('heading', { level: 2 }) },
-      ],
-    },
-    {
-      label: 'Más formato',
-      actions: [
-        { id: 'quote', label: 'Cita destacada', icon: Quote, run: () => chain().toggleBlockquote().run(), isActive: editor.isActive('blockquote') },
-        { id: 'strike', label: 'Tachado', icon: Strikethrough, run: () => chain().toggleStrike().run(), isActive: editor.isActive('strike') },
-        { id: 'divider', label: 'Línea divisoria', icon: Minus, run: () => chain().setHorizontalRule().run() },
-        // En Android siempre visible: lee el portapapeles del teléfono (fotos copiadas aquí o en
-        // otra app); en la web, solo cuando hay una foto copiada dentro del editor
-        ...(imageClip || Capacitor.isNativePlatform()
-          ? [{ id: 'paste-image', label: 'Pegar imagen', icon: ClipboardPaste, run: () => void pasteImage(), disabled: isProcessingImage }]
-          : []),
-      ],
-    },
-  ];
+  const activeTextColorAttr: unknown = editor.getAttributes('textStyle').color;
+  const activeTextColor = typeof activeTextColorAttr === 'string' ? toHexColor(activeTextColorAttr) : null;
+  const applyTextColor = (value: string | null) => {
+    if (value) chain().setColor(value).run();
+    else chain().unsetColor().run();
+    setOpenMenu(null);
+  };
+
+  const currentBlock: BlockType = editor.isActive('codeBlock')
+    ? 'code'
+    : editor.isActive('heading', { level: 1 })
+      ? 'h1'
+      : editor.isActive('heading', { level: 2 })
+        ? 'h2'
+        : editor.isActive('heading', { level: 3 })
+          ? 'h3'
+          : editor.isActive('blockquote')
+            ? 'quote'
+            : 'paragraph';
+  const currentBlockInfo = BLOCK_TYPES.find((block) => block.id === currentBlock) ?? BLOCK_TYPES[0];
+  const setBlockType = (block: BlockType) => {
+    setOpenMenu(null);
+    if (block === currentBlock) return;
+    // Primero a párrafo (sale de la cita o del bloque de código) y luego al tipo elegido
+    let next = chain();
+    if (editor.isActive('blockquote')) next = next.unsetBlockquote();
+    next = next.setParagraph();
+    if (block === 'h1' || block === 'h2' || block === 'h3') next = next.setHeading({ level: block === 'h1' ? 1 : block === 'h2' ? 2 : 3 });
+    else if (block === 'quote') next = next.setBlockquote();
+    else if (block === 'code') next = next.setCodeBlock();
+    next.run();
+  };
+
+  /** Abre el cuadro del enlace con lo que ya hay (si el cursor está en un enlace, para editarlo). */
+  const openLinkDialog = () => {
+    setOpenMenu(null);
+    const href: unknown = editor.getAttributes('link').href;
+    const needsText = editor.state.selection.empty && !editor.isActive('link');
+    setLinkDraft({ url: typeof href === 'string' ? href : '', text: '', needsText });
+  };
+  const applyLink = () => {
+    if (!linkDraft) return;
+    const href = normalizeLinkUrl(linkDraft.url);
+    setLinkDraft(null);
+    if (!href) {
+      chain().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+    if (linkDraft.needsText) {
+      // Sin texto seleccionado: se escribe el texto (o la dirección) ya enlazado
+      const text = linkDraft.text.trim() || href.replace(/^(mailto:|tel:)/i, '');
+      chain().insertContent({ type: 'text', text, marks: [{ type: 'link', attrs: { href } }] }).run();
+    } else {
+      chain().extendMarkRange('link').setLink({ href }).run();
+    }
+  };
+
+  /** Escribe la fecha elegida en el calendario, con mayúscula al inicio de un párrafo. */
+  const insertDate = (dateKey: string) => {
+    setIsDatePickerOpen(false);
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const capitalize = editor.state.selection.$from.parentOffset === 0;
+    chain().insertContent(`${dateText(new Date(year, month - 1, day), capitalize)} `).run();
+  };
+
+  const inTable = editor.isActive('table');
+  const multiCell = inTable && hasMultiCellSelection(editor);
+  const activeShadeAttr: unknown = editor.getAttributes('tableCell').shade ?? editor.getAttributes('tableHeader').shade;
+  const activeShade = isHighlightColor(activeShadeAttr) ? activeShadeAttr : null;
+  const applyShade = (shade: HighlightColor | null) => {
+    shadeTableCells(editor, shadeTarget, shade);
+    setOpenMenu(null);
+  };
+
+  const listItemType = editor.isActive('taskItem') ? 'taskItem' : 'listItem';
+  const activeFontFamilyAttr: unknown = editor.getAttributes('textStyle').fontFamily;
+  const activeFontSizeAttr: unknown = editor.getAttributes('textStyle').fontSize;
+  const activeFont = FONT_FAMILIES.find((font) => font.value === activeFontFamilyAttr) ?? FONT_FAMILIES[0];
+  const activeSize = FONT_SIZES.find((size) => size.value === activeFontSizeAttr) ?? FONT_SIZES[1];
+  const insertSymbol = (symbol: string) => {
+    chain().insertContent(symbol).run();
+    setOpenMenu(null);
+  };
+
+  // La pestaña «Tabla» aparece (y se abre sola) al entrar en una tabla, como en Word; al salir vuelve a Inicio
+  if (inTable !== prevInTable) {
+    setPrevInTable(inTable);
+    if (inTable) setSection('tabla');
+    else if (section === 'tabla') setSection('inicio');
+  }
+  const visibleSections = TOOLBAR_SECTIONS.filter((item) =>
+    item.id === 'tabla' ? inTable : item.id === 'vista' ? viewCommands.length > 0 : item.id === 'archivo' ? fileCommands.length > 0 : true
+  );
+  const activeSection: ToolbarSection = visibleSections.some((item) => item.id === section) ? section : 'inicio';
+  const chooseSection = (next: ToolbarSection) => {
+    setSection(next);
+    setOpenMenu(null);
+    formatScroller?.scrollTo({ left: 0 });
+  };
+
+  const align = (value: 'left' | 'center' | 'right' | 'justify', label: string, icon: React.ComponentType<{ className?: string }>): ToolbarAction => ({
+    id: `align-${value}`,
+    label,
+    icon,
+    run: () => chain().setTextAlign(value).run(),
+    isActive: value === 'left' ? !editor.isActive({ textAlign: 'center' }) && !editor.isActive({ textAlign: 'right' }) && !editor.isActive({ textAlign: 'justify' }) : editor.isActive({ textAlign: value }),
+  });
+
+  // Cada apartado con sus grupos (separados por una línea fina). Orden por uso al tomar apuntes
+  const sectionGroups: Record<ToolbarSection, { label: string; actions: ToolbarAction[] }[]> = {
+    inicio: [
+      {
+        label: 'Fuente',
+        actions: [
+          { id: 'font', label: `Fuente: ${activeFont.label}`, icon: Type, run: () => toggleMenu('font'), isActive: openMenu === 'font' || activeFont.value !== null, menuTrigger: true },
+          { id: 'size', label: `Tamaño: ${activeSize.label}`, icon: ALargeSmall, run: () => toggleMenu('size'), isActive: openMenu === 'size' || activeSize.value !== null, menuTrigger: true },
+        ],
+      },
+      {
+        label: 'Estilo de texto',
+        actions: [
+          { id: 'bold', label: 'Negrita (Ctrl+B)', icon: Bold, run: () => chain().toggleBold().run(), isActive: editor.isActive('bold') },
+          { id: 'italic', label: 'Cursiva (Ctrl+I)', icon: Italic, run: () => chain().toggleItalic().run(), isActive: editor.isActive('italic') },
+          { id: 'underline', label: 'Subrayado (Ctrl+U)', icon: Underline, run: () => chain().toggleUnderline().run(), isActive: editor.isActive('underline') },
+          { id: 'strike', label: 'Tachado', icon: Strikethrough, run: () => chain().toggleStrike().run(), isActive: editor.isActive('strike') },
+          { id: 'subscript', label: 'Subíndice (H₂O)', icon: Subscript, run: () => chain().toggleSubscript().run(), isActive: editor.isActive('subscript') },
+          { id: 'superscript', label: 'Superíndice (x²)', icon: Superscript, run: () => chain().toggleSuperscript().run(), isActive: editor.isActive('superscript') },
+          { id: 'code', label: 'Código en línea', icon: Code, run: () => chain().toggleCode().run(), isActive: editor.isActive('code') },
+        ],
+      },
+      {
+        label: 'Color',
+        actions: [
+          {
+            id: 'highlight',
+            label: HIGHLIGHT_BUTTON_LABEL,
+            icon: Highlighter,
+            run: () => toggleMenu('highlight'),
+            isActive: editor.isActive('highlight') || openMenu === 'highlight',
+            indicatorColor: activeHighlight ?? lastHighlight,
+            menuTrigger: true,
+          },
+          {
+            id: 'color',
+            label: 'Color del texto',
+            icon: Palette,
+            run: () => toggleMenu('color'),
+            isActive: openMenu === 'color',
+            indicatorHex: activeTextColor ?? undefined,
+            menuTrigger: true,
+          },
+          { id: 'clear', label: 'Borrar formato', icon: RemoveFormatting, run: () => chain().unsetAllMarks().clearNodes().run() },
+        ],
+      },
+      {
+        label: 'Párrafo',
+        actions: [
+          { id: 'bullet', label: 'Lista con viñetas', icon: List, run: () => chain().toggleBulletList().run(), isActive: editor.isActive('bulletList') },
+          { id: 'ordered', label: 'Lista numerada', icon: ListOrdered, run: () => chain().toggleOrderedList().run(), isActive: editor.isActive('orderedList') },
+          { id: 'tasks', label: 'Lista de tareas', icon: ListChecks, run: () => chain().toggleTaskList().run(), isActive: editor.isActive('taskList') },
+          { id: 'outdent', label: 'Disminuir sangría', icon: IndentDecrease, run: () => chain().liftListItem(listItemType).run(), disabled: !editor.can().liftListItem(listItemType) },
+          { id: 'indent', label: 'Aumentar sangría', icon: IndentIncrease, run: () => chain().sinkListItem(listItemType).run(), disabled: !editor.can().sinkListItem(listItemType) },
+        ],
+      },
+      {
+        label: 'Alineación',
+        actions: [
+          align('left', 'Alinear a la izquierda', AlignLeft),
+          align('center', 'Centrar', AlignCenter),
+          align('right', 'Alinear a la derecha', AlignRight),
+          align('justify', 'Justificar', AlignJustify),
+        ],
+      },
+    ],
+    insertar: [
+      {
+        label: 'Imágenes y voz',
+        actions: [
+          { id: 'ins-gallery', label: 'Imagen de la galería', icon: ImageIcon, run: openGallery, disabled: isProcessingImage },
+          { id: 'ins-camera', label: 'Foto con la cámara', icon: Camera, run: openCamera, disabled: isProcessingImage },
+          ...(onRecordVoice ? [{ id: 'ins-voice', label: 'Nota de voz', icon: Mic, run: onRecordVoice }] : []),
+          // En Android siempre visible: lee el portapapeles del teléfono (fotos copiadas aquí o en
+          // otra app); en la web, solo cuando hay una foto copiada dentro del editor
+          ...(imageClip || Capacitor.isNativePlatform()
+            ? [{ id: 'paste-image', label: 'Pegar imagen', icon: ClipboardPaste, run: () => void pasteImage(), disabled: isProcessingImage }]
+            : []),
+        ],
+      },
+      {
+        label: 'Elementos',
+        actions: [
+          { id: 'table', label: 'Tabla (3 × 3)', icon: TableIcon, run: () => chain().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), disabled: inTable },
+          { id: 'link', label: editor.isActive('link') ? 'Editar enlace' : 'Enlace', icon: LinkIcon, run: openLinkDialog, isActive: editor.isActive('link') },
+          { id: 'date', label: 'Fecha (calendario)', icon: CalendarDays, run: () => setIsDatePickerOpen(true) },
+          { id: 'symbol', label: 'Símbolo (π, ±, √…)', icon: Omega, run: () => toggleMenu('symbol'), isActive: openMenu === 'symbol', menuTrigger: true },
+          { id: 'divider', label: 'Línea divisoria', icon: Minus, run: () => chain().setHorizontalRule().run() },
+          { id: 'page-break', label: 'Salto de página (Ctrl+Enter)', icon: SeparatorHorizontal, run: () => chain().setPageBreak().run() },
+        ],
+      },
+    ],
+    tabla: [
+      {
+        label: 'Formato de la tabla',
+        actions: [
+          {
+            id: 'shade',
+            label: 'Sombrear celdas, filas o columnas',
+            icon: PaintBucket,
+            run: () => toggleMenu('shade'),
+            isActive: openMenu === 'shade',
+            indicatorColor: activeShade ?? undefined,
+            menuTrigger: true,
+          },
+          {
+            id: 'header-row',
+            label: 'Primera fila como encabezado',
+            icon: PanelTop,
+            run: () => chain().toggleHeaderRow().run(),
+            isActive: editor.isActive('tableHeader'),
+          },
+          { id: 'merge', label: 'Combinar celdas seleccionadas', icon: TableCellsMerge, run: () => chain().mergeCells().run(), disabled: !editor.can().mergeCells() },
+          { id: 'split', label: 'Dividir celda', icon: TableCellsSplit, run: () => chain().splitCell().run(), disabled: !editor.can().splitCell() },
+        ],
+      },
+      {
+        label: 'Filas y columnas',
+        actions: [
+          { id: 'row-before', label: 'Agregar fila arriba', icon: BetweenHorizontalStart, run: () => chain().addRowBefore().run() },
+          { id: 'row-add', label: 'Agregar fila debajo', icon: BetweenHorizontalEnd, run: () => chain().addRowAfter().run() },
+          { id: 'col-add', label: 'Agregar columna a la derecha', icon: BetweenVerticalEnd, run: () => chain().addColumnAfter().run() },
+          { id: 'row-del', label: 'Quitar esta fila', icon: TableRowsSplit, run: () => chain().deleteRow().run() },
+          { id: 'col-del', label: 'Quitar esta columna', icon: TableColumnsSplit, run: () => chain().deleteColumn().run() },
+          { id: 'table-del', label: 'Eliminar la tabla', icon: Grid2x2X, run: () => chain().deleteTable().run() },
+        ],
+      },
+    ],
+    vista: [{ label: 'Vista', actions: viewCommands }],
+    archivo: [{ label: 'Archivo', actions: fileCommands }],
+  };
+  const toolbarGroups = sectionGroups[activeSection];
+  const labeledSection = activeSection === 'vista' || activeSection === 'archivo';
 
   return (
     <div className="relative flex w-full flex-1 flex-col">
@@ -980,14 +1358,220 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             </div>
           </div>
         ) : (
-        <div role="toolbar" aria-label="Formato del apunte" className="relative mx-auto flex max-w-3xl items-center gap-2 py-0.5">
+        <>
+        {/* Apartados, como las pestañas de Word en el teléfono */}
+        <div role="tablist" aria-label="Apartados de herramientas" className="mx-auto flex max-w-3xl items-center gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {visibleSections.map((item) => {
+            const selected = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => chooseSection(item.id)}
+                className={`h-7 shrink-0 rounded-full px-3 text-xs font-bold transition-colors duration-150 ${
+                  selected
+                    ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
+                    : item.id === 'tabla'
+                      ? 'text-[var(--color-md-primary)] hover:bg-[var(--color-md-surface-container-high)]'
+                      : 'text-[var(--color-md-on-surface-variant)] hover:bg-[var(--color-md-surface-container-high)] hover:text-[var(--color-md-on-surface)]'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+        <div role="toolbar" aria-label={`Herramientas: ${TOOLBAR_SECTIONS.find((item) => item.id === activeSection)?.label ?? ''}`} className="relative mx-auto flex max-w-3xl items-center gap-2 py-0.5">
+          {/* Tipo de bloque: texto normal, títulos 1 a 3, cita y bloque de código */}
+          {openMenu === 'block' && (
+            <div ref={menuRef} role="menu" aria-label="Tipo de bloque" className={`${TOOLBAR_MENU_CLASS} left-0 w-56 p-1.5`}>
+              {BLOCK_TYPES.map((block) => {
+                const BlockIcon = block.icon;
+                const isCurrent = block.id === currentBlock;
+                return (
+                  <button
+                    key={block.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={isCurrent}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setBlockType(block.id)}
+                    className={`flex min-h-[42px] w-full items-center gap-3 rounded-2xl px-3 text-left text-sm transition-colors ${
+                      isCurrent
+                        ? 'bg-[var(--color-md-primary-container)] font-bold text-[var(--color-md-on-primary-container)]'
+                        : 'text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-surface-container)]'
+                    }`}
+                  >
+                    <BlockIcon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                    <span className="flex-1">{block.label}</span>
+                    {isCurrent && <Check className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {/* Fuente y tamaño: listas con vista previa */}
+          {(openMenu === 'font' || openMenu === 'size') && (
+            <div ref={menuRef} role="menu" aria-label={openMenu === 'font' ? 'Fuente' : 'Tamaño de letra'} className={`${TOOLBAR_MENU_CLASS} left-0 w-56 p-1.5`}>
+              {(openMenu === 'font' ? FONT_FAMILIES : FONT_SIZES).map((option) => {
+                const isCurrent = openMenu === 'font' ? option.id === activeFont.id : option.id === activeSize.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={isCurrent}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      if (openMenu === 'font') {
+                        if (option.value) chain().setFontFamily(option.value).run();
+                        else chain().unsetFontFamily().run();
+                      } else if (option.value) chain().setFontSize(option.value).run();
+                      else chain().unsetFontSize().run();
+                      setOpenMenu(null);
+                    }}
+                    style={openMenu === 'font' ? { fontFamily: option.value ?? undefined } : { fontSize: option.value ?? undefined }}
+                    className={`flex min-h-[42px] w-full items-center gap-3 rounded-2xl px-3 text-left text-sm transition-colors ${
+                      isCurrent
+                        ? 'bg-[var(--color-md-primary-container)] font-bold text-[var(--color-md-on-primary-container)]'
+                        : 'text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-surface-container)]'
+                    }`}
+                  >
+                    <span className="flex-1">{option.label}</span>
+                    {isCurrent && <Check className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {/* Símbolos frecuentes */}
+          {openMenu === 'symbol' && (
+            <div ref={menuRef} role="group" aria-label="Símbolos" className={`${TOOLBAR_MENU_CLASS} left-1/2 w-max -translate-x-1/2`}>
+              <p className="mb-2 px-1 text-xs font-bold text-[var(--color-md-on-surface-variant)]">Símbolos</p>
+              <div className="grid grid-cols-8 gap-1">
+                {SYMBOLS.map((symbol) => (
+                  <button
+                    key={symbol}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => insertSymbol(symbol)}
+                    aria-label={`Insertar ${symbol}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-base text-[var(--color-md-on-surface)] transition-colors hover:bg-[var(--color-md-surface-container)] active:scale-90"
+                  >
+                    {symbol}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Sombreado de tabla: a qué se aplica y el tono (los del resaltador) */}
+          {openMenu === 'shade' && (
+            <div ref={menuRef} role="group" aria-label="Sombreado de la tabla" className={`${TOOLBAR_MENU_CLASS} left-0 w-max`}>
+              <p className="mb-2 px-1 text-xs font-bold text-[var(--color-md-on-surface-variant)]">Sombrear</p>
+              <div role="radiogroup" aria-label="Aplicar a" className="mb-3 flex gap-1 rounded-full bg-[var(--color-md-surface-container)] p-1">
+                {(
+                  [
+                    { id: 'cell', label: multiCell ? 'Celdas' : 'Celda' },
+                    { id: 'row', label: 'Fila' },
+                    { id: 'column', label: 'Columna' },
+                  ] as const
+                ).map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={shadeTarget === option.id}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setShadeTarget(option.id)}
+                    className={`min-h-[34px] flex-1 rounded-full px-3 text-xs font-bold transition-colors ${
+                      shadeTarget === option.id
+                        ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)]'
+                        : 'text-[var(--color-md-on-surface-variant)] hover:text-[var(--color-md-on-surface)]'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                {HIGHLIGHT_COLORS.map((color) => (
+                  <button
+                    key={color.id}
+                    type="button"
+                    data-color={color.id}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => applyShade(color.id)}
+                    aria-label={`Sombrear en ${color.label.toLowerCase()}`}
+                    title={color.label}
+                    className={`note-hl-swatch flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-150 ease-out active:scale-90 ${
+                      activeShade === color.id
+                        ? 'ring-2 ring-[var(--color-md-primary)] ring-offset-2 ring-offset-[var(--color-md-surface-container-high)]'
+                        : 'ring-1 ring-black/10 dark:ring-white/15'
+                    }`}
+                  >
+                    {activeShade === color.id && <Check className="h-4 w-4 text-[var(--color-md-on-surface)]" aria-hidden="true" />}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyShade(null)}
+                className="mt-2 inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-surface-container)]"
+              >
+                <Eraser className="h-3.5 w-3.5" aria-hidden="true" />
+                Sin sombreado
+              </button>
+            </div>
+          )}
+          {/* Color del texto: 8 tonos y quitar color */}
+          {openMenu === 'color' && (
+            <div ref={menuRef} role="group" aria-label="Colores del texto" className={`${TOOLBAR_MENU_CLASS} left-1/2 w-max -translate-x-1/2`}>
+              <p className="mb-2 px-1 text-xs font-bold text-[var(--color-md-on-surface-variant)]">Color del texto</p>
+              <div className="grid grid-cols-4 gap-2 min-[400px]:grid-cols-8">
+                {TEXT_COLORS.map((color) => {
+                  const isCurrent = activeTextColor === color.value;
+                  return (
+                    <button
+                      key={color.id}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyTextColor(color.value)}
+                      aria-label={`Texto en ${color.label.toLowerCase()}`}
+                      aria-pressed={isCurrent}
+                      title={color.label}
+                      style={{ backgroundColor: color.value }}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-150 ease-out active:scale-90 ${
+                        isCurrent ? 'ring-2 ring-[var(--color-md-primary)] ring-offset-2 ring-offset-[var(--color-md-surface-container-high)]' : 'ring-1 ring-black/10 dark:ring-white/15'
+                      }`}
+                    >
+                      {isCurrent && <Check className="h-4 w-4 text-white" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyTextColor(null)}
+                disabled={!activeTextColor}
+                className="mt-2 inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-surface-container)] disabled:opacity-40"
+              >
+                <Eraser className="h-3.5 w-3.5" aria-hidden="true" />
+                Color normal
+              </button>
+            </div>
+          )}
           {/* Paleta del resaltador (menú M3 sobre la barra): 7 colores y quitar resaltado */}
-          {isHighlightMenuOpen && (
+          {openMenu === 'highlight' && (
             <div
-              ref={highlightMenuRef}
+              ref={menuRef}
               role="group"
               aria-label="Colores del resaltador"
-              className="m3-menu-enter absolute bottom-[calc(100%+10px)] left-1/2 z-10 w-max max-w-[calc(100vw-1rem)] origin-bottom -translate-x-1/2 rounded-[22px] border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container-high)] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+              className={`${TOOLBAR_MENU_CLASS} left-1/2 w-max -translate-x-1/2`}
             >
               <p className="mb-2 px-1 text-xs font-bold text-[var(--color-md-on-surface-variant)]">Resaltador</p>
               <div className="flex items-center gap-2">
@@ -1021,7 +1605,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   chain().unsetHighlight().run();
-                  setIsHighlightMenuOpen(false);
+                  setOpenMenu(null);
                 }}
                 disabled={!activeHighlight}
                 className="mt-2 inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-xs font-bold text-[var(--color-md-primary)] transition-colors hover:bg-[var(--color-md-surface-container)] disabled:opacity-40"
@@ -1037,12 +1621,37 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               ref={setFormatScroller}
               className="flex items-center gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
+              {/* Tipo de bloque (solo en Inicio): muestra el actual (Texto, Título 1…) y abre el menú */}
+              {activeSection === 'inicio' && (
+              <>
+              <button
+                type="button"
+                data-menu-trigger="true"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => toggleMenu('block')}
+                aria-label={`Tipo de bloque: ${currentBlockInfo.label}`}
+                aria-haspopup="menu"
+                aria-expanded={openMenu === 'block'}
+                title="Tipo de bloque"
+                className={`flex h-[38px] shrink-0 items-center gap-1 rounded-xl pl-2 pr-1.5 text-xs font-bold transition-all duration-150 ease-out active:scale-95 ${
+                  openMenu === 'block'
+                    ? 'bg-[var(--color-md-primary-container)] text-[var(--color-md-on-primary-container)]'
+                    : 'text-[var(--color-md-on-surface)] hover:bg-[var(--color-md-surface-container-high)]'
+                }`}
+              >
+                <currentBlockInfo.icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                <span className="whitespace-nowrap">{currentBlockInfo.short}</span>
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-150 ${openMenu === 'block' ? 'rotate-180' : ''}`} aria-hidden="true" />
+              </button>
+              <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />
+              </>
+              )}
               {toolbarGroups.map((group, index) => (
                 <React.Fragment key={group.label}>
                   {index > 0 && <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--color-md-outline-variant)]" aria-hidden="true" />}
                   <div role="group" aria-label={group.label} className="flex shrink-0 items-center gap-1.5">
                     {group.actions.map(({ id, run, ...action }) => (
-                      <ToolbarButton key={id} {...action} onClick={run} />
+                      <ToolbarButton key={id} {...action} onClick={run} showLabel={labeledSection} />
                     ))}
                   </div>
                 </React.Fragment>
@@ -1066,13 +1675,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <div
             role="group"
             aria-label="Fotos y voz"
-            className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-[var(--color-md-secondary-container)] p-0.5"
+            // En el teléfono solo en Inicio: los demás apartados necesitan el ancho (Insertar ya los trae)
+            className={`${activeSection === 'inicio' ? 'flex' : 'hidden sm:flex'} shrink-0 items-center gap-0.5 rounded-2xl bg-[var(--color-md-secondary-container)] p-0.5`}
           >
             <ToolbarButton tonal label="Tomar foto con la cámara" icon={Camera} onClick={openCamera} disabled={isProcessingImage} />
             <ToolbarButton tonal label="Imagen de la galería" icon={ImageIcon} onClick={openGallery} disabled={isProcessingImage} />
             {onRecordVoice && <ToolbarButton tonal label="Grabar nota de voz" icon={Mic} onClick={onRecordVoice} />}
           </div>
         </div>
+        </>
         )}
 
         <div className="mx-auto flex max-w-3xl items-center justify-end gap-2 px-1 pt-0.5 text-11px font-medium text-[var(--color-md-on-surface-variant)]">
@@ -1092,6 +1703,81 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       </div>,
       document.body
       )}
+
+      {/* Calendario: se elige el día y se escribe en el cursor */}
+      {isDatePickerOpen && (
+        <DatePickerDialog
+          initial=""
+          allowClear={false}
+          title="Insertar fecha"
+          confirmLabel="Insertar"
+          onCancel={() => setIsDatePickerOpen(false)}
+          onConfirm={insertDate}
+        />
+      )}
+
+      {/* Enlace: dirección (y el texto, si no había nada seleccionado). Vaciar la dirección lo quita */}
+      <Modal isOpen={linkDraft !== null} onClose={() => setLinkDraft(null)} title={editor.isActive('link') ? 'Editar enlace' : 'Agregar enlace'} maxWidth="sm">
+        {linkDraft && (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              applyLink();
+            }}
+            noValidate
+            className="space-y-3"
+          >
+            <label className="block text-xs font-bold text-[var(--color-md-on-surface-variant)]">
+              Dirección
+              <input
+                type="text"
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                autoFocus
+                value={linkDraft.url}
+                onChange={(event) => setLinkDraft({ ...linkDraft, url: event.target.value })}
+                placeholder="ejemplo.com o https://…"
+                className="mt-1 h-11 w-full rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] px-3 text-sm font-medium text-[var(--color-md-on-surface)] outline-none focus:border-[var(--color-md-primary)]"
+              />
+            </label>
+            {linkDraft.needsText && (
+              <label className="block text-xs font-bold text-[var(--color-md-on-surface-variant)]">
+                Texto que se verá (opcional)
+                <input
+                  type="text"
+                  value={linkDraft.text}
+                  onChange={(event) => setLinkDraft({ ...linkDraft, text: event.target.value })}
+                  placeholder="Si lo dejas vacío, se verá la dirección"
+                  className="mt-1 h-11 w-full rounded-xl border border-[var(--color-md-outline-variant)] bg-[var(--color-md-surface-container)] px-3 text-sm font-medium text-[var(--color-md-on-surface)] outline-none focus:border-[var(--color-md-primary)]"
+                />
+              </label>
+            )}
+            <ModalActions>
+              {editor.isActive('link') && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setLinkDraft(null);
+                    chain().extendMarkRange('link').unsetLink().run();
+                  }}
+                >
+                  Quitar enlace
+                </Button>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={() => setLinkDraft(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="primary" size="sm">
+                Listo
+              </Button>
+            </ModalActions>
+          </form>
+        )}
+      </Modal>
 
       {/* También en un portal: así queda por encima de la barra inferior (que vive en <body>) */}
       {editingImage &&

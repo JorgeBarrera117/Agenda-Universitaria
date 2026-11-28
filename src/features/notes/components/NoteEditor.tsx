@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { Check, Undo2, Redo2, X, Loader2, AlertTriangle, Share2 } from 'lucide-react';
-import { PAGE_HEADER_ICON_BUTTON, PAGE_HEADER_PRIMARY_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Undo2, Redo2, X, Loader2, AlertTriangle, Share2, FileText, FileDown, FileCode2, Printer, Maximize2, Minimize2, AlignLeft } from 'lucide-react';
+import { PAGE_HEADER_ICON_BUTTON, PageHeader } from '../../../shared/components/PageHeader';
 import { useSubjects } from '../../subjects/hooks/useSubjects';
 import { SubjectBadge } from '../../subjects/components/SubjectIcon';
-import { RichTextEditor } from './RichTextEditor';
+import { RichTextEditor, type EditorCommand } from './RichTextEditor';
+import { SHEET_PAGE } from '../extensions/Pagination';
 import { VoiceNotesSection, VoiceRecorderModal } from './VoiceNotes';
 import { useNoteAudios } from '../hooks/useNoteAudios';
 import { Modal, ModalActions } from '../../../shared/components/Modal';
@@ -17,6 +19,7 @@ import type { Note, CreateNoteDTO, NoteAudio } from '../types';
 import { insertBlockNodeInView } from '../utils/editorInsert';
 import { getEmbeddedAudioIds } from '../utils/voiceNoteEmbeds';
 import { exportNoteToAgnote } from '../services/noteShareService';
+import { forgetOpenNote, rememberOpenNote } from '../utils/openNoteMemory';
 import {
   PERSONAL_CHOICE,
   PERSONAL_COLOR,
@@ -28,11 +31,49 @@ import {
 
 interface NoteEditorProps {
   initialData?: Note;
-  /** Guarda y devuelve la nota guardada; el editor sigue abierto sobre ella. */
-  onSubmit: (data: CreateNoteDTO) => Promise<Note | void>;
+  /**
+   * Guarda y devuelve la nota guardada; el editor sigue abierto sobre ella. Sin `noteId` crea el
+   * apunte; con él lo actualiza (el editor lleva el id, así dos guardados seguidos no duplican).
+   */
+  onSubmit: (data: CreateNoteDTO, noteId?: string) => Promise<Note>;
+  /** Borra un apunte que el autoguardado creó en esta edición y que quedó vacío al salir. */
+  onDiscardEmpty?: (noteId: string) => Promise<void>;
   onCancel: () => void;
   /** Clasificación preelegida de un apunte nuevo (la del filtro abierto): id de materia o «personal». */
   defaultSubjectChoice?: string;
+}
+
+/** Tableta y PC: el mismo corte que usa el Horario (Semana en PC, Día en el teléfono). */
+const WIDE_QUERY = '(min-width: 768px)';
+
+const isWideScreen = (): boolean => typeof window !== 'undefined' && window.matchMedia(WIDE_QUERY).matches;
+
+/** La vista elegida se recuerda por separado en el teléfono y en la PC. */
+const sheetViewKey = (): string => `agenda_note_view_${isWideScreen() ? 'wide' : 'phone'}`;
+
+/**
+ * Vista con la que se abre un apunte: la última elegida en este tipo de pantalla o, si nunca se
+ * eligió, la predeterminada: Normal en el teléfono (se escribe cómodo) y Hoja en la PC (como Word).
+ */
+function readSheetViewPreference(): boolean {
+  try {
+    const saved = localStorage.getItem(sheetViewKey());
+    if (saved === 'sheet') return true;
+    if (saved === 'normal') return false;
+  } catch {
+    // Sin almacenamiento: se usa la predeterminada
+  }
+  return isWideScreen();
+}
+
+/** Espera tras la última tecla antes de autoguardar: sin escrituras por cada letra. */
+const AUTOSAVE_DELAY_MS = 1200;
+
+interface NoteSnapshot {
+  title: string;
+  subjectChoice: string;
+  content: string;
+  tags: string[];
 }
 
 /** Normaliza una etiqueta escrita a mano: sin "#", sin espacios extremos y en minúsculas. */
@@ -40,36 +81,69 @@ function normalizeTag(raw: string): string {
   return raw.replace(/^#+/, '').trim().toLowerCase();
 }
 
-export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, onCancel, defaultSubjectChoice }) => {
+/** Título de respaldo de un apunte sin título: su primera línea de texto (o uno genérico). */
+function fallbackTitle(plainText: string): string {
+  const firstLine = plainText.split('\n').find((line) => line.trim())?.trim() ?? '';
+  if (!firstLine) return 'Apunte sin título';
+  return firstLine.length > 60 ? `${firstLine.slice(0, 57).trimEnd()}…` : firstLine;
+}
+
+/** ¿No hay nada escrito? (sin título, sin texto ni fotos y sin etiquetas) */
+function isDocumentEmpty(snapshot: NoteSnapshot, editor: Editor | null): boolean {
+  const bodyEmpty = editor ? editor.isEmpty : !snapshot.content.replace(/<[^>]*>/g, '').trim();
+  return !snapshot.title.trim() && bodyEmpty && snapshot.tags.length === 0;
+}
+
+function sameSnapshot(a: NoteSnapshot, b: NoteSnapshot): boolean {
+  return a.title === b.title && a.subjectChoice === b.subjectChoice && a.content === b.content && a.tags.join('|') === b.tags.join('|');
+}
+
+export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, onDiscardEmpty, onCancel, defaultSubjectChoice }) => {
   const { subjects } = useSubjects();
   // Valor del selector: id de la materia, «personal» o '' (aún sin elegir)
-  const initialChoice = initialData ? subjectIdToChoice(initialData.subjectId) : (defaultSubjectChoice ?? '');
+  const [initialChoice] = useState(() => (initialData ? subjectIdToChoice(initialData.subjectId) : (defaultSubjectChoice ?? '')));
 
   const [title, setTitle] = useState(initialData?.title || '');
   const [subjectChoice, setSubjectChoice] = useState(initialChoice);
-  const [prevInitialSubjectId, setPrevInitialSubjectId] = useState(initialData?.subjectId);
-  if (initialData?.subjectId !== prevInitialSubjectId) {
-    setPrevInitialSubjectId(initialData?.subjectId);
-    setSubjectChoice(initialChoice);
-  }
-
   const [content, setContent] = useState(initialData?.content || '');
   const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
   const [tagDraft, setTagDraft] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Guardados en curso (el autoguardado puede encadenar varios)
+  const [pendingSaves, setPendingSaves] = useState(0);
+  const isSubmitting = pendingSaves > 0;
+  const [saveFailed, setSaveFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  // Solo si el guardado falla al salir: ¿salir igual o seguir intentando?
+  const [showSaveFailedModal, setShowSaveFailedModal] = useState(false);
   // Nota sobre la que se trabaja: tras el primer guardado de un apunte nuevo ya tiene id
   const [activeNote, setActiveNote] = useState<Note | undefined>(initialData);
-  // Lo último guardado: "Cambios sin guardar" se mide contra esto, no contra cómo se abrió
-  const [lastSavedSnapshot, setLastSavedSnapshot] = useState({
+  // Lo último guardado: "Guardando…" se mide contra esto, no contra cómo se abrió
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState<NoteSnapshot>(() => ({
     title: initialData?.title || '',
-    // Un apunte nuevo con la clasificación preelegida no cuenta como «cambios sin guardar»
+    // Un apunte nuevo con la clasificación preelegida no cuenta como cambio
     subjectChoice: initialChoice,
     content: initialData?.content || '',
     tags: initialData?.tags ?? [],
-  });
+  }));
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  // Modo enfoque: solo el texto (sin materia, etiquetas ni notas de voz sueltas)
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  // Vista de hoja (diseño de impresión): se recuerda entre apuntes
+  const [isSheetView, setIsSheetView] = useState(readSheetViewPreference);
+  const [isExporting, setIsExporting] = useState(false);
+  // Escala de la hoja A4: 1 si cabe en pantalla; menos en el teléfono (se ve entera, como en Word)
+  const sheetWrapperRef = useRef<HTMLDivElement>(null);
+  const [sheetZoom, setSheetZoom] = useState(1);
+  useEffect(() => {
+    const wrapper = sheetWrapperRef.current;
+    if (!isSheetView || !wrapper) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const zoom = Math.min(1, Math.max(0.3, entry.contentRect.width / SHEET_PAGE.widthPx));
+      setSheetZoom(Math.round(zoom * 1000) / 1000);
+    });
+    observer.observe(wrapper);
+    return () => observer.disconnect();
+  }, [isSheetView]);
   // Notas de voz del apunte (necesitan que el apunte exista: uno nuevo se guarda antes de grabar)
   const { audios, addAudio, renameAudio, removeAudio } = useNoteAudios(activeNote?.id);
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
@@ -133,30 +207,165 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     };
   }, [content, editorInstance]);
 
-  const isDirty =
-    title !== lastSavedSnapshot.title ||
-    subjectChoice !== lastSavedSnapshot.subjectChoice ||
-    content !== lastSavedSnapshot.content ||
-    tagDraft.trim() !== '' ||
-    tags.join('|') !== lastSavedSnapshot.tags.join('|');
+  // La etiqueta a medio escribir no cuenta: se guarda al confirmarla (Enter, coma o al salir del campo)
+  const isDirty = !sameSnapshot({ title, subjectChoice, content, tags }, lastSavedSnapshot);
 
   const { isClosing, runExit } = useExitTransition(MOTION_EXIT_MS.sheet);
 
-  // Salir: si hay cambios sin guardar se pide confirmación (también con el botón físico Atrás)
+  // ── Autoguardado ────────────────────────────────────────────────────────────────────────────
+  // Todo lo que se escribe se guarda solo en IndexedDB: 1,2 s después de la última tecla, al
+  // pasar la app a segundo plano y al salir. Así, si Android cierra la app mientras está en
+  // segundo plano, no se pierde nada. Los guardados van en cadena (uno tras otro) y el editor
+  // lleva el id de la nota, de modo que un apunte nuevo se crea una sola vez.
+  const latestRef = useRef<NoteSnapshot>({ title, subjectChoice, content, tags });
+  const savedRef = useRef<NoteSnapshot>(lastSavedSnapshot);
+  const noteIdRef = useRef<string | undefined>(initialData?.id);
+  // ¿El autoguardado creó el apunte en esta edición? (si al salir quedó vacío, se borra)
+  const createdHereRef = useRef(false);
+  const saveChainRef = useRef<Promise<unknown>>(Promise.resolve());
+  const onSubmitRef = useRef(onSubmit);
+  const editorRef = useRef<Editor | null>(null);
+  const exitingRef = useRef(false);
+  useEffect(() => {
+    latestRef.current = { title, subjectChoice, content, tags };
+    onSubmitRef.current = onSubmit;
+    editorRef.current = editorInstance;
+  });
+
+  /**
+   * Guarda lo que hay en pantalla si cambió. `override` permite incluir algo que aún no llegó al
+   * estado (la etiqueta recién confirmada); `force` crea el apunte aunque esté vacío (para grabar
+   * una nota de voz hace falta que exista). Devuelve si quedó todo guardado.
+   */
+  const persist = useCallback((options: { override?: Partial<NoteSnapshot>; force?: boolean } = {}): Promise<boolean> => {
+    const run = async (): Promise<boolean> => {
+      const snapshot: NoteSnapshot = { ...latestRef.current, ...options.override };
+      const hasId = Boolean(noteIdRef.current);
+      if (hasId && sameSnapshot(snapshot, savedRef.current)) return true;
+      // Un apunte nuevo sin nada escrito no se crea (salvo que haga falta para la nota de voz)
+      if (!hasId && !options.force && isDocumentEmpty(snapshot, editorRef.current)) return true;
+      if (!hasId && !options.force && sameSnapshot(snapshot, savedRef.current)) return true;
+
+      // Sin materia elegida va a «Personal», y queda así a la vista para que se pueda cambiar
+      const choice = snapshot.subjectChoice || PERSONAL_CHOICE;
+      const saved = { ...snapshot, subjectChoice: choice };
+      setPendingSaves((n) => n + 1);
+      try {
+        const note = await onSubmitRef.current(
+          {
+            title: snapshot.title.trim() || fallbackTitle(editorRef.current?.getText() ?? snapshot.content.replace(/<[^>]*>/g, ' ')),
+            subjectId: choiceToSubjectId(choice),
+            content: snapshot.content,
+            tags: snapshot.tags,
+          },
+          noteIdRef.current
+        );
+        if (!noteIdRef.current) createdHereRef.current = true;
+        noteIdRef.current = note.id;
+        rememberOpenNote(note.id);
+        setActiveNote(note);
+        if (!snapshot.subjectChoice) setSubjectChoice(choice);
+        savedRef.current = saved;
+        setLastSavedSnapshot(saved);
+        setLastSavedTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+        setSaveFailed(false);
+        return true;
+      } catch (err: unknown) {
+        setSaveFailed(true);
+        setError(err instanceof Error ? err.message : 'No se pudo guardar el apunte.');
+        return false;
+      } finally {
+        setPendingSaves((n) => n - 1);
+      }
+    };
+    const next = saveChainRef.current.then(run, run);
+    saveChainRef.current = next;
+    return next;
+  }, []);
+
+  // 1,2 s después del último cambio
+  useEffect(() => {
+    if (!isDirty) return;
+    const timer = window.setTimeout(() => void persist(), AUTOSAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [isDirty, title, subjectChoice, content, tags, persist]);
+
+  // Al pasar a segundo plano (cambiar de app, apagar la pantalla) o cerrar la ventana: ya mismo
+  useEffect(() => {
+    const flush = () => void persist();
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', flush);
+      // Si el editor se desmonta por otra vía, lo pendiente también se guarda
+      flush();
+    };
+  }, [persist]);
+
+  const leaveEditor = () => {
+    forgetOpenNote();
+    if (isFocusMode) exitDesktopFullscreen();
+    runExit(onCancel);
+  };
+
+  // Salir: guarda lo pendiente y vuelve (ya no hay «¿Descartar cambios?»: todo se guarda solo)
   const handleBack = () => {
-    if (showDiscardModal) {
-      setShowDiscardModal(false);
-    } else if (isDirty) {
-      setShowDiscardModal(true);
-    } else {
-      runExit(onCancel);
+    if (showSaveFailedModal) setShowSaveFailedModal(false);
+    else void saveAndLeave();
+  };
+
+  const saveAndLeave = async () => {
+    if (exitingRef.current) return;
+    exitingRef.current = true;
+    const finalTags = commitTags(tagDraft);
+    const ok = await persist({ override: { tags: finalTags } });
+    if (!ok) {
+      exitingRef.current = false;
+      setShowSaveFailedModal(true);
+      return;
     }
+    // Un apunte que se creó solo y al final quedó vacío no se deja en la lista
+    const noteId = noteIdRef.current;
+    if (noteId && createdHereRef.current && isDocumentEmpty({ ...latestRef.current, tags: finalTags }, editorRef.current) && onDiscardEmpty) {
+      try {
+        await onDiscardEmpty(noteId);
+      } catch (err) {
+        console.warn('No se pudo borrar el apunte vacío:', err);
+      }
+    }
+    leaveEditor();
   };
 
   useBackButton(() => {
     handleBack();
     return true;
   }, BACK_PRIORITY.MODAL, true);
+
+  // Modo enfoque: oculta materia, etiquetas y notas de voz sueltas; en PC además pantalla completa
+  const canUseDesktopFullscreen = !Capacitor.isNativePlatform() && typeof document !== 'undefined' && document.fullscreenEnabled;
+  function exitDesktopFullscreen() {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+  }
+  const toggleFocusMode = () => {
+    const next = !isFocusMode;
+    setIsFocusMode(next);
+    if (!canUseDesktopFullscreen) return;
+    if (next) void document.documentElement.requestFullscreen().catch(() => undefined);
+    else exitDesktopFullscreen();
+  };
+  // Salir de la pantalla completa con Esc también termina el modo enfoque
+  useEffect(() => {
+    if (!isFocusMode || !canUseDesktopFullscreen) return;
+    const onChange = () => {
+      if (!document.fullscreenElement) setIsFocusMode(false);
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, [isFocusMode, canUseDesktopFullscreen]);
 
   const commitTags = (raw: string): string[] => {
     const incoming = raw.split(',').map(normalizeTag).filter(Boolean);
@@ -207,43 +416,65 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
     }
   };
 
-  /** Guarda sin salir del editor. Devuelve si se guardó (para "Guardar y salir"). */
-  const handleSave = async (): Promise<boolean> => {
-    if (!title.trim()) {
-      setError('Escribe un título para tu apunte.');
-      return false;
-    }
-    if (!subjectChoice) {
-      setError('Elige una materia o «Personal» para este apunte.');
-      return false;
-    }
+  const noteTitleForFiles = () => title.trim() || fallbackTitle(editorInstance?.getText() ?? '');
 
-    const finalTags = commitTags(tagDraft);
-
+  const toggleSheetView = () => {
+    const next = !isSheetView;
+    setIsSheetView(next);
     try {
-      setIsSubmitting(true);
-      setError(null);
-      const saved = await onSubmit({ title: title.trim(), subjectId: choiceToSubjectId(subjectChoice), content, tags: finalTags });
-      if (saved) setActiveNote(saved);
-      // Se compara con lo que hay en pantalla (el título sin recortar) para que quede "sin cambios"
-      setLastSavedSnapshot({ title, subjectChoice, content, tags: finalTags });
-      setLastSavedTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
-      return true;
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el apunte.');
-      return false;
-    } finally {
-      setIsSubmitting(false);
+      localStorage.setItem(sheetViewKey(), next ? 'sheet' : 'normal');
+    } catch {
+      // Sin almacenamiento: solo no se recuerda para el próximo apunte
     }
   };
 
-  const handleRecordVoice = async () => {
-    if (activeNote?.id) {
-      setIsRecorderOpen(true);
-      return;
+  /** Exporta lo que se ve en pantalla (aunque falte el último autoguardado). */
+  const handleExport = async (kind: 'docx' | 'md') => {
+    if (!editorInstance) return;
+    setIsExporting(true);
+    try {
+      const { exportNoteDocx, exportNoteMarkdown } = await import('../services/noteExportService');
+      const name = noteTitleForFiles();
+      const result = kind === 'docx' ? await exportNoteDocx(name, editorInstance.getJSON()) : await exportNoteMarkdown(name, content);
+      if (result.method === 'download') setShareNotice(`Descargado: ${result.fileName}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo exportar el apunte.');
+    } finally {
+      setIsExporting(false);
     }
-    // Apunte nuevo: se guarda primero (título y materia) para poder adjuntarle la grabación
-    if (await handleSave()) setIsRecorderOpen(true);
+  };
+
+  const handlePrint = async () => {
+    setIsExporting(true);
+    try {
+      const { printNote } = await import('../services/notePrintService');
+      const subjectLabel = subjectOptions.find((option) => option.value === subjectChoice)?.label ?? PERSONAL_LABEL;
+      const created = activeNote ? new Date(activeNote.createdAt) : new Date();
+      const dateLabel = created.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+      const meta = [subjectLabel, dateLabel, ...(tags.length > 0 ? [tags.map((tag) => `#${tag}`).join(' ')] : [])].join(' · ');
+      await printNote(noteTitleForFiles(), content, meta);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo imprimir el apunte.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Apartados «Vista» y «Archivo» de la barra del editor (los mismos comandos que el menú ⋮)
+  const viewCommands: EditorCommand[] = [
+    { id: 'sheet', label: 'Vista de hoja', icon: FileText, run: toggleSheetView, isActive: isSheetView },
+    { id: 'focus', label: 'Modo enfoque', icon: isFocusMode ? Minimize2 : Maximize2, run: toggleFocusMode, isActive: isFocusMode },
+  ];
+  const fileCommands: EditorCommand[] = [
+    { id: 'share', label: 'Compartir', icon: Share2, run: () => void handleShare(), disabled: isSharing },
+    { id: 'docx', label: 'Word', icon: FileDown, run: () => void handleExport('docx'), disabled: isExporting },
+    { id: 'md', label: 'Markdown', icon: FileCode2, run: () => void handleExport('md'), disabled: isExporting },
+    { id: 'print', label: 'Imprimir o PDF', icon: Printer, run: () => void handlePrint(), disabled: isExporting },
+  ];
+
+  const handleRecordVoice = async () => {
+    // La grabación se adjunta a un apunte que exista: uno nuevo se crea primero (aunque esté vacío)
+    if (noteIdRef.current || (await persist({ force: true }))) setIsRecorderOpen(true);
   };
 
   const [createdLabel] = useState(() =>
@@ -255,24 +486,25 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
 
   return (
     <div
-      className={`relative flex min-h-[100dvh] w-full flex-1 flex-col bg-[var(--color-md-surface)] text-[var(--color-md-on-surface)] ${
+      className={`relative flex min-h-[100dvh] w-full flex-1 flex-col text-[var(--color-md-on-surface)] ${isSheetView ? 'bg-transparent' : 'bg-[var(--color-md-surface)]'} ${
         isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'
       }`}
     >
-      {/* Encabezado fijo con el estilo de Ajustes: volver · documento y estado · deshacer,
-          rehacer, compartir y guardar. El editor ocupa todo el ancho (sin margen del <main>),
+      {/* Encabezado fijo con el estilo de Ajustes: volver · documento y estado del autoguardado ·
+          deshacer, rehacer y el cambio de vista (normal u hoja). Compartir, exportar e imprimir
+          están en el apartado «Archivo» de la barra; no hay botón Guardar porque todo se guarda solo. El editor ocupa todo el ancho (sin margen del <main>),
           así que la franja usa su propio relleno lateral respetando el área segura. */}
       <PageHeader
         title={title.trim() || (activeNote ? 'Documento sin título' : 'Nuevo apunte')}
         subtitle={
           <span aria-live="polite">
-            {isSubmitting
-              ? 'Guardando…'
-              : isDirty
-                ? 'Cambios sin guardar'
+            {saveFailed && !isSubmitting
+              ? 'No se pudo guardar'
+              : isSubmitting || isDirty
+                ? 'Guardando…'
                 : lastSavedTime
-                  ? `Guardado a las ${lastSavedTime} ✓`
-                  : 'Sin cambios'}
+                  ? `Guardado automáticamente · ${lastSavedTime}`
+                  : 'Autoguardado activo'}
           </span>
         }
         onBack={handleBack}
@@ -304,35 +536,45 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             >
               <Redo2 className="h-[18px] w-[18px]" aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              onClick={() => void handleShare()}
-              disabled={isSharing}
-              aria-label="Compartir apunte"
-              title="Compartir apunte (.agnote)"
-              className={PAGE_HEADER_ICON_BUTTON}
-            >
-              {isSharing ? (
+            {(isSharing || isExporting) && (
+              <span className={PAGE_HEADER_ICON_BUTTON} role="status" aria-label="Preparando el archivo…">
                 <Loader2 className="h-[18px] w-[18px] animate-spin" aria-hidden="true" />
-              ) : (
-                <Share2 className="h-[18px] w-[18px]" aria-hidden="true" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleSave()}
-              disabled={isSubmitting || subjects.length === 0}
-              className={`ml-1 ${PAGE_HEADER_PRIMARY_BUTTON} max-[399px]:w-9 max-[399px]:justify-center max-[399px]:px-0`}
-            >
-              {isSubmitting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              ) : (
-                <Check className="h-3.5 w-3.5 stroke-[2.8]" aria-hidden="true" />
-              )}
-              {/* En teléfonos angostos (< 400px) queda solo el ✓ para dar espacio al título;
-                  el texto sigue disponible para lectores de pantalla */}
-              <span className="max-[399px]:sr-only">Guardar</span>
-            </button>
+              </span>
+            )}
+            {/* Cambio de vista: Normal (texto a todo el ancho) u Hoja (páginas A4, como Word).
+                En teléfonos angostos (< 400px) quedan solo los íconos */}
+            <div role="radiogroup" aria-label="Vista del apunte" className="ml-1 flex shrink-0 items-center gap-0.5 rounded-full bg-[var(--color-md-surface-container-high)] p-0.5">
+              {(
+                [
+                  { sheet: false, label: 'Normal', title: 'Vista normal', icon: AlignLeft },
+                  { sheet: true, label: 'Hoja', title: 'Vista de hoja (A4)', icon: FileText },
+                ] as const
+              ).map((option) => {
+                const selected = isSheetView === option.sheet;
+                const OptionIcon = option.icon;
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={option.title}
+                    title={option.title}
+                    onClick={() => {
+                      if (!selected) toggleSheetView();
+                    }}
+                    className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold transition-colors duration-150 active:scale-95 max-[399px]:px-2.5 ${
+                      selected
+                        ? 'bg-[var(--color-md-primary)] text-[var(--color-md-on-primary)] shadow-xs'
+                        : 'text-[var(--color-md-on-surface-variant)] hover:text-[var(--color-md-on-surface)]'
+                    }`}
+                  >
+                    <OptionIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="max-[399px]:sr-only">{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </>
         }
       />
@@ -340,13 +582,24 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
       <ContextualToast message={error} variant="error" bottomOffset="nav" onClose={() => setError(null)} />
       <ContextualToast message={shareNotice} bottomOffset="nav" onClose={() => setShareNotice(null)} />
 
-      {/* Lienzo: título y metadatos en línea, después el documento */}
+      {/* Lienzo: título y metadatos en línea, después el documento. En vista de hoja, todo va en
+          hojas A4 reales (21 × 29,7 cm, márgenes de 2 cm) que pagina extensions/Pagination.ts; en
+          pantallas angostas la hoja se ve a escala, como el diseño de impresión de Word móvil */}
+      <div ref={sheetWrapperRef} className={isSheetView ? 'flex flex-1 flex-col px-2 pb-28 pt-4 sm:px-6 sm:pt-6' : 'flex flex-1 flex-col'}>
       <div
-        style={{
-          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
-        }}
-        className="mx-auto flex w-full max-w-3xl flex-1 flex-col pb-28 pt-4 sm:px-6"
+        style={
+          isSheetView
+            ? { zoom: sheetZoom }
+            : {
+                paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+                paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+              }
+        }
+        className={
+          isSheetView
+            ? 'note-sheet mx-auto flex w-[21cm] shrink-0 flex-col p-[2cm]'
+            : 'mx-auto flex w-full max-w-3xl flex-1 flex-col pb-28 pt-4 sm:px-6'
+        }
       >
         <label htmlFor="note-title" className="sr-only">
           Título del apunte
@@ -374,6 +627,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           className="mb-3 w-full shrink-0 resize-none overflow-hidden border-none bg-transparent p-0 text-2xl font-black leading-tight tracking-tight text-[var(--color-md-on-surface)] outline-none placeholder:text-[var(--color-md-on-surface-variant)] placeholder:opacity-50 focus:ring-0 sm:text-3xl"
         />
 
+        {/* En modo enfoque solo queda el título y el texto */}
+        {!isFocusMode && (
+        <>
         <div className="mb-2 flex shrink-0 flex-wrap items-center gap-2">
           <M3Select
             variant="pill"
@@ -445,6 +701,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           onInsert={insertVoiceNote}
           className="mb-4 shrink-0"
         />
+        </>
+        )}
 
         <div className="flex min-h-0 w-full flex-1 flex-col">
           <RichTextEditor
@@ -454,6 +712,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             onImageError={setError}
             toolbarMotionClass={isClosing ? 'm3-sheet-exit' : 'm3-sheet-enter'}
             onRecordVoice={() => void handleRecordVoice()}
+            viewCommands={viewCommands}
+            fileCommands={fileCommands}
             placeholder="Comienza a redactar tu apunte aquí…"
             statusSlot={
               <span aria-live="off">
@@ -463,6 +723,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             }
           />
         </div>
+      </div>
       </div>
 
       <VoiceRecorderModal
@@ -477,13 +738,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
         }}
       />
 
-      <Modal isOpen={showDiscardModal} onClose={() => setShowDiscardModal(false)} title="¿Descartar cambios?" maxWidth="sm">
+      {/* Solo si falla el guardado al salir (p. ej. el apunte se eliminó desde otro lado) */}
+      <Modal isOpen={showSaveFailedModal} onClose={() => setShowSaveFailedModal(false)} title="No se pudo guardar" maxWidth="sm">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-md-secondary-container)] text-[var(--color-md-on-secondary-container)]">
             <AlertTriangle className="h-5 w-5" aria-hidden="true" />
           </div>
           <p className="text-sm text-[var(--color-md-on-surface-variant)]">
-            Tienes cambios sin guardar en este apunte. Si sales sin guardar, se perderán.
+            Los últimos cambios de este apunte no se pudieron guardar. Si sales ahora, se perderán.
           </p>
         </div>
         <ModalActions layout="stack">
@@ -491,26 +753,25 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
             variant="ghost"
             size="sm"
             onClick={() => {
-              setShowDiscardModal(false);
-              runExit(onCancel);
+              setShowSaveFailedModal(false);
+              leaveEditor();
             }}
           >
-            Descartar
+            Salir sin guardar
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowDiscardModal(false)}>
+          <Button variant="outline" size="sm" onClick={() => setShowSaveFailedModal(false)}>
             Seguir editando
           </Button>
           <Button
             variant="primary"
             size="sm"
             disabled={isSubmitting}
-            onClick={async () => {
-              setShowDiscardModal(false);
-              // Solo sale si de verdad se guardó (falta de título o materia: se queda y lo indica)
-              if (await handleSave()) runExit(onCancel);
+            onClick={() => {
+              setShowSaveFailedModal(false);
+              void saveAndLeave();
             }}
           >
-            Guardar y salir
+            Reintentar
           </Button>
         </ModalActions>
       </Modal>

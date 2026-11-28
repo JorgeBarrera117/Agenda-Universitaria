@@ -4,6 +4,9 @@ import { noteRepository } from '../repositories/noteRepository';
 import type { CreateNoteDTO, UpdateNoteDTO } from '../types';
 import { choiceToSubjectId } from '../utils/personalNotes';
 
+/** Un apunte por id (estable: se puede usar en dependencias de efectos). */
+const getNote = (id: string) => noteRepository.getById(id);
+
 export function useNotes(subjectFilterId?: string, searchQuery?: string) {
   const notes = useLiveQuery(
     async () => {
@@ -50,5 +53,6 @@ export function useNotes(subjectFilterId?: string, searchQuery?: string) {
     addNote,
     updateNote,
     removeNote,
+    getNote,
   };
 }

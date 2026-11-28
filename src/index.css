@@ -703,6 +703,88 @@ body {
   margin-bottom: 0.4rem;
 }
 
+:is(.ProseMirror, .note-content) h3 {
+  font-family: var(--font-google-brand);
+  font-size: calc(1.08rem * var(--text-scale));
+  font-weight: 600;
+  color: var(--color-md-on-surface);
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Enlaces: color primario y subrayado (en el editor se editan con el botón de la barra) */
+:is(.ProseMirror, .note-content) a {
+  color: var(--color-md-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+/* Código en línea y bloque de código */
+:is(.ProseMirror, .note-content) code {
+  font-family: ui-monospace, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  font-size: 0.88em;
+  background-color: var(--color-md-surface-container-high);
+  border: 1px solid var(--color-md-outline-variant);
+  border-radius: 0.35rem;
+  padding: 0.05rem 0.3rem;
+}
+:is(.ProseMirror, .note-content) pre {
+  background-color: var(--color-md-surface-container-high);
+  border: 1px solid var(--color-md-outline-variant);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+:is(.ProseMirror, .note-content) pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+/* Tablas: en el teléfono se desplazan de lado si no caben (editor: .tableWrapper; lector: la tabla) */
+.ProseMirror .tableWrapper {
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+/* En el lector la tabla misma es el contenedor desplazable y su cuerpo ocupa todo el ancho */
+.note-content table {
+  display: block;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+.note-content table > tbody {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+:is(.ProseMirror, .note-content) table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+:is(.ProseMirror, .note-content) :is(td, th) {
+  border: 1px solid var(--color-md-outline-variant);
+  padding: 0.4rem 0.6rem;
+  min-width: 5rem;
+  vertical-align: top;
+  text-align: left;
+}
+:is(.ProseMirror, .note-content) th {
+  background-color: var(--color-md-surface-container-high);
+  font-weight: 700;
+}
+:is(.ProseMirror, .note-content) :is(td, th) p {
+  margin-bottom: 0;
+}
+/* Celdas seleccionadas al arrastrar sobre la tabla */
+.ProseMirror .selectedCell {
+  background-color: color-mix(in srgb, var(--color-md-primary) 14%, transparent);
+}
+
 :is(.ProseMirror, .note-content) ul {
   list-style-type: disc;
   padding-left: 1.5rem;
@@ -959,6 +1041,103 @@ body {
 .dark .note-hl-swatch[data-color='morado'] { background-color: rgba(179, 136, 255, 0.34); }
 .dark :is(.ProseMirror, .note-content) mark[data-color='rojo'],
 .dark .note-hl-swatch[data-color='rojo'] { background-color: rgba(239, 83, 80, 0.34); }
+
+/* Vista de hoja (NoteEditor + extensions/Pagination.ts): hojas A4 reales de 21 × 29,7 cm con
+   márgenes de 2 cm, separadas por un hueco donde se ve el fondo de pantalla de la app. La hoja es
+   transparente: las páginas las pinta ::before (una franja de papel de 29,7 cm y 24 px de hueco,
+   repetidas) y el plugin de paginación fija su altura en páginas enteras y empuja el contenido */
+.note-sheet {
+  position: relative;
+  isolation: isolate;
+}
+.note-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--color-md-surface) 0,
+    var(--color-md-surface) 29.7cm,
+    transparent 29.7cm,
+    transparent calc(29.7cm + 24px)
+  );
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.16)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.08));
+  pointer-events: none;
+}
+/* Dentro de la hoja, el texto termina donde termina el contenido: la última página la define el plugin */
+.note-sheet .ProseMirror {
+  padding-bottom: 0;
+  min-height: 0;
+}
+/* Espaciador que empuja una línea o un bloque a la página siguiente (no se guarda en el apunte) */
+.note-page-spacer {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Salto de página (extensions/PageBreak.ts): línea discontinua con su nombre en el editor y el lector */
+:is(.ProseMirror, .note-content) .note-page-break {
+  position: relative;
+  clear: both;
+  margin: 1.5rem 0;
+  border-top: 2px dashed var(--color-md-outline-variant);
+}
+:is(.ProseMirror, .note-content) .note-page-break::after {
+  content: 'Salto de página';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  background: var(--color-md-surface);
+  color: var(--color-md-on-surface-variant);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.ProseMirror .note-page-break.ProseMirror-selectednode {
+  border-top-color: var(--color-md-primary);
+}
+/* En la vista de hoja el salto no ocupa espacio (lo que sigue ya empieza en la página siguiente):
+   queda solo una marca discreta al final del texto, para poder seleccionarlo y borrarlo */
+.note-sheet .ProseMirror .note-page-break {
+  border-top: 0;
+  height: 0;
+  margin: 0;
+}
+.note-sheet .ProseMirror .note-page-break::after {
+  top: -1.4em;
+  left: auto;
+  right: 0;
+  transform: none;
+  background: transparent;
+  font-size: 10px;
+  opacity: 0.7;
+}
+.note-sheet .ProseMirror .note-page-break.ProseMirror-selectednode::after {
+  opacity: 1;
+  color: var(--color-md-primary);
+}
+
+/* Sombreado de celdas (NoteTableCell.ts): los mismos tonos del resaltador, claro y oscuro */
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='amarillo'] { background-color: #FFF176; }
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='verde'] { background-color: #B9F6CA; }
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='celeste'] { background-color: #B3E5FC; }
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='rosa'] { background-color: #F8BBD0; }
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='naranja'] { background-color: #FFCC80; }
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='morado'] { background-color: #D1C4E9; }
+:is(.ProseMirror, .note-content) :is(td, th)[data-shade='rojo'] { background-color: #FFCDD2; }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='amarillo'] { background-color: rgba(255, 214, 0, 0.32); }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='verde'] { background-color: rgba(0, 230, 118, 0.26); }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='celeste'] { background-color: rgba(41, 182, 246, 0.32); }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='rosa'] { background-color: rgba(240, 98, 146, 0.34); }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='naranja'] { background-color: rgba(255, 145, 0, 0.32); }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='morado'] { background-color: rgba(179, 136, 255, 0.34); }
+.dark :is(.ProseMirror, .note-content) :is(td, th)[data-shade='rojo'] { background-color: rgba(239, 83, 80, 0.34); }
 
 /* Placeholder */
 .ProseMirror p.is-editor-empty:first-child::before {

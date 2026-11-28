@@ -20,7 +20,12 @@ import android.provider.Settings;
 import android.provider.OpenableColumns;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.webkit.MimeTypeMap;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import androidx.activity.result.ActivityResult;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
@@ -991,6 +996,67 @@ public class WidgetBridgePlugin extends Plugin {
         } catch (Exception e) {
             call.reject("No hay ningún navegador para abrir el enlace: " + e.getMessage());
         }
+    }
+
+    /**
+     * WebView fuera de pantalla que se está imprimiendo. Se guarda en un campo para que el recolector
+     * no lo libere antes de que el servicio de impresión termine de leerlo.
+     */
+    private WebView printWebView;
+
+    /**
+     * Imprime un documento HTML (un apunte) con PrintManager: el sistema muestra sus impresoras y
+     * «Guardar como PDF». El WebView de la app no implementa window.print(), por eso va por aquí.
+     * El HTML llega armado y saneado desde la app; se carga sin JavaScript.
+     */
+    @PluginMethod
+    public void printHtml(PluginCall call) {
+        String html = call.getString("html");
+        String jobName = call.getString("jobName", "Apunte");
+        if (html == null || html.isEmpty()) {
+            call.reject("No hay nada que imprimir.");
+            return;
+        }
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject("La app no está en primer plano.");
+            return;
+        }
+        final String finalJobName = (jobName == null || jobName.trim().isEmpty()) ? "Apunte" : jobName.trim();
+        activity.runOnUiThread(() -> {
+            try {
+                WebView webView = new WebView(activity);
+                webView.getSettings().setJavaScriptEnabled(false);
+                webView.setWebViewClient(new WebViewClient() {
+                    private boolean started = false;
+
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        if (started) return;
+                        started = true;
+                        PrintManager printManager = (PrintManager) activity.getSystemService(Context.PRINT_SERVICE);
+                        if (printManager == null) {
+                            printWebView = null;
+                            call.reject("Este teléfono no tiene servicio de impresión.");
+                            return;
+                        }
+                        PrintDocumentAdapter adapter = view.createPrintDocumentAdapter(finalJobName);
+                        PrintAttributes attributes = new PrintAttributes.Builder()
+                            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                            .build();
+                        printManager.print(finalJobName, adapter, attributes);
+                        JSObject ret = new JSObject();
+                        ret.put("success", true);
+                        call.resolve(ret);
+                    }
+                });
+                printWebView = webView;
+                webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+            } catch (Exception e) {
+                printWebView = null;
+                call.reject("No se pudo preparar la impresión: " + e.getMessage());
+            }
+        });
     }
 
     @PluginMethod

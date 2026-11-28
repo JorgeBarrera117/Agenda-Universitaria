@@ -51,8 +51,11 @@ export function shareFileBaseName(name: string, fallback: string): string {
  * Telegram, Drive…) con su tipo MIME propio; en la web o en PC lo descarga.
  */
 export async function deliverSharedFile(content: string, fileName: string, mimeType: string): Promise<SharedFileResult> {
-  const blob = new Blob([content], { type: mimeType });
+  return deliverSharedBlob(new Blob([content], { type: mimeType }), fileName, mimeType);
+}
 
+/** Igual que deliverSharedFile, para contenido binario ya armado (p. ej. un .docx). */
+export async function deliverSharedBlob(blob: Blob, fileName: string, mimeType: string): Promise<SharedFileResult> {
   if (Capacitor.isNativePlatform()) {
     await WidgetBridge.shareFile({ base64Data: await blobToDataUrl(blob), fileName, mimeType });
     return { method: 'share', fileName };

@@ -64,6 +64,11 @@ export interface WidgetBridgePlugin {
   /** Abre un enlace https en el navegador del sistema (p. ej. la descarga de una actualización). */
   openExternalUrl(options: { url: string }): Promise<{ success: boolean }>;
   /**
+   * Imprime un documento HTML con el servicio de impresión de Android (PrintManager): impresoras
+   * o «Guardar como PDF». El WebView de la app no implementa window.print().
+   */
+  printHtml(options: { html: string; jobName: string }): Promise<{ success: boolean }>;
+  /**
    * Pasar datos de teléfono a teléfono: abre el servidor temporal en la red local (ver
    * LocalTransferServer.java). `send` entrega `payload`, ya cifrado. Emite "transferEvent".
    * Rechaza con code "NO_LAN" si no hay wifi ni punto de acceso.

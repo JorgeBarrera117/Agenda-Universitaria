@@ -37,6 +37,11 @@ function strictScriptCsp(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   base: './',
+  // Exportar apuntes (Word/Markdown) carga estas librerías a demanda; en desarrollo se preparan al
+  // arrancar para que Vite no las descubra tarde y responda «504 Outdated Optimize Dep»
+  optimizeDeps: {
+    include: ['docx', 'turndown', 'turndown-plugin-gfm'],
+  },
   plugins: [
     strictScriptCsp(),
     react(),

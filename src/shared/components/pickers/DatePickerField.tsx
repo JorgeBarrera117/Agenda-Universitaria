@@ -80,11 +80,14 @@ interface DatePickerDialogProps {
   min?: string;
   allowClear: boolean;
   title: string;
+  /** Texto del botón principal (por defecto «Aceptar»). */
+  confirmLabel?: string;
   onCancel: () => void;
   onConfirm: (value: string) => void;
 }
 
-const DatePickerDialog: React.FC<DatePickerDialogProps> = ({ initial, min, allowClear, title, onCancel, onConfirm }) => {
+/** El diálogo de calendario solo (sin el campo), para quien abre el selector desde otro control. */
+export const DatePickerDialog: React.FC<DatePickerDialogProps> = ({ initial, min, allowClear, title, confirmLabel = 'Aceptar', onCancel, onConfirm }) => {
   const [todayKey] = useState(() => toDateKey(new Date()));
   const [draft, setDraft] = useState(initial || (min && min > todayKey ? min : todayKey));
   const [visible, setVisible] = useState(() => {
@@ -193,7 +196,7 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({ initial, min, allow
             onClick={() => onConfirm(draft)}
             className="h-10 rounded-full bg-[var(--color-md-primary)] px-5 text-sm font-bold text-[var(--color-md-on-primary)]"
           >
-            Aceptar
+            {confirmLabel}
           </button>
         </div>
       </div>

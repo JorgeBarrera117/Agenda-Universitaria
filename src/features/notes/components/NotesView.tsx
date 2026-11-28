@@ -56,6 +56,8 @@ import { sanitizeNoteHtml } from '../../../shared/utils/sanitizeHtml';
 import type { Note, CreateNoteDTO, NoteImage } from '../types';
 import { CARD_INTERACTIVE_CLASS, CARD_SURFACE_CLASS, HEADER_SCRIM_CLASS } from '../../../shared/styles/surfaces';
 import { notePlainText, parseNotePreview, type NotePreviewData } from '../utils/notePreview';
+import { forgetOpenNote } from '../utils/openNoteMemory';
+import { isWebUrl, openExternalUrl } from '../../../shared/utils/openExternalUrl';
 import { PERSONAL_CATEGORY, PERSONAL_CHOICE, getNoteCategory, subjectIdToChoice } from '../utils/personalNotes';
 import type { NotesRequest } from '../types/notesRequest';
 
@@ -97,7 +99,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // Ordenamiento de documentos
   const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'title'>('updatedAt');
 
-  const { notes, addNote, updateNote, removeNote } = useNotes(
+  const { notes, addNote, updateNote, removeNote, getNote } = useNotes(
     selectedSubjectId,
     searchQuery
   );
@@ -131,11 +133,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
   // «Ver apuntes» muestra la lista filtrada; «Tomar apunte» deja el editor pendiente (ver abajo)
   const [seenRequestNonce, setSeenRequestNonce] = useState<number | null>(null);
   const [composePending, setComposePending] = useState(false);
+  // «resume»: reabrir el apunte que quedó abierto cuando el sistema cerró la app
+  const [resumeNoteId, setResumeNoteId] = useState<string | null>(null);
   if (request && request.nonce !== seenRequestNonce) {
     setSeenRequestNonce(request.nonce);
     setSelectedSubjectId(request.subjectId ? subjectIdToChoice(request.subjectId) : 'all');
     setViewMode('list');
     setComposePending(request.intent === 'compose');
+    setResumeNoteId(request.intent === 'resume' ? (request.noteId ?? null) : null);
   }
 
   // «Tomar apunte»: el editor se abre un cuadro después, ya montada la pestaña. Si se montara en el
@@ -150,6 +155,26 @@ export const NotesView: React.FC<NotesViewProps> = ({
     }, 0);
     return () => window.clearTimeout(timer);
   }, [composePending]);
+
+  // Reabre el apunte que se estaba editando (ya guardado por el autoguardado), igual que
+  // «Tomar apunte»: un cuadro después de montada la pestaña
+  useEffect(() => {
+    if (!resumeNoteId) return;
+    let cancelled = false;
+    void getNote(resumeNoteId).then((note) => {
+      if (cancelled) return;
+      setResumeNoteId(null);
+      if (!note) {
+        forgetOpenNote();
+        return;
+      }
+      setEditingNote(note);
+      setViewMode('editor');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [resumeNoteId, getNote]);
   const [readingNote, setReadingNote] = useState<Note | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
   const [zoomedImage, setZoomedImage] = useState<NoteImage | null>(null);
@@ -288,18 +313,12 @@ export const NotesView: React.FC<NotesViewProps> = ({
     }
   };
 
-  // Guardar NO cierra el editor: se sigue escribiendo sobre la nota guardada. Solo "Volver" sale.
-  const handleSubmit = async (dto: CreateNoteDTO): Promise<Note> => {
-    let savedNote: Note;
-    if (editingNote) {
-      savedNote = await updateNote(editingNote.id, dto);
-      if (readingNote?.id === editingNote.id) {
-        setReadingNote(savedNote);
-      }
-    } else {
-      // Apunte nuevo: desde aquí, los siguientes guardados actualizan esta misma nota (sin duplicados)
-      savedNote = await addNote(dto);
-    }
+  // Guardar (a mano o el autoguardado) NO cierra el editor: se sigue escribiendo sobre la nota
+  // guardada. El editor dice qué nota es (noteId): sin él se crea, y desde ahí se actualiza esa
+  // misma, aunque lleguen dos guardados antes de que esta vista vuelva a renderizar.
+  const handleSubmit = async (dto: CreateNoteDTO, noteId?: string): Promise<Note> => {
+    const savedNote = noteId ? await updateNote(noteId, dto) : await addNote(dto);
+    if (readingNote?.id === savedNote.id) setReadingNote(savedNote);
     setEditingNote(savedNote);
     return savedNote;
   };
@@ -419,6 +438,7 @@ export const NotesView: React.FC<NotesViewProps> = ({
         initialData={editingNote}
         defaultSubjectChoice={selectedSubjectId === 'all' ? undefined : selectedSubjectId}
         onSubmit={handleSubmit}
+        onDiscardEmpty={removeNote}
         onCancel={handleBackToList}
       />
     );
@@ -570,6 +590,14 @@ export const NotesView: React.FC<NotesViewProps> = ({
                 if (target && target.tagName === 'IMG') {
                   const img = target as HTMLImageElement;
                   setZoomedInlineImage({ src: img.src, alt: img.alt || 'Foto del apunte' });
+                  return;
+                }
+                // Enlace web: se abre fuera de la app (navegador o la app que lo maneje)
+                const link = target?.closest('a[href]');
+                const href = link?.getAttribute('href') ?? undefined;
+                if (isWebUrl(href)) {
+                  e.preventDefault();
+                  void openExternalUrl(href);
                   return;
                 }
                 // Casilla de una lista de tareas: se marca/desmarca sin entrar al editor

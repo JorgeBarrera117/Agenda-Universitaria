@@ -56,6 +56,10 @@ const loadAgendaView = () => import('./features/agenda/components/AgendaView');
 const loadSubjectsView = () => import('./features/subjects/components/SubjectsView');
 const loadProfessorsView = () => import('./features/professors/components/ProfessorsView');
 import type { NotesIntent, NotesRequest } from './features/notes/types/notesRequest';
+import { readOpenNote } from './features/notes/utils/openNoteMemory';
+
+/** Una sola revisión por arranque del apunte que quedó abierto (ver el efecto en App). */
+let openNoteResumeChecked = false;
 const loadNotesView = () => import('./features/notes/components/NotesView');
 const loadDocumentsView = () => import('./features/documents/components/DocumentsView');
 const loadStudyView = () => import('./features/study/components/StudyView');
@@ -460,10 +464,11 @@ export function App() {
     [openDetail]
   );
 
-  // «Tomar apunte» (abre el editor con la materia elegida) o «Ver apuntes» (lista filtrada)
-  const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string, intent: NotesIntent = 'browse') => {
+  // «Tomar apunte» (abre el editor con la materia elegida), «Ver apuntes» (lista filtrada) o
+  // reabrir un apunte (noteId) que quedó abierto
+  const handleNavigateToNotesFromSchedule = useCallback((subjectId?: string, intent: NotesIntent = 'browse', noteId?: string) => {
     rememberSection('notes');
-    setNotesRequest((prev) => ({ subjectId, intent, nonce: (prev?.nonce ?? 0) + 1 }));
+    setNotesRequest((prev) => ({ subjectId, intent, noteId, nonce: (prev?.nonce ?? 0) + 1 }));
     setActiveTab((prevTab) => {
       const prevIndex = TAB_ORDER.indexOf(prevTab);
       const nextIndex = TAB_ORDER.indexOf('notes');
@@ -472,6 +477,18 @@ export function App() {
     });
     setIsSettingsOpen(false);
   }, [rememberSection]);
+
+  // Si el sistema cerró la app con un apunte abierto (Android lo hace en segundo plano), al
+  // volver se reabre ese apunte en vez de quedar en el inicio. El autoguardado ya lo guardó.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (openNoteResumeChecked) return;
+      openNoteResumeChecked = true;
+      const noteId = readOpenNote();
+      if (noteId) handleNavigateToNotesFromSchedule(undefined, 'resume', noteId);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [handleNavigateToNotesFromSchedule]);
 
   const tabEnterClass = tabDirection === 'right' ? 'block m3-tab-enter-right' : 'block m3-tab-enter-left';
 
