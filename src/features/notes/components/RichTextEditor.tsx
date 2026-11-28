@@ -654,7 +654,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const update = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+        // Se compara con el alto de la PÁGINA (clientHeight), no con innerHeight: en Chrome para Android
+        // innerHeight también se achica con el teclado y la diferencia daba siempre 0
+        const inset = Math.max(0, Math.round(document.documentElement.clientHeight - viewport.height - viewport.offsetTop));
         setKeyboardInset((prev) => (Math.abs(prev - inset) < 2 ? prev : inset));
       });
     };
