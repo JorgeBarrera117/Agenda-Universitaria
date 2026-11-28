@@ -43,6 +43,9 @@ interface NoteEditorProps {
   defaultSubjectChoice?: string;
 }
 
+/** ¿El navegador ajusta solo el alto de un textarea a su contenido? (Chromium 123+) */
+const TITLE_FIELD_SIZING = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('field-sizing', 'content');
+
 /** Tableta y PC: el mismo corte que usa el Horario (Semana en PC, Día en el teléfono). */
 const WIDE_QUERY = '(min-width: 768px)';
 
@@ -172,10 +175,12 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
   }, []);
 
   // Ajusta la altura del título a su contenido (también al montarse, vía callback ref)
+  // Con `field-sizing: content` el navegador ajusta solo el alto (también con la hoja a escala, donde
+  // scrollHeight se redondea hacia abajo y recortaba el título). Si no lo soporta, se mide a mano
   const autoSizeTitle = useCallback((el: HTMLTextAreaElement | null) => {
-    if (!el) return;
+    if (!el || TITLE_FIELD_SIZING) return;
     el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
+    el.style.height = `${el.scrollHeight + 2}px`;
   }, []);
 
   // «Personal» primero: está siempre, aunque el estudiante aún no tenga materias
@@ -624,7 +629,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ initialData, onSubmit, o
           placeholder="Título del apunte"
           autoFocus={!initialData}
           enterKeyHint="next"
-          className="mb-3 w-full shrink-0 resize-none overflow-hidden border-none bg-transparent p-0 text-2xl font-black leading-tight tracking-tight text-[var(--color-md-on-surface)] outline-none placeholder:text-[var(--color-md-on-surface-variant)] placeholder:opacity-50 focus:ring-0 sm:text-3xl"
+          className="mb-2 w-full shrink-0 resize-none overflow-hidden border-none bg-transparent px-0 py-1 text-2xl font-black leading-tight tracking-tight [field-sizing:content] text-[var(--color-md-on-surface)] outline-none placeholder:text-[var(--color-md-on-surface-variant)] placeholder:opacity-50 focus:ring-0 sm:text-3xl"
         />
 
         {/* En modo enfoque solo queda el título y el texto */}
